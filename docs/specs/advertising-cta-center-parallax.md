@@ -13,7 +13,7 @@ tests:
   - tests/site/footer-consistency.e2e.mjs
   - tests/site/mobile-layout-parity.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-10-31
+updated: 2026-11-22
 ---
 
 # CTA Advertising giữa viewport, cỡ tiêu đề, footer cửa sổ nhỏ, parallax, CTA cuối related
@@ -33,7 +33,7 @@ Tại cuối trang (`scrollY` bằng giới hạn cuộn), chân chữ dòng cu�
 `1px`. Đường giữa là giữa cả viewport, không trừ header; viewport là vùng nhìn thấy sau khi thanh địa chỉ điện thoại đứng
 yên (`dvh`). Dòng cuối tính sau khi tiêu đề xuống dòng theo bề rộng thật, nên tiêu đề hai hay ba dòng đều neo theo dòng
 cuối. Nút nằm dưới dòng cuối nhìn thấy đúng một khoảng giữa. Áp dụng ở mọi chiều rộng từ 320px, dọc và ngang, VI/EN, mọi
-filter, vào thẳng trang, route mềm và Back.
+filter, vào thẳng trang, route mềm và Back. Khi có khe thanh tìm kiếm, cụm tiêu đề và thanh neo theo [Thanh tìm kiếm R4](search-bar.md#r4-khe-cta) thay cho quy tắc này.
 
 CTA xếp cụm chữ ở đáy (`place-items: end center`); CSS cho `.detail-cta__copy` khoảng dưới
 `max(50dvh − footer, khoảng giữa + phần dưới chân chữ) − phần dưới chân chữ`, với chiều cao footer và phần dưới chân chữ

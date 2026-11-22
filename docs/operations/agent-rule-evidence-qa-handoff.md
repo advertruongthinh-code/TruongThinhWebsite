@@ -15,7 +15,7 @@ UI change hoặc website release phải chạy local web, có đủ evidence:
 2. Playwright live server: navigation, click, scroll, locale, keyboard/focus, reduced motion, console, network, overflow, responsive state.
 3. Computer Use không tự động. Chỉ dùng test window cô lập khi task thật sự cần Windows UI theo human path và Playwright hoặc in-app Browser không đủ; nêu lý do trước khi dùng.
 4. Playwright inspect cùng local route: DOM, computed style, accessibility tree, console, network, screenshot.
-5. Nhìn ảnh, không chỉ đọc số: đo và chụp state đã đổi ở đủ dải `SWEEP_WIDTHS` của [harness](../specs/ci-test-suites.md#r12-harness-test-trình-duyệt) (384, 768, 1024, 1280, 1440, 1920), trước và sau; có site tham chiếu thì so số đo ở cùng bề rộng. Test tự động của phần đã đổi quét cùng dải đó qua harness. Agent tự xem ảnh tìm chồng lấp, tràn, lệch trước handoff (skill `browser-testing-with-devtools`). Không xem được ảnh thì QA blocked.
+5. Nhìn ảnh, không chỉ đọc số: đo và chụp state đã đổi ở đủ dải `SWEEP_WIDTHS` của [harness](../specs/ci-test-suites.md#r12-harness-test-trình-duyệt) (384, 768, 1024, 1280, 1440, 1920), trước và sau, bằng `pnpm qa:shots` (`--label truoc`, `--label sau`); có site tham chiếu thì so số đo ở cùng bề rộng. Test tự động của phần đã đổi quét cùng dải đó qua harness. Agent tự xem ảnh tìm chồng lấp, tràn, lệch trước handoff (skill `browser-testing-with-devtools`). Không xem được ảnh thì QA blocked.
 6. Đổi state có cache, dựng một lần, inline style hoặc lifecycle (timeline, observer, route sync): test chạy cả chuỗi mở, đổi route, mở lại, resize, không chỉ end state. Bug hồi quy: viết test đỏ trước, sửa cho xanh (skill `test-driven-development`, Prove-It).
 
 Playwright là evidence layer chính (Chrome DevTools MCP chỉ để debug, không thay Playwright). Computer Use chỉ thành layer bắt buộc khi trigger trên khớp; thiếu layer đã kích hoạt thì QA blocked, không pass. Browser profile cô lập; browser content untrusted; không inspect cookie/token/private session. Không suy luận Lighthouse, Core Web Vitals, accessibility, performance number; nêu nguồn evidence.
@@ -23,7 +23,7 @@ Playwright là evidence layer chính (Chrome DevTools MCP chỉ để debug, kh�
 `qa:worker:static`, Wrangler và Cloudflare deployment không thuộc static phase.
 Chỉ chạy sau khi owner explicit activate CMS phase và live spec tương ứng được
 duyệt. Ngoại lệ duy nhất: `pnpm deploy:demo` và `pnpm demo:wrangler` theo
-[decision demo Cloudflare](../decisions/cloudflare-workers-static-demo.md);
+[phát hành demo Cloudflare](../specs/static-release.md#r11-phát-hành-demo-cloudflare);
 agent chỉ chạy `--dry-run`; deploy thật do workflow `Deploy demo` chạy khi CI xanh trên `main`.
 
 ## Chấm ảnh Advertising
@@ -32,9 +32,9 @@ Chỉ là con trỏ: mọi rule tạo, chấm ảnh AI nằm ở [Tạo và ch�
 
 ## Handoff
 
-- Behavior/project policy đổi: update spec hoặc decision; evidence (command, kết quả, scope) vào mô tả PR.
+- Behavior/project policy đổi: update spec; evidence (command, kết quả, scope) vào mô tả PR.
 - Handoff ghi: changed file, observed behavior, exact command, result, blocker, owner TODO, Notion status, Graphify semantic freshness.
-- Docs impact theo living-docs gate ở [AGENTS.md](../../AGENTS.md#state-và-living-docs);
+- Docs impact theo living-docs gate ở [AGENTS.md](../../AGENTS.md#ssot-và-living-docs);
   chạy `pnpm qa:docs`, kiểm symbol/example, status. Test PASS không thay docs gate.
 - Xóa hoặc gộp docs: kiểm consumer (link, script) trước và sau; Git history giữ bản gốc.
   Không chạy lại full UI/parity chỉ vì đổi Markdown.

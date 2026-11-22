@@ -26,7 +26,7 @@ test("every e2e file belongs in exactly one place: suite, manual or pending", ()
 });
 
 test("select suites by the files a PR changes", () => {
-  assert.deepEqual(select(["docs/STATE.md", "README.md"]), []);
+  assert.deepEqual(select(["docs/index.md", "README.md"]), []);
   assert.deepEqual(select(["AGENTS.md"]), ["fast"]);
   assert.deepEqual(select(["src/site/style.css"]), all);
   // The shared footer and the media frame also guard the home and detail pages.
@@ -36,8 +36,8 @@ test("select suites by the files a PR changes", () => {
   assert.deepEqual(select(["tests/site/not-found-routes.e2e.mjs"]), ["fast", "route"]);
   assert.deepEqual(select(["src/site/new-page/index.html"]), all);
   // Main: a merge with only docs runs no suite; a merge with code runs them all.
-  assert.deepEqual(select(["docs/STATE.md"], "push"), []);
-  assert.deepEqual(select(["docs/STATE.md", "AGENTS.md"], "workflow_dispatch"), all);
+  assert.deepEqual(select(["docs/index.md"], "push"), []);
+  assert.deepEqual(select(["docs/index.md", "AGENTS.md"], "workflow_dispatch"), all);
 });
 
 test("the job summary timing table has one row per command", () => {

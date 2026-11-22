@@ -82,6 +82,16 @@ try {
     await scrollTo(desktop, 30);
     assert.equal((await headerBox(desktop)).top, 0, "1440px mouse: header follows Shell R3, not the scroll");
     assert.equal(await desktop.evaluate(() => document.querySelector("[data-site-header]").classList.contains("is-follow")), false);
+    // Shell R3 (owner 2026-11-22): scrolling down hides, scrolling up inside the middle zone does not reveal; the page top does.
+    const hidden = () => desktop.evaluate(() => document.querySelector("[data-site-header]").classList.contains("is-hidden"));
+    await scrollTo(desktop, 1000);
+    await scrollTo(desktop, 1400);
+    assert.equal(await hidden(), true, "1440px mouse: scrolling down 400px in the middle zone hides the header");
+    await scrollTo(desktop, 1300);
+    await scrollTo(desktop, 900);
+    assert.equal(await hidden(), true, "1440px mouse: scrolling up 500px does not reveal the header");
+    await scrollTo(desktop, 0);
+    assert.equal(await hidden(), false, "1440px mouse: the page top reveals the header");
   } finally {
     await desktop.close();
   }

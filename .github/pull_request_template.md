@@ -14,7 +14,7 @@ Kiểm: <command và kết quả>
 
 Skill: <skill agent-skills đã dùng, mỗi skill một dòng lý do>
 
-Ảnh QA (UI): <ảnh đủ dải 384, 768, 1024, 1280, 1440, 1920, trước/sau; chuỗi route/mở lại đã test>
+Ảnh QA (UI): <ảnh đủ dải 384, 768, 1024, 1280, 1440, 1920, trước/sau; chuỗi route/mở lại đã test; không đổi UI thì ghi lý do; qa-docs kiểm khi đổi src/site>
 
 <!--
 Chú thích thuật ngữ

@@ -1,0 +1,10 @@
+{
+  "truongthinh-secret-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command",
+        "hooks": [{ "type": "command", "command": "node ./scripts/tooling/pre-tool-guard.mjs", "timeout": 10 }]
+      }
+    ]
+  }
+}

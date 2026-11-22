@@ -1,7 +1,7 @@
 // Per-frame card mount budget (advertising-masonry R7): quota by measured cost; very fast swipes only reserve space.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { breathePhase, clearColorWait, colorsPhase, createDetachedCards, createMountBudget, detachedCapacity, setColorWait } from "../../src/site/masonry/mount-budget.mjs";
+import { clearColorWait, colorsAt, colorsPhase, createDetachedCards, createMountBudget, detachedCapacity, setColorWait } from "../../src/site/masonry/mount-budget.mjs";
 
 const clock = () => {
   const state = { now: 1000 };
@@ -100,16 +100,23 @@ test("the base frame interval is clamped so a slow render does not widen its own
   assert.ok(budget.quota() <= 4, "34ms cap gives at most an 11ms budget with the 3ms default cost");
 });
 
-test("breathing phase is shared by absolute time", () => {
-  assert.equal(breathePhase(4000), "0ms");
-  assert.equal(breathePhase(4300), "-300ms");
-  assert.equal(breathePhase(5300), "-1300ms", "same phase as 3300ms: shifted by one period");
-});
-
 test("color wait phase is shared by absolute time, 8s cycle", () => {
   assert.equal(colorsPhase(16000), "0ms");
   assert.equal(colorsPhase(16300), "-300ms");
   assert.equal(colorsPhase(25300), "-1300ms", "same phase as 17300ms: shifted by one period");
+  assert.equal(colorsPhase(20300, 20000), "-300ms", "counted from the shifted cycle start");
+});
+
+test("a still color layer shows the pair and mix the animation shows at that time", () => {
+  assert.equal(colorsAt(0).pair, "12");
+  assert.ok(colorsAt(0).mix < 0.001);
+  assert.equal(colorsAt(1000).pair, "12");
+  assert.ok(Math.abs(colorsAt(1000).mix - 0.5) < 0.001, "ease-in-out is half way at half time");
+  assert.equal(colorsAt(2000).pair, "32");
+  assert.ok(colorsAt(2000).mix > 0.999);
+  assert.equal(colorsAt(6000).pair, "14");
+  assert.ok(colorsAt(7999).mix < 0.001, "fades back to color 1 at the cycle end");
+  assert.equal(colorsAt(8000 + 4000).pair, "34");
 });
 
 test("a color wait is set and cleared on any node", () => {

@@ -1,16 +1,18 @@
 ---
 title: Hệ thống tài liệu gọn, spec sống theo code
 status: live
-updated: 2026-11-12
+updated: 2026-11-15
 source:
   - scripts/docs/check-docs.mjs
+  - scripts/docs/agents-rules.mjs
   - .github/pull_request_template.md
   - .github/workflows/docs.yml
 tests:
   - scripts/docs/check-docs.mjs
   - tests/tooling/docs-malformed-link.test.mjs
   - tests/tooling/docs-sync-local.test.mjs
-notion: none
+  - tests/tooling/agents-rules.test.mjs
+notion: https://app.notion.com/p/419332849a0e81648515dee0df69a0af
 ---
 
 # Hệ thống tài liệu gọn, spec sống theo code
@@ -24,7 +26,7 @@ nằm trong một Design System dùng chung cho website, Impeccable và claude.a
 
 ## Chuẩn áp dụng
 
-Giữ agent-skills (đã cài, lifecycle trong `AGENTS.md`); không cài spec-kit.
+Giữ agent-skills (đã cài, lifecycle trong `AGENTS.md`; ADR viết trên Notion); không cài spec-kit.
 
 | Tiêu chí | agent-skills | spec-kit |
 | --- | --- | --- |
@@ -40,7 +42,7 @@ của OpenSpec: spec mô tả sự thật hiện tại; thay đổi đang làm l
 
 ### R1. Cấu trúc tài liệu
 
-Cây đích (mọi path khác dưới `docs/` bị xóa hoặc gộp):
+Cây đích (mọi path khác dưới `docs/` bị xóa hoặc gộp). ADR và bản nháp nằm trên Notion; GitHub chỉ giữ tài liệu sống đã duyệt, nên không có `docs/decisions/`:
 
 ```text
 AGENTS.md, README.md             rule agent, lối vào
@@ -48,12 +50,10 @@ PRODUCT.md                        product truth (Impeccable đọc)
 DESIGN.md                         GENERATED từ design-system/ (Impeccable đọc)
 design-system/                    nguồn chuẩn visual, publish lên claude.ai
 .impeccable/surfaces/             brief theo route, chỉ link design-system
-docs/STATE.md                     snapshot ngắn
 docs/index.md                     bản đồ tài liệu
 docs/goal.md, docs/terminology.md
 docs/architecture.md              runtime, build, ranh giới CMS
 docs/specs/<capability>.md        spec sống, một file một capability
-docs/decisions/<slug>.md          ADR còn hiệu lực
 docs/operations/*.md              runbook: tooling, release, thiết bị, Notion
 ```
 
@@ -73,7 +73,7 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | ID | Spec sở hữu | Source chính | Spec con |
 | --- | --- | --- | --- |
 | shell | `site-shell.md` | header, menu, footer, locale, chuyển trang; `style.css`, `motion.js`, `assets/brand/` | `scroll-feel.md`, `phone-header-scroll.md`, `logo-route-crossfade.md`, `first-load-parity.md`, `hero-typography.md` |
-| home | `page-home.md` | `src/site/index.html`, logo khách, rail công trình | |
+| home | `page-home.md` | `src/site/index.html`, logo khách, dải công trình | |
 | detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` | |
 | masonry | `masonry.md` | phần chung mọi masonry: `masonry/host.mjs`, `masonry/mount-budget.mjs` | `advertising-masonry.md`, `advertising-detail.md`, `projects.md` (phần riêng từng trang) |
 | adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random, media contract | `media-card.md`, `media-seo.md`, `loading-glass-and-page-entry.md` |
@@ -81,6 +81,7 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | adv-detail | `advertising-detail.md` | `masonry/suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-cta-center-parallax.md` (R9, R10: CTA cuối related, card vòng primary) |
 | adv-viewer | `advertising-viewer-touch-zoom.md` | `masonry/detail-viewer.mjs` | |
 | adv-taxonomy | `advertising-taxonomy.md` | `taxonomy.mjs`: cụm, sản phẩm, tag, trang index | |
+| adv-search | `advertising-search.md` | `src/search/`, `src/site/search/`, `scripts/search/`: tìm kiếm theo nghĩa (planned) | `search-bar.md` |
 | glass | `glass-surface.md` | `masonry/glass-surface.mjs` | |
 | media | `media-delivery.md` | biến thể ảnh, `media-lib/responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
 | progressive | `progressive-loading.md` | `sw.js`, `media-lib/colors.mjs` | |
@@ -140,7 +141,7 @@ vào "Gate còn mở" và hỏi owner; không tự sửa code hoặc spec cho kh
 | ownership | File Git quản lý trong `src/site/` (trừ ảnh, video, font, icon) không thuộc `source` của spec nào; lỗi nêu từng file |
 | sync | Branch đổi file thuộc `source` của spec mà không đổi spec đó, và cả mô tả PR lẫn commit message trên branch không có dòng `Spec: không đổi - <lý do>` |
 | card | Chạy trên PR (có `PR_NUMBER` hoặc `PR_BODY`) mà cả mô tả PR lẫn commit message trên branch không có dòng `Card: <link card Notion>` hoặc `Card: chờ tạo` ([notion](../operations/notion.md#rule)) |
-| budget | Spec quá 300 dòng, `STATE.md` quá 50 dòng, `index.md` quá 80 dòng; file agent nạp theo trigger quá ngân sách byte (R9) |
+| budget | Spec quá 300 dòng, `index.md` quá 80 dòng; file agent nạp theo trigger quá ngân sách byte (R9) |
 | links | Link Markdown nội bộ hoặc anchor gãy |
 
 ```gherkin
@@ -168,19 +169,18 @@ Cấu trúc `design-system/`, preview component, `DESIGN.md` cho Impeccable và 
 
 ### R8. Lịch sử ra khỏi cây thư mục
 
-Xóa `docs/verification/`, `docs/archive/`, `docs/reports/`, `tasks/archive/`,
-ADR đã superseded và spec cũ đã được thay. Git history giữ bản gốc. Gate
+Xóa `docs/verification/`, `docs/archive/`, `docs/reports/`, `tasks/archive/`
+và spec cũ đã được thay. Git history giữ bản gốc. Gate
 NOT PASS còn mở chuyển vào mục "Gate còn mở" của spec sở hữu. Evidence của mỗi
 thay đổi mới nằm trong mô tả PR.
 
-### R9. STATE, index và rule agent
+### R9. Trạng thái, index và rule agent
 
-- `docs/STATE.md` tối đa 50 dòng: phase, việc đang làm (link card hoặc PR),
-  blocker đã verify, next action. Không lịch sử.
+- Trạng thái làm việc (phase, việc đang làm, blocker, next action) nằm ở trang Notion Trạng thái website, không trong Git.
 - `docs/index.md` tối đa 80 dòng: bảng "việc cần làm" -> file.
 - `AGENTS.md` và `docs/operations/agent-rule-*.md` cập nhật path mới; living-docs
   gate trỏ tới `pnpm qa:docs` thay vì checklist chữ.
-- Ngân sách context: một task nạp `STATE` + `AGENTS.md` + một rule module + một spec,
+- Ngân sách context: một task nạp trang Trạng thái + card + `AGENTS.md` + một rule module + một spec,
   không nạp cả thư mục. Rule module chia theo trigger, nội dung chỉ một loại task
   (ví dụ rule ảnh AI tách khỏi rule QA chung). File `docs/reference/` chia theo họ
   sản phẩm để brief chỉ nạp họ cần. Ngân sách byte trong `check-docs.mjs`:
@@ -196,11 +196,31 @@ plan và việc owner giao dạng ô tick ([sổ việc](../operations/notion.md
 owner 2026-10-25). Không spec nháp hay evidence trong Notion. Board Tasks là backlog của điều phối và mọi worker; quyền tạo, cập
 nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 
+### R11. Rule AGENTS.md máy kiểm được
+
+Mỗi lần sửa agent mà rule đó máy kiểm được thì thêm check, không chỉ thêm chữ (owner 2026-11-15). `pnpm qa:docs` chạy
+các check trong `scripts/docs/agents-rules.mjs`; file nóng chung với PR mở khác chỉ cảnh báo. Hook `scripts/tooling/pre-tool-guard.mjs` chặn agent đọc secret, force-push trước khi chạy lệnh (lớp phụ):
+
+| Check | Fail khi |
+| --- | --- |
+| emoji | File text Git quản lý có emoji |
+| comment language | Comment trong code (trừ `design-system/` sinh ra) là câu tiếng Việt: từ 3 từ và 30% số từ có dấu tiếng Việt, sau khi bỏ phần trong ngoặc kép; trích chữ UI tiếng Việt trong câu tiếng Anh vẫn được |
+| cms import | File trong `src/site/` import hoặc nạp `src/worker/`, `src/admin/`, `src/db/` |
+| markdown name | File Markdown mới trên branch không phải slug chữ thường nối gạch, hoặc mở đầu bằng mã (F1, R4, P13), hoặc có năm/ngày |
+| qa line | Chạy trên PR, branch đổi `src/site/` mà mô tả PR và commit message không có dòng `Ảnh QA ...:` đã điền (không còn `<...>` của template) |
+| png goc | Ảnh master trong `src/site/assets/content` không có dòng trong `docs/operations/png-goc.csv`; hoặc branch thêm ảnh master mà dòng thiếu PNG và sha256, và PR không có dòng `PNG gốc: không có - <lý do>` |
+| ssot | Git track `docs/decisions/**` hoặc `docs/STATE.md` (ADR, trạng thái làm việc nằm trên Notion) |
+| secret file | Git track `.env*` (trừ `.env.example`), `.dev.vars*`, keytab, khóa riêng, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.sqlite`, `*.db` |
+| secret text | File text có chuỗi dạng token (OpenAI, AWS, GitHub, Cloudflare, Notion, Slack, khối `PRIVATE KEY`); báo vị trí, không in giá trị |
+| design line | PR đổi `src/site/`, `src/search/`, `src/worker/`, `src/admin/`, `src/db/` mà không có dòng `Design: <link spec hoặc trang Notion owner duyệt>` hoặc `Mức 0: <lý do>` |
+| one pr per card | Một PR đang mở khác có cùng card trong dòng `Card:` |
+| card claim | Có secret `NOTION_TOKEN`: card không ở `In progress`/`Done` hoặc cột `Agent` trống. Thiếu secret hoặc Notion lỗi: chỉ cảnh báo |
+
 ## Ranh giới
 
 - Luôn: viết tiếng Việt, giữ English technical term; dùng
   [tên gọi chuẩn](../terminology.md); mỗi bước một PR nhỏ vào `main`.
-- Hỏi trước: xóa ADR còn hiệu lực, đổi `PRODUCT.md`, đổi hành vi website để
+- Hỏi trước: đổi `PRODUCT.md`, đổi hành vi website để
   khớp spec.
 - Không: xóa vĩnh viễn card Notion (gộp thì archive); sửa source website trong
   đợt đại tu docs; chạy semantic Graphify khi chưa được yêu cầu; sửa sổ việc trên card mà thread khác đang giữ.
@@ -211,6 +231,7 @@ nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 | --- | --- |
 | R1, R8 | `pnpm qa:docs` (links) và liệt kê thư mục |
 | R2, R4, R9 | `pnpm qa:docs` (ownership, sync, budget) |
+| R11 | `pnpm qa:docs`; `tests/tooling/agents-rules.test.mjs` |
 | R3 | Agent đối chiếu từng requirement với source và test khi review PR |
 | R5-R7 | Xem [Design System và Impeccable](design-system.md#kiểm-tra) |
 | R10 | Owner xem board Notion |
@@ -223,5 +244,5 @@ nhật, xóa card theo [Notion và Git](../operations/notion.md#rule).
 - **Gherkin**: mẫu kịch bản Given/When/Then dùng làm tiêu chí kiểm.
 - **Design System**: loại artifact claude.ai gồm README, token, component, asset.
 - **Design drift**: giá trị trong CSS lệch với token đã ghi.
-- **ADR**: bản ghi quyết định kiến trúc.
+- **ADR**: bản ghi quyết định kiến trúc, lưu trên Notion.
 - **OpenSpec**: chuẩn spec tách spec hiện hành và thay đổi đang đề xuất.

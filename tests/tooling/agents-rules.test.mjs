@@ -1,0 +1,110 @@
+// docs-system.md R11: AGENTS.md rules checked by qa:docs.
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from "../../scripts/docs/agents-rules.mjs";
+
+const reader = (files) => (file) => files[file];
+
+test("emoji in any text file fails, plain symbols pass", () => {
+  const files = { "docs/a.md": "ok -> done\n", "src/site/x.js": "const a = 1;\nconst b = '\u{1F680}';\n" };
+  assert.deepEqual(emojiErrors(Object.keys(files), reader(files)).map((e) => e.split(": ")[1]), ["src/site/x.js:2"]);
+});
+
+test("Vietnamese prose comments fail, English comments quoting UI copy pass", () => {
+  assert.equal(isVietnameseProse("Dormant đến khi owner kích hoạt phase CMS."), true);
+  assert.equal(isVietnameseProse('The "Xem lớn hơn" viewer loads its own original.'), false);
+  assert.equal(isVietnameseProse("Small connecting words (và, là, trong, từng) are half size on PC, phone keeps uniform size."), false);
+  const files = {
+    "wrangler.toml": "# Dormant đến khi owner kích hoạt phase CMS.\nname = \"x\"\n",
+    // Built from parts so this file does not hold the comment markers it tests.
+    "src/site/a.js": [
+      "/" + "/ Tạm thời bỏ qua khi chưa có ảnh",
+      'const x = 1; /' + '/ keep "Tất cả" first',
+      "/" + "* Khối này chỉ chạy",
+      "   khi có dữ liệu thật *" + "/",
+    ].join("\n"),
+    "src/site/b.mjs": "const u = 'https://chạy.vn/ không có ở đây';\n",
+  };
+  const lines = commentLanguageErrors(Object.keys(files), reader(files)).map((e) => e.split(": ")[1]);
+  assert.deepEqual(lines, ["wrangler.toml:1", "src/site/a.js:1", "src/site/a.js:3", "src/site/a.js:4"]);
+});
+
+test("src/site importing CMS code fails", () => {
+  const files = {
+    "src/site/a.mjs": "import { x } from '../worker/api.mjs';\nimport y from './ok.mjs';\n",
+    "src/site/b.html": '<script type="module" src="/src/admin/editor.js"></script>',
+    "src/worker/c.mjs": "import x from '../site/a.mjs';\n",
+  };
+  assert.equal(cmsImportErrors(Object.keys(files), reader(files)).length, 2);
+});
+
+test("new Markdown files need a descriptive lowercase slug", () => {
+  const added = ["docs/specs/media-card.md", "docs/F1-xe.md", "docs/specs/r4-gate.md", "docs/report-2026-11-15.md", "docs/Notes.md", "x/README.md", "docs/specs/_template.md"];
+  assert.deepEqual(markdownNameErrors(added).map((e) => e.split(": ")[1]), ["docs/F1-xe.md", "docs/specs/r4-gate.md", "docs/report-2026-11-15.md", "docs/Notes.md"]);
+});
+
+test("a PR changing src/site needs a filled Ảnh QA line", () => {
+  assert.equal(qaLineErrors(["docs/a.md"], "").length, 0);
+  assert.equal(qaLineErrors(["src/site/style.css"], "Ảnh QA (UI): <ảnh đủ dải>").length, 1);
+  assert.equal(qaLineErrors(["src/site/style.css"], "Kiểm: ok").length, 1);
+  assert.equal(qaLineErrors(["src/site/style.css"], "Ảnh QA (UI): 384 và 1440 https://claude.ai/artifact/x").length, 0);
+  assert.equal(qaLineErrors(["src/site/content/news.json"], "Ảnh QA (UI): không đổi UI - chỉ đổi chữ").length, 0);
+});
+
+test("every site image master has a PNG row; new masters need png and sha256", () => {
+  const dir = "src/site/assets/content/projects/";
+  const files = [`${dir}a.webp`, `${dir}a-480.webp`, `${dir}b.webp`, `${dir}c.jpg`, `${dir}a.avif`].filter(isImageMaster);
+  assert.deepEqual(files, [`${dir}a.webp`, `${dir}b.webp`, `${dir}c.jpg`]);
+  const sha = "a".repeat(64);
+  const csv = `anh,png,sha256\nprojects/a,,\nprojects/b,source-assets/b.png,${sha}\n`;
+  assert.deepEqual(pngOriginErrors(files, [], csv, "").map((e) => e.split(": ")[1].split(" ")[0]), ["projects/c"]);
+  assert.equal(pngOriginErrors([`${dir}a.webp`, `${dir}b.webp`], [`${dir}b.webp`], csv, "").length, 0);
+  assert.equal(pngOriginErrors([`${dir}a.webp`], [`${dir}a.webp`], csv, "").length, 1);
+  assert.equal(pngOriginErrors([`${dir}a.webp`], [`${dir}a.webp`], csv, "PNG gốc: không có - logo vẽ tay").length, 0);
+});
+
+test("ADR and work-state files fail; specs pass", () => {
+  assert.deepEqual(ssotPathErrors(["docs/decisions/x.md", "docs/STATE.md", "docs/specs/seo.md"]).length, 2);
+});
+
+test("secret files fail, .env.example and SQL migrations pass", () => {
+  const files = [".env", "src/.env.local", ".dev.vars", "ops/ad.keytab", "k/id_ed25519", "c/server.pem", "data/site.sqlite", ".env.example", "src/db/migrations/0001.sql", "docs/key-terms.md"];
+  assert.deepEqual(secretFileErrors(files).map((e) => e.split(": ")[1].split(" ")[0]), files.slice(0, 7));
+});
+
+test("token-shaped text fails, ordinary words pass", () => {
+  // Built from parts so this test file holds no token.
+  const files = {
+    "a.mjs": "const k = 's" + "k-" + "A".repeat(24) + "';\n",
+    "b.yml": "token: gh" + "p_" + "a".repeat(36) + "\n",
+    "c.txt": "-----BEGIN OPENSSH " + "PRIVATE KEY-----\n",
+    "d.css": ".kiosk-posm { --mask-ink-overflow: 1px; }\n",
+  };
+  assert.deepEqual(secretTextErrors(Object.keys(files), reader(files)).map((e) => e.split(": ")[1]), ["a.mjs:1", "b.yml:1", "c.txt:1"]);
+  assert.ok(!secretTextErrors(["a.mjs"], reader(files))[0].includes("AAAA"));
+});
+
+test("application source needs a Design or Mức 0 line", () => {
+  assert.equal(designLineErrors(["docs/specs/seo.md"], "").length, 0);
+  assert.equal(designLineErrors(["src/search/index.mjs"], "").length, 1);
+  assert.equal(designLineErrors(["src/site/a.js"], "Mức 0: <lý do>").length, 1);
+  assert.equal(designLineErrors(["src/site/a.js"], "Mức 0: sửa lỗi chính tả").length, 0);
+  assert.equal(designLineErrors(["src/worker/a.mjs"], "Design: https://app.notion.com/p/abc").length, 0);
+});
+
+test("one PR per card: another open PR with the same card fails", () => {
+  const body = "x\nCard: https://app.notion.com/p/41f332849a0e81db9d01c30d47251df6?pvs=4\n";
+  assert.equal(cardId(body), "41f332849a0e81db9d01c30d47251df6");
+  assert.equal(cardId("Card: chờ tạo"), null);
+  const open = [{ number: 5, body }, { number: 7, body: "Card: https://www.notion.so/Name-41f332849a0e81db9d01c30d47251df6" }, { number: 8, body: "Card: chờ tạo" }];
+  assert.deepEqual(sameCardErrors(5, body, open).map((e) => e.split(": ")[1].split(" ")[0]), ["#7"]);
+  assert.equal(sameCardErrors(8, "Card: chờ tạo", open).length, 0);
+});
+
+test("card claim needs In progress (or Done) and an Agent", () => {
+  const page = (status, agent) => ({ properties: { Status: { status: { name: status } }, Agent: { rich_text: agent ? [{ plain_text: agent }] : [] } } });
+  assert.equal(cardClaimErrors(page("In progress", "Claude thread X")).length, 0);
+  assert.equal(cardClaimErrors(page("Done", "Claude thread X")).length, 0);
+  assert.equal(cardClaimErrors(page("Not started", "Claude thread X")).length, 1);
+  assert.equal(cardClaimErrors(page("In progress", "")).length, 1);
+});

@@ -41,7 +41,7 @@ try {
         probe.frames.push(covered / total);
         probe.added.push(added);
         for (const ghost of document.querySelectorAll(".masonry-ghost")) {
-          probe.ghosts.set(ghost.dataset.masonryGhost, getComputedStyle(ghost).backgroundColor);
+          probe.ghosts.set(ghost.dataset.masonryGhost, ghost.dataset.mediaWait === "colors" ? [1, 2, 3, 4].map((index) => ghost.style.getPropertyValue(`--wait-${index}`)) : null);
         }
         probe.crossfades = Math.max(probe.crossfades, document.getAnimations().filter((animation) => {
           const timing = animation.effect?.getTiming?.();
@@ -138,17 +138,21 @@ try {
 
   // Stop: every placeholder in the build zone becomes a real card, with the exact dominant color of the card.
   await settle(5000);
-  const after = await page.evaluate((entries) => {
+  const after = await page.evaluate(async (entries) => {
+    const { default: artifact } = await import("/advertising-products/catalog-artifact.mjs");
+    const coverOf = new Map(artifact.cards.map((card) => [card.id, card.coverMediaId]));
     const vh = innerHeight;
     const strayGhosts = [...document.querySelectorAll(".masonry-ghost")].filter((node) => {
       const rect = node.getBoundingClientRect();
       return rect.bottom > -vh && rect.top < 2 * vh;
     }).length;
     const wrong = [];
-    for (const [id, color] of entries) {
-      const media = document.querySelector(`[data-masonry-card="${id}"] .card-media`);
-      // A card still waiting for its image (phone color layer) has a transparent media box by design.
-      if (media && !media.closest("[data-media-wait]") && getComputedStyle(media).backgroundColor !== color) wrong.push(id);
+    for (const [id, colors] of entries) {
+      const card = document.querySelector(`[data-masonry-card="${id}"]`);
+      // PC and phone alike: the ghost cycles through the 4 colors of the card's cover (owner 2026-11-15), the card's own wait colors while it shows
+      // that cover; a multi-media card that has since moved to another media is not comparable.
+      const onCover = !card?.dataset.masonryActiveMediaId || card.dataset.masonryActiveMediaId === coverOf.get(id);
+      if (!colors || (card && onCover && colors.join() !== card.advertisingWaitColors().join())) wrong.push(id);
     }
     const blank = [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")].filter((card) => {
       const rect = card.getBoundingClientRect();
@@ -158,7 +162,7 @@ try {
     return { strayGhosts, wrong, blank };
   }, fling.ghosts);
   assert.equal(after.strayGhosts, 0, "no placeholder card left in the mount zone once scrolling stops");
-  assert.deepEqual(after.wrong, [], "ghost colour is the dominant colour of the card it holds");
+  assert.deepEqual(after.wrong, [], "ghost cycles through the 4 wait colours of the card it holds");
   assert.equal(after.blank, 0, "every visible card shows its image once scrolling stops");
 
   // Images already present: jump straight to the section just viewed, and placeholders turning into real cards fade the image in over 0.45s.

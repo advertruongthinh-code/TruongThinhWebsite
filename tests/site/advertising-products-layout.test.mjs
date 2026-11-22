@@ -183,7 +183,8 @@ test("M01d fixture layout retains golden coordinate hash, order and no filler", 
   // 2026-11-10 (plan T4): 09e8f626/6bb197b9 -> 6eaee92f/d79391b8 only because MASONRY_LAYOUT_VERSION (v17) is in the hash.
   // 2026-11-11 (plan T5): the solver serves only related masonry and lays every card one column wide, so the 4-column
   // hash d79391b8 (12 two-column cards) became ec91bd55; the 2-column hash never had a wide card and is unchanged.
-  for (const [layoutViewportWidth, expectedHash] of [[390, "6eaee92f"], [1440, "ec91bd55"]]) {
+  // 2026-11-15 (masonry live pack): 6eaee92f/ec91bd55 -> 65bc8ec4/cc8dd7f2 only because MASONRY_LAYOUT_VERSION became v18.
+  for (const [layoutViewportWidth, expectedHash] of [[390, "65bc8ec4"], [1440, "cc8dd7f2"]]) {
     const layout = compileMasonryLayout({
       cards, categoryOrder: ["golden-a", "golden-b", "golden-c"], datasetVersion: "golden-fixture-1",
       columns: columnsForWidth(layoutViewportWidth), layoutViewportWidth, presentationOrder: order,
@@ -302,7 +303,7 @@ function knownFeasibleFixture(count = 3000) {
 }
 
 test("keeps current data, spacing and columns alongside legacy kernel fixtures", () => {
-  assert.equal(MASONRY_LAYOUT_VERSION, "masonry-grid-v17");
+  assert.equal(MASONRY_LAYOUT_VERSION, "masonry-grid-v18");
   assert.equal(ADVERTISING_DATASET_VERSION, "2026-09-24.1");
   assert.deepEqual(categoryOrder, ADVERTISING_CLUSTERS.map(({ id }) => id));
   assert.match(ANTI_BRICK_EVENT_DEFINITION, /nearest opposite-column different-item edge/i);
@@ -324,7 +325,7 @@ test("keeps current data, spacing and columns alongside legacy kernel fixtures",
     const poolSources = new Set(categoryCards.map((card) => card.media.src));
     // The old group's product labels live only in the tag registry now: variant tag product-<productKey> holds the label.
     const products = ADVERTISING_TAG_REGISTRY.filter(({ id }) => id.startsWith(`product-${category.slug}-product-`));
-    assert.equal(products.length, { "kiosk-posm": 14, "print-decals": 13, "office-signs-wayfinding": 13, "led-displays-lightboxes": 15 }[category.slug] ?? 12, `${category.slug} keeps authored taxonomy products`);
+    assert.equal(products.length, { "kiosk-posm": 14, "print-decals": 15, "office-signs-wayfinding": 13, "led-displays-lightboxes": 15 }[category.slug] ?? 12, `${category.slug} keeps authored taxonomy products`);
     assert.ok(categoryCards.length >= ADVERTISING_MEDIA_CATEGORY_COUNTS[category.slug], `${category.slug} keeps at least its approved baseline card count`);
     assert.equal(new Set(categoryCards.map(({ productKey }) => productKey)).size, products.length, `${category.slug} covers all taxonomy products`);
     // Card names in both languages are niche keywords written from the photo (owner 2026-11-13 VI, 2026-11-15 EN).
@@ -402,12 +403,12 @@ test("R5 a spanning multi-media card is exactly as tall as its two-column canvas
   assert.equal(placement.pixelHeight, placement.mediaPixelHeight, "no strip or caption below the canvas");
   // The placeholder card (loading glass R10) covers the real card frame exactly: two columns wide, canvas tall.
   const previousDocument = globalThis.document;
-  const element = () => ({ style: {}, dataset: {}, setAttribute() {}, append() {}, remove() {} });
+  const element = () => ({ style: { setProperty(name, value) { this[name] = value; } }, dataset: {}, setAttribute() {}, append() {}, remove() {} });
   globalThis.document = { createElement: element };
   try {
     const host = { prepend(layer) { layer.parentNode = host; } };
     const ghosts = createGhostLayer(host);
-    ghosts.show(card.id, placement, "rgb(1 2 3)");
+    ghosts.show(card.id, placement, () => Array(4).fill("rgb(1 2 3)"));
     const ghost = ghosts.take(card.id);
     assert.deepEqual([ghost.style.left, ghost.style.top, ghost.style.width], [`${placement.x}px`, `${placement.y}px`, `${placement.pixelWidth}px`]);
     assert.ok(Math.abs(Number.parseFloat(ghost.style.height) - placement.mediaPixelHeight) < 1e-6, "ghost covers the canvas");

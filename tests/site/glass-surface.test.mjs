@@ -3,11 +3,25 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 import { ARC_DESKTOP_BITE, ARC_DESKTOP_LEVELS, arcGlassGeometry, desktopArcSteps } from "../../src/site/masonry/glass-surface.mjs";
+import { GRAIN_SIZE, grainImages } from "../../src/site/masonry/grain.mjs";
 
 const read = (file) => readFile(new URL(`../../src/site/${file}`, import.meta.url), "utf8");
 const css = (await read("detail.css")) + (await read("style.css"));
 const runtime = await read("masonry/runtime.mjs");
 const ctaBatch = await read("masonry/cta-batch.mjs");
+const glassSource = await read("masonry/glass-surface.mjs");
+const grainWorker = await read("masonry/grain-worker.mjs");
+
+// R4: the grain is drawn in a Worker from the shared pixel fill, and the main-thread fallback uses the same fill.
+assert.match(glassSource, /new Worker\(new URL\("\.\/grain-worker\.mjs", import\.meta\.url\), \{ type: "module" \}\)/, "R4: grain drawn in a Worker");
+assert.match(grainWorker, /grainImages\(/, "R4: the Worker uses the shared grain fill");
+assert.match(glassSource, /function makeGrain\(\)[\s\S]*?grainImages\(/, "R4: the fallback uses the shared grain fill");
+{
+  const [grey, white] = grainImages((width, height) => ({ data: new Uint8ClampedArray(width * height * 4) }));
+  assert.equal(grey.data.length, GRAIN_SIZE * GRAIN_SIZE * 4, "R4: one texel per device pixel, 160 square");
+  assert.deepEqual([...grey.data.slice(0, 8)], [66, 66, 66, 255, 233, 233, 233, 255], "R4: gray grain is the fixed opaque noise");
+  assert.deepEqual([...white.data.slice(0, 8)], [255, 255, 255, 66, 255, 255, 255, 233], "R4: white grain is the same noise as alpha");
+}
 
 // R1: only the glass steps and the viewer background own backdrop-filter (the viewer background blurs on every device since owner 2026-10-26).
 const owners = [...css.matchAll(/([^{}]+)\{[^{}]*?backdrop-filter:/g)].map(([, selector]) => selector.trim());

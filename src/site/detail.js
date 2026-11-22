@@ -32,7 +32,6 @@
   const ADVERTISING_DEPENDENCIES = [
     { name: "GSAP 3.15.0", source: "/assets/vendor/gsap-3.15.0.min.js", ready: () => window.gsap?.version === "3.15.0", optional: true },
     { name: "SplitText 3.15.0", source: "/assets/vendor/SplitText-3.15.0.min.js", ready: () => typeof window.SplitText === "function", optional: true },
-    { name: "Masonry 4.2.2", source: "/assets/vendor/masonry-4.2.2.min.js", ready: () => typeof window.Masonry === "function" },
     { name: "LazySizes 5.3.2", source: "/assets/vendor/lazysizes-5.3.2.min.js", ready: () => Boolean(window.lazySizes?.loader) },
   ];
 
@@ -111,7 +110,22 @@
   // Vendor, catalog module and artifact load together. A soft route calls this the moment the link is clicked so the network runs in parallel with the veil
   // instead of queuing behind it (Shell R6). The artifact imports at the same time as the runtime: the runtime re-imports this exact URL so it shares
   // the module and nothing loads twice; if the import waited for the runtime to finish loading, the artifact would lag a network round trip.
-  const loadAdvertisingCatalog = () => Promise.all([
+  // The grid layout Workers (masonry-live-layout R3) start here (and on the Projects page mount below), in parallel with the runtime
+  // module graph, so their modules are loaded by the time the runtime posts the first pack; the runtime adopts them.
+  const startGridWorker = () => {
+    try {
+      // Below 720px (the 2-column band, pack.mjs LAYOUT_BANDS) the grid packs on the main thread.
+      if (window.__TT_GRID_WORKERS__ || document.documentElement.clientWidth < 720) return;
+      // One per live candidate order (pack.mjs LIVE_CANDIDATES); the runtime spreads candidates over however many start here.
+      window.__TT_GRID_WORKERS__ = Array.from({ length: 4 }, () => {
+        const worker = new Worker("/masonry/layout-worker.mjs", { type: "module" });
+        // A load error before the runtime adopts the Worker would otherwise go unseen and leave the first pack waiting.
+        worker.addEventListener("error", () => { worker.failed = true; }, { once: true });
+        return worker;
+      });
+    } catch {}
+  };
+  const loadAdvertisingCatalog = () => (startGridWorker(), Promise.all([
     ensureAdvertisingDependencies(),
     import("/masonry/runtime.mjs").then((runtime) => {
       runtime.preloadMasonry();
@@ -120,7 +134,7 @@
     import("/advertising-products/catalog-artifact.mjs").catch(() => {}),
     // Landing directly on a photo URL needs the detail (description, related) immediately: load it with the artifact; the runtime shares the module.
     location.pathname.includes("/p/") ? import("/advertising-products/catalog-detail.mjs").catch(() => {}) : null,
-  ]).then(([, runtime]) => runtime);
+  ]).then(([, runtime]) => runtime));
 
   const ensureAdvertisingCarouselStyle = () => {
     if (advertisingCarouselStylePromise) return advertisingCarouselStylePromise;
@@ -296,6 +310,16 @@
               softNavigation,
             });
           }
+        })
+        .then((result) => {
+          // Search bar after the grid (Barba does not rerun scripts outside the container); a failed grid keeps the plain CTA link.
+          // Idle time: the bar must not compete with the first cards (plan P6 performance gate).
+          const loadSearch = () => !abort.signal.aborted && import("/advertising-products/search.mjs")
+            .then((search) => !abort.signal.aborted && search.mount(container, { signal: abort.signal, softNavigation }))
+            .catch(() => {});
+          if (window.requestIdleCallback) window.requestIdleCallback(loadSearch, { timeout: 1500 });
+          else setTimeout(loadSearch, 200);
+          return result;
         });
     }
 
@@ -309,6 +333,7 @@
       // The "updating" line follows the active filter (the runtime changes aria-current when filtering in place).
       const emptyLine = container.querySelector(".projects-empty");
       const rail = container.querySelector(".project-filters");
+      startGridWorker();
       state.catalogReady = Promise.all([artifactReady, ensureAdvertisingDependencies(), import("/masonry/runtime.mjs")])
         .then(([artifact, , { mountMasonry }]) => {
           if (emptyLine && rail) {

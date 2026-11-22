@@ -1,3 +1,5 @@
+//# allFunctionsCalledOnLoad
+// V8 compile hint (see layout.mjs): the first grid pack, on the main thread for the 2:15 band, does not compile lazily.
 import { fnv1a32 } from "./layout.mjs";
 
 export function createBrowseSeed() {

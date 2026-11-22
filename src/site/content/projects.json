@@ -759,33 +759,33 @@
       "en": "Bakery design with wooden bread shelves"
     },
     "description": {
-      "vi": "Tiệm bánh nhỏ với kệ bánh mì gỗ sáng đèn, tủ bánh kem kính và góc ngồi cạnh cửa, để bánh nổi bật từ ngoài phố. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
-      "en": "A small bakery with lit timber bread shelves, a glass cake cabinet and a seat by the door, so the bread shows from the street. Design and CNC joinery by Trường Thịnh."
+      "vi": "Tiệm bánh góc phố với kệ bánh mì gỗ sáng đèn, quầy bánh kem xanh soi rãnh và bàn ngồi cạnh cửa sổ, để bánh nổi bật từ ngoài phố. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A corner bakery with lit timber bread shelves, a fluted green cake counter and tables by the windows, so the bread shows from the street. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
-      "src": "/assets/content/projects/bakery-bread-shelves.webp",
+      "src": "/assets/content/projects/tiem-banh-ngot-shot-5.webp",
       "width": 1122,
       "height": 1402,
-      "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn, tiệm bánh nhỏ",
-      "altEn": "Tiered timber bread shelving with strip lighting and neatly stacked loaves, bakery shop"
+      "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn LED hắt, bánh mì nướng và giỏ bánh mì que, tiệm bánh",
+      "altEn": "Tiered timber bread shelves with LED strips, crusty loaves and a basket of baguettes, bakery"
     },
     "card": {
       "width": 1122,
       "height": 1402,
       "media": [
         {
-          "src": "/assets/content/projects/bakery-bread-shelves.webp",
+          "src": "/assets/content/projects/tiem-banh-ngot-shot-5.webp",
           "width": 1122,
           "height": 1402,
-          "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn, tiệm bánh nhỏ",
-          "altEn": "Tiered timber bread shelving with strip lighting and neatly stacked loaves, bakery shop"
+          "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn LED hắt, bánh mì nướng và giỏ bánh mì que, tiệm bánh",
+          "altEn": "Tiered timber bread shelves with LED strips, crusty loaves and a basket of baguettes, bakery"
         },
         {
-          "src": "/assets/content/projects/bakery-service-counter.webp",
+          "src": "/assets/content/projects/tiem-banh-ngot-shot-3.webp",
           "width": 1122,
           "height": 1402,
-          "altVi": "Quầy thu ngân và tủ bánh kem kính, nhìn từ phía khách, tiệm bánh nhỏ",
-          "altEn": "Service counter and glass cake case seen from the customer side, bakery shop"
+          "altVi": "Quầy bánh kem mặt xanh soi rãnh, tủ kính cong hai tầng, kệ bánh mì gỗ có đèn hắt phía sau",
+          "altEn": "Fluted green cake counter with a two-shelf curved glass case and lit timber bread shelves behind"
         }
       ]
     },
@@ -804,11 +804,11 @@
           }
         ],
         "image": {
-          "src": "/assets/content/projects/commercial-hero-bakery.webp",
-          "width": 3072,
-          "height": 2048,
-          "altVi": "Tủ kính bánh kem, kệ bánh mì gỗ và vòm tường xanh trong tiệm bánh nhỏ",
-          "altEn": "Cake display case, timber bread shelves and green arched wall in a bakery shop"
+          "src": "/assets/content/projects/tiem-banh-ngot-shot-1.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Toàn cảnh tiệm bánh góc phố: kệ bánh mì gỗ bên phải, quầy bánh kem xanh giữa tiệm, bàn ghế cạnh cửa sổ",
+          "altEn": "Corner bakery interior: timber bread wall on the right, green cake counter in the middle, tables by the windows"
         }
       },
       {
@@ -823,9 +823,36 @@
         "id": "overview",
         "type": "paragraph",
         "text": {
-          "vi": "Tiệm bánh nhỏ thường có diện tích hẹp nhưng lại cần bày được nhiều bánh và nổi bật từ ngoài đường. Mặt bằng này chỉ hơn hai mươi mét vuông, khách phần lớn mua mang về, nên mọi kệ và quầy đều vừa trưng bày vừa chứa đồ. Khách đi một vòng là chọn xong.",
-          "en": "A small bakery usually has little floor space, yet it needs to show plenty of bread and stand out from the street. This shop is just over twenty square metres and most customers take away, so every shelf and counter both displays and stores. One loop round the room and customers have made their choice."
+          "vi": "Tiệm bánh cần bày được nhiều bánh mà vẫn nổi bật từ ngoài phố. Mặt bằng này nằm ở góc đường, hai mặt là kính, nên kệ bánh mì chạy dọc bức tường kín còn bàn ghế đặt sát cửa sổ. Quầy bánh kem đứng giữa tiệm, khách bước vào là thấy ngay.",
+          "en": "A bakery needs to show plenty of bread and still stand out from the street. This shop sits on a corner with glass on two sides, so the bread shelves run along the solid wall and the tables sit by the windows. The cake counter stands in the middle, the first thing customers see as they walk in."
         }
+      },
+      {
+        "id": "gallery-main",
+        "type": "gallery-carousel",
+        "images": [
+          {
+            "src": "/assets/content/projects/tiem-banh-ngot-shot-3.webp",
+            "width": 1122,
+            "height": 1402,
+            "altVi": "Quầy bánh kem mặt xanh soi rãnh, tủ kính cong hai tầng, kệ bánh mì gỗ có đèn hắt phía sau",
+            "altEn": "Fluted green cake counter with a two-shelf curved glass case and lit timber bread shelves behind"
+          },
+          {
+            "src": "/assets/content/projects/tiem-banh-ngot-shot-5.webp",
+            "width": 1122,
+            "height": 1402,
+            "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn LED hắt, bánh mì nướng và giỏ bánh mì que, tiệm bánh",
+            "altEn": "Tiered timber bread shelves with LED strips, crusty loaves and a basket of baguettes, bakery"
+          },
+          {
+            "src": "/assets/content/projects/tiem-banh-ngot-shot-4.webp",
+            "width": 1122,
+            "height": 1402,
+            "altVi": "Góc máy pha cà phê trong kệ gỗ, túi giấy và hộp bánh xanh in logo, tiệm bánh góc phố",
+            "altEn": "Espresso niche in the timber shelving with green logo bags and cake boxes, corner bakery"
+          }
+        ]
       },
       {
         "id": "facts",
@@ -847,8 +874,8 @@
               "en": "Area"
             },
             "text": {
-              "vi": "khoảng 25 m²",
-              "en": "about 25 m²"
+              "vi": "khoảng 50 m²",
+              "en": "about 50 m²"
             }
           },
           {
@@ -857,8 +884,8 @@
               "en": "Scope"
             },
             "text": {
-              "vi": "Kệ bánh mì, quầy thu ngân, tủ bánh kem, kệ hộp bánh, bàn ghế",
-              "en": "Bread shelves, cashier counter, cake cabinet, box shelving, seating"
+              "vi": "Kệ bánh mì, quầy bánh kem, tủ kính cong, quầy cà phê, bàn ghế",
+              "en": "Bread shelves, cake counter, curved glass case, coffee counter, seating"
             }
           },
           {
@@ -867,30 +894,65 @@
               "en": "Main materials"
             },
             "text": {
-              "vi": "MDF chống ẩm melamine vân gỗ ấm, kính cường lực, đèn LED hắt",
-              "en": "Moisture-resistant MDF in warm wood melamine, tempered glass, LED strip lighting"
+              "vi": "MDF chống ẩm vân gỗ sồi, MDF soi rãnh sơn xanh, kính cong cường lực, đèn LED hắt",
+              "en": "Moisture-resistant MDF in oak finish, fluted MDF painted green, curved tempered glass, LED strip lighting"
             }
           }
         ]
       },
       {
-        "id": "corner-text",
-        "type": "paragraph",
+        "id": "seat",
+        "type": "image-text",
+        "image": {
+          "src": "/assets/content/projects/tiem-banh-ngot-shot-7.webp",
+          "width": 1122,
+          "height": 1402,
+          "altVi": "Bàn tròn mặt gỗ cạnh cửa sổ với ly cà phê và bánh sừng bò, quầy bánh kem phía sau",
+          "altEn": "Round timber table by the window with a latte and a croissant, cake counter behind"
+        },
         "text": {
-          "vi": "Dù khách chủ yếu mua mang về, tiệm vẫn nên có một chỗ ngồi chờ. Cạnh cửa kính là bàn hai chỗ, đủ để ngồi chờ hay ăn vội một chiếc bánh. Vách vòm xanh phía sau làm nền cho tủ kính và cũng là góc khách hay chụp ảnh nhất.",
-          "en": "Even when most customers take away, a place to wait still helps. A table for two by the glass front is enough for waiting or a quick pastry. The green arched wall behind it sets off the display case and is the corner customers photograph most."
+          "vi": "Dù nhiều khách mua mang về, tiệm vẫn nên có chỗ ngồi lại. Dọc cửa sổ là bàn tròn mặt gỗ và ghế gỗ uốn, đủ cho một ly cà phê với chiếc bánh vừa ra lò. Ánh sáng tự nhiên từ hai mặt kính giúp bánh trên bàn trông ngon hơn.",
+          "en": "Even when many customers take away, a place to sit still helps. Along the windows are round timber tables and bentwood chairs, enough for a coffee and a fresh pastry. Daylight from two glass sides makes the food on the table look its best."
         }
       },
       {
-        "id": "corner",
+        "id": "counter-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Quầy bánh kem là điểm nhấn của cả tiệm. Mặt quầy là tấm MDF chống ẩm phay rãnh tròn bằng CNC, sơn xanh rêu đậm và uốn theo đầu quầy bo tròn. Phía trên là tủ kính cong viền đen mảnh, hai tầng kệ kính để bánh nhìn rõ từ mọi phía.",
+          "en": "The cake counter is the centrepiece of the shop. Its front is moisture-resistant MDF with CNC-routed rounded flutes, painted deep green and bent around the curved end. On top sits a curved glass case with a slim black rim and two glass shelves, so every cake shows from all sides."
+        }
+      },
+      {
+        "id": "counter",
         "type": "image-single",
         "position": "wide",
         "image": {
-          "src": "/assets/content/projects/bakery-seating-corner.webp",
+          "src": "/assets/content/projects/tiem-banh-ngot-shot-2.webp",
           "width": 1536,
           "height": 1024,
-          "altVi": "Góc bàn hai chỗ cạnh cửa kính, tủ bánh và vách vòm xanh, tiệm bánh nhỏ",
-          "altEn": "Two-seat tables by the window, with glass cake case and green arched wall behind, bakery shop"
+          "altVi": "Nhìn từ cuối tiệm ra cửa kính khung đen, quầy bánh kem mặt xanh soi rãnh và tủ kính cong, tiệm bánh góc phố",
+          "altEn": "View from the back towards the black-framed glass door, fluted green cake counter and curved glass case, corner bakery"
+        }
+      },
+      {
+        "id": "cakes-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tủ bánh kem đặt vừa tầm mắt người đứng. Bánh nguyên ổ xếp tầng dưới, bánh nhỏ và tart ở tầng trên, khách chọn nhanh mà nhân viên cũng dễ lấy.",
+          "en": "The cake case sits at standing eye level. Whole cakes go on the lower shelf, small cakes and tarts above, so customers choose quickly and staff reach them easily."
+        }
+      },
+      {
+        "id": "cakes",
+        "type": "image-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/tiem-banh-ngot-shot-6.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Bánh kem và tart trong tủ kính cong viền đen mảnh, đặt trên quầy xanh soi rãnh",
+          "altEn": "Cakes and tarts in a curved glass case with a slim black rim on a fluted green counter"
         }
       },
       {
@@ -902,38 +964,11 @@
         }
       },
       {
-        "id": "gallery-main",
-        "type": "gallery-carousel",
-        "images": [
-          {
-            "src": "/assets/content/projects/bakery-bread-shelves.webp",
-            "width": 1122,
-            "height": 1402,
-            "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn hắt, bánh xếp gọn, tiệm bánh nhỏ",
-            "altEn": "Tiered timber bread shelving with strip lighting and neatly stacked loaves, bakery shop"
-          },
-          {
-            "src": "/assets/content/projects/bakery-service-counter.webp",
-            "width": 1122,
-            "height": 1402,
-            "altVi": "Quầy thu ngân và tủ bánh kem kính, nhìn từ phía khách, tiệm bánh nhỏ",
-            "altEn": "Service counter and glass cake case seen from the customer side, bakery shop"
-          },
-          {
-            "src": "/assets/content/projects/gallery-bakery.webp",
-            "width": 3072,
-            "height": 2048,
-            "altVi": "Tủ bánh kem kính, kệ bánh mì gỗ sáng đèn, bàn cạnh cửa, tiệm bánh nhỏ",
-            "altEn": "Glass cake case, lit timber bread shelves and tables by the window, bakery shop"
-          }
-        ]
-      },
-      {
         "id": "closing",
         "type": "paragraph",
         "text": {
-          "vi": "Tiệm nhỏ, nhưng từ xa đã thấy bánh.",
-          "en": "A small shop, but you can see the bread from down the street."
+          "vi": "Hai mặt kính, một bức tường bánh, từ xa đã thấy tiệm.",
+          "en": "Two glass sides and a wall of bread, you can see the shop from down the street."
         }
       },
       {
@@ -2442,43 +2477,43 @@
       "en": "A single-storey riverside homestay in the Mekong Delta: clay-tile roof, cream lime walls, a terracotta veranda along the water, bottle-green timber doors and dark wood furniture. Design and CNC joinery by Trường Thịnh."
     },
     "cover": {
-      "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-1.webp",
+      "src": "/assets/content/projects/homestay-nha-go-ven-song-nhin-tu-song.webp",
       "width": 1412,
       "height": 941,
-      "altVi": "Homestay mái ngói nhìn từ sông, hiên dài cột gỗ, đầu hồi gạch có ô cửa tròn, homestay ven sông",
-      "altEn": "Tile-roofed homestay seen from the river, long veranda with timber posts and brick gable with a round window, riverside homestay"
+      "altVi": "Homestay mái ngói nhìn từ sông, hiên dài lan can gỗ, đầu hồi gạch có ô cửa tròn giữa vườn dừa, homestay ven sông",
+      "altEn": "Tile-roofed homestay seen from the river, long veranda with timber railing and brick gable with a round window among coconut palms, riverside homestay"
     },
     "card": {
       "width": 1672,
       "height": 941,
       "media": [
         {
-          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-1-card-wide.webp",
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-nhin-tu-song-card-wide.webp",
           "width": 1672,
           "height": 941,
-          "altVi": "Homestay mái ngói nhìn từ sông, hiên dài cột gỗ, đầu hồi gạch có ô cửa tròn, homestay ven sông",
-          "altEn": "Tile-roofed homestay seen from the river, long veranda with timber posts and brick gable with a round window, riverside homestay"
+          "altVi": "Homestay mái ngói nhìn từ sông, hiên dài lan can gỗ, đầu hồi gạch có ô cửa tròn giữa vườn dừa, homestay ven sông",
+          "altEn": "Tile-roofed homestay seen from the river, long veranda with timber railing and brick gable with a round window among coconut palms, riverside homestay"
         },
         {
-          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-3.webp",
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-goc-tra-hien.webp",
           "width": 1672,
           "height": 941,
-          "altVi": "Phòng khách bộ ghế gỗ đệm kem, bàn trà, cửa đôi xanh rêu mở ra hiên và sông, homestay ven sông",
-          "altEn": "Living room with cushioned wooden sofa set and coffee table, double green doors open to the veranda and river, riverside homestay"
+          "altVi": "Góc trà cuối hiên, bàn gỗ thấp, ấm chén sứ trắng, hai ghế gỗ đệm kem nhìn ra sông và vườn dừa, homestay ven sông",
+          "altEn": "Tea corner at the end of the veranda with a low wooden table, white porcelain teapot and two cream-cushioned chairs facing the river and palms, riverside homestay"
         },
         {
-          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-4.webp",
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-phong-ngu-cua-so-tron.webp",
           "width": 1672,
           "height": 941,
-          "altVi": "Bàn ăn gỗ dài, tủ bếp gỗ chạy dọc tường, cửa sổ xanh rêu nhìn ra vườn dừa, homestay ven sông",
-          "altEn": "Long wooden dining table and wall-length timber kitchen, green-framed window onto coconut palms, riverside homestay"
+          "altVi": "Phòng ngủ ô cửa tròn khung xanh rêu có lá chớp gỗ, giường gỗ, tủ đầu giường, cửa xanh rêu mở ra hiên, homestay ven sông",
+          "altEn": "Bedroom with a round bottle-green window fitted with a wooden louvred blind, timber bed, bedside table and a green door open to the veranda, riverside homestay"
         },
         {
-          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-5.webp",
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-ban-an.webp",
           "width": 1672,
           "height": 941,
-          "altVi": "Phòng ngủ ô cửa tròn khung xanh rêu, giường gỗ thấp, cửa đôi mở ra hiên sông, homestay ven sông",
-          "altEn": "Bedroom with a round green-framed window, low wooden bed and double doors open to the river veranda, riverside homestay"
+          "altVi": "Bàn ăn gỗ, ghế gỗ đệm kem, tủ thấp, cửa đôi xanh rêu mở ra hiên nhìn sông, homestay ven sông",
+          "altEn": "Wooden dining table with cream-cushioned chairs and a low sideboard, double bottle-green doors open to the river veranda, riverside homestay"
         }
       ]
     },
@@ -2497,11 +2532,11 @@
           }
         ],
         "image": {
-          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-1.webp",
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-nhin-tu-song.webp",
           "width": 1412,
           "height": 941,
-          "altVi": "Homestay mái ngói nhìn từ sông, hiên dài cột gỗ, đầu hồi gạch có ô cửa tròn, homestay ven sông",
-          "altEn": "Tile-roofed homestay seen from the river, long veranda with timber posts and brick gable with a round window, riverside homestay"
+          "altVi": "Homestay mái ngói nhìn từ sông, hiên dài lan can gỗ, đầu hồi gạch có ô cửa tròn giữa vườn dừa, homestay ven sông",
+          "altEn": "Tile-roofed homestay seen from the river, long veranda with timber railing and brick gable with a round window among coconut palms, riverside homestay"
         }
       },
       {
@@ -2525,25 +2560,25 @@
         "type": "gallery-carousel",
         "images": [
           {
-            "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-2.webp",
-            "width": 1672,
+            "src": "/assets/content/projects/homestay-nha-go-ven-song-hien-gach-tau.webp",
+            "width": 1670,
             "height": 941,
-            "altVi": "Hiên gạch tàu dọc sông, cột gỗ, cửa gỗ xanh rêu mở ra hiên, ghế gỗ lưng nan, homestay ven sông",
-            "altEn": "Terracotta veranda along the river with timber posts, open bottle-green doors and slatted wooden chairs, riverside homestay"
+            "altVi": "Hiên gạch tàu dọc sông, cột và lan can gỗ, cửa gỗ xanh rêu mở vào phòng ngủ, ghế gỗ đệm kem, homestay ven sông",
+            "altEn": "Terracotta veranda along the river with timber posts and railing, bottle-green doors open to a bedroom and cream-cushioned wooden chairs, riverside homestay"
           },
           {
-            "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-3.webp",
+            "src": "/assets/content/projects/homestay-nha-go-ven-song-goc-tra-hien.webp",
             "width": 1672,
             "height": 941,
-            "altVi": "Phòng khách bộ ghế gỗ đệm kem, bàn trà, cửa đôi xanh rêu mở ra hiên và sông, homestay ven sông",
-            "altEn": "Living room with cushioned wooden sofa set and coffee table, double green doors open to the veranda and river, riverside homestay"
+            "altVi": "Góc trà cuối hiên, bàn gỗ thấp, ấm chén sứ trắng, hai ghế gỗ đệm kem nhìn ra sông và vườn dừa, homestay ven sông",
+            "altEn": "Tea corner at the end of the veranda with a low wooden table, white porcelain teapot and two cream-cushioned chairs facing the river and palms, riverside homestay"
           },
           {
-            "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-4.webp",
-            "width": 1672,
+            "src": "/assets/content/projects/homestay-nha-go-ven-song-phong-khach.webp",
+            "width": 1671,
             "height": 941,
-            "altVi": "Bàn ăn gỗ dài, tủ bếp gỗ chạy dọc tường, cửa sổ xanh rêu nhìn ra vườn dừa, homestay ven sông",
-            "altEn": "Long wooden dining table and wall-length timber kitchen, green-framed window onto coconut palms, riverside homestay"
+            "altVi": "Phòng khách sofa gỗ đệm kem, bàn trà gỗ, tủ thấp, cửa đôi xanh rêu mở ra hiên và sông, homestay ven sông",
+            "altEn": "Living room with a cream-cushioned wooden sofa, timber coffee table and low cabinet, double bottle-green doors open to the veranda and river, riverside homestay"
           }
         ]
       },
@@ -2577,8 +2612,8 @@
               "en": "Scope"
             },
             "text": {
-              "vi": "Cửa gỗ, bộ ghế phòng khách, bàn ăn, tủ bếp, giường, tủ lavabo, bàn ghế hiên",
-              "en": "Timber doors, living room seating, dining table, kitchen, bed, vanity, veranda furniture"
+              "vi": "Cửa gỗ, bộ ghế phòng khách, bàn ghế hiên, giường, tủ áo, bàn ăn, tủ bếp",
+              "en": "Timber doors, living room seating, veranda furniture, bed, wardrobe, dining table, kitchen"
             }
           },
           {
@@ -2597,8 +2632,8 @@
         "id": "text-1",
         "type": "paragraph",
         "text": {
-          "vi": "Một phòng nghỉ đẹp không cần nhiều đồ. Nắng sớm lọt qua ô cửa tròn ở đầu hồi, giường gỗ thấp, tủ đầu giường và một ngọn đèn vàng là đủ ấm cúng. Mở cánh cửa đôi là bước thẳng ra hiên, trước mặt là dòng sông.",
-          "en": "A lovely guest room does not need much. Early sun through the round window in the gable, a low timber bed, a bedside table and a warm lamp are enough to make it cosy. Open the double doors and you step straight onto the veranda, with the river in front of you."
+          "vi": "Một phòng nghỉ đẹp không cần nhiều đồ. Nắng sớm lọt qua lá chớp gỗ của ô cửa tròn, giường gỗ, tủ đầu giường và một ngọn đèn vàng là đủ ấm cúng. Mở cánh cửa xanh rêu là bước thẳng ra hiên, trước mặt là dòng sông.",
+          "en": "A lovely guest room does not need much. Early sun through the wooden louvres of the round window, a timber bed, a bedside table and a warm lamp are enough to make it cosy. Open the green door and you step straight onto the veranda, with the river in front of you."
         }
       },
       {
@@ -2606,19 +2641,19 @@
         "type": "image-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-5.webp",
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-phong-ngu-cua-so-tron.webp",
           "width": 1672,
           "height": 941,
-          "altVi": "Phòng ngủ ô cửa tròn khung xanh rêu, giường gỗ thấp, cửa đôi mở ra hiên sông, homestay ven sông",
-          "altEn": "Bedroom with a round green-framed window, low wooden bed and double doors open to the river veranda, riverside homestay"
+          "altVi": "Phòng ngủ ô cửa tròn khung xanh rêu có lá chớp gỗ, giường gỗ, tủ đầu giường, cửa xanh rêu mở ra hiên, homestay ven sông",
+          "altEn": "Bedroom with a round bottle-green window fitted with a wooden louvred blind, timber bed, bedside table and a green door open to the veranda, riverside homestay"
         }
       },
       {
         "id": "text-2",
         "type": "paragraph",
         "text": {
-          "vi": "Chủ homestay ven sông nào cũng lo đồ gỗ bị ẩm mốc, phồng rộp sau vài mùa mưa. Vì vậy tủ lavabo và tủ bếp dùng ván chống ẩm phủ veneer gỗ, sơn kín cả mặt sau, để cánh tủ vẫn phẳng và đẹp qua nhiều năm.",
-          "en": "Every riverside homestay owner worries about furniture getting damp and swelling after a few rainy seasons. So the vanity and kitchen units use moisture-resistant board in wood veneer, sealed on the back too, so the doors stay flat and handsome for years."
+          "vi": "Chủ homestay ven sông nào cũng lo đồ gỗ bị ẩm mốc, phồng rộp sau vài mùa mưa. Vì vậy tủ áo và tủ bếp dùng ván chống ẩm phủ veneer gỗ, sơn kín cả mặt sau, để cánh tủ vẫn phẳng và đẹp qua nhiều năm.",
+          "en": "Every riverside homestay owner worries about furniture getting damp and swelling after a few rainy seasons. So the wardrobes and kitchen units use moisture-resistant board in wood veneer, sealed on the back too, so the doors stay flat and handsome for years."
         }
       },
       {
@@ -2626,39 +2661,48 @@
         "type": "image-single",
         "position": "left-2-3",
         "image": {
-          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-6.webp",
+          "src": "/assets/content/projects/homestay-nha-go-ven-song-tu-ao-go.webp",
           "width": 1672,
           "height": 941,
-          "altVi": "Phòng tắm ốp đá xám, tủ lavabo gỗ, gương khung gỗ, vách kính tắm đứng, homestay ven sông",
-          "altEn": "Bathroom in grey stone with wooden vanity, timber-framed mirror and glass shower screen, riverside homestay"
+          "altVi": "Tủ áo gỗ nâu sẫm hai cánh, tay nắm đồng, tường vôi vàng kem in bóng nắng lá, homestay ven sông",
+          "altEn": "Dark wood two-door wardrobe with brass handles against a cream limewash wall dappled with leaf shadows, riverside homestay"
         }
       },
       {
         "id": "text-3",
         "type": "paragraph",
         "text": {
-          "vi": "Đồ ngoài trời thường xuống cấp nhanh vì nắng gió. Bộ bàn trà cuối hiên làm bằng gỗ tự nhiên, lưng tựa nan thẳng, đủ bền để khách ngồi uống trà nhìn thuyền ghé bến qua nhiều năm.",
-          "en": "Outdoor furniture usually wears out fast in the sun and wind. The tea table and chairs at the end of the veranda are solid wood with straight slatted backs, sturdy enough for guests to enjoy tea by the boat landing for years."
+          "vi": "Bữa cơm là lúc khách quây quần đông nhất, nên gian ăn cần rộng mà bếp vẫn gọn. Bàn ăn gỗ đặt ngay cửa nhìn ra hiên, còn tủ bếp trên dưới chạy hết một vách, đủ chỗ cho chén bát và nồi niêu.",
+          "en": "Mealtimes are when guests gather most, so the dining area needs space while the kitchen stays tidy. The wooden dining table sits right by the doors to the veranda, while upper and lower kitchen cabinets run the full length of one wall, with room for dishes and pots."
         }
       },
       {
         "id": "image-3",
-        "type": "image-single",
-        "position": "wide",
-        "image": {
-          "src": "/assets/content/projects/homestay-nha-go-ven-song-shot-7.webp",
-          "width": 1672,
-          "height": 941,
-          "altVi": "Bàn trà gỗ ngoài hiên, ấm chén gốm, nhìn ra bến thuyền nhỏ trên sông, homestay ven sông",
-          "altEn": "Wooden tea table on the veranda with ceramic teapot and cups, looking out to a small boat landing, riverside homestay"
-        }
+        "type": "image-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/projects/homestay-nha-go-ven-song-ban-an.webp",
+            "width": 1672,
+            "height": 941,
+            "altVi": "Bàn ăn gỗ, ghế gỗ đệm kem, tủ thấp, cửa đôi xanh rêu mở ra hiên nhìn sông, homestay ven sông",
+            "altEn": "Wooden dining table with cream-cushioned chairs and a low sideboard, double bottle-green doors open to the river veranda, riverside homestay"
+          },
+          {
+            "src": "/assets/content/projects/homestay-nha-go-ven-song-tu-bep.webp",
+            "width": 1672,
+            "height": 941,
+            "altVi": "Tủ bếp gỗ nâu sẫm trên dưới, mặt đá xám, bếp gas, cửa gỗ xanh rêu cạnh bếp, homestay ven sông",
+            "altEn": "Dark wood upper and lower kitchen cabinets with a grey stone worktop and gas hob, bottle-green timber door beside the kitchen, riverside homestay"
+          }
+        ]
       },
       {
         "id": "workshop",
         "type": "paragraph",
         "text": {
-          "vi": "Mỗi ngày đóng cửa thi công là một ngày homestay mất khách. Vì vậy toàn bộ đồ gỗ được làm và sơn hoàn thiện tại xưởng, chở xuống bằng xe tải nhỏ và lắp ráp tại chỗ trong khoảng bốn ngày. Các cánh cửa xanh rêu cũng sơn tại xưởng để màu đồng đều từ phòng ngủ đến phòng tắm.",
-          "en": "Every day closed for building work is a day without guests. So all the joinery was made and finished in the workshop, brought down by small truck and assembled on site in about four days. The bottle-green doors were painted in the workshop too, so the colour matches from the bedrooms to the bathroom."
+          "vi": "Mỗi ngày đóng cửa thi công là một ngày homestay mất khách. Vì vậy toàn bộ đồ gỗ được làm và sơn hoàn thiện tại xưởng, chở xuống bằng xe tải nhỏ và lắp ráp tại chỗ trong khoảng bốn ngày. Các cánh cửa xanh rêu cũng sơn tại xưởng để màu đồng đều từ phòng ngủ đến gian bếp.",
+          "en": "Every day closed for building work is a day without guests. So all the joinery was made and finished in the workshop, brought down by small truck and assembled on site in about four days. The bottle-green doors were painted in the workshop too, so the colour matches from the bedrooms to the kitchen."
         }
       },
       {

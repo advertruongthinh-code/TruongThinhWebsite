@@ -75,15 +75,15 @@ try {
   const productIds = new Set(ADVERTISING_CARDS.filter((card) => card.productIds?.includes(product)).map((card) => card.id));
   const shown = await page.evaluate(() => [...document.querySelectorAll(".masonry-grid [data-masonry-card]")].map((node) => node.dataset.masonryCard));
   assert.ok(shown.length && shown.every((id) => productIds.has(id)), "masonry has only cards of the product");
-  // From 1025px the one-row rail lifts up, chips sit where the old rail was, and the "Cuộn xuống" text still shows below the chips.
+  // From 1025px the search bar sits where the rail was, the rail and chips one step lower; no "Cuộn xuống" (owner 2026-11-18).
   const stack = await page.evaluate(() => {
     const box = (selector) => document.querySelector(selector).getBoundingClientRect();
-    const cue = document.querySelector(".scroll-cue");
-    return { rail: box(".project-filters").bottom, chipsTop: box(".rail-chips:not([hidden])").top,
-      chipsBottom: box(".rail-chips:not([hidden])").bottom, cueTop: box(".scroll-cue").top, cueVisibility: getComputedStyle(cue).visibility };
+    return { search: box("[data-search-dock-top]").bottom, railTop: box(".project-filters").top, rail: box(".project-filters").bottom,
+      chipsTop: box(".rail-chips:not([hidden])").top, chipsBottom: box(".rail-chips:not([hidden])").bottom, hero: box(".detail-index-hero").bottom,
+      cue: document.querySelectorAll(".scroll-cue").length };
   });
-  assert.equal(stack.cueVisibility, "visible", "Cuộn xuống text still shows when chips are present");
-  assert.ok(stack.rail <= stack.chipsTop && stack.chipsBottom < stack.cueTop, `rail, chips, Cuộn xuống do not overlap: ${JSON.stringify(stack)}`);
+  assert.equal(stack.cue, 0, "no Cuộn xuống on a masonry page");
+  assert.ok(stack.search <= stack.railTop && stack.rail <= stack.chipsTop && stack.chipsBottom < stack.hero, `search, rail, chips do not overlap: ${JSON.stringify(stack)}`);
 
   // Vertical anchoring (owner 2026-10-17): a one-row cluster and a multi-row cluster have their first chip row at the same position.
   const firstRowTop = async (cluster) => {

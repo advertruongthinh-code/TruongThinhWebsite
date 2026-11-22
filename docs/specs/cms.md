@@ -198,8 +198,7 @@ Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret,
 ([decision](../decisions/cms-cloudflare-static-publish.md)); owner mở slice Contract cùng ngày.
 
 Hai gate thêm trước CMS (owner 2026-11-15): làm lại layout trang chuẩn theo Espacio
-([card](https://app.notion.com/p/419332849a0e8166ae6ce4bcd0727d6c)) và motion hero Espacio
-(xong, PR #966); chi tiết ở [nội dung CMS](cms-content.md#gate-còn-mở).
+(xong, PR #978) và motion hero Espacio (xong, PR #966); chi tiết ở [nội dung CMS](cms-content.md#gate-còn-mở).
 
 Thứ tự slice, mỗi slice owner duyệt gate: Contract (spec này; gate: owner duyệt spec và các mục `[CẦN LÀM RÕ]`),
 Storage (migration `0001` mới, bucket, export; gate: migration có snapshot, khôi phục thử, đường lùi), Publishing

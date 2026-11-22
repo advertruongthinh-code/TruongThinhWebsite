@@ -12,7 +12,7 @@ colors:
   orange: "#a34119"
   orange-accent: "#d85d2b"
   media-loading-surface: "#2b2c2b"
-  media-label-overlay: "rgba(0, 0, 0, 0.5)"
+  media-label-overlay: "rgba(0, 0, 0, 0.3)"
   media-shade-card: "linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%)"
   media-control-hover: "#ddd"
   media-control-active: "#c6c6c6"

@@ -24,6 +24,10 @@ Markup `section.legacy-closer` trong `src/site/index.html`; số đo và hành v
   (`clamp(3.2rem, 6vw, 7rem)`), line-height `0.98`. Dấu chấm cuối không treo: cả dòng
   kể cả dấu nằm giữa khối. CTA Advertising giữ cỡ riêng nhỏ hơn
   (`min(clamp(2.5rem, 4.5vw, 5rem), 14svh)`) để cụm CTA và Kính không phủ hết batch.
+- CTA Advertising có khe thanh tìm kiếm `[data-search-dock]` ngay dưới tiêu đề, cao cố định 50px; thanh tìm kiếm tự chuyển vào khe
+  ([masonry-live-layout R6](../../../docs/specs/masonry-live-layout.md#r6-chế-độ-tìm-kiếm)). CTA trang Công trình không có khe.
+  Link "Trao đổi ý tưởng" (`.legacy-link`) nằm dưới khe, cách khe `--masonry-cta-link-gap` để khoảng trên và dưới thanh bằng nhau
+  theo mắt; cụm tiêu đề và thanh đặt ở tâm thị giác khi cuộn tới cuối ([Thanh tìm kiếm R4](../../../docs/specs/search-bar.md#r4-khe-cta)).
 - Nhãn nút `.legacy-link` + `.portal-subtitle` ("VỀ CHÚNG TÔI", "GỌI ZALO TƯ VẤN"):
   16px, viết hoa, không mũi tên; subtitle (nếu có) nằm trên tiêu đề. CTA trang con
   đặt nét chữ nhìn thấy của tiêu đề (không tính dấu) đúng tâm khối theo chiều

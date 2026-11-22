@@ -26,7 +26,11 @@ try {
     // The Worker returns geometry slowly: resize lands while mount is still waiting (how a thread-throttled long task reproduces it).
     await page.addInitScript(() => {
       const post = Worker.prototype.postMessage;
-      Worker.prototype.postMessage = function (...args) { setTimeout(() => post.apply(this, args), 3000); };
+      // Only the related-layout Worker is slow; grid packs (masonry-live-layout R3) answer at once, as the old build cache did.
+      Worker.prototype.postMessage = function (...args) {
+        if (args[0]?.pack) return post.apply(this, args);
+        setTimeout(() => post.apply(this, args), 3000);
+      };
     });
     await page.goto(`${base}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true",

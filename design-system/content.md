@@ -17,7 +17,7 @@ chung chung và lưới bất động sản rập khuôn.
 
 ## Song ngữ VI/EN
 
-- Tiếng Việt là bản gốc; tiếng Anh là bản tương ứng.
+- Tiếng Việt là bản gốc; tiếng Anh nằm ở `data-en`, `data-en-alt`, `data-en-aria-label`, `data-en-content` trên đúng node chứa chữ (leaf) để không phá markup ([phát hành tĩnh](../docs/specs/static-release.md#r5-văn-bản-song-ngữ-và-route-locale)); locale nhớ ở `tt-lang`.
 - Dấu câu bản EN theo bản VI (owner 2026-10-18): dấu chấm, dấu phẩy đặt cùng chỗ với câu VI tương ứng;
   liệt kê không dùng dấu phẩy trước `and` (VI không có dấu phẩy trước `và`), trừ khi câu VI có dấu phẩy ở đúng chỗ đó.
 - Không công bố dữ kiện owner chưa xác nhận (Zalo, năm thành lập, bảo hành);
@@ -40,7 +40,7 @@ scroll cue và mép hàng ảnh đầu ở đáy viewport.
 
 | Route | Mạch | Hướng ảnh |
 | --- | --- | --- |
-| Trang chủ | Hero, ba portal lĩnh vực, tay nghề, năng lực (vật liệu, xưởng CNC, quy trình), công trình, câu chuyện hơn 20 năm, logo khách hàng, lời mời | Bằng chứng thật: không gian, vật liệu, dụng cụ, tay nghề |
+| Trang chủ | Hero, ba portal lĩnh vực, tay nghề, bốn cam kết (tư vấn, sản xuất, chất lượng, hậu mãi), dải công trình, câu chuyện hơn 20 năm, logo khách hàng, lời mời | Bằng chứng thật: không gian, vật liệu, dụng cụ, tay nghề |
 | Residential | Mở full-bleed, lời hứa nhà ở, chuỗi không gian, vật liệu và tay nghề, quy trình, CTA khảo sát | Ánh sáng, luồng đi, lưu trữ, vật liệu, sinh hoạt thật; cân bằng nhà phố, căn hộ, homestay |
 | Commercial | Mở theo vận hành; shop, F&B, văn phòng; độ bền vật liệu; công trình chọn lọc; CTA | Luồng khách, quầy, trưng bày, thanh toán, kho; không gian đang hoạt động |
 | Advertising | Hero, filter, masonry ảnh sản phẩm, CTA | Sản phẩm làm được: tổng thể, chi tiết cấu tạo và ánh sáng, gia công và lắp đặt |

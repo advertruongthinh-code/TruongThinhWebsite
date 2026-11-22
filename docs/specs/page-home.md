@@ -4,8 +4,8 @@ status: live
 source:
   - src/site/index.html
   - src/site/content/client-logos.json
-  - src/site/content/project-reel.json
-  - scripts/site/project-reel.mjs
+  - src/site/content/home-projects.json
+  - scripts/site/home-projects.mjs
   - src/site/**/hero-*
   - scripts/site/hero-slides.mjs
   - src/site/assets/content/client-logos/**
@@ -20,7 +20,7 @@ tests:
   - tests/site/footer-consistency.e2e.mjs
   - tests/site/hero-slideshow.test.mjs
   - tests/site/hero-motion.e2e.mjs
-  - tests/site/project-reel.test.mjs
+  - tests/site/home-projects.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
 updated: 2026-11-12
 ---
@@ -49,8 +49,8 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | News | `.home-news` | 3 bài News mới nhất theo trang chủ Espacio ([news R4](news.md#r4-news-trên-các-trang-khác)), build chèn vào `<!-- home-news -->` | Trang từng bài | ink |
 | 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm" xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
-| 4 | `#nang-luc` | Ba `article.service-portal` không link: Vật liệu, Xưởng CNC, Quy trình (phụ đề "Năm bước: Khảo sát đến Hậu mãi", EN "Five steps: Survey to Aftercare"; EN Xưởng CNC là "Workshop"; bước theo [PRODUCT](../../PRODUCT.md)) | Không | ink |
-| 5 | `#du-an` | Sáu `figure` công trình so le sinh từ dữ liệu, caption nêu đúng hạng mục trong ảnh (R8) | Không | ink |
+| 4 | `#nang-luc` | Bốn cam kết (owner 2026-11-16), bốn `article.service-portal` không link, chữ góc dưới trái: tiêu đề Tư vấn, Sản xuất, Chất lượng, Hậu mãi (EN Consultation, Production, Quality, Aftercare), phụ đề hai dòng, nội dung; không số thứ tự; ảnh và chữ phục vụ đều nhà ở, kinh doanh, sản phẩm quảng cáo (owner 2026-11-17) | Không | ink |
+| 5 | `.blk-projects`, rồi `.detail-heading#ghe-tham` + `.detail-places` | Dải công trình dùng chung (R8), mọi khung ảnh cùng cỡ, card chẵn hạ thấp so le như Espacio (180px, 120px từ 1200px trở xuống), bốn card trọn trên PC (owner 2026-11-22): card link sang trang công trình, dòng "Xem tất cả công trình". Sau đó Eyebrow "GHÉ CHÚNG TÔI", `h2` "Ghé xưởng / *và văn phòng*", ba thẻ như khối showroom trang kitchens của Espacio, không kicker trên thẻ (owner 2026-11-22) (ảnh cao 300px, tên in hoa gạch chân khi hover, ảnh phóng khi hover): Trụ sở (địa chỉ, điện thoại), Xưởng (địa chỉ đang cập nhật), Tư vấn (hotline); 3 / 2 (≤960) / 1 (≤578) cột; chuyển từ trang Kinh doanh (owner 2026-11-22); thẻ Trụ sở mở bản đồ, thẻ Tư vấn mở Zalo | Có | ink |
 | 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề / Không ngừng làm mới" (không dấu phẩy) cỡ CTA chung, mỗi dòng không xuống dòng và chỉ co khi không vừa khung ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), bố cục căn giữa dùng chung CTA trang con, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
 | sau | `.site-invitation` | "Có mặt bằng? / Mời chúng tôi đến xem" | "Gọi Zalo tư vấn" mở `https://zalo.me/0949131050` ở tab mới | ink |
@@ -58,7 +58,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 ```gherkin
 Given output đã build
 When mở /vi/ và đọc main
-Then có một h1 và tám section theo thứ tự hero, .home-news, #dich-vu, #tay-nghe, #nang-luc, #du-an, closer, marquee
+Then có một h1 và tám section theo thứ tự hero, .home-news, #dich-vu, #tay-nghe, #nang-luc, .blk-projects, .blk-cta, closer, marquee
 And portal dịch vụ đầu trỏ /vi/residential/, phụ đề portal Quy trình là "Năm bước: Khảo sát đến Hậu mãi"
 ```
 
@@ -101,7 +101,7 @@ Then nút có aria-pressed="true", slide và marquee đứng yên
 
 Bốn `.hero-word` hiện dần theo từ, bắt đầu 0,9s sau khi trang mount, ở mọi lần vào (tải trực tiếp,
 route mềm); tải trực tiếp thì chạy song song lúc veil mở ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)).
-Tải trực tiếp: nhánh intro (giữ nền tối, slide đầu mờ vào, kèm header intro) chạy dưới veil; route
+Tải trực tiếp: nhánh intro (giữ slide và shade ẩn trên nền đơn `#2b2c2b` tới khi title hiện xong, rồi ảnh đầu và shade mờ vào `1,6s`, kèm header intro) chạy dưới veil, thuộc timeline hero nên dừng cùng khi tab ẩn hoặc hero khuất; route
 mềm bỏ nhánh này, slide đầu và shade hiện ngay lúc mount. Scroll cue "CUỘN XUỐNG" /
 "SCROLL DOWN": sau 3s ký tự lần lượt hiện rồi ẩn, lặp; bấm thì cuộn tới `#dich-vu`; cuộn quá 200px
 thì cue mờ đi, rời thứ tự Tab.
@@ -118,16 +118,16 @@ Then scroll cue có is-hidden và tabindex="-1"
 
 Portal dịch vụ có kicker, tiêu đề, phụ đề; portal năng lực có tiêu đề, phụ đề; tiêu đề nằm giữa card
 theo chiều dọc. Cỡ chữ theo bề rộng card (container query) nên ba portal cùng nhóm cùng cỡ cho từng vai
-trò. Toàn site chung token chữ portal: `--portal-title-size` weight 600, `--portal-kicker-size`, `--portal-subtitle-size` weight 700; portal loại hình trang con theo layout ba tầng của portal dịch vụ; portal năng lực cùng token, copy rút gọn để vừa. Ngoại lệ: portal loại hình Commercial không kicker, tiêu đề hai dòng, khối hai dòng nằm giữa card, tagline lùi theo. Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
+trò. Toàn site chung token chữ portal: `--portal-title-size` weight 600, `--portal-kicker-size`, `--portal-subtitle-size` weight 700; portal loại hình trang con theo layout ba tầng của portal dịch vụ; portal cam kết theo ảnh mẫu owner 2026-11-16: chữ góc dưới trái, tiêu đề nhãn nhỏ in hoa, phụ đề lớn đúng hai dòng soạn sẵn không tự xuống dòng (không tách từ ghép), nội dung tối đa 34ch, giữ chỗ năm dòng khi các card đứng cạnh nhau để tiêu đề ngang hàng; nền dưới đậm dần tới đen 0.72. Ngoại lệ: portal loại hình Commercial không kicker, tiêu đề hai dòng, khối hai dòng nằm giữa card, tagline lùi theo. Mỗi vai trò một dòng, không tràn, cách mép card ít nhất 8px ở VI, EN, 320 tới 1920px, chữ gốc 200%;
 không ép bằng `scaleX` hay `textLength`. Layout ba cột cao 600px; tới 980px một cột cao `72svh`; tới
-680px cao 400px. Vào viewport: dòng tiêu đề trượt lên trong mask, trễ theo cột, phụ đề hiện sau. Hover
+680px cao 400px. Cam kết trang chủ bốn cột, tới 1200px hai cột cao 34rem, tới 578px một cột cao 400px. Vào viewport: dòng tiêu đề trượt lên trong mask, trễ theo cột, phụ đề hiện sau. Hover
 hoặc focus portal dịch vụ gạch chân phụ đề.
 
 ```gherkin
 Given /en/ ở 320px, cỡ chữ gốc 200%
-When đo sáu portal sau khi font tải xong
-Then kicker, tiêu đề, phụ đề mỗi cái một dòng, nằm trong card cách mép ít nhất 8px
-And ba portal cùng nhóm có cùng cỡ chữ theo vai trò, document không tràn ngang
+When đo các portal sau khi font tải xong
+Then kicker, tiêu đề, phụ đề mỗi cái một dòng (cam kết: phụ đề hai dòng vừa card, chữ đáy trái), nằm trong card cách mép ít nhất 8px
+And các portal cùng nhóm có cùng cỡ chữ theo vai trò, document không tràn ngang
 ```
 
 ### R6. Hover ảnh dùng chung
@@ -135,12 +135,12 @@ And ba portal cùng nhóm có cùng cỡ chữ theo vai trò, document không tr
 Portal là consumer của primitive hover ảnh dùng chung (trigger `.media-hover-zoom-trigger`, ảnh
 `.media-hover-zoom`, CSS ở `style.css`). Card masonry và related Advertising không dùng ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)).
 Chuột thật (`hover: hover` và `pointer: fine`) hoặc `:focus-visible` phóng ảnh trong khung; kích thước
-card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`, đen `0.5`) giữ nguyên độ
+card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`--media-label-overlay`, đen `0.3` như Espacio) giữ nguyên độ
 tối ở normal, hover, focus. Consumer không thêm transition, scale riêng. Reduced motion: không zoom.
 
 ```gherkin
 Given /vi/ ở 1440px với chuột
-When hover lần lượt sáu portal
+When hover lần lượt bảy portal
 Then ảnh đạt scale 1.15 sau 600ms ease-out, kích thước card không đổi, màu portal-shade không đổi
 When bật reduced motion
 Then ảnh không còn transform hay transition
@@ -171,17 +171,17 @@ And ảnh khoảng 48x37px, không đè lên mực chữ của dòng nào
 And ở 1185px sau animation, móc chữ Ẩ cách đáy ảnh sợi dây ít nhất 10px
 ```
 
-### R8. Rail công trình
+### R8. Dải công trình
 
-Card đầu dùng ảnh quán cà phê nhà phố `home-commercial-cafe`; portal Kinh doanh (R1) dùng ảnh riêng `home-commercial-cnc-cafe` nên hai chỗ không trùng ảnh. Nguồn duy nhất là `src/site/content/project-reel.json` (chỉ build, test đọc): `renderProjectReel` (`scripts/site/project-reel.mjs`) validate, rồi build và preview Design System thay `<!-- project-reel-cards -->` trong `.project-track` bằng `figure.project-card` theo `order`; dữ liệu sai thì build dừng trước khi xóa output cũ. Ràng buộc, cũng là contract cho CMS phase ([CMS](cms.md)): 3 tới 6 card (dưới 3 mất nhịp so le, trên 6 card ở lưới 981px hẹp dưới 130px); `id` kebab-case, `order` nguyên dương, cả hai duy nhất, `id` giữ nguyên khi sửa nội dung; `variant` là `high`, `mid` hoặc `low` (`mid`, `low` cùng độ lệch), xen kẽ cao, thấp theo `order` vì tới 980px card chẵn luôn đẩy xuống; `src` là WebP `/assets/content/...` có trong `src/site/` (kiểm bằng `validateImage` của `scripts/site/lib.mjs`), đã sinh biến thể ([tải ảnh R5](media-delivery.md#r5-chuẩn-file-ảnh)), `width`, `height` bằng pixel thật; `altVi`, `altEn`, `captionVi`, `captionEn` không rỗng, caption vài từ nêu đúng hạng mục trong ảnh, không dấu "/", không nêu tên thương hiệu trong ảnh. Card ảnh cao so le, caption có ô vuông màu lặp ba (xanh, cam, viền). Track là `region` focus được (`tabindex="0"`, nhãn "Nhịp công trình — cuộn ngang để xem thêm"); vào viewport track trượt vào từ phải, hover zoom ảnh. Từ 981px: lưới mỗi card một cột, cao tối thiểu 650px, caption dài thì lưới cao thêm, không bị cắt; có Locomotive thì track parallax ngang speed `4`; thiết bị có hover thì caption ẩn tới khi hover. Tới 980px: rail cuộn ngang, snap giữa card, ẩn thanh cuộn ngang ([shell R9](site-shell.md#r9-scrollbar)), card chẵn đẩy xuống.
+`#du-an` cũ (rail ảnh không bấm được) được thay bằng dải công trình dùng chung với Residential, Commercial (owner 2026-11-16): block `project-slider` và `cta-arrow` của `scripts/site/blocks.mjs`, cùng markup, CSS, motion như dải cuối trang Nhà ở ([projects R1](projects.md), [Blocks](../../design-system/components/Blocks/README.md)). Mỗi card là link sang trang công trình, ảnh là cover của công trình, tên chữ hoa dưới ảnh; dòng mũi tên "Xem tất cả công trình" (EN "See all projects") dẫn tới `/vi/projects/`. Nguồn duy nhất là `src/site/content/home-projects.json`: mảng 3 tới 8 id công trình có trong `projects.json`, không trùng, theo thứ tự hiển thị; `validateHomeProjects` (`scripts/site/home-projects.mjs`) kiểm trong build và content-contract, dữ liệu sai thì build dừng. Build thay `<!-- project-strip -->` trong `index.html`.
 
 ```gherkin
 Given /vi/ ở 390px
-When vuốt ngang track công trình
-Then track dừng ở từng card, mọi card tới được, document không tràn ngang
-Given project-reel.json có hai card trùng id hoặc ảnh không tồn tại
+When vuốt ngang dải công trình
+Then track dừng ở từng card, mọi card tới được, bấm card mở trang công trình đó
+Given home-projects.json có id không có trong projects.json
 When chạy pnpm prepare:site
-Then build dừng với lỗi "project-reel data invalid", .site-output/ cũ còn nguyên
+Then build dừng với lỗi "home-projects data invalid"
 ```
 
 ### R9. Closer và marquee khách hàng
@@ -247,14 +247,14 @@ Then không phần tử reveal nào bị ẩn, slide đầu hiện ngay, nút d�
 | --- | --- | --- |
 | DOM hook | `.hero[data-hero-intro]`, `.hero-slide[data-slide]`, `img[data-src]`, `.hero-word`, `.hero-shade`, `[data-motion-toggle]`, `[data-scroll-cue]`, `[data-scroll-cue-label]` | Hero, nút dừng, scroll cue (R3, R4); `motion.js` đọc |
 | DOM hook | `.service-portal`, `.portal-line`, `.portal-title__quiet`, `.portal-title__strong`, `.portal-title-mask`, `.portal-subtitle`, `.media-hover-zoom-trigger`, `.media-hover-zoom` | Portal và hover chung (R5, R6) |
-| DOM hook | `.heritage-text > .heritage-line`, `.heritage-line--delay`, `.heritage-image`, `.project-track`, `.legacy-copy`, `.client-logo-marquee__track`, `__group` | Reveal, rail, marquee |
+| DOM hook | `.heritage-text > .heritage-line`, `.heritage-line--delay`, `.heritage-image`, `.blk-projects__track`, `.legacy-copy`, `.client-logo-marquee__track`, `__group` | Reveal, rail, marquee |
 | Class runtime | `is-active`, `is-inview`, `is-subtitle-inview`, `is-running`, `is-hidden` (cue), `motion-paused` (body) | `motion.js` ghi |
-| Data | `src/site/content/client-logos.json`, `content/project-reel.json`, `content/hero-slides.json` | 12 logo: id, tên, file, viewBox, thứ tự; card rail (R8); slide ba hero (R3); build và test đọc |
+| Data | `src/site/content/client-logos.json`, `content/home-projects.json`, `content/hero-slides.json` | 12 logo: id, tên, file, viewBox, thứ tự; id công trình của dải (R8); slide ba hero (R3); build và test đọc |
 | Hàm | `mountPageMotion`, `hydrateDeferredHeroImages`, `fitHeritageGaps` (R7) trong `motion.js` | Nội bộ, không export |
 
 ## UI
 
-Component [Hero](../../design-system/components/Hero/README.md), [Project reel](../../design-system/components/ProjectReel/README.md),
+Component [Hero](../../design-system/components/Hero/README.md), [Khối công trình](../../design-system/components/Blocks/README.md),
 [Footer](../../design-system/components/Footer/README.md) (lời mời). Motion [trang chủ](../../design-system/motion.md#text),
 [hover](../../design-system/motion.md#hover), [parallax](../../design-system/motion.md#smooth-scroll-và-parallax).
 Mạch nội dung và ảnh: [Content](../../design-system/content.md#mạch-nội-dung-theo-route),
@@ -273,7 +273,7 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 | R5 | `TT_E2E_PORTAL_ONLY` (14 bề rộng × VI, EN, chữ 200%) |
 | R6 | `TT_E2E_P5_MEDIA_HOVER_ONLY` (portal và gallery, duo, CTA ba trang con) |
 | R7 | `mobile-layout-parity.e2e.mjs` (chữ không cắt); `hero-typography.e2e.mjs` (clip-path không cắt nét bốn chữ nối `.heritage-text--minor`, 390 tới 1440px, VI và EN); khoảng thở ảnh chưa có test |
-| R8 | `project-reel.test.mjs` (validate, số card, caption, ảnh VI/EN), `TT_E2E_WHEEL_ONLY` (rail), `mobile-layout-parity.e2e.mjs` (control trong rail tới được) |
+| R8 | `home-projects.test.mjs` (validate, card link VI/EN, dòng xem tất cả), `TT_E2E_WHEEL_ONLY` (dải), `mobile-layout-parity.e2e.mjs` (control trong rail tới được) |
 | R9 | `pnpm qa:client-assets`, `client-logo-marquee.e2e.cjs` |
 | R10 | `TT_E2E_MEDIA_FALLBACK_ONLY` (hero, hero reduced, portal, closer), `image-loading-frame.e2e.mjs` |
 | R11 | `TT_E2E_FRAGMENT_ONLY`, `TT_E2E_LOCALE_MODES_ONLY` (kiểm trên Residential) |
@@ -287,8 +287,8 @@ E2E cần preview và `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa
 - Không có canonical, alternate, Open Graph, JSON-LD; `/` của output ở [phát hành tĩnh](static-release.md#gate-còn-mở).
   [CẦN LÀM RÕ: cần SEO head trước khi public?] Owner.
 - Lời mời và floating CTA trỏ Zalo `https://zalo.me/0949131050`, cùng số hotline ([PRODUCT](../../PRODUCT.md)).
-- [ADR hero trang chủ](../decisions/home-hero-crossfade-drift.md) ghi giữ media `2.6s` khi vào thẳng; code giữ `1s`
-  (`introOffset` trong `motion.js`). [CẦN LÀM RÕ: giữ `2.6s` hay `1s`?] Owner.
+- Giữ media khi vào thẳng: code giữ `1s` (`introOffset` trong `motion.js`) để title reveal xong trước khi ảnh hiện.
+  [CẦN LÀM RÕ: giữ `1s` hay `2.6s`?] Owner.
 
 ## Chú thích thuật ngữ
 

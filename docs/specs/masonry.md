@@ -11,7 +11,7 @@ tests:
   - tests/site/advertising-fast-fling.e2e.mjs
   - tests/site/advertising-detached-cards.e2e.mjs
 notion: none
-updated: 2026-11-12
+updated: 2026-11-16
 ---
 
 # Masonry dùng chung
@@ -30,7 +30,9 @@ hoặc ở spec chi tiết được trỏ tới, không chép sang từng trang.
 Ba lưới chạy chung `mountMasonry` (`masonry/runtime.mjs`). Trang Công trình mount với `viewer: false` (không
 detail, related, gợi ý, chip sản phẩm, không khung detail ẩn trong HTML). Phần lưới của trang Công
 trình (grid, thẻ tĩnh noscript, batch skeleton, CTA đuôi) lấy nguyên từ HTML trang quảng cáo, chỉ đổi nhãn, thẻ tĩnh, chữ
-CTA ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)): thêm attribute ở trang quảng cáo thì trang Công trình có theo.
+CTA ([projects R2](projects.md#r2-trang-toàn-bộ-công-trình)): thêm attribute ở trang quảng cáo thì trang Công trình có theo. Ngoại lệ
+duy nhất: khe thanh tìm kiếm `[data-search-dock]` bị bỏ lúc build, vì tìm kiếm chỉ chạy ở trang quảng cáo
+([masonry-live-layout R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm)).
 
 ### R2. Item masonry
 
@@ -43,7 +45,7 @@ card masonry" chọn theo hai attribute này, không liệt kê từng loại ca
 
 Card thật, item ghim (primary và card gợi ý ở detail) và khung batch skeleton đều theo
 cùng luật span một hoặc hai cột ([masonry R5](advertising-masonry.md#r5-hình-học-masonry),
-[R6](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí)). Lưới chính đặt card theo bố cục tính sẵn (`replay.mjs`, [cache bố cục](masonry-layout-cache.md)), card hai
+[R6](advertising-masonry.md#r6-đặt-card-và-chuyển-vị-trí)). Lưới chính đặt card theo bố cục máy người xem tự xếp (`pack.mjs`, `replay.mjs`, [xếp trực tiếp](masonry-live-layout.md)), card hai
 cột khép mép bằng cách cắt tối đa `5%` media; related xếp bằng solver của `masonry/layout.mjs`, mọi card một cột. Không lỗ giữa
 lưới ở cả ba nơi. Related đặt primary và gợi ý là item ghim
 ([detail R7](advertising-detail.md#r7-related)); skeleton đổi band và số khung bằng attribute trên batch
@@ -51,9 +53,10 @@ lưới ở cả ba nơi. Related đặt primary và gợi ý là item ghim
 
 ### R4. Sân masonry
 
-Mỗi lưới là một instance của `createMasonryHost(root, { create, attach, detach, color, masonry })` (`masonry/host.mjs`):
+Mỗi lưới là một instance của `createMasonryHost(root, { create, attach, detach, waitColors, masonry })` (`masonry/host.mjs`):
 card đang dựng, tọa độ, media đang hiện của card nhiều media, card tạm, ngân sách dựng, hàng chờ LRU theo RAM máy
-(`masonry/mount-budget.mjs`), một Masonry chỉ lo motion. Một lượt dựng là `mount(placements, { allowed, render })`, gỡ là
+(`masonry/mount-budget.mjs`); motion là Web Animations trên tọa độ đã tính, không còn thư viện Masonry
+([xếp trực tiếp R7](masonry-live-layout.md#r7-trượt-tới-tọa-độ-đã-tính)). Một lượt dựng là `mount(placements, { allowed, render })`, gỡ là
 `release(keep, { queue })` (không gỡ card đang giữ focus), dựng lẻ là `ensure`; motion layout `layoutMotion(instant)`,
 hủy `stopMotion()`. Thứ tự chọn card dựng (`pickMounts`): card bắt buộc, rồi card trong hàng chờ, rồi gần giữa màn hình,
 tối đa theo ngân sách frame; vuốt rất nhanh chỉ dựng card bắt buộc. Vùng dựng, vùng trễ và bàn phím theo
@@ -88,8 +91,8 @@ vào view, F5.
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | DOM hook | `[data-masonry-item]`, `[data-masonry-kind]` | Item masonry ở mọi lưới (R2) |
-| Hàm public | `createMasonryHost`, `pickMounts`, `isSizeMorph`, `cancelMasonryTransitions` (`masonry/host.mjs`) | Sân masonry (R4) |
-| Hàm public | `createMountBudget`, `createGhostLayer`, `createDetachedCards`, `detachedCapacity`, `colorsPhase`, `setColorWait`, `clearColorWait` (`masonry/mount-budget.mjs`) | Ngân sách dựng, card tạm, hàng chờ LRU, lớp màu chờ ảnh trên điện thoại (R4) |
+| Hàm public | `createMasonryHost`, `pickMounts`, `SLIDE_ID`, `SIZE_ID` (`masonry/host.mjs`) | Sân masonry (R4) |
+| Hàm public | `createMountBudget`, `createGhostLayer`, `createDetachedCards`, `detachedCapacity`, `colorsPhase`, `setColorWait`, `clearColorWait` (`masonry/mount-budget.mjs`) | Ngân sách dựng, card tạm, hàng chờ LRU, lớp màu chờ ảnh (card tạm cả PC và điện thoại, card chờ trên điện thoại) (R4) |
 | Runtime | `playReveal` (`masonry/runtime.mjs`, nội bộ) | Reveal chung (R5) |
 
 ## UI
@@ -116,4 +119,4 @@ Không có.
 
 - Sân masonry: state và vòng dựng của một lưới (card đang dựng, tọa độ, card tạm, hàng chờ).
 - Item ghim: item có chỗ cố định trong lưới related (primary, card gợi ý), card khác xếp quanh nó.
-- Card tạm: khối màu chủ đạo giữ chỗ card chưa tới lượt dựng (điện thoại: lớp đổi qua 4 màu chủ đạo của ảnh bìa, [loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)).
+- Card tạm: lớp đổi qua 4 màu chủ đạo của media bìa giữ chỗ card chưa tới lượt dựng (PC và điện thoại như nhau, [loading glass R10](loading-glass-and-page-entry.md#r10-card-tạm-khi-vuốt-nhanh)).

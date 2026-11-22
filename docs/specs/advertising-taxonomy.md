@@ -105,7 +105,7 @@ ngưỡng R5 và chip nào cũng trỏ trang riêng của sản phẩm.
 Link sản phẩm mang `data-masonry-product` (không phải `data-masonry-filter`), nên bấm trước khi runtime sẵn
 sàng thì trình duyệt mở trang sản phẩm. Hình ảnh rail theo thiết kế owner duyệt 2026-10-15
 ([Filter](../../design-system/components/Filter/README.md)): từ 1025px rail một hàng nâng lên một bậc, hàng chip nằm
-chỗ rail cũ và chữ "Cuộn xuống" vẫn hiện bên dưới; hẹp hơn thì chip nằm ngay dưới rail; trang
+chỗ rail cũ; trang có thanh tìm kiếm đặt thanh ở chỗ rail và lùi rail, chip xuống một bậc, trang có lưới masonry không còn chữ "Cuộn xuống" (owner 2026-11-18, [Tìm kiếm R7](advertising-search.md#r7-thanh-tìm-kiếm)); hẹp hơn thì chip nằm ngay dưới rail; trang
 tĩnh cụm, sản phẩm hiện sẵn hàng chip. Đang lọc trên masonry mà bấm "Sản phẩm
 quảng cáo" trên navbar hoặc menu thì về "Tất cả" ở đầu trang; từ photo thì vẫn về chỗ cũ trên masonry nguồn.
 
@@ -164,7 +164,7 @@ Ràng buộc cho phase CMS (người dùng tự upload ảnh, gắn hoặc tạo
 - Sản phẩm mới chỉ hiện (chip và trang) khi đạt 5 card, nên CMS cho đăng card theo batch (owner 2026-11-10): một lượt từ 5
   card cho sản phẩm mới, hoặc giữ nháp tới khi đủ. Sản phẩm đã live không được tụt dưới 5 do xóa hay đổi card: CMS cảnh báo
   trước khi lưu vì chip và trang sẽ mất. Tag tự do không lên rail; nâng tag thành sản phẩm là tạo sản phẩm mới theo ràng buộc trên.
-- Đếm theo card đã duyệt, đổi số card thì sinh lại rail, trang, artifact, cache bố cục; sitemap chỉ lấy trang R4 (`ADVERTISING_PAGES`).
+- Đếm theo card đã duyệt, đổi số card thì sinh lại rail, trang, artifact; sitemap chỉ lấy trang R4 (`ADVERTISING_PAGES`).
 
 ```gherkin
 Given sản phẩm "Menu" có 9 card và sản phẩm "In ấn văn phòng" có 11 card

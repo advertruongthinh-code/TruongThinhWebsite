@@ -2,10 +2,11 @@
 # Setup script for the Claude Code cloud environment ("Default" at claude.ai/code).
 # Installs the owner's global agent stack for every cloud session and every repo:
 # agent-skills, caveman, ponytail, impeccable, i-have-adhd, graphify, serena,
-# chrome-devtools, find-skills, kie-models, kie-chat-agents.
+# chrome-devtools, find-skills, egm (google/elephant-goldfish-model).
 # Ponytail 5 drops ponytail-mcp; the ultra rule loads via CLAUDE.md and the skill.
 #
-# Owner rule: skills, commands, agents and MCP only, never agent lifecycle hooks.
+# Owner rule: skills, commands, agents and MCP only; the one agent hook is the secret guard
+# scripts/tooling/pre-tool-guard.mjs (owner 2026-11-21), fetched from main because this file is pasted.
 # Each plugin loads as a skills-directory plugin (~/.claude/skills/<name>/ with
 # .claude-plugin/plugin.json) linked to a pinned checkout with hooks removed.
 # MCP servers live in the local plugin "cloud-stack". Pins match tooling-versions.json.
@@ -34,6 +35,7 @@ fetch dietrichgebert/ponytail 16352ac229eb08a9598dcae48fe9f2b342567d86 &
 fetch pbakaus/impeccable 414603bf14c7a344edb466bb1f85690c77ce8b7d &
 fetch ayghri/i-have-adhd 1ecea1993b7fce257ffbd686c070948b5e07eda6 &
 fetch vercel-labs/skills 92a9a34ac3bf88e695e468b90c7bf32f163d32c8 &
+fetch google/elephant-goldfish-model 7d1b721e51448518cc9b0336465041230200dd10 &
 {
   uv tool install -q --python 3.13 "graphifyy[all]==0.9.97"
   uv tool install -q --python 3.13 "serena-agent==2.1.0"
@@ -42,15 +44,6 @@ npm install -g --silent --no-audit --no-fund \
   impeccable@4.8.0 chrome-devtools-mcp@1.12.0 &
 wait
 
-# The kie.ai skill has no Git repo: download the tarball, verify the pinned SHA-256, then extract.
-kie() { # <name> <sha256>
-  local d="$CFG/skills/$1" a="$T/$1.tar.gz"
-  curl -fsSL "https://kie.ai/.well-known/agent-skills/$1.tar.gz" -o "$a" &&
-    echo "$2  $a" | sha256sum -c --quiet &&
-    rm -rf "$d" && mkdir -p "$d" && tar -xzf "$a" -C "$d"
-}
-kie kie-models f6247b734033fad6ba75e0875bc105e2307c9b7e7790317a26c1b68838209f22
-kie kie-chat-agents f1cbf185af32ff7162dd67d9d257cd527e79846d94cae804e2bb83e08a47e8b0
 ln -sfnT "$T/src/skills/skills/find-skills" "$CFG/skills/find-skills"
 
 # Hide the npm CLI so the skill's launcher caches the pinned engine (engine 0.1.18).
@@ -66,7 +59,7 @@ Apply these rules in the main agent and every coordinator, explorer, worker, rev
 
 1. Always load `ponytail` in ultra mode; it controls implementation minimalism. The `i-have-adhd` skill self-invokes to shape actionable structure. Caveman skills run only when the user invokes them; never self-invoke them. A closer project `AGENTS.md` may explicitly disable Caveman.
 2. For codebase or project-content exploration, query Graphify first for architecture, relationships, cross-document links, and blast radius; then use `rg` for exact symbols and references. Graphify includes meaningful text, PDF, and Office content but excludes media and generated/vendor state.
-3. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; never install agent lifecycle hooks.
+3. For visible UI changes, load `impeccable` and run `impeccable detect`. These integrations use skills/rules only; the only agent hook is the secret guard `scripts/tooling/pre-tool-guard.mjs`.
 4. Start every task with `using-agent-skills` and load only matching skills. Skills define workflow and gates while the host agent, Claude Code or Codex chooses native solo, worker, or reviewer execution. The main agent retains intent, architecture, diff inspection, verification, and final acceptance; personas do not invoke personas.
 5. For approved execution plans, assess ambiguity, scope, risk and verifiability, then choose direct execution or host-native collaboration when tools are callable and ownership is clear. Main may implement small, clear, low-risk tasks. Choose model/effort from callable host capabilities to minimize total effort to acceptance; lower routes require more specific briefs. Apply the same routing to semantic tasks. Specify model/effort when allowed; record requested and observed effective values, or unknown. Never use a separate user-visible task to bypass native capability limits.
 6. Build or update the Graphify semantic index only when the user explicitly requests it. Otherwise report pending semantic files and do not spawn extraction workers, merge chunks, or write semantic cache or manifest state; structural AST refresh may still run through approved wrappers and watchers.
@@ -96,6 +89,8 @@ unhook "$T/src/caveman" caveman
 unhook "$T/src/ponytail" ponytail
 unhook "$T/src/impeccable/plugin" impeccable
 unhook "$T/src/i-have-adhd" i-have-adhd
+# EGM keeps its own disable-model-invocation: agents read its SKILL.md and follow it (docs/claude.md upstream).
+unhook "$T/src/elephant-goldfish-model" egm
 # Owner choice: i-have-adhd self-invokes (same as local-setup.ps1).
 sed -i -e '/^disable-model-invocation:/d' \
   -e 's|Invoke with /i-have-adhd;|Use for every response to the owner, or on /i-have-adhd;|' \
@@ -108,7 +103,10 @@ done
 # Stale protection without lifecycle hooks: one watcher per repo, graphify-mcp reloads graph.json itself.
 cat > "$T/graphify-mcp-live" <<EOF
 #!/bin/sh
-root="\$(git rev-parse --show-toplevel 2>/dev/null)" && cd "\$root"
+# Project threads start in /home/user with the repo cloned below it: fall back to the only child Git repo.
+root="\$(git rev-parse --show-toplevel 2>/dev/null)" ||
+  { set -- */.git; [ "\$#" -eq 1 ] && [ -e "\$1" ] && root="\$(dirname "\$1")"; }
+[ -n "\$root" ] && cd "\$root"
 if [ -f .graphifyignore ] || [ -d graphify-out ]; then
   mkdir -p graphify-out
   pid="\$(cat graphify-out/.watch.pid 2>/dev/null)"
@@ -141,9 +139,20 @@ cat > "$P/.mcp.json" <<EOF
 EOF
 ln -sfnT "$P" "$CFG/skills/cloud-stack"
 
-for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,cloud-stack}/.claude-plugin/plugin.json \
-  "$CFG"/skills/{graphify,find-skills,kie-models,kie-chat-agents}/SKILL.md \
-  "$CFG/CLAUDE.md" "$BIN"/{graphify,graphify-mcp,serena} "$T/graphify-mcp-live" \
+# Secret guard: the only agent hook (AGENTS.md SSoT). Blocks reading .env, keytabs, private keys and force-push.
+curl -fsSL https://raw.githubusercontent.com/advertruongthinh-code/TruongThinhWebsite/main/scripts/tooling/pre-tool-guard.mjs \
+  -o "$T/pre-tool-guard.mjs" &&
+  node -e '
+const fs = require("fs"), f = process.argv[1], cmd = process.argv[2];
+const s = fs.existsSync(f) ? JSON.parse(fs.readFileSync(f, "utf8")) : {};
+s.hooks = s.hooks || {};
+s.hooks.PreToolUse = (s.hooks.PreToolUse || []).filter((h) => !JSON.stringify(h).includes("pre-tool-guard"));
+s.hooks.PreToolUse.push({ matcher: "Bash|Read|Edit|Write|Grep", hooks: [{ type: "command", command: cmd }] });
+fs.writeFileSync(f, JSON.stringify(s, null, 2));' "$CFG/settings.json" "node $T/pre-tool-guard.mjs"
+
+for f in "$CFG"/skills/{agent-skills,caveman,ponytail,impeccable,i-have-adhd,egm,cloud-stack}/.claude-plugin/plugin.json \
+  "$CFG"/skills/{graphify,find-skills}/SKILL.md \
+  "$CFG/CLAUDE.md" "$T/pre-tool-guard.mjs" "$BIN"/{graphify,graphify-mcp,serena} "$T/graphify-mcp-live" \
   "$HOME/.impeccable/bin"; do
   [ -e "$f" ] && echo "OK   $f" || echo "FAIL $f"
 done

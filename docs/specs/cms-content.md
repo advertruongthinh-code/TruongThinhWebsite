@@ -141,8 +141,9 @@ And lệnh save với layout "6-11" trả 400
 
 Trang chủ, Nhà ở, Kinh doanh, About là layout chuẩn (owner 2026-11-15): người soạn chỉ sửa nội dung trong các slot có
 sẵn (`page-copy`), không thêm khối mới. Xóa nội dung một slot thì slot hiện placeholder: chữ mẫu lorem ipsum và media
-`placeholder-ngang` hoặc `placeholder-doc` theo khung, tới khi điền lại. Layout các trang này đang làm lại theo Espacio
-ở gate riêng (trang chủ, `/en/interior-design`, `/en/kitchens`, `/en/about-us`); slot chốt theo layout mới. Advertising
+`placeholder-ngang` hoặc `placeholder-doc` theo khung, tới khi điền lại. Layout đã làm lại theo Espacio (PR #978,
+2026-11-22): slot lấy theo section và hook của [trang chủ](page-home.md) và [trang chi tiết](detail-pages.md); số portal,
+số mục quy trình là layout, không sửa được qua CMS. Advertising
 giữ layout hiện tại, sửa nội dung qua card (R4).
 
 ```gherkin
@@ -234,8 +235,8 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 
 ## Gate còn mở
 
-Gate trước CMS (owner 2026-11-15, mỗi gate phỏng vấn owner trước): làm lại layout trang chuẩn theo Espacio (R6) còn
-mở. Motion chuyển trang giữa hero ảnh và hero trắng đã xong ở PR #966 ([logo route](logo-route-crossfade.md)); trang
+Gate trước CMS (owner 2026-11-15, mỗi gate phỏng vấn owner trước): làm lại layout trang chuẩn theo Espacio (R6) xong
+ở PR #978. Motion chuyển trang giữa hero ảnh và hero trắng đã xong ở PR #966 ([logo route](logo-route-crossfade.md)); trang
 chỉ gắn đúng layout, không có tham số motion.
 
 ## Chú thích thuật ngữ

@@ -8,9 +8,12 @@
     "prepare:site": "node scripts/site/prepare-static-assets.mjs",
     "dev": "pnpm prepare:site && node scripts/tooling/serve-static-parity.mjs --port 8787",
     "cms:dev": "node scripts/cms/dev-local.mjs",
-    "deploy:demo": "pnpm prepare:site && pnpm demo:wrangler deploy --config wrangler.static.toml",
+    "search:index": "node scripts/search/build-index.mjs",
+    "search:calibrate": "node scripts/search/calibrate.mjs",
+    "deploy:demo": "pnpm prepare:site && pnpm search:index && pnpm demo:wrangler deploy --config wrangler.static.toml",
     "demo:wrangler": "pnpm dlx --allow-build=esbuild --allow-build=workerd wrangler@4.124.0",
     "qa:static": "node tests/site/site-static-contract.cjs",
+    "qa:shots": "node scripts/tooling/qa-shots.mjs",
     "qa:docs": "node scripts/docs/check-docs.mjs",
     "qa:content": "node scripts/ci/content-contract.mjs",
     "qa:suite": "node scripts/ci/suites.mjs",
@@ -41,7 +44,6 @@
     "lazysizes": "5.3.2",
     "linkedom": "0.18.14",
     "locomotive-scroll": "4.1.4",
-    "masonry-layout": "4.2.2",
     "swiper": "14.2.0"
   }
 }

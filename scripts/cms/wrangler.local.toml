@@ -1,5 +1,5 @@
-# CMS chạy local: chỉ dùng với `pnpm cms:dev`, không deploy file này.
-# D1 và R2 là bản giả lập trong `.wrangler/`, không có tài nguyên Cloudflare thật.
+# Local CMS run: use only with `pnpm cms:dev`, never deploy this file.
+# D1 and R2 are emulated in `.wrangler/`, no real Cloudflare resources.
 name = "truong-thinh-cms-local"
 main = "../../src/worker/index.js"
 compatibility_date = "2026-07-31"
@@ -42,5 +42,5 @@ binding = "MEDIA"
 bucket_name = "truong-thinh-media-local"
 
 [vars]
-# Đăng nhập admin dev, Worker chỉ nhận khi host là loopback (R5).
+# Dev admin login: the Worker accepts it only when the host is loopback (R5).
 CMS_LOCAL_ADMIN_EMAIL = "admin@localhost"

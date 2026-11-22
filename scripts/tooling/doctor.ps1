@@ -57,7 +57,7 @@ foreach ($obsolete in @(
 }
 
 $pluginRoot = Join-Path $env:USERPROFILE ".claude\skills"
-$missingPlugins = @("agent-skills", "caveman", "ponytail", "impeccable", "i-have-adhd" | Where-Object {
+$missingPlugins = @("agent-skills", "caveman", "ponytail", "impeccable", "i-have-adhd", "egm" | Where-Object {
   -not (Test-Path -LiteralPath (Join-Path $pluginRoot "$_\.claude-plugin\plugin.json") -PathType Leaf)
 })
 if ($missingPlugins.Count -eq 0) { $passes += "Claude skill plugins installed" }
@@ -78,7 +78,7 @@ try {
   )) {
     if ($entry.text -match 'subagent-driven-development' -or $entry.text -notmatch 'callable') { throw "$($entry.label) native capability-based orchestration rule is missing or stale" }
     if ($entry.text -match 'Route every semantic task.*gpt-5\.6-luna|Semantic task.*`gpt-5\.6-luna`') { throw "$($entry.label) obsolete blanket semantic pin remains" }
-    if ($entry.text -notmatch 'primary\s+official\s+source' -or $entry.text -notmatch '(?:unsupported\s+guess|guess\s+(?:là|as)\s+fact)') { throw "$($entry.label) evidence rule is missing" }
+    if ($entry.text -notmatch '(?:primary\s+official\s+source|nguồn\s+chính\s+thức)' -or $entry.text -notmatch '(?:unsupported\s+guess|guess\s+(?:là|as)\s+fact|đoán\s+là\s+fact)') { throw "$($entry.label) evidence rule is missing" }
     if ($entry.text -notmatch '(?:semantic\s+index\s+only\s+when\s+the\s+user\s+explicitly\s+requests|Chỉ\s+build/update\s+Graphify\s+semantic\s+index\s+khi\s+user\s+explicit\s+request)') { throw "$($entry.label) opt-in semantic build rule is missing" }
   }
   foreach ($entry in @(

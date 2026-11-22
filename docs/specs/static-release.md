@@ -23,7 +23,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-12
+updated: 2026-11-16
 ---
 
 # Phát hành tĩnh
@@ -31,7 +31,7 @@ updated: 2026-11-12
 ## Mục đích
 
 Biến `src/site/` thành `.site-output/` tĩnh VI/EN, phục vụ local preview cổng 8787 và đẩy cùng output lên demo
-Cloudflare khi CI xanh trên `main`. Không cần D1, R2, Access hay CMS secret. Hành vi từng trang thuộc spec của capability đó;
+Cloudflare khi CI xanh trên `main`. Không cần D1, Access hay CMS secret; `/api/*` theo [tìm kiếm](advertising-search.md). Hành vi từng trang thuộc spec của capability đó;
 spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker nằm ngoài.
 
 ## Hành vi
@@ -39,12 +39,12 @@ spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker n�
 ### R1. Build `.site-output/` từ `src/site/`
 
 `pnpm prepare:site` (`scripts/site/prepare-static-assets.mjs`, cũng chạy đầu `pnpm dev` và `pnpm deploy:demo`) dừng
-nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2; rail công trình, [trang chủ R8](page-home.md#r8-rail-công-trình)), xóa `.site-output/`, chép
+nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2; dải công trình, [trang chủ R8](page-home.md#r8-dải-công-trình)), xóa `.site-output/`, chép
 `src/site/` rồi chèn card rail vào `index.html`, vendor (R4), xóa asset không public (R3), artifact (R2),
 trang tương thích (R7), minify JS app (esbuild: `motion.js`, `detail.js`, `advertising-products/*.mjs`; giữ dòng đầu `//# allFunctionsCalledOnLoad`;
 -53 KB brotli, 8 card đầu nhanh hơn khoảng 0,3 s), `modulepreload` runtime, artifact và mọi module runtime import tĩnh vào trang Advertising (đọc từ câu `import`, không viết tay; gộp ba đợt mạng, 8 card đầu nhanh hơn khoảng 0,2 s), xử lý HTML (R5, R6), 22 route locale (R5). Menu và navbar không nằm trong source: `readPageSource` (`sync-site-menu.mjs`) dựng chúng từ `content/menu.json` khi build vào đầu ra ([Shell R4](site-shell.md#r4-full-menu)). Khung chung (header, menu, footer...) cũng không nằm trong trang nguồn: `renderShell` chèn từ `src/site/partials/` ([Shell R1](site-shell.md#r1-markup-chung-và-thứ-tự-lớp)); thư mục `partials/` không lên đầu ra (R3). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
-chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của `partials/header.html` và `partials/menu.html`; SVG gốc sai số `path`,
-`text` thì build dừng.
+chép hình học `assets/brand/truong-thinh-lockup.svg` vào hai lockup inline của `partials/header.html` và `partials/menu.html`; SVG gốc sai số `path` của mark, còn `text` hoặc thiếu nhóm chữ
+title, subtitle `vi`, subtitle `en` thì build dừng.
 
 ```gherkin
 Given src/site/ và node_modules đã cài
@@ -54,9 +54,7 @@ Then .site-output/ được tạo lại từ đầu chỉ từ src/site/ và ven
 
 ### R2. Preflight masonry và catalog artifact
 
-Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`) và
-cache bố cục masonry (`buildLayoutCache`, [cache bố cục R2](masonry-layout-cache.md#r2-packer-build)) cho
-filter `all`, sáu cụm và mọi sản phẩm từ 5 card (có chip và trang riêng, [taxonomy R5](advertising-taxonomy.md#r5-ngưỡng-5-card)) trên 5 dải bề rộng. Tự kiểm: mọi biến thể giữ lại phải đặt lại được và không lỗ, đủ card của pool, cắt không quá 5% ở đầu, giữa và cuối mỗi dải (dải mở `4:35` kiểm tới 4000 px); sai thì build dừng. Ghi 165 file `advertising-products/layout-cache/` (5 file cả dải, 160 file một filter; build 2026-11-10: một filter tối đa 15,9 KB brotli, cả dải 44 tới 49 KB brotli). Artifact chỉ nằm ở output:
+Trước khi xóa output cũ, build tạo artifact (`buildAdvertisingArtifact()`); bố cục masonry không tính lúc build, máy người xem tự xếp, trừ lưới đầu điện thoại nằm sẵn trong từng trang lưới ([masonry xếp trực tiếp R3](masonry-live-layout.md#r3-worker-và-luồng-chính)). Artifact chỉ nằm ở output:
 `advertising-products/catalog-artifact.mjs`, export `ADVERTISING_CATALOG_ARTIFACT`; mô tả và `related` của card tách sang `catalog-detail.mjs` và `source`, `sha256`, `provenance` của media bỏ khỏi output (bớt 46 KB brotli trên đường tới 8 card đầu). Build thay
 `<!-- advertising-cluster-filters -->` trong `advertising-products/index.html` bằng rail sáu cụm từ `taxonomy.mjs`. Từ HTML đó
 build sinh trang cụm, sản phẩm (`ADVERTISING_PAGES`, [taxonomy R4](advertising-taxonomy.md#r4-url-và-trang-index)) vào
@@ -65,9 +63,9 @@ x-default (path gốc, chưa có origin), mục rail đang chọn, link ngôn ng
 mỗi thư mục cụm có `404.html` dạng trang R7 trỏ trang cụm, cho URL sản phẩm đã mất trang.
 
 ```gherkin
-Given một filter có biến thể bố cục để lỗ hoặc thiếu card ở một đầu dải
+Given dữ liệu Advertising có card không hợp lệ
 When chạy pnpm prepare:site
-Then build dừng với lỗi "layout-cache: self-check failed <filter> <dải> <bề rộng>px"
+Then build dừng trước khi xóa output cũ
 And .site-output/ của lần build trước vẫn còn nguyên
 ```
 
@@ -75,7 +73,7 @@ And .site-output/ của lần build trước vẫn còn nguyên
 
 `scripts/site/non-public-source-assets.mjs` liệt kê 23 path trong `src/site/`
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
-manifest, photo tags, `content/client-logos.json`, `content/project-reel.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
+manifest, photo tags, `content/client-logos.json`, `content/home-projects.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
 process cũ. Build xóa chúng khỏi output. WebP không còn tham chiếu thì xóa khỏi repo.
 
 ```gherkin
@@ -87,7 +85,7 @@ And .site-output/advertising-products/catalog-artifact.mjs tồn tại
 
 ### R4. Font và thư viện tự host
 
-Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: Masonry 4.2.2, lazysizes 5.3.2, GSAP, SplitText
+Build chép từ `node_modules` vào `/assets/vendor/`, version trong tên: lazysizes 5.3.2, GSAP, SplitText
 3.15.0, Locomotive Scroll 4.1.4, Barba 2.10.3, Swiper 14.2.0 (ESM, `swiper.css` ghép ba file, bỏ `:root`, `:host`, `@keyframes`
 preloader vì chèn lúc cuộn làm style recalc toàn document), hls.js 1.7.3 (bản light, trang Advertising nạp cùng lúc tải
 artifact khi trình duyệt có Media Source, [video-delivery R3](video-delivery.md#r3-runtime-chọn-nguồn)) và Plus Jakarta Sans 5.3.0 (latin, latin-ext, vietnamese,
@@ -198,13 +196,13 @@ And không bước nào gọi Wrangler hoặc deploy
 
 ### R11. Phát hành demo Cloudflare
 
-`wrangler.static.toml`: Worker chỉ có asset `truong-thinh-demo`, `workers_dev`, `[assets] directory = ".site-output"`,
-`not_found_handling = "404-page"`, không `main`, không binding. Path không có file trả 404 kèm `404.html` gần nhất:
+`wrangler.static.toml`: Worker `truong-thinh-demo` có asset và script chỉ cho `/api/*`, `workers_dev`, `[assets] directory = ".site-output"`,
+`not_found_handling = "404-page"`, `main` và binding theo [spec tìm kiếm](advertising-search.md#giao-diện-và-dữ-liệu). Path không có file trả 404 kèm `404.html` gần nhất:
 `/en/*` dùng `en/404.html`, path khác dùng `404.html` bản VI; build dựng hai file từ `src/site/404.html` qua `localeHtml`.
-`pnpm deploy:demo` build rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
+`pnpm deploy:demo` build, dựng chỉ mục tìm kiếm (`pnpm search:index`, [R1](advertising-search.md#r1-chỉ-mục-vector-lúc-deploy)) rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
 `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
 chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)), dùng secret `CLOUDFLARE_API_TOKEN`,
-`CLOUDFLARE_ACCOUNT_ID` ([quyết định](../decisions/cloudflare-workers-static-demo.md)); log Actions ghi commit và Worker version ID. Agent không deploy tay, chỉ `--dry-run`. Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
+`CLOUDFLARE_ACCOUNT_ID` (không nằm trong repo hay chat); log Actions ghi commit và Worker version ID. Merge vào `main` là đồng ý deploy: agent không deploy tay, chỉ `--dry-run`; owner deploy tay được bằng `wrangler login` qua task VS Code `Demo: Deploy Cloudflare (main)` (chỉ chạy trên `main` sạch). Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
 Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>. Trang chính sách quyền riêng tư cho app Pinterest đã gỡ (owner 2026-11-14: không còn dùng Pinterest API).
 
 ```gherkin
@@ -220,8 +218,8 @@ And CI đỏ, PR hoặc push từ fork không deploy
 binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
-`/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Mở CMS theo
-[khóa Wrangler](../decisions/wrangler-deferred-until-cms.md), [spec CMS](cms.md).
+`/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
+theo [điều kiện mở CMS](cms.md#điều-kiện-mở-cms-phase).
 
 ```gherkin
 Given phase tĩnh
@@ -280,9 +278,8 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 Owner chốt: một phone Android thật nối adb là máy đo chuẩn, không có gate Galaxy A54; Safari iPhone thật là việc theo dõi sau
 phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham khảo. Mục iPhone trong spec khác thuộc nhóm này.
 
-- LCP residential mobile (demo 2026-11-14, 390 px, Slow 4G, CPU 4x): VI median 3,01 s, p90 3,22 s; EN median 5,14 s vì
-  `fitHeroLines()` phóng chữ title sau lần vẽ đầu, chữ SplitText hiện cuối reveal lớn hơn mọi thứ đã vẽ; Chromium không tính
-  ảnh hero toàn màn hình là LCP. [CẦN LÀM RÕ: owner chọn đóng gate theo VI hay sửa EN.]
+- LCP residential mobile đóng (owner 2026-11-15: motion giữ đúng contract, không cắt để đạt LCP): demo 2026-11-14 VI median
+  3,01 s, p90 3,22 s; EN 5,14 s là ngoại lệ đã chấp nhận, do chữ title phone phóng sau lần vẽ đầu và hiện cuối reveal.
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
   trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
   `/vi/`, trả 404 hay giữ?]

@@ -7,11 +7,6 @@ related_specs:
   - specs/detail-pages.md
   - specs/page-home.md
   - specs/cms.md
-related_decisions:
-  - decisions/static-shared-architecture.md
-  - decisions/runtime-responsibility-boundaries.md
-  - decisions/wrangler-deferred-until-cms.md
-  - decisions/cloudflare-workers-static-demo.md
 ---
 
 # Kiến trúc runtime Trường Thịnh
@@ -20,6 +15,10 @@ Website hiện đi theo static-first. `src/site/` là source public canonical;
 `scripts/site/prepare-static-assets.mjs` tạo `.site-output/`; Node static server
 phục vụ local preview. Worker, D1, R2 và admin là scaffold dormant/dev cho CMS
 phase, không phải dependency của demo tĩnh; phát hành chính thức chờ xong CMS phase.
+
+Ranh giới repository theo runtime responsibility: production source ở `src/`; test nhóm theo subsystem trong `tests/`;
+utility deploy và tham chiếu tách khỏi `scripts/tooling/` (trust boundary ổn định); file discovery/config quy ước ở root;
+`.site-output` giữ public URL shape.
 
 ## Các lớp runtime
 
@@ -39,7 +38,7 @@ flowchart LR
 | Static build | Đang dùng | `scripts/site/prepare-static-assets.mjs` copy source/vendor, tạo catalog artifact, sáu compatibility HTML và 22 HTML VI/EN vào `.site-output/` |
 | Local preview | Đang dùng | `pnpm dev` chạy `prepare:site` rồi `scripts/tooling/serve-static-parity.mjs --port 8787` |
 | QA | Chỉ ở repository | `tests/` và scripts kiểm chứng source/build; không thuộc public output |
-| Demo hosting | Đã chọn cho static release | `pnpm deploy:demo` đẩy `.site-output/` lên Workers static assets qua `wrangler.static.toml`; không Worker script, không binding |
+| Demo hosting | Đã chọn cho static release | `pnpm deploy:demo` đẩy `.site-output/` lên Workers static assets qua `wrangler.static.toml`; Worker script chỉ cho `/api/*` ([tìm kiếm](specs/advertising-search.md)) |
 | Worker | Dormant | `src/worker/index.js` giữ route, SEO, API và CMS boundary; Wrangler chưa thuộc static gate |
 | Admin | Dev/dormant | `src/admin/` là shell private cho CMS, không copy vào public output |
 | CMS data | Planned | D1/R2/Access/provider chỉ chọn và verify khi owner mở CMS phase |
@@ -51,11 +50,11 @@ Nguồn: `package.json`, `pnpm-workspace.yaml`, `wrangler*.toml`, `.github/workf
 
 | Phần | Công nghệ | Ghi chú |
 | --- | --- | --- |
-| Frontend | HTML, CSS, JavaScript thuần (ES module) | Không framework, không bundler, không TypeScript |
+| Frontend | HTML, CSS, JavaScript thuần (ES module) | Không framework, không bundler, không TypeScript; mọi route tĩnh dùng chung `style.css`, `motion.js`, `detail.css`, `detail.js` |
 | Thư viện runtime | GSAP và SplitText, Locomotive Scroll, Barba, Masonry, Swiper, lazysizes | `prepare:site` chép từ `node_modules` vào `assets/vendor/` |
 | Font | Plus Jakarta Sans (`@fontsource-variable`) | Self-host, không gọi CDN |
 | Build | Node.js 22+, pnpm qua Corepack, script `scripts/site/prepare-static-assets.mjs` | `sharp` xử lý ảnh; output `.site-output/` |
-| Hosting demo | Cloudflare Workers static assets (`wrangler.static.toml`) | Không Worker script, không binding |
+| Hosting demo | Cloudflare Workers static assets (`wrangler.static.toml`) | Worker script chỉ cho `/api/*` ([tìm kiếm](specs/advertising-search.md)), binding AI, ASSETS, rate limit |
 | CMS (dormant) | Cloudflare Worker, D1, R2, Access (`wrangler.toml`, `src/worker/`, `src/db/migrations/`) | Chưa activate, xem [CMS](specs/cms.md) |
 | Test | Playwright 1.64 (Chromium, Firefox, WebKit), `node --test`, contract script `.cjs` | [Bộ test CI](specs/ci-test-suites.md), [tests](../tests/README.md) |
 | CI/CD | GitHub Actions trên `ubuntu-latest`: `ci.yml`, `docs.yml`, `automerge.yml`, `deploy-demo.yml` | [Gate CI](specs/static-release.md#r10-gate-ci) |
@@ -111,8 +110,8 @@ hoặc CMS provider decision từ tài liệu này; các claim đó cần eviden
 
 ## Deployment và kiểm chứng
 
-Demo hosting theo [quyết định demo Cloudflare](decisions/cloudflare-workers-static-demo.md);
-Wrangler cho CMS khóa tới CMS theo [decision deferred Wrangler](decisions/wrangler-deferred-until-cms.md).
+Demo hosting theo [phát hành demo Cloudflare](specs/static-release.md#r11-phát-hành-demo-cloudflare);
+Wrangler cho CMS khóa tới khi owner mở CMS phase ([điều kiện](specs/cms.md#điều-kiện-mở-cms-phase)).
 
 Các command có trong repository:
 
@@ -134,7 +133,7 @@ viewport, console/network và accessibility theo [tests README](../tests/README.
 - Trang chủ: [page-home](specs/page-home.md).
 - CMS dormant và gate mở phase: [spec CMS](specs/cms.md).
 - Từng phần website: [capability map](specs/docs-system.md#r2-capability-map-và-spec-sống).
-- Project-wide phase/blocker: [STATE](STATE.md).
+- Project-wide phase/blocker: [trang Notion Trạng thái website](https://app.notion.com/p/41f332849a0e81db8b39eeb226e20824).
 
 ## Chú thích thuật ngữ
 

@@ -157,18 +157,21 @@ function assertPersistentNavigationContracts() {
       /<g\b(?=[^>]*\bid="truong-thinh-mark")[^>]*\bclass="[^"]*\bbrand-lockup__mark\b"[^>]*>/.test(
         brandLockupSource,
       ) &&
-      /<text\b(?=[^>]*\bid="truong-thinh-title")(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b")[^>]*\bfont-weight="600"[^>]*>/.test(
+      /<g\b(?=[^>]*\bid="truong-thinh-title")[^>]*\bclass="brand-lockup__title"[^>]*>/.test(
         brandLockupSource,
       ) &&
-      /<text\b(?=[^>]*\bid="truong-thinh-subtitle")(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b")[^>]*\bfont-weight="600"[^>]*>/.test(
+      /<g\b(?=[^>]*\bid="truong-thinh-subtitle")[^>]*\bclass="brand-lockup__subtitle" data-lang="vi"[^>]*>/.test(
         brandLockupSource,
       ) &&
-      (brandLockupSource.match(/<path\b/g) || []).length === 4 &&
-      (brandLockupSource.match(/<text\b/g) || []).length === 2 &&
+      /<g\b(?=[^>]*\bid="truong-thinh-subtitle-en")[^>]*\bclass="brand-lockup__subtitle" data-lang="en" display="none"[^>]*>/.test(
+        brandLockupSource,
+      ) &&
+      (brandLockupSource.match(/<g\b[^>]*\bbrand-lockup__mark\b[^>]*>[\s\S]*?<\/g>/)?.[0].match(/<path\b/g) || []).length === 4 &&
+      !/<text\b/.test(brandLockupSource) &&
       !/<(?:use|image|style|metadata|clipPath|foreignObject)\b|\bhref\s*=|\bxlink:href\s*=/.test(
         brandLockupSource,
       ),
-    "The canonical Trường Thịnh lockup must keep four mark paths and two live text nodes",
+    "The canonical Trường Thịnh lockup must keep four mark paths and an outlined title and vi/en subtitle",
   );
 
   PUBLIC_HTML.forEach(([relativePath, namespace]) => {
@@ -326,18 +329,15 @@ function assertPersistentNavigationContracts() {
         /<svg class="brand-lockup" viewBox="[^"]*594[^"]*" aria-hidden="true" data-parity-media>[\s\S]*?<g class="brand-lockup__geometry" fill="currentColor">[\s\S]*?<\/svg>/.test(
           headerBrand,
         ) &&
-        (headerBrand.match(/<path\b/g) || []).length === 4 &&
-        (headerBrand.match(/<text\b/g) || []).length === 2 &&
-        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*\bfont-weight="600"[^>]*>/.test(
-          headerBrand,
-        ) &&
-        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)[^>]*\bfont-weight="600"[^>]*>/.test(
-          headerBrand,
-        ) &&
+        (headerBrand.match(/<g\b[^>]*\bbrand-lockup__mark\b[^>]*>[\s\S]*?<\/g>/)?.[0].match(/<path\b/g) || []).length === 4 &&
+        !/<text\b/.test(headerBrand) &&
+        /<g class="brand-lockup__title">/.test(headerBrand) &&
+        /<g class="brand-lockup__subtitle" data-lang="vi">/.test(headerBrand) &&
+        /<g class="brand-lockup__subtitle" data-lang="en" display="none">/.test(headerBrand) &&
         !/<span class="brand-copy"|<use\b|<image\b|<script\b|<style\b|<metadata\b/.test(
           headerBrand,
         ),
-      `${relativePath} must inline the sanitized Trường Thịnh mark geometry and live text`,
+      `${relativePath} must inline the sanitized Trường Thịnh mark geometry and outlined wordmark`,
     );
     const menuBrand = menuSource?.match(
       /<a\b(?=[^>]*\bclass="[^"]*\bmenu-brand\b)[\s\S]*?<\/a>/,
@@ -347,18 +347,15 @@ function assertPersistentNavigationContracts() {
         /<svg class="brand-lockup" viewBox="[^"]*594[^"]*" aria-hidden="true" data-parity-media>[\s\S]*?<g class="brand-lockup__geometry" fill="currentColor">[\s\S]*?<\/svg>/.test(
           menuBrand,
         ) &&
-        (menuBrand.match(/<path\b/g) || []).length === 4 &&
-        (menuBrand.match(/<text\b/g) || []).length === 2 &&
-        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*\bfont-weight="600"[^>]*>/.test(
-          menuBrand,
-        ) &&
-        /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)[^>]*\bfont-weight="600"[^>]*>/.test(
-          menuBrand,
-        ) &&
+        (menuBrand.match(/<g\b[^>]*\bbrand-lockup__mark\b[^>]*>[\s\S]*?<\/g>/)?.[0].match(/<path\b/g) || []).length === 4 &&
+        !/<text\b/.test(menuBrand) &&
+        /<g class="brand-lockup__title">/.test(menuBrand) &&
+        /<g class="brand-lockup__subtitle" data-lang="vi">/.test(menuBrand) &&
+        /<g class="brand-lockup__subtitle" data-lang="en" display="none">/.test(menuBrand) &&
         !/<span class="menu-brand__copy"|<use\b|<image\b|<script\b|<style\b|<metadata\b/.test(
           menuBrand,
         ),
-      `${relativePath} full-menu logo must inline the sanitized mark geometry and live text`,
+      `${relativePath} full-menu logo must inline the sanitized mark geometry and outlined wordmark`,
     );
     for (const [location, markup] of [["header", headerBrand], ["menu", menuBrand]]) {
       assert(
@@ -447,8 +444,8 @@ function assertPersistentNavigationContracts() {
   )?.[0];
   assert(
     /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
-      commercialHeroContent?.includes("CAFE · NHÀ HÀNG · SHOWROOM · VĂN PHÒNG") &&
-      commercialHeroContent?.includes('data-en="CAFE · RESTAURANT · SHOWROOM · OFFICE"') &&
+      commercialHeroContent?.includes("SHOWROOM · CỬA HÀNG · CAFE · NHÀ HÀNG · VĂN PHÒNG · KHU LÀM VIỆC") &&
+      commercialHeroContent?.includes('data-en="SHOWROOM · SHOP · CAFE · RESTAURANT · OFFICE · WORKSPACE"') &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế tối ưu") &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Vận hành bền bỉ") &&
       commercialHeroContent?.includes('<span data-en="Designed to">Thiết kế</span> <em data-en="perform">tối ưu</em>') &&
@@ -474,13 +471,13 @@ function assertPersistentNavigationContracts() {
       projectsHeroContent?.includes('data-en="always in sight"') &&
       !projectsHeroContent?.includes("project-filters") &&
       !projectsHeroContent?.includes("detail-hero-motto") &&
-      /class="scroll-cue detail-index-hero__scroll"[\s\S]*?data-scroll-cue[\s\S]*?data-en="SCROLL DOWN"[\s\S]*?CUỘN XUỐNG/.test(
-        projectsHeroSection,
-      ) &&
+      // Masonry pages have no scroll cue (owner 2026-11-18); the search bar takes the rail's place.
+      !projectsHeroSection.includes("data-scroll-cue") &&
+      projectsHeroSection.includes("data-search-dock-top") &&
       detailCss.includes("height: calc(100svh - 50px);") &&
       detailCss.includes("width: min(calc(100% - 2 * var(--gutter)), 1500px);") &&
       styleSource.includes(".scroll-cue"),
-    "Advertising hero must use the approved Projects-style copy, sibling filters, scroll cue, and viewport-minus-50 layout",
+    "Advertising hero must use the approved Projects-style copy, sibling filters, search top slot without a scroll cue, and viewport-minus-50 layout",
   );
 
   const clientLogoMarquee = homeSource.match(
@@ -586,7 +583,7 @@ function assertPersistentNavigationContracts() {
         styleSource,
       ) &&
       !/brand-mark|brand-copy|menu-brand__mark|menu-brand__copy/.test(styleSource),
-    "The header and menu lockups must keep the approved precise true-bounds matrix, live text, and visible geometry",
+    "The header and menu lockups must keep the approved precise true-bounds matrix, outlined wordmark, and visible geometry",
   );
   assert(
     /html\s*\{[\s\S]*?overflow-x:\s*hidden;/.test(styleSource) &&
@@ -639,7 +636,8 @@ function assertPersistentNavigationContracts() {
   assert(
     /const collapsed = scrollY > 100 \|\| document\.body\.classList\.contains\("is-detail"\);/.test(motionSource) &&
       /scrollY - directionStartY > 150/.test(motionSource) &&
-      /directionStartY - scrollY > 150/.test(motionSource) &&
+      // Scrolling up does not reveal the header (owner 2026-11-22; behaviour checked in phone-header-scroll.e2e).
+      !/directionStartY - scrollY > 150/.test(motionSource) &&
       /const isMiddle =\s*scrollY > window\.innerHeight \* 0\.5 &&\s*scrollY < pageHeight - window\.innerHeight \* 1\.25;/.test(
         motionSource,
       ) &&
@@ -655,11 +653,13 @@ function assertPersistentNavigationContracts() {
   assert(
     !/\.language-toggle\s*\{/.test(styleSource) &&
       /header\.querySelector\("#header-logo"\)/.test(motionSource) &&
-      // Logo text, nav and hamburger change color immediately, no tween, both while scrolling and while changing page (owner 2026-11-09).
+      // Logo text, nav and hamburger snap while scrolling; only a route change tweens them 0.3s expo.out like Espacio colorHeader (owner 2026-11-15, PR #966).
       /const colorHeader = \(color\) => \{[\s\S]*?querySelectorAll\("#header-logo, \.desktop-nav a, \.menu-button"\)[\s\S]*?setProperty\("color", color\)[\s\S]*?setProperty\("stroke", color\)[\s\S]*?\n  \};/.test(
         motionSource,
       ) &&
-      !/const colorHeader = \(color\) => \{(?:(?!\n  \};)[\s\S])*gsap/.test(motionSource) &&
+      /const colorHeader = \(color\) => \{[\s\S]*?if \(headerColorTween && hasGsap && !reduceMotion\) \{\s*gsap\.to\(texts, \{ color, duration: headerBeat, ease: "expo\.out" \}\);[\s\S]*?\n  \};/.test(motionSource) &&
+      /headerColorTween = true;\s*updateHeader\(\);\s*headerColorTween = false;/.test(motionSource) &&
+      (motionSource.match(/headerColorTween = true/g) || []).length === 1 &&
       !/fillTargets|brand-mark|brand-copy/.test(motionSource) &&
       /const \{ gsap, SplitText \} = window;[\s\S]*?gsap\.registerEase\("expo\.out",\s*\(progress\)\s*=>[\s\S]*?progress === 1 \? 1 : 1 - 2 \*\* \(-10 \* progress\)/.test(
         motionSource,
@@ -687,7 +687,7 @@ function assertPersistentNavigationContracts() {
       /html\.motion-fallback \.site-header \.brand-lockup[\s\S]*?fill:\s*currentColor\s*!important;[\s\S]*?html\.motion-fallback \.site-header \.menu-button line[\s\S]*?stroke:\s*currentColor\s*!important;/.test(
         styleSource,
       ),
-    "Header text/hamburger instant color or the mark flip drifted",
+    "Header text/hamburger color (snap on scroll, 0.3s on route) or the mark flip drifted",
   );
   assert(
     /\.menu-head\s*\{[\s\S]*?grid-template-columns:[\s\S]*?170px minmax\(0, 1fr\) minmax\(0, 1fr\) 50px;/.test(
@@ -864,6 +864,11 @@ function assertPersistentNavigationContracts() {
 function assertEspacioTypographyMotionSourceContracts() {
   for (const [relativePath] of PUBLIC_HTML) {
     const source = readPageSource(relativePath);
+    // Masonry pages have no scroll cue (owner 2026-11-18).
+    if (source.includes("masonry-section")) {
+      assert(!source.includes("data-scroll-cue"), `${relativePath} is a masonry page without a scroll cue`);
+      continue;
+    }
     assert(
       (source.match(/\bdata-scroll-cue(?!-)/g) || []).length === 1 &&
         /<button\b[^>]*\bdata-scroll-cue\b[\s\S]*?\bdata-scroll-cue-label\b/.test(
@@ -1664,27 +1669,23 @@ async function runPortalAlignmentChecks() {
               ...document.querySelectorAll("#nang-luc .service-portal"),
             ].map((card) => {
               const cardRect = card.getBoundingClientRect();
-              const title = card.querySelector(".portal-title-mask");
-              const subtitle = card.querySelector(".portal-subtitle");
-              const titleRect = title.getBoundingClientRect();
-              const subtitleRect = subtitle.getBoundingClientRect();
-              const titleStyle = getComputedStyle(title);
-              const subtitleStyle = getComputedStyle(subtitle);
+              const copy = card.querySelector(".commitment-copy");
+              const copyRect = copy.getBoundingClientRect();
+              const lines = [...card.querySelectorAll(".commitment-lead .portal-line")];
+              const lineWidth = Math.max(...lines.map((line) => {
+                const range = document.createRange();
+                range.selectNodeContents(line);
+                return range.getBoundingClientRect().width;
+              }));
+              const copyStyle = getComputedStyle(copy);
               return {
-                title: card.querySelector(".portal-line")?.textContent.trim(),
-                titleFontSize: Number.parseFloat(titleStyle.fontSize),
-                subtitleFontSize: Number.parseFloat(subtitleStyle.fontSize),
-                titleOverflow: title.scrollWidth - title.clientWidth,
-                subtitleOverflow: subtitle.scrollWidth - subtitle.clientWidth,
-                titleWhiteSpace: titleStyle.whiteSpace,
-                subtitleWhiteSpace: subtitleStyle.whiteSpace,
-                titleWithin: titleRect.left >= cardRect.left + 8 && titleRect.right <= cardRect.right - 8,
-                subtitleWithin: subtitleRect.left >= cardRect.left + 8 && subtitleRect.right <= cardRect.right - 8,
-                titleCenterOffset:
-                  titleRect.top +
-                  titleRect.height / 2 -
-                  (cardRect.top + cardRect.height / 2),
-                gap: subtitleRect.top - titleRect.bottom,
+                title: card.querySelector(".commitment-title")?.textContent.replace(/\s+/g, " ").trim(),
+                leadLines: lines.length,
+                hasBody: Boolean(card.querySelector(".commitment-body .portal-subtitle")?.textContent.trim()),
+                leadFits: lineWidth <= cardRect.width - Number.parseFloat(copyStyle.paddingLeft) - Number.parseFloat(copyStyle.paddingRight) + 0.5,
+                bottomAnchored: Math.abs(cardRect.bottom - copyRect.bottom) <= 1 && copyStyle.textAlign === "left",
+                textShadow: copyStyle.textShadow !== "none",
+                titleOffset: card.querySelector(".commitment-title").getBoundingClientRect().top - cardRect.top,
               };
             }),
             advertisingImage: (() => {
@@ -1722,10 +1723,6 @@ async function runPortalAlignmentChecks() {
               serviceKickers: read(":is(#dich-vu, #loai-hinh) .portal-title__quiet"),
               serviceSubtitles: read(":is(#dich-vu, #loai-hinh) .portal-subtitle"),
             };
-            if (document.querySelector("#nang-luc")) {
-              roles.capabilityTitles = read("#nang-luc .portal-title-mask");
-              roles.capabilitySubtitles = read("#nang-luc .portal-subtitle");
-            }
             return roles;
           });
           for (const [role, samples] of Object.entries(zoomed)) {
@@ -1748,10 +1745,8 @@ async function runPortalAlignmentChecks() {
             `Service portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
           );
           assert(
-            state.capabilityCards.every((card) => card.titleOverflow <= 0.5 && card.subtitleOverflow <= 0.5
-              && card.titleWhiteSpace === "nowrap" && card.subtitleWhiteSpace === "nowrap"
-              && card.titleWithin && card.subtitleWithin),
-            `Capability portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
+            state.capabilityCards.every((card) => card.leadLines === 2 && card.leadFits && card.hasBody && card.bottomAnchored && card.textShadow),
+            `Commitment card text drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
           );
           assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
           assert(
@@ -1766,19 +1761,15 @@ async function runPortalAlignmentChecks() {
             );
           } else {
           assert(
-            state.capabilityCards[1]?.title ===
-              (locale === "vi" ? "Xưởng CNC" : "Workshop"),
-            `Workshop capability copy drifted at ${locale}: ${state.capabilityCards[1]?.title}`,
+            state.capabilityCards.map((card) => card.title).join("|") ===
+              (locale === "vi" ? "Tư vấn|Sản xuất|Chất lượng|Hậu mãi" : "Consultation|Production|Quality|Aftercare"),
+            `Commitment portal titles drifted at ${locale}: ${state.capabilityCards.map((card) => card.title)}`,
           );
-          assert(
-            state.capabilityCards.length === 3 &&
-              state.capabilityCards.every(
-                (card) =>
-                  Math.abs(card.titleCenterOffset) <= 1 &&
-                  Math.abs(card.gap - 17.6) <= 0.25,
-              ),
-            `Capability portal title anchor or gap drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
-          );
+          assert(state.capabilityCards.length === 4, `Expected 4 commitment cards at ${locale}`);
+          if (width >= 579) {
+            const offsets = state.capabilityCards.map((card) => card.titleOffset);
+            assert(Math.max(...offsets) - Math.min(...offsets) <= 1, `Commitment titles not level at ${locale} ${width}px: ${offsets.join(", ")}`);
+          }
           assert(
             state.advertisingImage?.src ===
               "/assets/content/projects/home-advertising-products-blue-grid.webp" &&
@@ -4713,26 +4704,20 @@ async function runMenuChecks() {
   }
 }
 
-// Main-grid expectation on the runtime path (advertising-masonry R6): the built cache variant
-// variantIndex(seed, variants.length) placed by replayLayout; no cache, a pool signature mismatch or a failed replay
-// means stackLayout. `layouts` maps band -> { filters } like artifact.layouts; omitted, it reads the built band file
-// in .site-output; null means a cacheless artifact (injected test fixtures). Related masonry keeps compileMasonryLayout.
-async function expectedGridLayout({ artifact, filter = "all", layoutViewportWidth, seed, layouts = artifact.layouts }) {
-  const { bandKey, poolSignature, replayLayout, stackLayout, variantIndex } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
+// Main-grid expectation on the runtime path (masonry-live-layout R1, R2): packLive for the visit seed on the width's band, placed
+// by replayLayout; a width no band covers or a failed replay means stackLayout. Related masonry keeps compileMasonryLayout.
+async function expectedGridLayout({ artifact, filter = "all", layoutViewportWidth, seed }) {
+  const { bandKey, replayLayout, stackLayout } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/replay.mjs")).href);
+  const { LAYOUT_BANDS, livePool, packLive } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/pack.mjs")).href);
   const { filterRank, matchesFilter, normalizeMasonrySettings } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/layout.mjs")).href);
   const { shuffleWithSeed } = await import(pathToFileURL(path.join(SITE_ROOT, "masonry/random-order.mjs")).href);
-  const band = bandKey(layoutViewportWidth);
+  const band = LAYOUT_BANDS.find(({ key }) => key === bandKey(layoutViewportWidth));
   const settings = normalizeMasonrySettings(artifact.settings);
-  const pool = artifact.cards.filter((card) => matchesFilter(card, filter));
-  const bandCache = layouts === undefined
-    ? (await import(pathToFileURL(path.join(__dirname, "..", "..", ".site-output", "advertising-products", "layout-cache", `${band.replace(":", "-")}.mjs`)).href)).default
-    : layouts?.[band];
-  const entry = bandCache?.filters?.[filter];
-  const replayed = entry?.variants?.length && entry.sig === poolSignature(pool) && replayLayout({
-    entries: entry.variants[variantIndex(seed, entry.variants.length)], cards: artifact.cards, layoutViewportWidth, filter, settings,
+  const replayed = band && replayLayout({
+    entries: packLive({ pool: livePool(artifact.cards, filter), band, seed, filter }), cards: artifact.cards, layoutViewportWidth, filter, settings,
   });
   return replayed || stackLayout({
-    order: shuffleWithSeed(pool, seed, `grid:${filter}`).sort((left, right) => filterRank(left, filter) - filterRank(right, filter)),
+    order: shuffleWithSeed(artifact.cards.filter((card) => matchesFilter(card, filter)), seed, `grid:${filter}`).sort((left, right) => filterRank(left, filter) - filterRank(right, filter)),
     layoutViewportWidth, filter, settings,
   });
 }
@@ -4772,11 +4757,13 @@ const armMorphSamples = (page, { event = "click", delays, id = null, notCategory
       const style = tile ? getComputedStyle(tile) : null;
       const rect = tile?.getBoundingClientRect();
       const gridRect = grid.getBoundingClientRect();
+      // The card's slide (Web Animation, masonry-live-layout R7) in the shape of a CSS transition.
+      const slide = tile?.getAnimations().find((animation) => animation.id === "masonry-slide")?.effect.getTiming();
       return {
         id: pickedId,
-        delay: style?.transitionDelay,
-        duration: style?.transitionDuration,
-        property: style?.transitionProperty,
+        delay: `${(slide?.delay || 0) / 1000}s`,
+        duration: `${(slide?.duration || 0) / 1000}s`,
+        property: slide ? "transform" : "none",
         transform: style?.transform,
         left: Number.parseFloat(style?.left || "0"),
         top: Number.parseFloat(style?.top || "0"),
@@ -4787,10 +4774,14 @@ const armMorphSamples = (page, { event = "click", delays, id = null, notCategory
     window.__ttMorphSamples = new Promise((resolve) => {
       (event === "click" ? document : window).addEventListener(event, () => {
         const samples = [];
-        const start = () => delays.forEach((delay, index) => setTimeout(() => {
-          samples[index] = sample();
+        // The rail click builds in the task after the click (masonry-live-layout R7): a sample waits, up to 1s, for its card to exist.
+        const sampleWhenBuilt = (index, until = performance.now() + 1_000) => {
+          const value = sample();
+          if (value.visualLeft === null && performance.now() < until) return void requestAnimationFrame(() => sampleWhenBuilt(index, until));
+          samples[index] = value;
           if (samples.filter(Boolean).length === delays.length) resolve(samples);
-        }, delay));
+        };
+        const start = () => delays.forEach((delay, index) => setTimeout(() => sampleWhenBuilt(index), delay));
         if (!fromMotion) return start();
         // If it has not slid after 1.5s, sample anyway so the assert reports the card that stood still.
         const deadline = performance.now() + 1_500;
@@ -4876,10 +4867,11 @@ async function runAdvertisingFilterCheck() {
         const style = tile ? getComputedStyle(tile) : null;
         const rect = tile?.getBoundingClientRect();
         const gridRect = grid.getBoundingClientRect();
+        const slide = tile?.getAnimations().find((animation) => animation.id === "masonry-slide")?.effect.getTiming();
         return {
-          delay: style?.transitionDelay,
-          duration: style?.transitionDuration,
-          property: style?.transitionProperty,
+          delay: `${(slide?.delay || 0) / 1000}s`,
+          duration: `${(slide?.duration || 0) / 1000}s`,
+          property: slide ? "transform" : "none",
           transform: style?.transform,
           left: Number.parseFloat(style?.left || "0"),
           top: Number.parseFloat(style?.top || "0"),
@@ -4894,16 +4886,17 @@ async function runAdvertisingFilterCheck() {
           during.property?.includes("transform") &&
           during.transform &&
           during.transform !== "none",
-        `Masonry transition did not morph the filter survivor ${survivorId}: ${JSON.stringify({ origin, during })}`,
+        `Slide did not morph the filter survivor ${survivorId}: ${JSON.stringify({ origin, during })}`,
       );
       await page.evaluate(() => window.__ttAdvertisingFilterLayout);
       await page.waitForTimeout(450);
       const settledTrajectory = await captureTrajectory();
       await page.waitForTimeout(80);
       const stableTrajectory = await captureTrajectory();
+      // Inline left/top hold the target from the first frame (FLIP, masonry-live-layout R7): travel starts at the visual origin.
       const travel = {
-        x: settledTrajectory.left - origin.left,
-        y: settledTrajectory.top - origin.top,
+        x: settledTrajectory.left - origin.visualLeft,
+        y: settledTrajectory.top - origin.visualTop,
       };
       const travelDistance = Math.hypot(travel.x, travel.y);
       const originToDestination = Math.hypot(origin.visualLeft - settledTrajectory.left, origin.visualTop - settledTrajectory.top);
@@ -4984,14 +4977,15 @@ async function runAdvertisingFilterCheck() {
       await armMorphSamples(page, { delays: [180], id: nextId });
       await page.locator(`[data-masonry-filter="${nextSlug}"]`).click();
       const [categoryDuring] = await readMorphSamples(page);
-      assert(
-        categoryDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          categoryDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
-          categoryDuring.transform && categoryDuring.transform !== "none",
-        `Masonry transition did not generalize to category-to-category destination: ${JSON.stringify({ categoryOriginMounted, categoryDuring })}`,
-      );
       await page.waitForTimeout(450);
-      await armMorphSamples(page, { delays: [0, 160, 460], notCategory: nextSlug, fromMotion: true });
+      // A card new to the set is built at its target and does not slide across the sliding cards (masonry-live-layout R7, plan Q9 case 2).
+      const categorySettled = await page.locator(`[data-masonry-card="${nextId}"]`).evaluate((node) => ({ left: node.style.left, top: node.style.top }));
+      assert(
+        categoryDuring.transform === "none" && `${categoryDuring.left}px` === categorySettled.left && `${categoryDuring.top}px` === categorySettled.top &&
+          Math.hypot(categoryDuring.visualLeft - categoryDuring.left, categoryDuring.visualTop - categoryDuring.top) <= 1,
+        `A card new to the category was not built at its target: ${JSON.stringify({ categoryOriginMounted, categoryDuring, categorySettled })}`,
+      );
+      await armMorphSamples(page, { delays: [0, 160, 460], notCategory: nextSlug });
       await page.locator('[data-masonry-filter="all"]').click();
       await page.waitForFunction(
         () =>
@@ -4999,25 +4993,16 @@ async function runAdvertisingFilterCheck() {
         null,
         { timeout: 3_000 },
       );
-      const [reverseOrigin, reverseDuring, reverseSettled] = await readMorphSamples(page);
-      const reverseTravel = {
-        x: reverseSettled.left - reverseOrigin.left,
-        y: reverseSettled.top - reverseOrigin.top,
-      };
-      const reverseTravelDistance = Math.hypot(reverseTravel.x, reverseTravel.y);
-      const reverseOriginToDestination = Math.hypot(reverseOrigin.visualLeft - reverseSettled.left, reverseOrigin.visualTop - reverseSettled.top);
-      const reverseDuringToDestination = Math.hypot(reverseDuring.visualLeft - reverseSettled.left, reverseDuring.visualTop - reverseSettled.top);
-      const reverseObservedTravel = Math.hypot(reverseDuring.visualLeft - reverseOrigin.visualLeft, reverseDuring.visualTop - reverseOrigin.visualTop);
+      // A tile outside the category is new to the All set: it is built at its target and stands still while shared tiles slide
+      // (masonry-live-layout R7, plan Q9 case 2).
+      const reverseSamples = await readMorphSamples(page);
+      const [reverseOrigin] = reverseSamples;
       assert(
-        reverseOrigin.id === reverseDuring.id &&
-          reverseDuring.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          reverseDuring.delay?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
-          reverseDuring.transform && reverseDuring.transform !== "none" &&
-          reverseTravelDistance > 1 && reverseOriginToDestination > 2 && reverseObservedTravel > 2 &&
-          reverseDuringToDestination > 2 && reverseDuringToDestination < reverseOriginToDestination &&
-          Math.hypot(reverseSettled.visualLeft - reverseSettled.left, reverseSettled.visualTop - reverseSettled.top) <= 2 &&
-          (!reverseSettled.transform || reverseSettled.transform === "none"),
-        `Category-to-all unshared tile did not travel from an old visual slot: ${JSON.stringify({ reverseOrigin, reverseDuring, reverseSettled })}`,
+        reverseSamples.every((sample) => sample.id === reverseOrigin.id && sample.visualLeft !== null &&
+          (!sample.transform || sample.transform === "none") && sample.property === "none" &&
+          sample.left === reverseOrigin.left && sample.top === reverseOrigin.top &&
+          Math.hypot(sample.visualLeft - sample.left, sample.visualTop - sample.top) <= 1),
+        `Category-to-all unshared tile was not built at its target: ${JSON.stringify(reverseSamples)}`,
       );
       await page.waitForTimeout(450);
       const beforeResize = await page.locator("[data-project-grid] .masonry-card").evaluateAll((tiles) =>
@@ -5055,8 +5040,9 @@ async function runAdvertisingFilterCheck() {
       // Card order is random by seed, so no fixed id is certain to be in the virtual window; take a tile that is mounted.
       await page.waitForFunction(() => document.querySelector("[data-project-grid] .masonry-card"), null, { timeout: 3_000 });
       const reduced = await page.locator("[data-project-grid]").evaluate((grid) => {
-        const style = getComputedStyle(grid.querySelector(".masonry-card"));
-        return { duration: style.transitionDuration, transform: style.transform };
+        const tile = grid.querySelector(".masonry-card");
+        const slide = tile.getAnimations().find((animation) => animation.id === "masonry-slide")?.effect.getTiming();
+        return { duration: `${(slide?.duration || 0) / 1000}s`, transform: getComputedStyle(tile).transform };
       });
       assert(
         reduced.duration?.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01) &&
@@ -5102,7 +5088,7 @@ async function runAdvertisingFilterCheck() {
         const tiles = [...grid.querySelectorAll(".masonry-card")].map((tile) => ({
           top: Number.parseFloat(tile.style.top),
           bottom: Number.parseFloat(tile.style.top) + Number.parseFloat(tile.style.height),
-          instant: getComputedStyle(tile).transitionDuration.split(",").every((value) => Math.abs(Number.parseFloat(value)) < 0.01),
+          instant: !tile.getAnimations().some((animation) => animation.id === "masonry-slide"),
         }));
         return {
           count: tiles.length,
@@ -5214,7 +5200,7 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
         const diagnostics = monitorPage(page);
         let vendorIntercepted = false;
         if (testCase.slowVendor) {
-          await page.route("**/assets/vendor/masonry-4.2.2.min.js", async (route) => {
+          await page.route("**/assets/vendor/lazysizes-5.3.2.min.js", async (route) => {
             vendorIntercepted = true;
             const response = await route.fetch();
             await new Promise((resolve) => setTimeout(resolve, 180));
@@ -5223,8 +5209,8 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
         }
         await gotoRoute(page, `/${testCase.locale}/`);
         assert(
-          await page.evaluate(() => typeof window.Masonry !== "function"),
-          "fresh Home unexpectedly carried Advertising Masonry before public navigation",
+          await page.evaluate(() => !window.lazySizes),
+          "fresh Home unexpectedly carried Advertising LazySizes before public navigation",
         );
         const linkScope = testCase.viewport.width <= 980 ? "#site-menu" : "[data-site-header]";
         if (linkScope === "#site-menu") await openMenu(page);
@@ -5238,7 +5224,6 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
               grid?.querySelector(".masonry-card") &&
               window.gsap?.version === "3.15.0" &&
               typeof window.SplitText === "function" &&
-              typeof window.Masonry === "function" &&
               window.lazySizes?.loader,
             );
           },
@@ -5251,7 +5236,6 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
           const artifact = cardCount === null ? null : await import(artifactPath);
           return {
             grids: document.querySelectorAll("[data-project-grid].masonry-grid").length,
-            masonry: typeof window.Masonry === "function",
             lazySizes: Boolean(window.lazySizes?.loader),
             splitText: typeof window.SplitText === "function",
             gsap: window.gsap?.version,
@@ -5300,7 +5284,7 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
           : null;
         assert(
           state.path === destination && state.transitioning && state.grids === 1 && state.tiles > 0 &&
-            state.masonry && state.lazySizes && state.splitText && state.gsap === "3.15.0" &&
+            state.lazySizes && state.splitText && state.gsap === "3.15.0" &&
             !state.rawNoScript && !state.noscript &&
             (expectedCardCount === null || state.artifactCards === expectedCardCount) &&
             (!expectedRuntime || (
@@ -5319,11 +5303,11 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
 }
 
 async function runAdvertisingDependencyRecoveryChecks() {
-  const vendorPattern = "**/assets/vendor/masonry-4.2.2.min.js";
+  const vendorPattern = "**/assets/vendor/lazysizes-5.3.2.min.js";
   const installFailedVendor = (page) => page.evaluate(async () => {
     const script = document.createElement("script");
-    script.setAttribute("src", "/assets/vendor/masonry-4.2.2.min.js");
-    script.dataset.ttAdvertisingDependency = "/assets/vendor/masonry-4.2.2.min.js";
+    script.setAttribute("src", "/assets/vendor/lazysizes-5.3.2.min.js");
+    script.dataset.ttAdvertisingDependency = "/assets/vendor/lazysizes-5.3.2.min.js";
     script.dataset.ttAdvertisingStatus = "failed";
     document.head.append(script);
     await new Promise((resolve) => script.addEventListener("error", resolve, { once: true }));
@@ -5345,9 +5329,9 @@ async function runAdvertisingDependencyRecoveryChecks() {
       const diagnostics = monitorPage(page);
       const state = await page.evaluate(async () => {
         await window.TruongThinhDetail.ensureAdvertisingDependencies();
-        return { masonry: typeof window.Masonry === "function" };
+        return { lazySizes: Boolean(window.lazySizes?.loader) };
       });
-      assert(state.masonry && requests === 2, `Failed vendor did not retry exactly once: ${JSON.stringify({ state, requests })}`);
+      assert(state.lazySizes && requests === 2, `Failed vendor did not retry exactly once: ${JSON.stringify({ state, requests })}`);
       assertDiagnostics(diagnostics);
     },
   );
@@ -5401,7 +5385,6 @@ async function runAdvertisingHistoryRemountChecks() {
           const grid = document.querySelector("[data-project-grid].masonry-grid");
           return {
             grids: document.querySelectorAll("[data-project-grid].masonry-grid").length,
-            masonry: typeof window.Masonry === "function",
             lazySizes: Boolean(window.lazySizes?.loader),
             splitText: typeof window.SplitText === "function",
             raw: grid?.textContent.trim().startsWith("<figure") || false,
@@ -5412,7 +5395,7 @@ async function runAdvertisingHistoryRemountChecks() {
           await page.waitForFunction(() => document.querySelectorAll("[data-project-grid].masonry-grid .masonry-card").length > 0);
           const state = await catalogState();
           assert(
-            state.grids === 1 && state.tiles > 0 && state.masonry && state.lazySizes && state.splitText && !state.raw,
+            state.grids === 1 && state.tiles > 0 && state.lazySizes && state.splitText && !state.raw,
             `${label} did not converge on one ready catalog: ${JSON.stringify(state)}`,
           );
         };
@@ -5452,12 +5435,12 @@ async function runAdvertisingNoOpScrollCheck() {
           const grid = document.querySelector("[data-project-grid]");
           const ids = () => [...grid.querySelectorAll(".masonry-card")].map((tile) => tile.dataset.masonryCard).sort().join(",");
           const before = ids();
-          const calls = { layouts: 0, reloadItems: 0, events: 0 };
-          const masonry = window.Masonry.data(grid);
-          const originalLayout = masonry.layout;
-          const originalReload = masonry.reloadItems;
-          masonry.layout = function (...args) { calls.layouts += 1; return originalLayout.apply(this, args); };
-          masonry.reloadItems = function (...args) { calls.reloadItems += 1; return originalReload.apply(this, args); };
+          const calls = { slides: 0, events: 0 };
+          const originalAnimate = Element.prototype.animate;
+          Element.prototype.animate = function (keyframes, options) {
+            if (options?.id === "masonry-slide") calls.slides += 1;
+            return originalAnimate.call(this, keyframes, options);
+          };
           const count = () => { calls.events += 1; };
           window.addEventListener("site:layout", count);
           try {
@@ -5469,13 +5452,12 @@ async function runAdvertisingNoOpScrollCheck() {
             await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
             return { before, after: ids(), ...calls };
           } finally {
-            masonry.layout = originalLayout;
-            masonry.reloadItems = originalReload;
+            Element.prototype.animate = originalAnimate;
             window.removeEventListener("site:layout", count);
           }
         });
         assert(
-          state.layouts === 0 && state.reloadItems === 0 && state.events === 0 && state.before === state.after,
+          state.slides === 0 && state.events === 0 && state.before === state.after,
           `same-frontier scroll committed a catalog layout: ${JSON.stringify(state)}`,
         );
         assertDiagnostics(diagnostics);
@@ -5517,6 +5499,10 @@ async function runAdvertisingRapidFilterCheck() {
           writable: true,
         });
       }, artifact);
+      // Only cards in both sets slide (plan Q9 case 2), so whether a travelling card lands far from the view depends on the shuffle:
+      // pin the seed for a fixed layout.
+      const { pinBrowseSeed } = await import("./harness.mjs");
+      await pinBrowseSeed(page, process.env.TT_RAPID_SEED || "rapid-filter-1");
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
@@ -5532,7 +5518,11 @@ async function runAdvertisingRapidFilterCheck() {
       });
       await page.waitForTimeout(50);
       await page.locator('[data-masonry-filter="printing-decals"]').evaluate((control) => control.click());
-      await page.waitForTimeout(120);
+      // The tap builds in a later task, after its pack when that is not ready (masonry-live-layout R7); an All tap before the build only
+      // cancels it. Wait for the build, then tap All while its cards slide.
+      await page.waitForFunction(() => document.querySelector('[data-masonry-filter="printing-decals"]')?.getAttribute("aria-current") === "true",
+        null, { polling: "raf", timeout: 5_000 });
+      await page.waitForTimeout(60);
       const rapidStart = await page.locator("[data-project-grid]").evaluate(async (grid) => {
         const gridRect = grid.getBoundingClientRect();
         const before = [...grid.querySelectorAll(".masonry-card")]
@@ -5543,16 +5533,24 @@ async function runAdvertisingRapidFilterCheck() {
           });
         const blockRapidTransitionEnd = (event) => {
           if (event.propertyName === "transform" &&
-              event.target?.dataset?.masonryCategory === "mobile-retail") {
+              event.target?.dataset?.masonryCategory === "printing-decals") {
             event.stopImmediatePropagation();
           }
         };
         grid.addEventListener("transitionend", blockRapidTransitionEnd, true);
         grid.__blockRapidTransitionEnd = blockRapidTransitionEnd;
         const scrollBefore = window.scrollY;
+        // Slides of the first tap may still run: only a slide started by the All tap counts.
+        const slidesOf = () => [...grid.querySelectorAll(".masonry-card")].flatMap((tile) => tile.getAnimations().filter((animation) => animation.id === "masonry-slide"));
+        const earlier = new Set(slidesOf());
         grid.closest('[data-barba-namespace="advertising-products"]')
-          ?.querySelector('[data-masonry-filter="mobile-retail"]')?.click();
+          ?.querySelector('[data-masonry-filter="all"]')?.click();
         await new Promise((resolve) => requestAnimationFrame(resolve));
+        // The slide starts after the CTA task (masonry-live-layout R7), up to two frames later; cards hold their visual origins meanwhile.
+        const sliding = () => slidesOf().some((animation) => !earlier.has(animation));
+        for (let frame = 0; frame < 6 && !sliding(); frame += 1) {
+          await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
         // The runtime reads visible coordinates in the frame after the click, so a sliding card has moved one more frame (up to ~14px at peak
         // speed) relative to `before`; take another sample in this frame so the morph origin matches one of the two.
         const frameRect = grid.getBoundingClientRect();
@@ -5571,25 +5569,29 @@ async function runAdvertisingRapidFilterCheck() {
         );
         const gridDocumentTop = grid.getBoundingClientRect().top + window.scrollY;
         const futureCenter = Math.max(0, scrollTarget - gridDocumentTop) + innerHeight * 0.5;
-        const trackedItem = Reflect.get(window, "Masonry").data(grid).items
-          .filter((item) => !item.element.hidden && item.element.dataset.masonryCategory === "mobile-retail")
-          .sort((left, right) => Math.abs(left.position.y - futureCenter) - Math.abs(right.position.y - futureCenter))[0];
-        if (!trackedItem) throw new Error("Rapid filter did not expose an overlapping mobile-retail item");
-        // Keep tracking the card's transform transition: when motion ends it must be "finished", when cut off it is "idle".
-        grid.__rapidMorph = trackedItem.element.getAnimations().find((animation) => animation.transitionProperty === "transform");
-        if (!grid.__rapidMorph) throw new Error("Rapid filter did not start a transform transition on the tracked item");
-        grid.__rapidOldTransitionEnds = 0;
-        trackedItem.on("transitionEnd", () => {
-          grid.__rapidOldTransitionEnds += 1;
-        });
+        // Inline top already holds each card's target (masonry-live-layout R7, FLIP). A card new to the set is built at its target
+        // without a slide (plan Q9 case 2), so go back to All and track a printing card that is still mid-slide and travels again.
+        const offset = (tile) => {
+          const slide = tile.getAnimations().find((animation) => animation.id === "masonry-slide" && !earlier.has(animation));
+          const [dx = 0, dy = 0] = (slide?.effect.getKeyframes()[0].transform.match(/-?[\d.]+(?=px)/g) || []).map(Number);
+          return Math.hypot(dx, dy);
+        };
+        const tracked = [...grid.querySelectorAll(".masonry-card")]
+          .filter((tile) => !tile.hidden && tile.dataset.masonryCategory === "printing-decals" && offset(tile) > 4)
+          .sort((left, right) => Math.abs(Number.parseFloat(left.style.top) - futureCenter) - Math.abs(Number.parseFloat(right.style.top) - futureCenter))[0];
+        if (!tracked) throw new Error("Rapid filter did not expose a travelling printing-decals item");
+        // Keep tracking the card's slide: when motion ends it must be "finished", when cut off it is "idle".
+        grid.__rapidMorph = tracked.getAnimations().find((animation) => animation.id === "masonry-slide" && !earlier.has(animation));
+        if (!grid.__rapidMorph) throw new Error("Rapid filter did not start a slide on the tracked item");
         window.scrollTo({ top: scrollTarget, behavior: "instant" });
         window.dispatchEvent(new Event("scroll"));
         window.dispatchEvent(new CustomEvent("site:scroll", { detail: { y: window.scrollY } }));
         const morph = {
           duration: grid.__rapidMorph.effect.getComputedTiming().duration,
+          from: grid.__rapidMorph.effect.getKeyframes()[0].transform,
           to: grid.__rapidMorph.effect.getKeyframes().at(-1).transform,
         };
-        return { before, beforeFrame, membersBeforeScroll, morph, scrollBefore, scrollTarget, trackedId: trackedItem.element.dataset.masonryCard };
+        return { before, beforeFrame, membersBeforeScroll, morph, scrollBefore, scrollTarget, trackedId: tracked.dataset.masonryCard };
       });
       const { before, beforeFrame, membersBeforeScroll, morph, scrollTarget, trackedId } = rapidStart;
       const capture = () => page.locator("[data-project-grid]").evaluate((grid, id) => {
@@ -5599,10 +5601,8 @@ async function runAdvertisingRapidFilterCheck() {
         const rect = tile?.getBoundingClientRect();
         const style = tile ? getComputedStyle(tile) : null;
         return {
-          duration: style?.transitionDuration,
           members: [...grid.querySelectorAll(".masonry-card")].map((item) => item.dataset.masonryCard),
           morph: grid.__rapidMorph?.playState,
-          staleTransitionEnds: grid.__rapidOldTransitionEnds || 0,
           transform: style?.transform,
           target: { x: Number.parseFloat(style?.left || "0"), y: Number.parseFloat(style?.top || "0") },
           visual: rect ? { x: rect.left - gridRect.left, y: rect.top - gridRect.top } : null,
@@ -5635,24 +5635,23 @@ async function runAdvertisingRapidFilterCheck() {
         await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       }, trackedId);
       const afterStaleEnd = await capture();
-      const seededOrigin = origin.target;
+      // The slide starts at the target plus its first keyframe offset (FLIP) and plays the offset back to none.
+      const [fromX, fromY] = (morph.from.match(/-?[\d.]+(?=px)/g) || []).map(Number);
+      const seededOrigin = { x: origin.target.x + fromX, y: origin.target.y + fromY };
       const nearestOrigin = Math.min(...[...before, ...beforeFrame].map((slot) => Math.hypot(seededOrigin.x - slot.x, seededOrigin.y - slot.y)));
       const travel = Math.hypot(settled.target.x - seededOrigin.x, settled.target.y - seededOrigin.y);
       const progressed = Math.hypot(during.visual.x - seededOrigin.x, during.visual.y - seededOrigin.y);
-      // A lagging frame on a runner may jump past the midpoint; the transition must travel fully from origin to target within 0.4s.
-      const [morphX, morphY] = (morph.to.match(/-?[\d.]+(?=px)/g) || []).map(Number);
-      const morphGap = Math.hypot(seededOrigin.x + morphX - settled.target.x, seededOrigin.y + morphY - settled.target.y);
+      // A lagging frame on a runner may jump past the midpoint; the slide must end at the target it wrote at the start, within 0.4s.
+      const morphGap = morph.to === "none" ? Math.hypot(origin.target.x - settled.target.x, origin.target.y - settled.target.y) : Infinity;
       const membershipChanged = membersBeforeScroll.length !== settled.members.length ||
         membersBeforeScroll.some((id) => !settled.members.includes(id)) ||
         settled.members.some((id) => !membersBeforeScroll.includes(id));
       const staleEndWasInert = JSON.stringify(afterStaleEnd.members) === JSON.stringify(settled.members) &&
         Math.hypot(afterStaleEnd.visual.x - afterStaleEnd.target.x, afterStaleEnd.visual.y - afterStaleEnd.target.y) <= 2 &&
         Math.hypot(afterStaleEnd.target.x - settled.target.x, afterStaleEnd.target.y - settled.target.y) <= 2 &&
-        afterStaleEnd.staleTransitionEnds === 0 &&
         (!afterStaleEnd.transform || afterStaleEnd.transform === "none");
       assert(
-        origin.duration?.split(",").some((value) => Math.abs(Number.parseFloat(value) - 0.4) < 0.01) &&
-          // The "during" sample only means something when caught mid-way; a lagging frame on a runner may let the 0.4s transition finish
+        // The "during" sample only means something when caught mid-way; a lagging frame on a runner may let the 0.4s transition finish
           // before the measurement (morph "finished"), at which point the transform is none. A cut-off case still goes red at settled.morph and morphGap.
           (during.morph === "finished" || (during.transform && during.transform !== "none")) &&
           nearestOrigin <= 3 && travel > 1 && progressed > 2 && morph.duration === 400 && morphGap <= 2 &&
@@ -5661,7 +5660,7 @@ async function runAdvertisingRapidFilterCheck() {
           (!settled.transform || settled.transform === "none") &&
           staleEndWasInert &&
           Math.abs((await page.evaluate(() => window.scrollY)) - scrollTarget) <= 2,
-        `Rapid filter snapped instead of continuing the Masonry coordinate morph: ${JSON.stringify({ before, membersBeforeScroll, origin, during, settled, afterStaleEnd, morph, morphGap, nearestOrigin, travel, progressed, membershipChanged, staleEndWasInert, scrollTarget })}`,
+        `Rapid filter snapped instead of continuing the coordinate slide: ${JSON.stringify({ before, membersBeforeScroll, origin, during, settled, afterStaleEnd, morph, morphGap, nearestOrigin, travel, progressed, membershipChanged, staleEndWasInert, scrollTarget })}`,
       );
       assertDiagnostics(diagnostics);
     },
@@ -5676,7 +5675,7 @@ async function runAdvertisingDirectFailureCheck() {
       await page.addInitScript(() => {
         window.name = String(Number(window.name || "0") + 1);
       });
-      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.abort("failed"));
+      await page.route("**/assets/vendor/lazysizes-5.3.2.min.js", (route) => route.abort("failed"));
       await gotoRoute(page, "/vi/advertising-products/?direct-vendor-failure=1");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
@@ -6268,18 +6267,19 @@ async function runAdvertisingGridFocusedChecks() {
   }
 
   await runPageCase(
-    "advertising legacy rank-v2 artifact fails before Masonry",
+    "advertising legacy rank-v2 artifact fails before layout",
     { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.addInitScript((injectedArtifact) => {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
-        window.__ttMasonryConstructs = 0;
+        // Counts card slides: a bad artifact must fail before any card is laid out.
+        window.__ttMasonrySlides = 0;
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (keyframes, options) {
+          if (options?.id === "masonry-slide") window.__ttMasonrySlides += 1;
+          return animate.call(this, keyframes, options);
+        };
       }, { ...artifact, layoutAlgorithmVersion: "advertising-rank-v2" });
-      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.fulfill({
-        status: 200,
-        contentType: "application/javascript",
-        body: "window.Masonry = function Masonry() { window.__ttMasonryConstructs += 1; };",
-      }));
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
@@ -6287,27 +6287,28 @@ async function runAdvertisingGridFocusedChecks() {
         { timeout: 6_000 },
       );
       const state = await page.evaluate(() => ({
-        constructs: window.__ttMasonryConstructs,
+        slides: window.__ttMasonrySlides,
         fallback: document.querySelector('[data-barba="container"]')?.dataset.masonryFallback,
         gridHidden: document.querySelector("[data-project-grid]")?.hidden,
       }));
-      assert(state.constructs === 0 && state.fallback === "failed" && state.gridHidden, `rank-v2 artifact did not fail before Masonry: ${JSON.stringify(state)}`);
+      assert(state.slides === 0 && state.fallback === "failed" && state.gridHidden, `rank-v2 artifact did not fail before layout: ${JSON.stringify(state)}`);
     },
   );
 
   await runPageCase(
-    "advertising empty v6 artifact fails before Masonry",
+    "advertising empty v6 artifact fails before layout",
     { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.addInitScript((injectedArtifact) => {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
-        window.__ttMasonryConstructs = 0;
+        // Counts card slides: a bad artifact must fail before any card is laid out.
+        window.__ttMasonrySlides = 0;
+        const animate = Element.prototype.animate;
+        Element.prototype.animate = function (keyframes, options) {
+          if (options?.id === "masonry-slide") window.__ttMasonrySlides += 1;
+          return animate.call(this, keyframes, options);
+        };
       }, { ...artifact, cards: [] });
-      await page.route("**/assets/vendor/masonry-4.2.2.min.js", (route) => route.fulfill({
-        status: 200,
-        contentType: "application/javascript",
-        body: "window.Masonry = function Masonry() { window.__ttMasonryConstructs += 1; };",
-      }));
       await gotoRoute(page, "/vi/advertising-products/");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
@@ -6315,11 +6316,11 @@ async function runAdvertisingGridFocusedChecks() {
         { timeout: 6_000 },
       );
       const state = await page.evaluate(() => ({
-        constructs: window.__ttMasonryConstructs,
+        slides: window.__ttMasonrySlides,
         fallback: document.querySelector('[data-barba="container"]')?.dataset.masonryFallback,
         gridHidden: document.querySelector("[data-project-grid]")?.hidden,
       }));
-      assert(state.constructs === 0 && state.fallback === "failed" && state.gridHidden, `empty v6 artifact did not fail before Masonry: ${JSON.stringify(state)}`);
+      assert(state.slides === 0 && state.fallback === "failed" && state.gridHidden, `empty v6 artifact did not fail before layout: ${JSON.stringify(state)}`);
     },
   );
 }
@@ -7229,7 +7230,7 @@ async function runAdvertisingThreeThousandCardProbe() {
   // The grid is laid out in the browse visit's random order (R4): rebuild with the same seed and pool as the runtime.
   // The artifact injected into the page declares no cache: the runtime lays out stackLayout (advertising-masonry R6).
   const browseLayout = async (page, filter, layoutViewportWidth) => expectedGridLayout({
-    artifact, filter, layoutViewportWidth, layouts: null, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
+    artifact, filter, layoutViewportWidth, seed: await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed),
   });
   const scrollTargetFor = async (page, layout, id) => {
     const target = layout.placements.find((placement) => placement.card.id === id);
@@ -7417,7 +7418,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const seed = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().seed);
         // The artifact injected into the page declares no cache: the runtime lays out stackLayout (advertising-masonry R6).
         const layout = await expectedGridLayout({
-          artifact, layouts: null, seed, layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
+          artifact, seed, layoutViewportWidth: await page.evaluate(() => document.documentElement.clientWidth),
         });
         const kiosk = layout.placements.find((placement) => placement.card.id === "kiosk-posm-01");
         // Scroll to the placement farthest from the kiosk so the kiosk surely leaves the virtualized DOM.
@@ -8829,7 +8830,6 @@ async function runDelayedDetailFallbackChecks() {
         const grid = document.querySelector("[data-project-grid].masonry-grid");
         return Boolean(
           grid?.querySelector(".masonry-card") &&
-          typeof window.Masonry === "function" &&
           window.lazySizes?.loader &&
           typeof window.SplitText === "function" &&
           window.gsap?.version === "3.15.0",
@@ -8845,14 +8845,18 @@ async function runDelayedDetailFallbackChecks() {
   const exerciseFilter = async (page, category) => {
     await waitForAdvertisingCatalog(page);
     await page.evaluate(() => {
+      // One layout pass starts every card slide of the main grid in one synchronous loop (host layoutMotion).
       if (!window.__ttDelayedDetailMasonryProbe) {
-        const layout = window.Masonry.prototype.layout;
+        const animate = Element.prototype.animate;
+        let inPass = false;
         window.__ttDelayedDetailMasonryProbe = true;
-        window.Masonry.prototype.layout = function (...args) {
-          if (this.element?.matches?.("[data-project-grid].masonry-grid")) {
+        Element.prototype.animate = function (keyframes, options) {
+          if (options?.id === "masonry-slide" && !inPass && this.closest?.("[data-project-grid].masonry-grid")) {
+            inPass = true;
             window.__ttDelayedDetailMasonryLayouts += 1;
+            queueMicrotask(() => { inPass = false; });
           }
-          return layout.apply(this, args);
+          return animate.call(this, keyframes, options);
         };
       }
       window.__ttDelayedDetailMasonryLayouts = 0;
@@ -9716,7 +9720,7 @@ async function runPhysicalWheelTransformChecks() {
     { name: "residential hero", route: "/vi/residential/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "commercial hero", route: "/vi/commercial/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "about hero", route: "/vi/about/", selector: "[data-motion-hero-media]", axis: "y", limit: 12 },
-    { name: "home project rail", route: "/vi/", selector: ".project-track", axis: "x", limit: 1 },
+    { name: "home project strip", route: "/vi/", selector: ".blk-projects__track", axis: "x", limit: 1 },
   ];
 
   for (const testCase of cases) {
@@ -9982,8 +9986,8 @@ async function runHomeMotionRegressionCheck() {
             height: item.getBoundingClientRect().height,
           })),
           track: {
-            speed: document.querySelector(".project-track")?.dataset.scrollSpeed,
-            direction: document.querySelector(".project-track")?.dataset
+            speed: document.querySelector(".blk-projects__track")?.dataset.scrollSpeed,
+            direction: document.querySelector(".blk-projects__track")?.dataset
               .scrollDirection,
           },
           hero: {
@@ -10091,7 +10095,7 @@ async function runHomeMotionRegressionCheck() {
         "A text mask can clip Vietnamese font ink",
       );
       assert(
-        contract.media.length === require(path.join(SITE_ROOT, "content", "project-reel.json")).length &&
+        contract.media.length === require(path.join(SITE_ROOT, "content", "home-projects.json")).length &&
           contract.media.every(
             // An image frame waiting to load gets overflow: clip from .media-gate (media-delivery R6), hidden once loaded; both clip the mask.
             ({ overflow, height }) =>
@@ -10186,7 +10190,7 @@ async function runHomeMotionRegressionCheck() {
       const hover = await firstCard.evaluate((card) => {
         const media = card.querySelector(".project-card__media");
         const image = media.querySelector("img");
-        const caption = card.querySelector("figcaption");
+        const caption = card.querySelector("figcaption, .blk-projects__name");
         const mediaRect = media.getBoundingClientRect();
         const imageRect = image.getBoundingClientRect();
         const captionRect = caption.getBoundingClientRect();
@@ -10258,8 +10262,8 @@ async function runSharedMediaHoverPortalChecks() {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, `/${locale}/`);
         const allPortals = page.locator("#dich-vu .service-portal, #nang-luc .service-portal");
-        assert((await allPortals.count()) === 6, `Expected six shared media portals at ${locale}`);
-        for (let index = 0; index < 6; index += 1) {
+        assert((await allPortals.count()) === 7, `Expected seven shared media portals at ${locale}`);
+        for (let index = 0; index < 7; index += 1) {
           const sharedPortal = allPortals.nth(index);
           const sharedImage = sharedPortal.locator(".media-hover-zoom");
           await sharedPortal.scrollIntoViewIfNeeded();
@@ -10432,21 +10436,17 @@ function assertBrandShellSourceContracts() {
       assert(
         mark &&
           (mark.match(/<path\b/g) || []).length === 4 &&
-          (lockup.match(/<text\b/g) || []).length === 2 &&
-          /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__title\b)[^>]*>/.test(
-            lockup,
-          ) &&
-          /<text\b(?=[^>]*\bclass="[^"]*\bbrand-lockup__subtitle\b)(?=[^>]*\bdata-en="INTERIORS · ADVERTISING")[^>]*>/.test(
-            lockup,
-          ) &&
-          !/\blengthAdjust="spacingAndGlyphs"/.test(lockup) &&
+          !/<text\b/.test(lockup) &&
+          /<g class="brand-lockup__title">/.test(lockup) &&
+          /<g class="brand-lockup__subtitle" data-lang="vi">/.test(lockup) &&
+          /<g class="brand-lockup__subtitle" data-lang="en" display="none">/.test(lockup) &&
           !/<(?:use|image|style|metadata|title|desc|foreignObject)\b|\bhref\s*=|\bxlink:href\s*=/.test(
             lockup,
           ),
         relativePath +
           " lockup " +
           (index + 1) +
-          " must keep four mark paths, two live text nodes, and undistorted locale copy",
+          " must keep four mark paths and the outlined title with vi and en subtitles",
       );
     });
 
@@ -10699,123 +10699,21 @@ async function readBrandLockupRuntimeState(page) {
       const lockup = root?.querySelector(".brand-lockup");
       const mark = lockup?.querySelector(".brand-lockup__mark");
       const title = lockup?.querySelector(".brand-lockup__title");
-      const subtitle = lockup?.querySelector(".brand-lockup__subtitle");
-      const bbox = (element) => {
-        try {
-          const value = element?.getBBox?.();
-          if (!value) return null;
-          return {
-            x: value.x,
-            y: value.y,
-            width: value.width,
-            height: value.height,
-          };
-        } catch {
-          return null;
-        }
-      };
-      const visualTextExtent = (element) => {
-        try {
-          const count = element?.getNumberOfChars?.() || 0;
-          const matrix = element?.getScreenCTM?.();
-          const style = element && getComputedStyle(element);
-          const canvas = document.createElement("canvas");
-          const context = canvas.getContext("2d");
-          if (!count || !matrix || !style || !context) return null;
-          const sampleSize = 1000;
-          const scale = Number.parseFloat(style.fontSize) / sampleSize;
-          const text = element.textContent || "";
-          context.font = [
-            style.fontStyle,
-            style.fontWeight,
-            sampleSize + "px",
-            style.fontFamily,
-          ].join(" ");
-          const project = (x, y) => ({
-            x: matrix.a * x + matrix.c * y + matrix.e,
-            y: matrix.b * x + matrix.d * y + matrix.f,
-          });
-          const extents = [];
-          for (let index = 0; index < count; index += 1) {
-            const glyph = text[index];
-            if (!glyph || /\s/.test(glyph)) continue;
-            const point = element.getStartPositionOfChar(index);
-            const metrics = context.measureText(glyph);
-            const corners = [
-              project(
-                point.x - metrics.actualBoundingBoxLeft * scale,
-                point.y - metrics.actualBoundingBoxAscent * scale,
-              ),
-              project(
-                point.x + metrics.actualBoundingBoxRight * scale,
-                point.y + metrics.actualBoundingBoxDescent * scale,
-              ),
-            ];
-            extents.push({
-              top: Math.min(...corners.map((corner) => corner.y)),
-              right: Math.max(...corners.map((corner) => corner.x)),
-              bottom: Math.max(...corners.map((corner) => corner.y)),
-              left: Math.min(...corners.map((corner) => corner.x)),
-            });
-          }
-          if (!extents.length) return null;
-          const top = Math.min(...extents.map((value) => value.top));
-          const bottom = Math.max(...extents.map((value) => value.bottom));
-          const left = Math.min(...extents.map((value) => value.left));
-          const right = Math.max(...extents.map((value) => value.right));
-          return { top, right, bottom, left, width: right - left, height: bottom - top };
-        } catch {
-          return null;
-        }
-      };
-      const canvasMetricsAt1000 = (element) => {
-        if (!element) return null;
-        const style = getComputedStyle(element);
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-        if (!context) return null;
-        const sampleSize = 1000;
-        const fontSize = Number.parseFloat(style.fontSize);
-        const matrix = element.getScreenCTM?.();
-        const verticalScale = matrix ? Math.hypot(matrix.c, matrix.d) : 1;
-        context.font = [
-          style.fontStyle,
-          style.fontWeight,
-          sampleSize + "px",
-          style.fontFamily,
-        ].join(" ");
-        const cap = context.measureText("H");
-        const ink = context.measureText(element.textContent || "");
-        const scale = (fontSize / sampleSize) * verticalScale;
-        return {
-          sampleSize,
-          capHeight:
-            (cap.actualBoundingBoxAscent + cap.actualBoundingBoxDescent) * scale,
-          inkHeight:
-            (ink.actualBoundingBoxAscent + ink.actualBoundingBoxDescent) * scale,
-          inkTop: ink.actualBoundingBoxAscent * scale,
-          inkBottom: ink.actualBoundingBoxDescent * scale,
-        };
-      };
-      const baselineY = (element) => {
-        try {
-          const point = element?.getStartPositionOfChar?.(0);
-          const matrix = element?.getScreenCTM?.();
-          if (!point || !matrix) return null;
-          return matrix.b * point.x + matrix.d * point.y + matrix.f;
-        } catch {
-          return null;
-        }
-      };
-      const titleNodes = title ? [title] : [];
-      const subtitleNodes = subtitle ? [subtitle] : [];
-      const text = [...titleNodes, ...subtitleNodes];
+      // The wordmark is outlined glyphs; the subtitle has one group per locale and only the active one renders.
+      const subtitles = [...(lockup?.querySelectorAll(".brand-lockup__subtitle") || [])];
+      const visibleSubtitles = subtitles.filter((group) => getComputedStyle(group).display !== "none");
+      const subtitle = visibleSubtitles[0];
+      // First glyphs (T; N or I) have flat tops and sit on the baseline, so their box is the cap body.
+      const firstGlyph = (group) => group?.querySelector("path");
+      const capHeight = (group) => rect(firstGlyph(group))?.height;
+      const baselineY = (group) => rect(firstGlyph(group))?.bottom ?? null;
+      const titleExtent = rect(title);
+      const subtitleExtent = subtitle ? rect(subtitle) : null;
+      const text = [title, subtitle].filter(Boolean);
       const markRect = union([mark]);
       const textRect = union(text);
       const trueRect = union([mark, ...text]);
       const svgRect = rect(lockup);
-      const titleExtent = visualTextExtent(title);
-      const subtitleExtent = visualTextExtent(subtitle);
       const textInk = [titleExtent, subtitleExtent].every(Boolean)
         ? {
             top: Math.min(titleExtent.top, subtitleExtent.top),
@@ -10845,43 +10743,22 @@ async function readBrandLockupRuntimeState(page) {
         markRect,
         textRect,
         trueRect,
-        titleRect: rect(title),
-        subtitleRect: rect(subtitle),
-        titleBBox: bbox(title),
-        subtitleBBox: bbox(subtitle),
         titleExtent,
         subtitleExtent,
+        visibleSubtitleLangs: visibleSubtitles.map((group) => group.dataset.lang),
         textInk,
         inkRect,
-        titleMetrics: canvasMetricsAt1000(title),
-        subtitleMetrics: canvasMetricsAt1000(subtitle),
+        titleCapHeight: capHeight(title),
+        subtitleCapHeight: capHeight(subtitle),
         titleBaselineY: baselineY(title),
         subtitleBaselineY: baselineY(subtitle),
         pathCount: mark?.querySelectorAll("path").length || 0,
+        titleGlyphCount: title?.querySelectorAll("path").length || 0,
+        subtitleGlyphCount: subtitle?.querySelectorAll("path").length || 0,
         hasUse: Boolean(lockup?.querySelector("use")),
         textCount: lockup?.querySelectorAll("text").length || 0,
-        titleFontSizes: titleNodes.map((node) =>
-          Number.parseFloat(getComputedStyle(node).fontSize),
-        ),
-        subtitleFontSizes: subtitleNodes.map((node) =>
-          Number.parseFloat(getComputedStyle(node).fontSize),
-        ),
-        subtitleLetterSpacings: subtitleNodes.map((node) => {
-          const value = getComputedStyle(node).letterSpacing;
-          return value === "normal" ? 0 : Number.parseFloat(value);
-        }),
-        titleLetterSpacings: titleNodes.map((node) => {
-          const value = getComputedStyle(node).letterSpacing;
-          return value === "normal" ? 0 : Number.parseFloat(value);
-        }),
-        titleTransforms: titleNodes.map((node) => getComputedStyle(node).transform),
-        subtitleTransforms: subtitleNodes.map(
-          (node) => getComputedStyle(node).transform,
-        ),
-        titleWeights: titleNodes.map((node) => getComputedStyle(node).fontWeight),
-        subtitleWeights: subtitleNodes.map(
-          (node) => getComputedStyle(node).fontWeight,
-        ),
+        titleTransform: title ? getComputedStyle(title).transform : null,
+        subtitleTransform: subtitle ? getComputedStyle(subtitle).transform : null,
         overflow:
           inkRect &&
           svgRect &&
@@ -10908,12 +10785,13 @@ function assertBrandLockupRuntimeState(state, label, width) {
   const validate = (measurement, name) => {
     const isVietnamese = state.lang === "vi";
     const y = measurement?.markRect?.height / 6;
-    const titleBodyHeight = measurement?.titleMetrics?.capHeight;
-    const subtitleBodyHeight = measurement?.subtitleMetrics?.capHeight;
+    const titleBodyHeight = measurement?.titleCapHeight;
+    const subtitleBodyHeight = measurement?.subtitleCapHeight;
     const interlineInkGap = measurement?.subtitleExtent?.top - measurement?.titleExtent?.bottom;
     const bodyInkHeight = measurement?.textInk?.height;
-    const topPadding = measurement?.textInk?.top - measurement?.markRect?.top;
-    const bottomPadding = measurement?.markRect?.bottom - measurement?.textInk?.bottom;
+    // Paddings use the lockup frame (the unsnapped mark box): the small-size mark snap may shift the drawn mark by half a device pixel (brand.md).
+    const topPadding = measurement?.textInk?.top - measurement?.svgRect?.top;
+    const bottomPadding = measurement?.svgRect?.bottom - measurement?.textInk?.bottom;
     const markToTextInkGap =
       Math.min(
         measurement?.titleExtent?.left || Infinity,
@@ -10923,17 +10801,16 @@ function assertBrandLockupRuntimeState(state, label, width) {
       measurement &&
         measurement.pathCount === 4 &&
         !measurement.hasUse &&
-        measurement.textCount === 2 &&
-        measurement.titleWeights.length === 1 &&
-        measurement.subtitleWeights.length === 1 &&
-        measurement.titleWeights[0] === "600" &&
-        measurement.subtitleWeights[0] === "600" &&
+        measurement.textCount === 0 &&
+        measurement.titleGlyphCount === 11 &&
+        measurement.subtitleGlyphCount === (isVietnamese ? 16 : 21) &&
+        JSON.stringify(measurement.visibleSubtitleLangs) === JSON.stringify([state.lang]) &&
+        measurement.titleTransform === "none" &&
+        measurement.subtitleTransform === "none" &&
         measurement.markRect &&
         measurement.textRect &&
         measurement.trueRect &&
         measurement.markRect.height > 0 &&
-        measurement.titleMetrics?.sampleSize === 1000 &&
-        measurement.subtitleMetrics?.sampleSize === 1000 &&
         titleBodyHeight > 0 &&
         subtitleBodyHeight > 0 &&
         measurement.titleExtent &&
@@ -10957,12 +10834,7 @@ function assertBrandLockupRuntimeState(state, label, width) {
             Math.abs(measurement.titleExtent.left - measurement.subtitleExtent.left) <= tolerance &&
             Math.abs(measurement.titleExtent.right - measurement.subtitleExtent.right) <= tolerance &&
             interlineInkGap <= 0.5 * y + tolerance
-          : Math.abs(measurement.titleFontSizes[0] - 46.68365) <= 0.001 &&
-            Math.abs(measurement.subtitleFontSizes[0] - 28.8505) <= 0.001 &&
-            measurement.titleLetterSpacings[0] === 0 &&
-            measurement.subtitleLetterSpacings[0] === 0 &&
-            measurement.titleTransforms[0] === "none" &&
-            measurement.subtitleTransforms[0] === "none"),
+          : true),
       label +
         " " +
         name +
@@ -11016,12 +10888,8 @@ function assertBrandLocaleMetricParity(viState, enState, label) {
     const viBaselineGap = vi.subtitleBaselineY - vi.titleBaselineY;
     const enBaselineGap = en.subtitleBaselineY - en.titleBaselineY;
     assert(
-      vi.titleFontSizes[0] === en.titleFontSizes[0] &&
-        vi.subtitleFontSizes[0] === en.subtitleFontSizes[0] &&
-        vi.titleLetterSpacings[0] === en.titleLetterSpacings[0] &&
-        vi.subtitleLetterSpacings[0] === en.subtitleLetterSpacings[0] &&
-        vi.titleTransforms[0] === en.titleTransforms[0] &&
-        vi.subtitleTransforms[0] === en.subtitleTransforms[0] &&
+      Math.abs(vi.titleCapHeight - en.titleCapHeight) <= 0.01 &&
+        Math.abs(vi.subtitleCapHeight - en.subtitleCapHeight) <= 0.01 &&
         Math.abs(viBaselineGap - enBaselineGap) <= tolerance &&
         ["top", "right", "bottom", "left"].every(
           (edge) => Math.abs(vi.titleExtent[edge] - en.titleExtent[edge]) <= tolerance,
@@ -11078,7 +10946,7 @@ async function runBrandLockupRuntimeChecks() {
 
   for (const { locale, route } of BRAND_LOCKUP_ROUTE_CASES) {
     await runPageCase(
-      `brand lockup text width ${locale} ${route}`,
+      `brand lockup locale wordmark ${locale} ${route}`,
       { route, viewport: { width: 390, height: 844 } },
       async (page) => {
         const diagnostics = monitorPage(page);
@@ -11088,24 +10956,6 @@ async function runBrandLockupRuntimeChecks() {
         await waitForBrandFonts(page);
         const state = await readBrandLockupRuntimeState(page);
         assertBrandLockupRuntimeState(state, route + " 390x844", 390);
-        const subtitles = await page
-          .locator(".brand-lockup__subtitle")
-          .allTextContents();
-        const titles = await page
-          .locator(".brand-lockup__title")
-          .allTextContents();
-        const expectedSubtitle =
-          locale === "en" ? "INTERIORS · ADVERTISING" : "NỘI THẤT · QUẢNG CÁO";
-        assert(
-          titles.length === 2 &&
-            titles.every((text) => text.replace(/\s+/g, " ").trim() === "TRƯỜNG THỊNH") &&
-            subtitles.length === 2 &&
-            subtitles.every(
-              (text) => text.replace(/\s+/g, " ").trim() === expectedSubtitle,
-            ),
-          `${route} must render both live brand title/subtitle nodes for ${locale}: ` +
-            JSON.stringify({ titles, subtitles }),
-        );
         assertDiagnostics(diagnostics);
       },
     );
@@ -11124,30 +10974,6 @@ async function runBrandLockupRuntimeChecks() {
         await readBrandLockupRuntimeState(page),
         "/en/ 1440x900",
         1440,
-      );
-      assertDiagnostics(diagnostics);
-    },
-  );
-
-  await runPageCase(
-    "brand lockup English subtitle",
-    { route: "/en/", viewport: { width: 390, height: 844 } },
-    async (page) => {
-      const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/en/");
-      await page.waitForFunction(
-        () => document.documentElement.lang === "en",
-      );
-      const subtitles = await page
-        .locator(".brand-lockup__subtitle")
-        .allTextContents();
-      assert(
-        subtitles.length === 2 &&
-          subtitles.every(
-            (text) => text.replace(/\s+/g, " ").trim() === "INTERIORS · ADVERTISING",
-          ),
-        "English route must translate both header and full-menu brand subtitles: " +
-          JSON.stringify(subtitles),
       );
       assertDiagnostics(diagnostics);
     },

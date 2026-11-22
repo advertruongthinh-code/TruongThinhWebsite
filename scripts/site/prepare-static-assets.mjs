@@ -1,30 +1,25 @@
 #!/usr/bin/env node
 
 import { existsSync } from "node:fs";
-import { transform } from "esbuild";
+import { build, transform } from "esbuild";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
-import { MASONRY_LAYOUT_VERSION, filterRank, matchesFilter } from "../../src/site/masonry/layout.mjs";
-import { buildLayoutCacheMemo } from "./layout-cache-memo.mjs";
-import { LAYOUT_CACHE_PRELOAD_MARKER, LAYOUT_CACHE_ROOT, layoutCachePreload } from "./layout-cache-preload.mjs";
 import "./sync-brand-lockup.mjs";
 import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, readHeroSources, validateHeroSlides } from "./hero-slides.mjs";
-import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
+import { validateHomeProjects } from "./home-projects.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, phonePacksScript, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 const outputRoot = path.join(projectRoot, ".site-output");
-const PUBLIC_GRID_FILTERS = ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug), ...ADVERTISING_PRODUCT_CHIPS.map(({ filter }) => filter)];
 const vendorAssets = [
-  ["node_modules/masonry-layout/dist/masonry.pkgd.min.js", "assets/vendor/masonry-4.2.2.min.js"],
   ["node_modules/lazysizes/lazysizes.min.js", "assets/vendor/lazysizes-5.3.2.min.js"],
   ["node_modules/gsap/dist/gsap.min.js", "assets/vendor/gsap-3.15.0.min.js"],
   ["node_modules/gsap/dist/SplitText.min.js", "assets/vendor/SplitText-3.15.0.min.js"],
@@ -57,24 +52,16 @@ if (path.dirname(outputRoot) !== projectRoot || path.dirname(sourceRoot) !== pat
 }
 
 const artifact = buildAdvertisingArtifact();
-// Masonry layout cache (advertising-masonry R6): every filter on every width band, 8 to 32 precomputed variants. Its
-// self-check replays and verifies every kept layout at both band ends, so a catalog that cannot be laid out stops the build.
-const layoutCache = buildLayoutCacheMemo({ cards: artifact.cards, filters: PUBLIC_GRID_FILTERS, datasetVersion: artifact.datasetVersion, rankOf: filterRank, matches: matchesFilter });
 
-// Home page project rail: validate data and placeholders before deleting old output (page-home R8).
-const projectReel = await readJson(path.join(sourceRoot, "content", "project-reel.json"));
-await validateProjectReel(projectReel, sourceRoot);
-const projectReelCards = renderProjectReel(projectReel);
 const hero = readHeroSources(sourceRoot);
 await validateHeroSlides(hero.data, sourceRoot);
 const homeTemplate = readPageSource("index.html");
-if (!homeTemplate.includes("<!-- project-reel-cards -->")) throw new Error("index.html lost <!-- project-reel-cards -->");
 
 await rm(outputRoot, { recursive: true, force: true });
 await cp(sourceRoot, outputRoot, { recursive: true });
 // Menu and navbar list are rendered here, not stored in the source pages; the home page is overwritten next with its project reel.
 await Promise.all(MENU_PAGES.map((page) => writeFile(path.join(outputRoot, page), readPageSource(page), "utf8")));
-await writeFile(path.join(outputRoot, "index.html"), homeTemplate.replace("<!-- project-reel-cards -->", () => projectReelCards), "utf8");
+await writeFile(path.join(outputRoot, "index.html"), homeTemplate, "utf8");
 await Promise.all(vendorAssets.map(async ([source, destination]) => {
   const target = path.join(outputRoot, destination);
   await mkdir(path.dirname(target), { recursive: true });
@@ -101,24 +88,21 @@ const gridCards = artifact.cards.map(({ descriptionVi, descriptionEn, mediaDescr
   detailById[card.id] = { descriptionVi, descriptionEn, mediaDescriptions, related };
   return { ...card, media: stripBuildMedia(media), mediaItems: mediaItems?.map(stripBuildMedia) };
 });
-const gridArtifact = { ...artifact, cards: gridCards, layoutCacheFilterUrl: `${LAYOUT_CACHE_ROOT}/{band}/{filter}.mjs`, layoutCacheBandUrl: `${LAYOUT_CACHE_ROOT}/{band}.mjs` };
-// One file per band (all filters, loaded after the first cards) and one per band and filter (loaded before them).
-const layoutCacheModule = (band, filters) => `// Generated by scripts/site/prepare-static-assets.mjs. Do not edit.\nexport default Object.freeze(${JSON.stringify({ version: MASONRY_LAYOUT_VERSION, band, filters })});\n`;
-await Promise.all(Object.entries(layoutCache).flatMap(([band, { filters }]) => {
-  const bandDir = path.join(outputRoot, LAYOUT_CACHE_ROOT, band.replace(":", "-"));
-  return [
-    mkdir(path.dirname(bandDir), { recursive: true }).then(() => writeFile(`${bandDir}.mjs`, layoutCacheModule(band, filters), "utf8")),
-    ...Object.entries(filters).map(async ([filter, entry]) => {
-      const file = path.join(bandDir, `${filter}.mjs`);
-      await mkdir(path.dirname(file), { recursive: true });
-      await writeFile(file, layoutCacheModule(band, { [filter]: entry }), "utf8");
-    }),
-  ];
-}));
+const gridArtifact = { ...artifact, cards: gridCards };
 const artifactSource = `// Generated by scripts/site/prepare-static-assets.mjs. Do not edit.\nexport const ADVERTISING_CATALOG_ARTIFACT = Object.freeze(${JSON.stringify(gridArtifact)});\nexport default ADVERTISING_CATALOG_ARTIFACT;\n`;
 await writeFile(path.join(outputRoot, "advertising-products", "catalog-artifact.mjs"), artifactSource, { encoding: "utf8", flush: true });
 const detailSource = `// Generated by scripts/site/prepare-static-assets.mjs. Do not edit.\nexport const ADVERTISING_CATALOG_DETAIL = Object.freeze(${JSON.stringify(detailById)});\nexport default ADVERTISING_CATALOG_DETAIL;\n`;
 await writeFile(path.join(outputRoot, "advertising-products", "catalog-detail.mjs"), detailSource, { encoding: "utf8", flush: true });
+// On-page search (advertising-search R7): one bundle; the artifact stays external so the browser reuses the module the grid loaded.
+await build({
+  entryPoints: [path.join(sourceRoot, "search", "index.mjs")],
+  bundle: true,
+  format: "esm",
+  external: ["/advertising-products/catalog-artifact.mjs"],
+  outfile: path.join(outputRoot, "advertising-products", "search.mjs"),
+  loader: { ".css": "text" },
+  logLevel: "warning",
+});
 
 // Minify the site JS (vendor is already .min): saves about 50 KB brotli on the path to the first 8 cards (static-release R1).
 // `//# allFunctionsCalledOnLoad` is a V8 compile hint on the first line of the file; esbuild drops comments so it is reattached.
@@ -224,9 +208,13 @@ const advertisingListHead = (page, vi, en, crumbs) => {
       items: cards.slice(0, ADVERTISING_LIST_ITEMS).map((card) => [card.titleVi, `/vi/advertising-products/p/${card.id}/`]), crumbs }),
   ];
 };
-await writeFile(advertisingIndexPath, advertisingTemplate.replace(LAYOUT_CACHE_PRELOAD_MARKER, () => layoutCachePreload("all"))
-  .replace(/<\/title>/, () => `</title>\n    ${advertisingListHead(ADVERTISING_ROOT_PAGE, "/vi/advertising-products/", "/en/advertising-products/",
-    [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"]]).join("\n    ")}`), "utf8");
+// The root and every cluster and product page carry the phone packs of their own filter (masonry-live-layout R3); card pages none.
+const withPhonePacks = (html, filter) => {
+  if (html.split("</main>").length !== 2) throw new Error("advertising template must have exactly one </main> for the phone packs");
+  return html.replace("</main>", () => `${phonePacksScript(gridCards, filter)}\n      </main>`);
+};
+await writeFile(advertisingIndexPath, withPhonePacks(advertisingTemplate.replace(/<\/title>/, () => `</title>\n    ${advertisingListHead(ADVERTISING_ROOT_PAGE, "/vi/advertising-products/", "/en/advertising-products/",
+    [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"]]).join("\n    ")}`), "all"), "utf8");
 
 // Cluster and product pages (taxonomy R4): the root page template, changing title, meta, canonical, hreflang, the selected rail item and
 // noscript (intro, links to every page). The source file is written to both locale directories; the ROUTES loop below translates.
@@ -235,7 +223,6 @@ const pageLinks = ADVERTISING_PAGES.map((page) =>
   `<li><a href="${pageHref("vi", page)}" data-en-href="${pageHref("en", page)}" data-en="${escapeHtml(page.labelEn)}">${escapeHtml(page.labelVi)}</a></li>`).join("");
 const clusterPageOf = (cluster) => ADVERTISING_PAGES.find((entry) => entry.filter === cluster);
 const renderAdvertisingPage = (page) => advertisingTemplate
-  .replace(LAYOUT_CACHE_PRELOAD_MARKER, () => layoutCachePreload(page.filter))
   .replace(/<title\b[^>]*>[\s\S]*?<\/title>/, [
     `<title data-en="${escapeHtml(page.titleEn)}">${escapeHtml(page.titleVi)}</title>`,
     ...advertisingListHead(page, pageHref("vi", page), pageHref("en", page), [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"],
@@ -255,7 +242,7 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   .replaceAll(`data-masonry-product="${page.filter}"`, `data-masonry-product="${page.filter}" aria-current="true"`)
   .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);
 for (const page of ADVERTISING_PAGES) {
-  const html = renderAdvertisingPage(page);
+  const html = withPhonePacks(renderAdvertisingPage(page), page.filter);
   for (const locale of ["vi", "en"]) {
     const destination = path.join(outputRoot, locale, "advertising-products", page[locale], "index.html");
     await mkdir(path.dirname(destination), { recursive: true });
@@ -308,7 +295,6 @@ const cardJsonLd = (card) => {
 };
 const renderCardPage = (card) => advertisingTemplate
     // A direct card page keeps the grid hidden; its cache waits until the grid is needed (runtime preloadMasonry).
-    .replace(LAYOUT_CACHE_PRELOAD_MARKER, "")
     .replace(/<title\b[^>]*>[\s\S]*?<\/title>/, [
       `<title data-en="${escapeHtml(card.titleEn)} — Trường Thịnh">${escapeHtml(card.titleVi)} — Trường Thịnh</title>`,
       ...alternateLinks(cardHref("vi", card), cardHref("en", card)),
@@ -333,15 +319,25 @@ for (const card of ADVERTISING_CARDS) {
 // Project pages and News articles built from blocks (projects R3, news R3): content-contract already checked the data in the fast suite.
 const blockContent = loadBlockContent(sourceRoot);
 const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
-// Project strip at the end of the Residential, Commercial pages (projects R1): projects of the same sector, in projects.json order.
-for (const sector of SECTORS) {
-  const file = path.join(outputRoot, sector, "index.html");
+// Project strip (projects R1, page-home R8): Residential and Commercial list their sector's projects in projects.json order and link to the
+// sector filter; the home page lists the projects picked in content/home-projects.json and links to all projects.
+const homeProjectIds = await readJson(path.join(sourceRoot, "content", "home-projects.json"));
+const homeProjectErrors = validateHomeProjects(homeProjectIds, blockContext.projects);
+if (homeProjectErrors.length) throw new Error(`home-projects data invalid:\n${homeProjectErrors.join("\n")}`);
+const projectStrips = [
+  ...SECTORS.map((sector) => ({
+    file: `${sector}/index.html`,
+    projectIds: blockContent.projects.filter((project) => project.sector === sector).map((project) => project.id),
+    more: sector === "residential" ? { vi: "Xem các công trình nhà ở", en: "See our residential projects" } : { vi: "Xem các công trình kinh doanh", en: "See our commercial projects" },
+    path: `/projects/${PROJECT_FILTERS[sector]}/`,
+  })),
+  { file: "index.html", projectIds: homeProjectIds, more: { vi: "Xem tất cả công trình", en: "See all projects" }, path: "/projects/" },
+];
+for (const { file: page, projectIds, more, path: morePath } of projectStrips) {
+  const file = path.join(outputRoot, page);
   const html = await readFile(file, "utf8");
-  if (!html.includes("<!-- project-strip -->")) throw new Error(`${sector}/index.html lost <!-- project-strip -->`);
-  const projectIds = blockContent.projects.filter((project) => project.sector === sector).map((project) => project.id);
-  // The arrow line under the strip leads to the project page filtered by sector (projects R1, R2).
-  const more = sector === "residential" ? { vi: "Xem các công trình nhà ở", en: "See our residential projects" } : { vi: "Xem các công trình kinh doanh", en: "See our commercial projects" };
-  const cta = { type: "cta-arrow", text: more, hrefVi: `/vi/projects/${PROJECT_FILTERS[sector]}/`, hrefEn: `/en/projects/${PROJECT_FILTERS[sector]}/` };
+  if (!html.includes("<!-- project-strip -->")) throw new Error(`${page} lost <!-- project-strip -->`);
+  const cta = { type: "cta-arrow", text: more, hrefVi: `/vi${morePath}`, hrefEn: `/en${morePath}` };
   const strip = projectIds.length ? renderBlocks({ blocks: [{ type: "project-slider", projectIds }, cta] }, blockContext) : "";
   await writeFile(file, html.replace("<!-- project-strip -->", () => strip), "utf8");
 }
@@ -369,8 +365,7 @@ for (const listPage of newsListPages(blockContent.news)) {
   await writeFile(destination, renderNewsListPage(frameTemplates.get("about"), listPage), "utf8");
 }
 // Projects page built on the src shell of the Advertising products page (projects R2).
-// The Projects page embeds its layouts in the artifact, so it needs no cache preload.
-const advertisingFrame = readPageSource("advertising-products/index.html").replace(LAYOUT_CACHE_PRELOAD_MARKER, "");
+const advertisingFrame = readPageSource("advertising-products/index.html");
 // Cover image dominant color (1x1 average of the 240 variant) for the grid tail under the CTA.
 const { default: sharp } = await import("sharp");
 const coverColors = Object.fromEntries(await Promise.all(blockContent.projects.map(async (project) => {

@@ -105,7 +105,7 @@ các container này. Ảnh ngoài bảng (cặp ảnh `.detail-duo`, cụm porta
 | Trang | Container | Item | Nhãn |
 | --- | --- | --- | --- |
 | Trang chủ | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
-| Trang chủ | `.project-track` | `.project-card` | Rail công trình |
+| Trang chủ | `.blk-projects__track` | `.blk-projects__card` | Dải công trình |
 | Trang chủ | `.client-logo-marquee__group` (bản không `aria-hidden`) | `.client-logo-slot` | Logo khách hàng |
 | Nhà ở, Kinh doanh | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
 | Nhà ở, Kinh doanh | `.detail-gallery__slides` | `.detail-gallery__item` | Gallery công trình |
@@ -131,7 +131,7 @@ And kéo figure mới lên đầu thì thứ tự trong bản nháp đổi theo
 `build-admin.mjs` quét `.site-output/assets/content/**` (`.webp`, `.svg`, `.png`, `.jpg`), bỏ biến thể cỡ (`-240`,
 `-480`, `-960`, `-1600`, `-2048`), ghi `.site-output/admin/media-index.json`: `src`, `width`, `height` (đọc bằng
 `sharp`), `folder`, `thumb` (bản `-240.webp` nếu có), alt VI/EN khi tìm được trong catalog Advertising,
-`project-reel.json` hoặc thẻ `img` của bốn trang. Bấm "Đổi ảnh" (hoặc "Thêm mục") bật chế độ chọn: panel Media hiện dải
+cover công trình hoặc thẻ `img` của bốn trang. Bấm "Đổi ảnh" (hoặc "Thêm mục") bật chế độ chọn: panel Media hiện dải
 "Bấm một ảnh bên dưới để đặt vào chỗ đang chọn"; bấm ảnh là ghi ảnh, cỡ và alt có sẵn vào nháp, tải lại preview. Áp ảnh
 bỏ `<source>`, `srcset`, `sizes` (ảnh mới chưa có biến thể), ghi `data-src` nếu ảnh lazy, không thì `src`. Tải ảnh từ
 máy chưa có: thư viện chỉ gồm media thật đang dùng trên demo (owner 2026-10-31).

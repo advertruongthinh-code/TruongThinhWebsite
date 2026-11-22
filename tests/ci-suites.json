@@ -42,6 +42,7 @@
       "tests": [
         "pnpm qa:static",
         "node --test tests/tooling/*.test.mjs",
+        "node --test tests/search/*.test.mjs",
         "node scripts/site/build-image-variants.mjs --check",
         "pnpm qa:content",
         "pnpm qa:worker:security",
@@ -178,7 +179,7 @@
         "TT_E2E_ADVERTISING_RAPID_FILTER_ONLY=1 node tests/site/site.e2e.cjs",
         "node tests/site/advertising-card-interactions.e2e.mjs",
         "node tests/site/advertising-no-titles.e2e.mjs",
-        "node tests/site/masonry-layout-cache.e2e.mjs"
+        "node tests/site/masonry-live-layout.e2e.mjs"
       ]
     },
     "adv-browse": {
@@ -195,8 +196,7 @@
         "node tests/site/advertising-route-preload.e2e.mjs",
         "node tests/site/advertising-route-footer-p75.e2e.mjs",
         "node tests/site/advertising-rail-two-tier.e2e.mjs",
-        "node tests/site/advertising-layout-cache-pending.e2e.mjs",
-        "node tests/site/advertising-layout-cache-preload.e2e.mjs",
+        "node tests/site/advertising-layout-pending.e2e.mjs",
         "node tests/site/advertising-resize-card-width.e2e.mjs"
       ]
     },
@@ -296,9 +296,14 @@
         "node tests/site/site-media-card-r6.e2e.mjs",
         "node tests/site/site-media-card-slideshow.e2e.mjs",
         "node tests/site/site-media-card-wait.e2e.mjs",
+        "node tests/site/media-card-stuck-wait.e2e.mjs",
         "node tests/site/primary-flow-zoom-blur.e2e.mjs",
         "node tests/site/video-delivery.e2e.mjs"
       ]
+    },
+    "search": {
+      "specs": ["advertising-search"],
+      "tests": ["node --test tests/search/*.test.mjs", "node tests/site/advertising-search.e2e.mjs"]
     }
   },
   "manual": {

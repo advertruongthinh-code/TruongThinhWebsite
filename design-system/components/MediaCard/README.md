@@ -54,7 +54,7 @@ Contract runtime, history và test ở
 Catalog hiện chỉ có card một ảnh, nên trang public chưa hiện các trạng thái
 dưới đây. Preview chụp runtime thật ở 1440px với dữ liệu giả: một ảnh, ba
 item, 11 item đang ở item 7, video cover kèm một ảnh; item thêm lặp lại ảnh
-của chính card, video chỉ giữ poster. Project reel trang chủ và gallery
+của chính card, video chỉ giữ poster. Gallery
 Residential/Commercial (M03 tới M05) đang tạm dừng, chưa có thiết kế ở đây.
 
 ### Chỉ báo theo số item
@@ -126,13 +126,13 @@ Chấm và nút bước có outline 2px `ink` offset 2px; link card outline
 
 ### Chờ tải, Vừa xem, reduced motion
 
-- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là khối màu chủ đạo đúng chỗ và cỡ card, thở cùng pha các card tạm khác (điện thoại: lớp màu 4 màu của ảnh bìa, cùng pha với card chờ, không thở), không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s` hoặc card tạm gỡ ở frame sau dưới khung Flow nếu ảnh chưa xong ([Motion](../../motion.md#ảnh-trong-card)).
+- **Card tạm:** vuốt rất nhanh thì card chưa dựng kịp là lớp màu 4 màu chủ đạo của media bìa (bìa là video: 4 màu của poster) đúng chỗ và cỡ card, PC và điện thoại như nhau (owner 2026-11-15), cùng pha với card chờ, không link, `aria-hidden`; lên card thật thì ảnh hiện dần `0.45s` hoặc card tạm gỡ ở frame sau dưới khung Flow nếu ảnh chưa xong ([Motion](../../motion.md#ảnh-trong-card)).
 - **Chờ tải:** mũi tên và icon play thumbnail dùng bóng D hai lớp. Item chưa sẵn sàng sau `150ms` thì canvas mang
   [skeleton](../Skeleton/README.md) cuối masonry như card một ảnh; không có
   vòng xoay.
 - **Vừa xem:** lớp đen alpha 0.7 và nhãn trắng `0.8rem` 700 ở giữa có bóng D, chỉ phủ
   cả canvas, kể cả hàng pill. Lớp đen chỉ hiện khi media của card đã sẵn sàng (cùng nhịp `0.6s` của lộ ảnh); card còn chờ ảnh thì chỉ có chữ.
-- **Reduced motion:** không slideshow, skeleton đứng yên, card tạm không thở, lớp màu của điện thoại đứng yên ở màu 1; ảnh hiện ngay, không transition,
+- **Reduced motion:** không slideshow, skeleton đứng yên, lớp màu (card tạm, card chờ trên điện thoại) đứng yên ở màu 1; ảnh hiện ngay, không transition,
   không zoom.
 
 ## Chú thích thuật ngữ

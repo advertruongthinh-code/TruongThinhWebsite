@@ -1,5 +1,7 @@
-// Visitor-side half of the masonry layout cache: places cards from a precomputed variant in one O(n) pass, no search.
-// The build-side packer (packer.mjs) imports the shared constants from here; this file must never import packer.mjs.
+//# allFunctionsCalledOnLoad
+// V8 compile hint (see layout.mjs): the first grid pack, on the main thread for the 2:15 band, does not compile lazily.
+// Places cards from packed entries (pack.mjs) in one O(n) pass, no search; also the stack fallback and the layout check.
+// The packer (pack.mjs) imports the shared constants from here; this file must never import pack.mjs.
 import {
   MASONRY_LAYOUT_VERSION,
   columnsForWidth,
@@ -19,16 +21,8 @@ export const CROP_CAP = 0.05;
 // Cards at the bottom of a column whose media share the trim under a wide card.
 export const TRAIL = 3;
 
-export const variantIndex = (seed, count) => fnv1a32(String(seed)) % count;
-
-// Width band of a stored layout: one per (columns, gap) pair; the runtime picks its cache file by it.
+// Width band of a packed layout: one per (columns, gap) pair; the runtime packs once per band.
 export const bandKey = (layoutViewportWidth) => `${columnsForWidth(layoutViewportWidth)}:${masonrySpacing(layoutViewportWidth).interCardGap}`;
-
-// Identity of a filter pool: a cache built for another catalog or another card size must not replay.
-export const poolSignature = (poolCards) => fnv1a32(poolCards.map((card) => {
-  const media = layoutMedia(card);
-  return `${card.id}:${media.width}:${media.height}`;
-}).join("|")).toString(16).padStart(8, "0");
 
 function frame(layoutViewportWidth) {
   const columns = columnsForWidth(layoutViewportWidth);
@@ -37,11 +31,12 @@ function frame(layoutViewportWidth) {
   return { columns, outer, interCardGap, availableWidth, cardWidth: (availableWidth - interCardGap * (columns - 1)) / columns };
 }
 
-function result(f, placed, columnBottoms, { layoutViewportWidth, filter, settings, source }) {
+function result(f, placed, columnBottoms, { layoutViewportWidth, filter, settings, source, hash = true }) {
   const placementOrder = placed.map((placement) => placement.card.id);
   const placements = placed.slice().sort(comparePlacement).map(({ natural, ...placement }, index) => ({ ...placement, index }));
   const totalPixelHeight = Math.max(0, ...columnBottoms);
-  const coordinateHash = fnv1a32(`${MASONRY_LAYOUT_VERSION}:${source}:${filter}:${layoutViewportWidth}:${f.columns}:${placementOrder.join(",")}:${coordinateKey(placements) || "empty"}`).toString(16).padStart(8, "0");
+  // The packer's candidate scoring only reads placements; the coordinate string and hash are most of a replay's cost.
+  const coordinateHash = hash && fnv1a32(`${MASONRY_LAYOUT_VERSION}:${source}:${filter}:${layoutViewportWidth}:${f.columns}:${placementOrder.join(",")}:${coordinateKey(placements) || "empty"}`).toString(16).padStart(8, "0");
   return {
     columns: f.columns, filter, settings: normalizeMasonrySettings(settings), outer: f.outer, interCardGap: f.interCardGap, spacing: { outer: f.outer, interCardGap: f.interCardGap },
     availableWidth: f.availableWidth, gridWidth: f.availableWidth, cardWidth: f.cardWidth, placements, holes: [], initialColumnBottoms: Array(f.columns).fill(0),
@@ -51,8 +46,8 @@ function result(f, placed, columnBottoms, { layoutViewportWidth, filter, setting
 }
 
 // entries: cardIndex * 8 + code; code 0-3 = one column at that column, 4-6 = two columns starting at code - 4.
-// Returns null when the variant does not fit this catalog or geometry; the caller then uses stackLayout.
-export function replayLayout({ entries, cards, layoutViewportWidth, filter = "all", settings }) {
+// Returns null when the entries do not fit these cards or this geometry; the caller then uses stackLayout.
+export function replayLayout({ entries, cards, layoutViewportWidth, filter = "all", settings, hash }) {
   if (!Array.isArray(entries) || !Array.isArray(cards)) return null;
   const f = frame(layoutViewportWidth);
   const { columns, interCardGap: gap, cardWidth } = f;
@@ -104,11 +99,12 @@ export function replayLayout({ entries, cards, layoutViewportWidth, filter = "al
     }
   }
   if (cards.reduce((n, card) => n + (matchesFilter(card, filter) ? 1 : 0), 0) !== seen.size) return null;
-  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "cache" });
+  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "pack", hash });
 }
 
-// Fallback for the whole grid (owner O3 last step): every card one column, in `order` (card objects), into the lowest column.
-export function stackLayout({ order, layoutViewportWidth, filter = "all", settings }) {
+// Every card one column, in `order` (card objects), into the lowest column: the whole-grid fallback (owner O3 last step, source "stack")
+// and search results in score order (masonry-live-layout R6, source "search").
+export function stackLayout({ order, layoutViewportWidth, filter = "all", settings, source = "stack" }) {
   const f = frame(layoutViewportWidth);
   const bottoms = Array(f.columns).fill(0), count = Array(f.columns).fill(0);
   const placed = order.map((card) => {
@@ -118,7 +114,7 @@ export function stackLayout({ order, layoutViewportWidth, filter = "all", settin
     count[column] += 1;
     return p;
   });
-  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source: "stack" });
+  return result(f, placed, bottoms, { layoutViewportWidth, filter, settings, source });
 }
 
 // Build and test check, not called at runtime: no holes, exact gaps, trim within the cap, wide cards on adjacent columns.

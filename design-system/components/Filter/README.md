@@ -17,12 +17,14 @@ runtime `masonry/runtime.mjs` cập nhật trạng thái.
   đáy hero 15vh cộng 3.25rem (một bậc trên hàng chip); xuống dòng khi hẹp.
 - Sản phẩm: chữ thường 500, `muted`; hover, focus, mục đang chọn đổi `ink`, gạch
   chân 2px dưới tên, chạy như cụm trên máy có hover. Số ảnh 0.8125rem (sàn chữ 12.5px), 700, `tabular-nums`.
-- Bấm khi cache bố cục của filter chưa về: mục vừa bấm mang `aria-busy="true"` và hiện như mục đang chọn, mục cũ giữ `aria-current` tới khi lưới đổi.
+- Bấm khi lưới của filter chưa xếp xong: mục vừa bấm mang `aria-busy="true"` và hiện như mục đang chọn, mục cũ giữ `aria-current` tới khi lưới đổi.
 - Hover cụm không mở danh sách sản phẩm (owner bỏ 2026-10-17); tầng sản phẩm
   chỉ là hàng chip.
 - Chọn cụm hoặc sản phẩm: hàng chip sản phẩm của cụm hiện dưới rail, mỗi chip có
-  số ảnh nhỏ. Từ 1025px hàng chip căn giữa, cách đáy hero 15vh, chữ "Cuộn xuống" vẫn
-  hiện bên dưới (owner 2026-10-17). Hàng chip đầu neo dọc: khung cao đúng một hàng, nhiều hàng thì hàng thêm
+  số ảnh nhỏ. Từ 1025px hàng chip căn giữa, cách đáy hero 15vh (owner 2026-10-17). Trang có lưới masonry không có chữ
+  "Cuộn xuống"; trang có thanh tìm kiếm đặt thanh ở chỗ rail, rail và chip lùi xuống một bậc (owner 2026-11-18).
+- Đang tìm: rail chọn "Tất cả", nhóm và chip không có kết quả ẩn (`data-search-empty`), số trên chip là số kết quả, mục còn
+  lại trượt về chỗ mới; bấm một mục thì lọc trong kết quả, không rời tìm kiếm. Hàng chip đầu neo dọc: khung cao đúng một hàng, nhiều hàng thì hàng thêm
   tràn xuống dưới nên hàng đầu luôn đứng một vị trí; tới 1024px nằm trong luồng ngay dưới rail. `Tất cả` không có hàng chip.
 - Tới 680px: rail cụm và hàng chip là hai hàng cuộn ngang tràn bề rộng màn,
   chừa 25px hai bên; chip đang chọn tự cuộn vào khung, mục nhận focus bàn phím

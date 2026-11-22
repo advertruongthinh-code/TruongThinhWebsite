@@ -26,8 +26,7 @@ assert.match(runtime, /compileMasonryLayout/);
 assert.match(runtime, /getVirtualWindow/);
 assert.match(runtime, /layoutAlgorithmVersion[^\n]*MASONRY_LAYOUT_VERSION/, "runtime fails closed on artifact schema mismatch");
 assert.ok(
-  runtime.indexOf("artifact.layoutAlgorithmVersion") < runtime.indexOf("if (typeof window.Masonry")
-    && runtime.indexOf("artifact.layoutAlgorithmVersion") < runtime.indexOf("const categories = artifact.categories"),
+  runtime.indexOf("artifact.layoutAlgorithmVersion") < runtime.indexOf("const categories = artifact.categories"),
   "artifact version is validated before dependencies or runtime data are used",
 );
 assert.match(runtime, /if \(signal\?\.aborted\) return \(\) => \{\}/, "runtime checks route abort after artifact await");
@@ -37,11 +36,10 @@ assert.match(runtime, /document\.documentElement\.clientWidth/, "geometry uses f
 assert.match(runtime, /layoutViewportWidth(?::| =) document\.documentElement\.clientWidth/, "compiler receives the layout viewport rather than grid width");
 assert.match(runtime, /layoutViewportWidth/, "shared core receives the full viewport width");
 assert.match(runtime, /GEOMETRY_CACHE_LIMIT/, "geometry cache has an explicit bound");
-// Main grid replays the build-time cache (advertising-masonry R6): embedded layouts first, then the cache files.
+// Main grid replays entries the visitor packed for (filter, band, seed) (masonry-live-layout R1, R2).
 const mainGridRequest = runtime.slice(runtime.indexOf("const geometryRequest = "), runtime.indexOf("const cacheGeometry = "));
-assert.match(runtime, /artifact\.layouts\?\.\[band\]\?\.filters\?\.\[targetFilter\]/, "runtime reads layouts embedded in the artifact");
-assert.match(mainGridRequest, /variantIndex\(browseHistory\.current\.seed, entry\.variants\.length\)/, "variant follows the browse seed");
-assert.match(mainGridRequest, /replayLayout\(\{/, "main grid replays a cached variant");
+assert.match(runtime, /const packKey = \(band, targetFilter\) => `\$\{targetFilter\}\|\$\{band\.key\}\|\$\{browseHistory\.current\.seed\}`/, "packed entries follow filter, band and browse seed");
+assert.match(mainGridRequest, /replayLayout\(\{/, "main grid replays packed entries");
 assert.match(mainGridRequest, /stackLayout\(\{/, "main grid falls back to the stack layout");
 assert.doesNotMatch(mainGridRequest, /compileInWorker|compileMasonryLayout|takeWorker/, "main grid never runs the search solver");
 assert.ok(
@@ -49,18 +47,18 @@ assert.ok(
     < runtime.indexOf("const nextPositions = samePositions ? gridHost.positions : new Map(geometry.placements.map"),
   "unchanged scroll frames return before allocating a full-dataset position map",
 );
-assert.match(hostSource, /new window\.Masonry\(/, "Masonry remains the coordinate transition owner");
-assert.match(hostSource, /transitionDuration: "0\.4s"/, "Masonry keeps the accepted motion duration");
-assert.match(hostSource, /stagger: 0/, "Masonry has no stagger");
+assert.doesNotMatch(hostSource, /window\.Masonry/, "slides run on Web Animations, not the Masonry library (masonry-live-layout R7)");
+assert.match(hostSource, /\{ id: SLIDE_ID, duration: DUR\.card, easing: "ease" \}/, "slides keep the 0.4 s card duration and ease, all cards at once (no stagger)");
 assert.match(runtime, /retainCohort \? new Set\(\[\.\.\.currentKeep, \.\.\.normalKeep\]\) : normalKeep/, "filter motion stays bounded");
-assert.match(hostSource, /export function cancelMasonryTransitions\(instance\) \{[\s\S]*?item\.disableTransition\(\);[\s\S]*?item\._transn\.onEnd = \{\};[\s\S]*?item\.element\.style\.transform = "";/, "both grids cancel Outlayer transition state before reconciliation");
+assert.match(hostSource, /cancelTransitions: \(\) => cancelMotions\(\)/, "both grids cancel slides and size morphs before reconciliation");
+assert.match(runtime, /gridHost\.track\(child\.animate\(/, "size morphs are tracked with the slides, so cancelling needs no getAnimations() scan");
 assert.match(runtime, /pendingScroll = true/, "scroll during morph is retained for one catch-up");
 assert.match(runtime, /node === document\.activeElement \|\| node\.contains\(document\.activeElement\)/, "focused cards remain mounted");
 assert.match(runtime, /for \(const placement of visiblePlacements\)/, "virtualization mounts direct placements instead of closed batches");
 const filterClickHandler = runtime.slice(runtime.indexOf("const onRailClick = (event) => {"));
 assert.ok(
   filterClickHandler.indexOf("event.preventDefault();")
-    < filterClickHandler.indexOf("if (nextFilter === filter) {"),
+    < filterClickHandler.indexOf("if (nextFilter === filter && !search) {"),
   "active filter clicks are canceled before the same-filter no-op",
 );
 assert.match(runtime, /normalizeMasonrySettings/);

@@ -35,6 +35,12 @@ const read = page => page.evaluate(() => ({
     .map(node => [node.dataset.masonryFilter, node.offsetLeft, node.offsetTop]),
 }));
 const filterOrder = ["all", ...ADVERTISING_CATEGORIES.map(({ slug }) => slug)];
+// Phones draw from 8 prebuilt seeds, so one fresh draw repeats the old seed 1 time in 8; a kept seed repeats every time.
+const freshSeed = async (page, visit, oldSeed) => {
+  let seed = oldSeed;
+  for (let tries = 0; tries < 5 && seed === oldSeed; tries += 1) { await visit(); await ready(page); seed = (await read(page)).browse.seed; }
+  return seed;
+};
 try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   page.on("console", msg => { if(msg.type() === "error") errors.push(msg.text()); });
@@ -108,8 +114,7 @@ try {
   assert.deepEqual((await read(page)).filters.map(([slug]) => slug), filterOrder, "English keeps the filter order");
   results.push({ case: "locale-reload", seed: direct.browse.seed });
   const beforeReload = await read(page);
-  await page.reload({ waitUntil: "networkidle" }); await ready(page);
-  assert.notEqual((await read(page)).browse.seed, beforeReload.browse.seed);
+  assert.notEqual(await freshSeed(page, () => page.reload({ waitUntil: "networkidle" }), beforeReload.browse.seed), beforeReload.browse.seed);
   results.push({ case: "reload", seed: (await read(page)).browse.seed });
   // Block the shell script to run the real HTML's native-language fallback.
   const nativePage = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
@@ -181,8 +186,7 @@ try {
       assert.equal((await read(earlyPage)).browse.seed, earlySeed, "Back during route transition restores the original entry seed");
       assert.notEqual(await earlyPage.evaluate(() => performance.timeOrigin), earlyOrigin, "early Back exercises Barba native fallback");
       assert.equal(await earlyPage.evaluate(() => history.state?.ttAdvertisingHistoryFallback), undefined, "startup consumes the exact-URL fallback marker");
-      await earlyPage.reload({ waitUntil: "networkidle" }); await ready(earlyPage);
-      assert.notEqual((await read(earlyPage)).browse.seed, earlySeed, "early-Back marker does not retain the seed on reload");
+      assert.notEqual(await freshSeed(earlyPage, () => earlyPage.reload({ waitUntil: "networkidle" }), earlySeed), earlySeed, "early-Back marker does not retain the seed on reload");
       results.push({ case: "early-route-back", engine: engine.name(), seed: earlySeed, nativeFallback: true, reloadReseeds: true });
       await earlyPage.close();
     } finally { if (earlyBrowser !== browser) await earlyBrowser.close(); }
@@ -197,8 +201,7 @@ try {
     assert.equal(landed.pathname + landed.search, "/vi/advertising-products/in-an-decal/", slug);
     results.push({ case: "category-alias", slug, rendered: sample.ids.length });
   }
-  await page.goto(base + "/en/advertising-products/", { waitUntil: "networkidle" }); await ready(page);
-  assert.notEqual((await read(page)).browse.seed, seedBeforeFallback, "ordinary direct URL starts a new visit");
+  assert.notEqual(await freshSeed(page, () => page.goto(base + "/en/advertising-products/", { waitUntil: "networkidle" }), seedBeforeFallback), seedBeforeFallback, "ordinary direct URL starts a new visit");
   // The expected fetch failure above is recorded separately; never hide a WebGL error.
   const unexpected = errors.filter(error => !error.includes("net::ERR_FAILED"));
   assert.deepEqual(unexpected, [], "no runtime/renderer errors");

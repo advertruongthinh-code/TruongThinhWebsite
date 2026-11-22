@@ -494,13 +494,9 @@
  "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-02-three-colour-matrix-led-signs.jxl": {
   "960": 69967
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-03-full-colour-matrix-led-signs-v2.jxl": {
-  "960": 208974,
-  "1600": 224651,
-  "2048": 234662
- },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-03-full-colour-matrix-led-signs.jxl": {
-  "960": 49302
+ "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-03-led-module-screen-20261118.jxl": {
+  "960": 83619,
+  "1600": 115302
  },
  "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-04-indoor-matrix-led-systems-v2.jxl": {
   "960": 162599,
@@ -564,10 +560,8 @@
   "1600": 252462,
   "2048": 258296
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-15-full-colour-matrix-led-signs-v2.jxl": {
-  "960": 369269,
-  "1600": 401458,
-  "2048": 420706
+ "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-15-western-union-led-projecting-sign-20261121.jxl": {
+  "960": 67586
  },
  "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-16-indoor-matrix-led-systems-v2.jxl": {
   "960": 156972,
@@ -1235,45 +1229,36 @@
  "assets/content/projects/advertising/office-signs-wayfinding/washroom-projecting-03.jxl": {
   "960": 35725
  },
- "assets/content/projects/advertising/print-decals/print-decals-01-business-cards.jxl": {
-  "960": 76877,
-  "1600": 91666,
-  "2048": 97858
+ "assets/content/projects/advertising/print-decals/print-decals-01-business-cards-alder-form-20261122.jxl": {
+  "960": 51306,
+  "1600": 75660
  },
  "assets/content/projects/advertising/print-decals/print-decals-02-flyers.jxl": {
   "960": 82421,
   "1600": 88402,
   "2048": 91289
  },
- "assets/content/projects/advertising/print-decals/print-decals-03-brochures-and-folded-leaflets.jxl": {
-  "960": 96051,
-  "1600": 106693,
-  "2048": 110699
+ "assets/content/projects/advertising/print-decals/print-decals-03-tile-showroom-brochures-20261122.jxl": {
+  "960": 53222,
+  "1600": 70633
  },
- "assets/content/projects/advertising/print-decals/print-decals-04-catalogues.jxl": {
-  "960": 97761,
-  "1600": 105936,
-  "2048": 110074
+ "assets/content/projects/advertising/print-decals/print-decals-04-catalogues-northfield-20261122.jxl": {
+  "960": 53844
  },
- "assets/content/projects/advertising/print-decals/print-decals-05-wedding-and-invitation-cards.jxl": {
-  "960": 117077,
-  "1600": 130654,
-  "2048": 135167
+ "assets/content/projects/advertising/print-decals/print-decals-05-wedding-invitations-floral-20261122.jxl": {
+  "960": 67777
  },
- "assets/content/projects/advertising/print-decals/print-decals-06-certificates-and-envelopes.jxl": {
-  "960": 350348,
-  "1600": 350348,
-  "2048": 350348
+ "assets/content/projects/advertising/print-decals/print-decals-06-certificates-envelopes-northvale-20261122.jxl": {
+  "960": 52969
  },
- "assets/content/projects/advertising/print-decals/print-decals-07-hard-cover-leather-and-timber-menus.jxl": {
-  "960": 151415,
-  "1600": 164614,
-  "2048": 186499
+ "assets/content/projects/advertising/print-decals/print-decals-07-leather-timber-menus-alder-ember-20261122.jxl": {
+  "960": 93375
  },
- "assets/content/projects/advertising/print-decals/print-decals-08-waterproof-plastic-menus.jxl": {
-  "960": 360329,
-  "1600": 360329,
-  "2048": 360329
+ "assets/content/projects/advertising/print-decals/print-decals-08-waterproof-plastic-menus-thuc-don-20261122.jxl": {
+  "960": 76147
+ },
+ "assets/content/projects/advertising/print-decals/print-decals-09-acrylic-table-menus-food-drinks-20261122.jxl": {
+  "960": 83668
  },
  "assets/content/projects/advertising/print-decals/print-decals-09-booklet-table-and-acrylic-menus.jxl": {
   "960": 61257,
@@ -1298,10 +1283,8 @@
  "assets/content/projects/advertising/print-decals/print-decals-11-window-wall-vehicle-and-die-cut-decals.jxl": {
   "960": 35411
  },
- "assets/content/projects/advertising/print-decals/print-decals-12-canvas-and-decorative-wall-prints.jxl": {
-  "960": 92802,
-  "1600": 96815,
-  "2048": 97757
+ "assets/content/projects/advertising/print-decals/print-decals-12-canvas-wall-prints-set-a-20261122.jxl": {
+  "960": 60406
  },
  "assets/content/projects/advertising/print-decals/print-decals-13-imagegen-20261019.jxl": {
   "960": 88607,
@@ -1321,10 +1304,8 @@
  "assets/content/projects/advertising/print-decals/print-decals-15-brochures-and-folded-leaflets.jxl": {
   "960": 24890
  },
- "assets/content/projects/advertising/print-decals/print-decals-16-catalogues.jxl": {
-  "960": 104185,
-  "1600": 107935,
-  "2048": 110542
+ "assets/content/projects/advertising/print-decals/print-decals-16-interior-catalogues-display-20261122.jxl": {
+  "960": 66902
  },
  "assets/content/projects/advertising/print-decals/print-decals-17-owner-20260924.jxl": {
   "960": 164288,
@@ -1356,10 +1337,8 @@
   "1600": 176144,
   "2048": 181244
  },
- "assets/content/projects/advertising/print-decals/print-decals-23-owner-20261012.jxl": {
-  "960": 120210,
-  "1600": 128171,
-  "2048": 130277
+ "assets/content/projects/advertising/print-decals/print-decals-23-member-cards-envelopes-alder-20261122.jxl": {
+  "960": 67095
  },
  "assets/content/projects/advertising/print-decals/print-decals-24-owner-20261012.jxl": {
   "960": 161844,
@@ -1444,6 +1423,12 @@
  },
  "assets/content/projects/advertising/print-decals/print-decals-43-the-ve-moi-20261113.jxl": {
   "960": 62794
+ },
+ "assets/content/projects/advertising/print-decals/print-decals-44-canvas-wall-prints-set-b-20261122.jxl": {
+  "960": 52239
+ },
+ "assets/content/projects/advertising/print-decals/print-decals-45-canvas-wall-prints-set-c-20261122.jxl": {
+  "960": 49387
  },
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-01-aluminium-composite-facades-v2-audit-a237-v1.jxl": {
   "960": 181104,
@@ -1659,10 +1644,8 @@
   "960": 74772,
   "1600": 88441
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-35-imagegen-20261014-audit-a271-v1.jxl": {
-  "960": 114292,
-  "1600": 123964,
-  "2048": 126393
+ "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-35-brewtiful-20261117.jxl": {
+  "960": 34234
  },
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-35-imagegen-20261014.jxl": {
   "960": 69125
@@ -1869,15 +1852,11 @@
   "960": 93008,
   "1600": 99225
  },
- "assets/content/projects/commercial-hero-flower-shop.jxl": {
-  "960": 243699,
-  "1600": 269088,
-  "2048": 282256
+ "assets/content/projects/commercial-hero-flower-shop-20261117.jxl": {
+  "960": 71653
  },
- "assets/content/projects/commercial-hero-homestay.jxl": {
-  "960": 233844,
-  "1600": 256679,
-  "2048": 268550
+ "assets/content/projects/commercial-hero-homestay-20261117.jxl": {
+  "960": 74934
  },
  "assets/content/projects/commercial-hero-reception-backdrop-audit-a292-v1.jxl": {
   "960": 159739,
@@ -1907,6 +1886,12 @@
   "960": 133973,
   "1600": 151612,
   "2048": 159403
+ },
+ "assets/content/projects/commercial-portal-cafe-v2.jxl": {
+  "960": 58725
+ },
+ "assets/content/projects/commercial-portal-office-v1.jxl": {
+  "960": 43625
  },
  "assets/content/projects/commercial-space.jxl": {
   "960": 41982
@@ -2205,6 +2190,33 @@
   "1600": 278234,
   "2048": 288116
  },
+ "assets/content/projects/homestay-nha-go-ven-song-ban-an.jxl": {
+  "960": 61651,
+  "1600": 80543
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-goc-tra-hien.jxl": {
+  "960": 86832,
+  "1600": 121257
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-hien-gach-tau.jxl": {
+  "960": 70624,
+  "1600": 90594
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-nhin-tu-song-card-wide.jxl": {
+  "960": 117904,
+  "1600": 164646
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-nhin-tu-song.jxl": {
+  "960": 111499
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-phong-khach.jxl": {
+  "960": 57433,
+  "1600": 69968
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-phong-ngu-cua-so-tron.jxl": {
+  "960": 46982,
+  "1600": 56904
+ },
  "assets/content/projects/homestay-nha-go-ven-song-shot-1-card-wide.jxl": {
   "960": 93310,
   "1600": 135427
@@ -2235,6 +2247,14 @@
  "assets/content/projects/homestay-nha-go-ven-song-shot-7.jxl": {
   "960": 76563,
   "1600": 105408
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-tu-ao-go.jxl": {
+  "960": 27567,
+  "1600": 29572
+ },
+ "assets/content/projects/homestay-nha-go-ven-song-tu-bep.jxl": {
+  "960": 34189,
+  "1600": 39678
  },
  "assets/content/projects/homestay-phong-ngu.jxl": {
   "960": 250236,
@@ -2456,10 +2476,8 @@
   "960": 99676,
   "1600": 104757
  },
- "assets/content/projects/residential-cta-survey.jxl": {
-  "960": 71149,
-  "1600": 76296,
-  "2048": 78136
+ "assets/content/projects/residential-cta-survey-20261116.jxl": {
+  "960": 29709
  },
  "assets/content/projects/residential-detail-x1.jxl": {
   "960": 109200,
@@ -2557,10 +2575,26 @@
   "1600": 210727,
   "2048": 216627
  },
- "assets/content/projects/workshop-wide-x2.jxl": {
-  "960": 157291,
-  "1600": 166442,
-  "2048": 171800
+ "assets/content/projects/tiem-banh-ngot-shot-1.jxl": {
+  "960": 76247
+ },
+ "assets/content/projects/tiem-banh-ngot-shot-2.jxl": {
+  "960": 86288
+ },
+ "assets/content/projects/tiem-banh-ngot-shot-3.jxl": {
+  "960": 90357
+ },
+ "assets/content/projects/tiem-banh-ngot-shot-4.jxl": {
+  "960": 95636
+ },
+ "assets/content/projects/tiem-banh-ngot-shot-5.jxl": {
+  "960": 116289
+ },
+ "assets/content/projects/tiem-banh-ngot-shot-6.jxl": {
+  "960": 71934
+ },
+ "assets/content/projects/tiem-banh-ngot-shot-7.jxl": {
+  "960": 98627
  },
  "assets/content/projects/workshop-wide-x7.jxl": {
   "960": 144154,
@@ -2594,6 +2628,12 @@
   "960": 79123,
   "1600": 84068
  },
+ "assets/content/shared/about-materials-samples-20261117.jxl": {
+  "960": 39802
+ },
+ "assets/content/shared/about-workshop-edgebander-20261117.jxl": {
+  "960": 34575
+ },
  "assets/content/shared/after-sales-commercial.jxl": {
   "960": 142946,
   "1600": 156625,
@@ -2609,10 +2649,14 @@
   "1600": 110021,
   "2048": 112737
  },
- "assets/content/shared/cnc.jxl": {
-  "960": 128105,
-  "1600": 138127,
-  "2048": 141278
+ "assets/content/shared/commitment-aftercare-sign-20261118.jxl": {
+  "960": 77605
+ },
+ "assets/content/shared/commitment-production-cnc-v3-20261117.jxl": {
+  "960": 67584
+ },
+ "assets/content/shared/commitment-quality-shop-20261117.jxl": {
+  "960": 49147
  },
  "assets/content/shared/consultation-materials.jxl": {
   "960": 115464,
@@ -2661,10 +2705,8 @@
   "1600": 141934,
   "2048": 148059
  },
- "assets/content/shared/materials.jxl": {
-  "960": 442186,
-  "1600": 442186,
-  "2048": 442186
+ "assets/content/shared/materials-black-hdf-20261117.jxl": {
+  "960": 39438
  },
  "assets/content/shared/montage-commitment-option-3-knot.jxl": {
   "960": 118439,
@@ -2776,6 +2818,9 @@
  },
  "assets/content/shared/news-tu-ao-am-tuong-d-20261113.jxl": {
   "960": 12573
+ },
+ "assets/content/shared/process-assembly-residential-20261118.jxl": {
+  "960": 29904
  },
  "assets/content/shared/survey-modern.jxl": {
   "960": 32370
