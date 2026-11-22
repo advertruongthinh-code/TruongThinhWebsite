@@ -557,15 +557,28 @@ for (const viewport of [WIDE, PHONE]) {
       await page.waitForTimeout(400);
       const home = await state();
       assert.equal(home.place, "top");
-      // A quarter of the way down the hero: on the way, between the docked and the floating width, and nothing animates on its own.
-      await to(Math.round(viewport.height * 0.12));
+      // A little way down: the bar is still in the slot and has moved up with the page, so it never crosses the content.
+      await to(60);
       await page.waitForTimeout(400);
-      const between = await state();
-      assert.equal(between.place, "link");
-      assert.equal(between.running, 0, "no timed animation under the finger");
-      // The slot moved up by the scroll; the bar sits lower than that, part way down to its floating place.
-      assert(between.top > home.top - viewport.height * 0.12 + 5, "the bar has started down toward its floating place");
-      assert(between.width < home.width - 1 || viewport.width < 751, "the width is on its way from the slot's to the floating one");
+      const scrolled = await state();
+      assert.equal(scrolled.place, "top");
+      assert(Math.abs(scrolled.top - (home.top - 60)) < 3, "the bar scrolls away with the slot");
+      // Once the slot is under the header, the floating bar rises from below the bottom edge, never from mid-screen.
+      const past = await page.evaluate(() => {
+        const slot = document.querySelector("[data-search-dock-top]").getBoundingClientRect();
+        const header = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-row-height")) || 80;
+        return Math.ceil(slot.bottom - 49 - header);
+      });
+      await to(60 + past + 40);
+      await page.waitForTimeout(400);
+      const rising = await state();
+      assert.equal(rising.place, "link");
+      assert.equal(rising.running, 0, "no timed animation under the finger");
+      const floating = await page.evaluate(() => innerHeight - 49 - (Number.parseFloat(getComputedStyle(document.querySelector(".search-host")).bottom) || 0));
+      assert(rising.top > floating + 5, "the rising bar is below its floating row");
+      await to(60 + past + 400);
+      await page.waitForTimeout(400);
+      assert.equal((await state()).place, "float");
       // Back to the top: in the slot again.
       await to(0);
       await page.waitForTimeout(400);

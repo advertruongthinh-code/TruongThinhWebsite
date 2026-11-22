@@ -103,21 +103,24 @@ CSS. Hai ngoại lệ ở R1 không tính là lệch. Kết quả là một tran
 ### R7. Vào khe theo quãng cuộn
 
 Owner chọn 2026-11-22 (thay cú bay 1 giây): thanh vào và rời khe theo đúng quãng cuộn, cả PC lẫn phone. Không có chuyển động tự chạy: cuộn dừng là thanh
-đứng yên giữa đường, cuộn ngược là thanh đi ngược lại. Trên đường đi, bề rộng đổi dần từ bề rộng nổi (560px, 760px khi có kết quả) sang bề rộng khe, bóng mờ
-dần, hàng chip (nếu có) gập dần; tới khe là đúng dáng ở khe của R1.
+đứng yên giữa đường, cuộn ngược là thanh đi ngược lại. Ở khe CTA, bề rộng đổi dần từ bề rộng nổi (560px, 760px khi có kết quả) sang bề rộng khe, bóng mờ dần,
+hàng chip (nếu có) gập dần; tới khe là đúng dáng ở khe của R1.
 
-- **Khe đầu trang.** Ở đầu trang thanh nằm trong khe. Cuộn xuống thì thanh rời khe, đi dần xuống chỗ nổi ở đáy màn hình; tới nơi sau nửa chiều cao màn hình
-  cuộn (ngắn hơn nếu khe sắp chui dưới header, để thanh luôn về khe trước khi khe bị che). Cuộn lên thì ngược lại.
+- **Khe đầu trang.** Owner sửa 2026-11-22 (thanh đi chéo giữa màn hình che nhiều nội dung): thanh nằm yên trong khe và cuộn đi cùng trang. Khi hàng
+  nhập của khe đã chui dưới header, thanh nổi trồi lên từ mép dưới màn hình trong 120px cuộn tiếp, rồi nằm ở chỗ nổi. Thanh không bao giờ đi ngang qua
+  giữa màn hình. Cuộn lên thì ngược lại.
 - **Khe CTA.** Thanh nổi tới khi khe chạm thanh, rồi nằm trong khe và trôi lên theo trang; trong một phần tư chiều cao màn hình cuộn tiếp, thanh mở dần ra
   bằng khe (ngắn hơn nếu trang hết sớm hơn), nên ở cuối trang thanh luôn đúng dáng khe. Lúc còn hàng chip, hàng chip nhô lên trên khe, khe không đổi cao.
 - **Nhảy cuộn** (Home, End, tải lại giữa trang, Back): thanh đứng ngay ở chỗ và dáng của vị trí mới, không chạy hiệu ứng.
-- **Phone đang gõ** (bàn phím mở): thanh đứng yên tới khi thôi gõ; đang ở giữa đường từ khe đầu trang thì về chỗ nổi trước. Nút về đầu trang chỉ hiện khi
+- **Phone đang gõ** (bàn phím mở): thanh đứng yên tới khi thôi gõ; đang trồi lên thì về chỗ nổi trước. Nút về đầu trang chỉ hiện khi
   thanh nổi hẳn.
 
 ```gherkin
 Given trang gốc ở 1440px, đầu trang, thanh trong khe đầu trang
-When cuộn xuống 100px rồi dừng
-Then thanh đứng yên giữa khe và chỗ nổi, rộng giữa 1000 và 560px; cuộn lên lại đầu trang thì thanh về khe
+When cuộn xuống 60px
+Then thanh vẫn trong khe, lên theo trang đúng 60px
+When cuộn tiếp tới khi khe chui dưới header rồi thêm 40px
+Then thanh nổi đang trồi lên, còn nằm dưới chỗ nổi; cuộn lên lại đầu trang thì thanh về khe
 
 Given thanh đang nổi giữa lưới ở 390px
 When cuộn xuống tới khi khe CTA chạm thanh rồi cuộn tiếp tới cuối trang

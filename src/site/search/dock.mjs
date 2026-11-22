@@ -2,9 +2,11 @@
 // transform, so sticky cannot work) and docks in two slots: [data-search-dock-top] under the hero heading and [data-search-dock] under the
 // CTA heading. Nothing runs on a timer: every frame the scroll position sets where the bar is and how far it has turned into the docked
 // look (width, shadow, chip row), so it stops when the finger stops and goes back the same way.
-// - Top: from the page top, the bar sits in the slot; over the next `topRange` px of scroll it travels down to its floating place.
+// - Top: the bar sits in the slot and scrolls away with the page; once the slot is under the header the floating bar rises from the
+//   bottom edge over RISE px of scroll (owner 2026-11-22: a bar crossing the screen hides too much content).
 // - CTA: the bar floats until the slot's row reaches the floating row, then rides in the slot like `sticky` and widens over `ctaRange` px.
 
+const RISE = 120; // px of scroll over which the floating bar rises into view once the top slot has gone
 const ROW = 49; // the input row (48px) and the block's bottom border: the row's top sits this far above the block's bottom
 
 const clamp01 = (value) => Math.min(1, Math.max(0, value));
@@ -12,7 +14,7 @@ const lerp = (from, to, progress) => from + (to - from) * progress;
 
 export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
   const shell = bar.querySelector(".search-bar__shell");
-  let place = "float"; // float | link (on the way between the top slot and floating) | top | cta
+  let place = "float"; // float | link (rising from the bottom edge after the top slot has gone) | top | cta
   let progress = 0; // 0 floating look, 1 docked look
   let off = false;
   let floatWidth = 0;
@@ -25,7 +27,6 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
     header = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-row-height")) || 80;
   };
 
-  const scrollY = () => window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY;
   const phoneTyping = () => document.activeElement === input && window.TruongThinhEnv?.phone.matches;
 
   const setPlace = (next) => {
@@ -85,23 +86,21 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
       return;
     }
     if (top?.getClientRects().length) {
-      const y = scrollY();
       const topRect = top.getBoundingClientRect();
-      // The slot at rest (page top) sits topRect.top + y down the page; the bar must be home before the slot slides under the header.
-      const range = Math.max(1, Math.min(0.5 * viewport, topRect.top + y - header));
-      const toTop = clamp01(1 - y / range);
-      if (toTop >= 1) {
+      // The bar stays in the slot and scrolls with the page until the slot's row has gone under the header; it never crosses the content.
+      const past = header - (topRect.bottom - ROW);
+      if (past <= 0) {
         host.style.removeProperty("transform");
         setPlace("top");
         setLook(1);
         return;
       }
-      if (toTop > 0) {
+      // Then the floating bar rises from below the screen's bottom edge over the next RISE px of scroll.
+      const rise = clamp01(past / RISE);
+      if (rise < 1) {
         setPlace("link");
-        setLook(toTop, Math.min(1000, topRect.width));
-        const dx = (topRect.left + topRect.width / 2 - document.documentElement.clientWidth / 2) * toTop;
-        const dy = (topRect.bottom - ROW - floatRow) * toTop;
-        host.style.transform = `translate(calc(-50% + ${dx}px), ${dy}px)`;
+        setLook(0);
+        host.style.transform = `translate(-50%, ${(1 - rise) * (innerHeight - floatRow + 32)}px)`;
         return;
       }
     }
@@ -122,7 +121,7 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
     queue();
   }, { signal });
   input.addEventListener("blur", queue, { signal });
-  // The phone keyboard resizes the viewport: a bar on its way between the top slot and floating drops to floating first.
+  // The phone keyboard resizes the viewport: a bar still rising drops to its floating place first.
   input.addEventListener("focus", () => {
     if (place !== "link" || !window.TruongThinhEnv?.phone.matches) return;
     host.style.removeProperty("transform");
