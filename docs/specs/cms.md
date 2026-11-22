@@ -4,13 +4,15 @@ status: planned
 source:
   - src/worker/**
   - src/db/migrations/**
+  - src/admin/**
+  - scripts/cms/**
   - wrangler.toml
 tests:
   - tests/worker/worker-contract.cjs
   - tests/worker/worker-static-contract.cjs
   - tests/worker/advertising-detail-route.test.mjs
 notion: https://app.notion.com/p/3e8332849a0e816eb46ece5834b67178
-updated: 2026-11-15
+updated: 2026-11-22
 ---
 
 # CMS xuất bản ra trang tĩnh
@@ -28,7 +30,8 @@ hiện có và phần giữ, bỏ nằm ở [Code dormant](#code-dormant-hiện-
 
 ### R1. Ranh giới public và admin
 
-Route public (`/`, `/vi/*`, `/en/*`, ảnh, sitemap) là Workers static assets, không `run_worker_first`, không đọc D1.
+Route trang public (`/`, `/vi/*`, `/en/*`, ảnh, sitemap) là Workers static assets, không chạy Worker, không đọc D1. Worker
+public duy nhất là tìm kiếm ở `/api/*` ([tìm kiếm Advertising](advertising-search.md)); nó không đọc D1 của CMS.
 Admin là một Worker riêng ở `admin.truongthinhads.vn` (trước khi đổi domain: một hostname `workers.dev` riêng), sau một
 ứng dụng Access team `truongthinh` đăng nhập Google. Media public ở `media.truongthinhads.vn` (R2 custom domain). CMS
 hỏng, D1 hết hạn mức hay admin tắt thì site vẫn chạy bản dựng cuối.
@@ -75,8 +78,8 @@ Then trả 403, không dòng nào đổi, nhật ký ghi lần bị từ chối
 Lưu nháp tự động chỉ ghi vào bản đang sửa riêng của người soạn, không đổi bản đang lên web và không tạo phiên bản; chỉ
 lệnh `save` tạo phiên bản. Thùng rác giữ bản ghi và mọi phiên bản 30 ngày, khôi phục về đúng trạng thái trước khi xóa; quá 30 ngày hoặc owner xóa
 hẳn thì mất. Xóa hẳn cần gõ lại tên bản ghi để xác nhận; nhật ký giữ phiên bản cuối 1 năm; bản gốc media
-của bản ghi chờ hết 30 ngày orphan (R3 nội dung CMS) rồi mới dọn. URL của bài trong thùng rác rơi về trang 404 tĩnh: public không có Worker nên không trả 410 (suy luận, thay
-mục 14 ý định 2026-10-12). Xóa nội dung đang được nội dung khác trỏ tới (menu, `project-reel`, `news-cards`) thì lần dựng
+của bản ghi chờ hết 30 ngày orphan (R3 nội dung CMS) rồi mới dọn. URL của bài trong thùng rác rơi về trang 404 tĩnh: chọn vậy để route trang không cần Worker (thay mục 14 ý định
+2026-10-12 về 410). Xóa nội dung đang được nội dung khác trỏ tới (menu, `home-projects`, `news-cards`) thì lần dựng
 bỏ tham chiếu đó và admin báo chỗ bị ảnh hưởng.
 
 ```gherkin
@@ -116,7 +119,7 @@ Request ghi chỉ nhận `application/json` (upload là `multipart/form-data`, 4
 thiếu `Origin` hay `Origin` khác origin admin trả 403; GET không bao giờ đổi dữ liệu. Không dùng CSRF token riêng (suy
 luận: Access chặn request không có JWT, `Origin` chặn form từ site khác, kể cả multipart không preflight). Email chỉ lấy
 từ JWT đã kiểm chữ ký, `aud`, `iss`, `exp`; không đọc header `Cf-Access-Authenticated-User-Email`. Lỗi D1 hay R2 trả 503 cho admin, không chạm site public.
-[CẦN LÀM RÕ: rate limit bằng luật Cloudflare hay đếm trong Worker; agent kiểm hạn mức gói free ở slice Storage.]
+Rate limit dùng binding `[[ratelimits]]` của Workers như Worker tìm kiếm (`wrangler.static.toml`), quá hạn mức trả 429.
 
 ```gherkin
 Given admin đã xác thực
@@ -128,19 +131,27 @@ Then trả 415, không phiên bản nào được tạo
 
 ### R6. Xuất bản và rollback
 
-Lần lưu `published` ghi một dòng chờ dựng trong D1; Cron Trigger mỗi phút của admin Worker gọi `workflow_dispatch` của
-`Deploy demo` khi dòng chờ cũ nhất đã quá 2 phút, nên các lần lưu trong 2 phút gom thành một. Token GitHub fine-grained
-chỉ quyền Actions trên repo này, nằm ở secret. Workflow lấy bản chụp qua `GET /api/admin/snapshot` bằng service token,
-chạy validator dùng chung và bộ kiểm phát hành hiện có, rồi deploy. Từ khi CMS mở, mọi lần dựng kể cả merge code vào
+Lần lưu `published` gọi thẳng `workflow_dispatch` của `ci.yml` trên `main` (`ci.yml` gọi `Deploy demo`, workflow này chỉ có
+`workflow_call`). Không có hàng đợi riêng: nhóm `concurrency` của `Deploy demo` giữ một run đang chạy và một run chờ, run
+chờ mới thay run chờ cũ, và mỗi run lấy bản chụp lúc bắt đầu, nên lưu dồn dập gom lại mà không mất lần lưu nào. Token
+GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret. Workflow lấy bản chụp qua `GET /api/admin/snapshot`
+bằng service token, chạy validator dùng chung và bộ kiểm phát hành hiện có, rồi deploy. Mục tiêu: lên site trong 10
+phút sau lần lưu cuối (suy luận theo thời gian `Deploy demo` hiện tại, đo ở slice Publishing). Từ khi CMS mở, mọi lần dựng kể cả merge code vào
 `main` đều lấy bản chụp mới nhất; file chiếu trong repo chỉ là bản seed và fixture, nên merge code không ghi đè nội dung
-CMS; endpoint bản chụp không trả lời thì lần dựng lỗi, không dùng file trong repo. Lỗi bước nào thì không deploy, site giữ bản cũ, admin hiện lý do bằng lời thường. Admin đọc trạng thái run qua API
-GitHub bằng cùng token: chờ, đang dựng, đã lên, lỗi.
+CMS; endpoint bản chụp không trả lời thì lần dựng lỗi, không dùng file trong repo. Lỗi bước nào thì không deploy, site giữ bản cũ, admin hiện lý do bằng lời thường và nút "dựng lại"; lần lưu kế tiếp
+cũng dựng lại. Admin đọc trạng thái run qua API GitHub bằng cùng token: chờ, đang dựng, đã lên, lỗi.
 
-Owner quay về deployment trước bằng lệnh `rollback`: admin Worker gọi workflow rollback trong GitHub Actions bằng cùng
+D1 giữ nội dung thay vì commit file chiếu vào repo vì nhân viên lưu là lên web, không qua Git và PR; bot commit thẳng
+`main` sẽ bỏ qua CI review và đụng PR đang sửa cùng file. File chiếu trong repo vẫn là fixture của test; slice Public
+projection thêm lệnh kéo bản chụp về repo để fixture không trôi xa nội dung thật.
+
+Owner quay về deployment trước bằng lệnh `rollback` (nút trong admin vì owner không chạy lệnh shell; lệnh
+`pnpm demo:wrangler rollback` ở [phát hành tĩnh R11](static-release.md) là đường dự phòng): admin Worker gọi workflow rollback trong GitHub Actions bằng cùng
 token, workflow dùng token deploy Cloudflare sẵn có của `Deploy demo`; admin Worker không giữ token deploy. D1 không đổi theo, nên rollback dừng tự đăng tới khi owner bấm
 "tiếp tục đăng" (lưu vẫn ghi D1, không dựng). Key biến thể media public không đổi theo nội dung (có hash) và được giữ
 khi còn deployment nào trong 10 bản gần nhất trỏ tới (suy luận về số bản Workers giữ, kiểm ở slice Publishing).
-Hẹn giờ đăng để sau bản đầu (owner 2026-11-15).
+Phiên bản R4 dùng cho xung đột và nhật ký; lệnh khôi phục phiên bản cũ và hẹn giờ đăng để sau bản đầu (owner
+2026-11-15).
 
 ```gherkin
 Given lần dựng có một ảnh thiếu biến thể
@@ -154,8 +165,11 @@ Khôi phục làm thử một lần trước khi mở CMS cho nhân viên.
 ### R7. Xem trước gần 1:1 với site
 
 Khung xem trước cập nhật ngay khi người soạn gõ hay đổi media, và giống trang thật (owner 2026-11-15). Không có renderer
-thứ hai: preview gọi đúng hàm render mà build dùng (`renderBlocks`, `renderBlockPage`), với cùng CSS, JS, motion và
-biến thể ảnh của site, trong một `iframe` có khung trang thật. Phần render tách khỏi phần đọc file: module render
+thứ hai, theo từng loại trang: trang khối (News, công trình) gọi đúng hàm render mà build dùng (`renderBlocks`,
+`renderBlockPage`) trong trình duyệt; trang chuẩn và lưới card dùng HTML đã dựng cộng overlay của
+[editor](cms-editor.md), áp cùng hàm điền slot và hàm dựng card mà build gọi (plan tách hai hàm này thành module thuần).
+Preview lưới card xếp như PC và tablet (máy tự xếp); lưới đầu dựng sẵn của phone chỉ có ở lần dựng thật. Mọi preview
+chạy với cùng CSS, JS, motion và biến thể ảnh của site, trong một `iframe` có khung trang thật. Nháp tự lưu nằm trong `localStorage` như editor R8. Phần render tách khỏi phần đọc file: module render
 thuần (không `node:fs`, `node:path`) chạy được cả ở Node lẫn trình duyệt; phần kiểm file ảnh, đọc JSON ở lại adapter
 của build. Sửa một khối là sửa một chỗ, build và preview đổi cùng lúc. Chỗ khác duy nhất: media chưa có biến thể dùng
 bản tạm trên R2 private qua admin, khung preview ghi "bản xem trước". Giao diện trực quan (owner 2026-11-15): soạn ngay
@@ -215,8 +229,8 @@ Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret,
 Hai gate thêm trước CMS (owner 2026-11-15): làm lại layout trang chuẩn theo Espacio
 (xong, PR #978) và motion hero Espacio (xong, PR #966); chi tiết ở [nội dung CMS](cms-content.md#gate-còn-mở).
 
-Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: rate limit, cỡ upload, thang video ở Storage; khóa slot `page-copy` ở editor.
-Plan chi tiết phải có: bảng D1, định dạng bản chụp, nơi lưu redirect 301 khi đổi slug, tắt preview URL của hostname
+Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: cỡ upload, thang video ở Storage; khóa slot `page-copy` ở editor.
+Plan chi tiết phải có: bảng D1, định dạng bản chụp, redirect 301 khi đổi slug qua `scripts/site/redirects.mjs`, tắt preview URL của hostname
 `workers.dev`, chuỗi khối cố định từng dòng layout ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)).
 
 Thứ tự slice, mỗi slice owner duyệt gate: Contract (spec này; gate: owner duyệt spec),

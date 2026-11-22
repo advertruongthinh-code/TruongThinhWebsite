@@ -3,10 +3,11 @@ title: Nội dung CMS
 status: planned
 source:
   - src/site/content/**
+  - scripts/site/**
 tests:
   - tests/site/blocks.test.mjs
 notion: https://app.notion.com/p/419332849a0e816388dbd2395acd97d4
-updated: 2026-11-15
+updated: 2026-11-22
 ---
 
 # Nội dung CMS
@@ -28,8 +29,8 @@ là bộ file này, qua cùng validator với build (một module dùng chung, k
 | --- | --- | --- |
 | `news` | `content/news.json` | `validateBlockPage`, `kindFieldErrors` (`scripts/site/blocks.mjs`, `block-pages.mjs`) |
 | `project` | `content/projects.json` | như `news`, thêm card theo R4 |
-| `hero-slide` | `content/hero-slides.json` | `validateHeroSlides` (`scripts/ci/content-contract.mjs`) |
-| `project-reel` | `content/project-reel.json` | `validateProjectReel` |
+| `hero-slide` | `content/hero-slides.json` | `validateHeroSlides` (`scripts/site/hero-slides.mjs`) |
+| `home-projects` | `content/home-projects.json` | `validateHomeProjects` (`scripts/site/home-projects.mjs`) |
 | `menu` | `content/menu.json` (mở rộng theo R7) | `menuErrors` |
 | `client-logo` | `content/client-logos.json` | chưa có; thêm ở slice Storage |
 | `advertising-card` | `content/advertising-cards.json` (mới) | luật card hiện ở `catalog.mjs` và `media-contract.mjs`, tách ra file dữ liệu |
@@ -70,8 +71,11 @@ trang công trình và News nhận cả ảnh lẫn video, nên gọi chung là 
   soạn kéo, phóng ảnh đều trong khung, CMS lưu vùng crop cùng bản gốc, lần dựng cắt biến thể theo vùng đó.
 - Upload: bỏ EXIF và GPS; tên file theo slug nội dung cộng số thứ tự. Đầu vào nhận JPEG, PNG, WebP, AVIF cho ảnh, MP4
   cho video; SVG chỉ cho `client-logo` qua `isSafeSvg` hiện có.
-- Bản public: biến thể sinh ở lần dựng theo chuẩn site ([tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung),
-  [tải video](video-delivery.md)), đặt ở bucket public sau `media.truongthinhads.vn`; không bao giờ phát bản gốc.
+- Bản public: biến thể theo chuẩn site ([tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung),
+  [tải video](video-delivery.md)) sinh một lần khi upload hoặc lưu vùng crop, bằng một job GitHub Actions (sharp không
+  chạy trong Worker); key theo hash của bản gốc, vùng crop và công thức biến thể, đổi công thức thì key đổi. Biến thể
+  nằm ở bucket public sau `media.truongthinhads.vn`; lần dựng chỉ kiểm biến thể có đủ, không sinh. Không bao giờ phát
+  bản gốc. Biến thể không còn bản ghi nào trỏ tới theo luật orphan dưới.
 - Xóa media đang được nội dung dùng trả 409 kèm danh sách chỗ dùng. Object không còn bản ghi nào trỏ tới (orphan) được
   dọn sau 30 ngày.
 - Bản gốc ở bucket R2 private để lần dựng không cần PC bật; sao lưu tuần chép bản gốc về NAS (owner 2026-11-15, thay
@@ -196,12 +200,11 @@ Then trả 400, dữ liệu chữ không đổi
 
 ### R9. Tìm kiếm ngữ nghĩa và hỗ trợ nhập
 
-Phần này không thuộc gate Contract: thread tìm kiếm chốt model và cách tính vector trong spec tìm kiếm; dưới đây là
-hướng owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/artifact/6zTDE4jQfcjrbP3tax9kXx), mục "Khi CMS thêm, sửa, xóa
-media"; thread tìm kiếm sở hữu phần tìm). Lúc lưu, CMS gọi Worker Cloudflare tính vector bằng Workers AI
-`@cf/google/embeddinggemma-2`, không chạy trên máy người soạn: mỗi media một vector (ảnh cộng alt; video lấy frame 1 giây
-một frame cộng poster), mỗi card một vector chữ (tên, mô tả, sản phẩm, cụm, tag). Nháp chỉ người dùng CMS tìm được. Đổi
-model thì tính lại toàn bộ một lần. Site không lưu nhật ký tìm kiếm.
+Hướng owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/artifact/6zTDE4jQfcjrbP3tax9kXx)). Model, công thức
+vector (ảnh, alt, poster, frame video) và test thuộc [tìm kiếm Advertising](advertising-search.md); CMS chỉ giữ ranh giới
+dưới. Một hàm tính vector, một cache vector theo hash của model cộng đầu vào: lúc lưu, admin Worker điền cache để nháp
+tìm được ngay trong CMS (chỉ người dùng CMS); lần dựng `pnpm search:index` đọc cache, chỉ tính phần thiếu. Đổi model thì
+hash đổi, tính lại toàn bộ một lần. Site không lưu nhật ký tìm kiếm.
 
 | Thao tác | Vector và lớp từ khóa |
 | --- | --- |
@@ -210,7 +213,7 @@ model thì tính lại toàn bộ một lần. Site không lưu nhật ký tìm 
 | Sửa alt hoặc thay media | Tính lại vector của media đó |
 | Xóa | Gỡ vector và từ khóa |
 
-Worker lỗi thì card vẫn lưu, vẫn tìm được theo từ khóa; vector tính lại sau. Không có trường từ khóa riêng: lớp từ khóa
+Worker lỗi thì card vẫn lưu, vẫn tìm được theo từ khóa; cache thiếu được lần dựng kế tiếp tính bù. Không có trường từ khóa riêng: lớp từ khóa
 tự dựng từ tên, mô tả, alt (bỏ dấu) cộng bảng từ đồng nghĩa chung lấy từ dữ liệu Keyword Planner. Keyword Planner không
 chạy lại khi CRUD, chỉ chạy lại 6 tháng một lần hoặc khi thêm nhóm sản phẩm; sau này bảng đồng nghĩa sửa được trong cài
 đặt CMS.
@@ -244,7 +247,7 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 | R3 | `pnpm qa:worker:security` (WebP, SVG an toàn); cần thêm: loại, cỡ, poster, alt trùng, orphan, crop |
 | R4 | `media-contract.mjs` hôm nay; cần thêm: card công trình từ 2 media, media thuộc trang |
 | R6, R7, R8 | chưa có; cần: placeholder slot, 6 mục menu, CTA đọc một nguồn, bộ kiểm chữ |
-| R9 | chưa có; cần: CRUD cập nhật vector, Worker lỗi vẫn lưu và thử lại |
+| R9 | test thuộc [tìm kiếm Advertising](advertising-search.md); CMS cần: lưu vẫn chạy khi Worker vector lỗi |
 
 ## Gate còn mở
 
