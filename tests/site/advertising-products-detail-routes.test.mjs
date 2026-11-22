@@ -6,7 +6,6 @@ import { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES } from "../../src
 
 const slugs = ADVERTISING_LEGACY_CATEGORIES.map(({ slug }) => slug);
 const output = (path) => new URL("../../.site-output/" + path, import.meta.url);
-const worker = await readFile(new URL("../../src/worker/index.js", import.meta.url), "utf8");
 
 assert.equal(slugs.length, 6, "the compatibility contract covers six Advertising categories");
 
@@ -65,7 +64,6 @@ for (const slug of slugs) {
   assert.equal(languageFallback.pathname, targets.en);
   assert.equal(languageFallback.searchParams.get("encoded"), "Dưa");
   assert.equal(languageFallback.searchParams.has("category"), false);
-  assert.match(worker, new RegExp('"' + slug + '"'), slug + " is not registered in the worker route set");
 }
 
 console.log("[advertising-products-detail-routes] six legacy compatibility routes and VM redirects passed");

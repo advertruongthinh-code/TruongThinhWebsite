@@ -9,27 +9,7 @@ directory = "../../.site-output"
 binding = "ASSETS"
 html_handling = "force-trailing-slash"
 not_found_handling = "404-page"
-run_worker_first = [
-  "/",
-  "/index.html",
-  "/vi",
-  "/vi/*",
-  "/en",
-  "/en/*",
-  "/nha-o*",
-  "/kinh-doanh*",
-  "/quang-cao*",
-  "/gioi-thieu*",
-  "/residential*",
-  "/commercial*",
-  "/advertising-products*",
-  "/projects-products*",
-  "/about*",
-  "/api/*",
-  "/media/*",
-  "/robots.txt",
-  "/sitemap.xml",
-]
+run_worker_first = ["/api/*"]
 
 [[d1_databases]]
 binding = "DB"
@@ -38,8 +18,22 @@ database_id = "00000000-0000-0000-0000-000000000000"
 migrations_dir = "../../src/db/migrations"
 
 [[r2_buckets]]
-binding = "MEDIA"
-bucket_name = "truong-thinh-media-local"
+binding = "MEDIA_ORIGINALS"
+bucket_name = "truong-thinh-media-originals-local"
+
+[[r2_buckets]]
+binding = "MEDIA_PUBLIC"
+bucket_name = "truong-thinh-media-public-local"
+
+[[ratelimits]]
+name = "ADMIN_WRITE_LIMIT"
+namespace_id = "7311"
+simple = { limit = 120, period = 60 }
+
+[[ratelimits]]
+name = "ADMIN_UPLOAD_LIMIT"
+namespace_id = "7312"
+simple = { limit = 20, period = 60 }
 
 [vars]
 # Dev admin login: the Worker accepts it only when the host is loopback (R5).

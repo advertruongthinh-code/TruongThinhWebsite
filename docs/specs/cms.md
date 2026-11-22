@@ -8,9 +8,9 @@ source:
   - scripts/cms/**
   - wrangler.toml
 tests:
-  - tests/worker/worker-contract.cjs
-  - tests/worker/worker-static-contract.cjs
-  - tests/worker/advertising-detail-route.test.mjs
+  - tests/worker/auth.test.mjs
+  - tests/worker/snapshot.test.mjs
+  - tests/worker/bundle.test.mjs
 notion: https://app.notion.com/p/3e8332849a0e816eb46ece5834b67178
 updated: 2026-11-22
 ---
@@ -254,7 +254,7 @@ Admin là [editor](cms-editor.md), không thuộc Design System, không đưa to
 | R | Test hoặc command |
 | --- | --- |
 | R1 | chưa có; cần: route trang không chạy Worker, trang mở được khi admin tắt |
-| R2, R5 | `pnpm qa:worker:security` kiểm JWT, Origin hiện tại; cần thêm: ma trận quyền, owner cuối, xóa thẳng chỉ owner |
+| R2, R5 | `pnpm qa:worker:security` kiểm JWT, service token, bootstrap owner, Origin, Content-Type, vai trò; cần thêm: ma trận quyền, owner cuối, xóa thẳng chỉ owner |
 | R3, R4, R6 | chưa có; cần integration lưu, thùng rác, version lệch, dựng lỗi giữ bản cũ, rollback chặn dựng |
 | R6 sao lưu | chưa có; cần diễn tập khôi phục, ghi kết quả trong PR slice Storage |
 | R7 | chưa có; cần HTML preview bằng HTML build trên fixture mọi khối, slot trang chuẩn và card |
@@ -265,13 +265,13 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 
 | Phần | Vị trí | Xử lý |
 | --- | --- | --- |
-| Kiểm JWT Access, `Origin`, đăng nhập dev loopback (chỉ khi chạy local trên `localhost`, bản deploy không bật) | `requireAdmin`, `verifyAccessJwt` trong `src/worker/index.js` | Giữ; đổi allowlist `ADMIN_EMAILS` sang bảng tài khoản R2 |
-| Kiểm upload WebP, SVG an toàn | `isWebp`, `isSafeSvg` | Giữ, mở rộng theo [nội dung CMS R3](cms-content.md#r3-media) |
+| Kiểm JWT Access, `Origin`, đăng nhập dev loopback (chỉ khi chạy local trên `localhost`, bản deploy không bật) | `requireActor`, `verifyAccessJwt` trong `src/worker/auth.mjs` | Đã thay (S2): bảng `accounts` thay allowlist `ADMIN_EMAILS` |
+| Kiểm upload WebP, SVG an toàn | `isWebp`, `isSafeSvg` (đã xóa cùng `index.js` cũ ở S2) | Viết lại: kiểm byte đầu ở P2, SVG ở phần 2, theo [nội dung CMS R3](cms-content.md#r3-media) |
 | Editor Dockview, overlay | `src/admin/` | Giữ; đổi đường lưu sang lệnh R5 ([editor](cms-editor.md)) |
-| Render public SSR, `page_edits`, API public, sitemap từ D1, route `/media/*` | `src/worker/index.js`, `content.mjs` | Bỏ (R1) |
-| CRUD chung sáu resource, `audit_log` | `src/worker/index.js` | Viết lại theo R4, R5 |
+| Render public SSR, `page_edits`, API public, sitemap từ D1, route `/media/*` | `src/worker/index.js`, `content.mjs` cũ | Đã thay (S2): Worker chỉ còn API admin |
+| CRUD chung sáu resource, `audit_log` | `src/worker/index.js` cũ | Đã thay (S2): khung nhật ký `src/worker/router.mjs`; lệnh nội dung ở P1 |
 | Migration `0001` tới `0005`, seed 36 product | `src/db/migrations/` | Đã thay bằng `0001_cms.sql` ([dữ liệu CMS R1](cms-data.md)) |
-| `wrangler.toml` (`run_worker_first` route public), `scripts/cms/` | gốc repo | Viết lại cho admin Worker |
+| `wrangler.toml` (`run_worker_first` route public), `scripts/cms/` | gốc repo | Đã thay (S2): admin Worker `truong-thinh-admin`, `run_worker_first = ["/api/*"]` |
 
 ## Gate còn mở
 
