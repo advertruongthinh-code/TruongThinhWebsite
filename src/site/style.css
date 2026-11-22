@@ -1805,7 +1805,7 @@ em {
   }
 }
 
-/* The commitment body needs more contrast at the bottom than the shared 0.3 layer gives (home commitments, residential items). */
+/* The commitment body needs more contrast at the bottom than the shared 0.3 layer gives (every portal without a link). */
 .service-portal:has(.commitment-copy) .portal-shade {
   background: linear-gradient(180deg, var(--media-label-overlay) 35%, rgba(0, 0, 0, 0.72));
 }
@@ -1841,8 +1841,8 @@ em {
   opacity: 1;
 }
 
-/* Three-tier portal (home, child page types): kicker, title always at the card center, tagline. */
-:is(#dich-vu, #loai-hinh) .portal-copy {
+/* Three-tier portal (home fields, the only linked portals): kicker, title always at the card center, tagline. */
+#dich-vu .portal-copy {
   --portal-title-half-line: calc(var(--portal-title-size) * 0.54);
   --portal-upper-gap: 0.85rem;
   --portal-lower-gap: 1.1rem;
@@ -1850,12 +1850,7 @@ em {
   transform: none;
 }
 
-/* Two-line title, no kicker (Commercial type, owner 2026-10-27): the tagline retreats by half of the two-line block. */
-#loai-hinh .portal-copy:has(.portal-line + .portal-line) {
-  --portal-title-half-line: calc(var(--portal-title-size) * 1.08);
-}
-
-:is(#dich-vu, #loai-hinh) .portal-copy strong {
+#dich-vu .portal-copy strong {
   position: absolute;
   inset: 0;
   font-size: var(--portal-title-size);
@@ -1867,8 +1862,8 @@ em {
   display: none;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__quiet,
-:is(#dich-vu, #loai-hinh) .portal-title__strong {
+#dich-vu .portal-title__quiet,
+#dich-vu .portal-title__strong {
   position: absolute;
   /* Fixed 8px like the tagline: "KHU LÀM VIỆC" still fits when the root text is 200% at 320px. */
   right: 8px;
@@ -1877,7 +1872,7 @@ em {
   white-space: nowrap;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__quiet {
+#dich-vu .portal-title__quiet {
   bottom: calc(50% + var(--portal-title-half-line) + var(--portal-upper-gap));
   font-size: var(--portal-kicker-size);
   font-weight: 600;
@@ -1886,14 +1881,14 @@ em {
   word-spacing: var(--word-spacing-body);
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__strong {
+#dich-vu .portal-title__strong {
   top: 50%;
   transform: translateY(-50%);
   font-size: var(--portal-title-size);
   font-weight: 500;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-copy small {
+#dich-vu .portal-copy small {
   position: absolute;
   top: calc(50% + var(--portal-title-half-line) + var(--portal-lower-gap));
   /* Fixed 8px: a long tagline (EN Commercial) still fits one line when the root text is 200% (page-home R5). */
@@ -1905,7 +1900,7 @@ em {
   letter-spacing: 0;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-subtitle,
+#dich-vu .portal-subtitle,
 .legacy-link .portal-subtitle {
   position: relative;
   width: fit-content;
