@@ -70,8 +70,9 @@ test("batch rolls back every statement when a later one fails", async () => {
     db.prepare("INSERT INTO settings (key, value) VALUES ('publish_paused', '0')"),
     db.prepare("SELECT key, value FROM settings"),
   ]);
-  assert.deepEqual(results[0], { results: [], meta: { changes: 1 } });
-  assert.deepEqual(results[1].results.map((row) => ({ ...row })), [{ key: "publish_paused", value: "0" }]);
+  assert.equal(results[0].meta.changes, 1);
+  assert.deepEqual(results[0].results, []);
+  assert.deepEqual(results[1].results, [{ key: "publish_paused", value: "0" }]);
 });
 
 test("a JSON id list inserts through json_each", async () => {
@@ -87,6 +88,26 @@ test("record_media keeps one row per media and variant pair", async () => {
   const add = () => db.prepare("INSERT INTO record_media (type, id, media_id, variant_key) VALUES ('news', 'a', 'm1', '')").run();
   await add();
   await assert.rejects(add(), /UNIQUE/);
+  await db.prepare("INSERT INTO record_media (type, id, media_id, variant_key) VALUES ('news', 'a', 'm1', 'k')").run();
+});
+
+test("slug_en is unique per type among records outside the trash", async () => {
+  const db = createD1(SCHEMA);
+  const insert = (id, status) => db.prepare(
+    `INSERT INTO records (type, id, status, version, position, name, slug_en, data, write_id, created_at, created_by, updated_at, updated_by)
+     VALUES ('news', ?, ?, 1, 0, ?, 'same', '{}', 'w', ?, 'seed', ?, 'seed')`,
+  ).bind(id, status, id, NOW, NOW).run();
+  await insert("a", "draft");
+  await assert.rejects(insert("b", "published"), /UNIQUE/);
+  await insert("c", "trashed");
+});
+
+test("bind returns a new statement and rows are plain objects", async () => {
+  const db = createD1(SCHEMA);
+  const put = db.prepare("INSERT INTO settings (key, value) VALUES (?, ?)");
+  await db.batch([put.bind("a", "1"), put.bind("b", "2")]);
+  assert.deepEqual((await db.prepare("SELECT key, value FROM settings ORDER BY key").all()).results, [{ key: "a", value: "1" }, { key: "b", value: "2" }]);
+  assert.equal(await db.prepare("SELECT value FROM settings WHERE key = ?").bind("b").first("value"), "2");
 });
 
 test("afterSelect runs after each standalone SELECT", async () => {

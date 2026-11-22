@@ -9,33 +9,33 @@ export function createD1(sqlFile, { afterSelect } = {}) {
   if (sqlFile) db.exec(readFileSync(sqlFile, "utf8"));
   let selects = 0;
 
+  const plain = (row) => (row ? { ...row } : null);
+
   const execute = (sql, args) => {
     const statement = db.prepare(sql);
-    if (isSelect(sql)) return { results: statement.all(...args), meta: { changes: 0 } };
-    const { changes } = statement.run(...args);
-    return { results: [], meta: { changes: Number(changes) } };
+    if (isSelect(sql)) return { success: true, results: statement.all(...args).map(plain), meta: { changes: 0 } };
+    const { changes, lastInsertRowid } = statement.run(...args);
+    return { success: true, results: [], meta: { changes: Number(changes), last_row_id: Number(lastInsertRowid) } };
   };
 
-  const prepare = (sql) => {
-    let args = [];
-    const statement = {
-      sql,
-      get args() { return args; },
-      bind(...values) { args = values; return statement; },
-      async first() {
-        const row = db.prepare(sql).get(...args) ?? null;
-        if (isSelect(sql)) afterSelect?.(sql, ++selects);
-        return row;
-      },
-      async all() {
-        const result = execute(sql, args);
-        if (isSelect(sql)) afterSelect?.(sql, ++selects);
-        return result;
-      },
-      async run() { return execute(sql, args); },
-    };
-    return statement;
-  };
+  // Like D1, bind() returns a new statement, so one prepared statement can be bound several times.
+  const statementOf = (sql, args) => ({
+    sql,
+    args,
+    bind: (...values) => statementOf(sql, values),
+    async first(column) {
+      const row = execute(sql, args).results[0] ?? null;
+      if (isSelect(sql)) afterSelect?.(sql, ++selects);
+      return column && row ? row[column] : row;
+    },
+    async all() {
+      const result = execute(sql, args);
+      if (isSelect(sql)) afterSelect?.(sql, ++selects);
+      return result;
+    },
+    async run() { return execute(sql, args); },
+  });
+  const prepare = (sql) => statementOf(sql, []);
 
   return {
     sqlite: db,
