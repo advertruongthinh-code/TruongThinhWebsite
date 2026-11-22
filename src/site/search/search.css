@@ -418,7 +418,7 @@ body.is-detail .search-host {
   font-weight: 500;
 }
 
-/* Back-to-top (search-bar R5): with the bar in a slot it stays out on every device. On phones, while the bar floats, it sits on its own
+/* Back-to-top (search-bar R5): with the bar in a slot it stays out. While the bar floats, it sits on its own
    row 10px above the block, at the right edge like every other page (owner 2026-11-22). */
 body:is([data-search-place="cta"], [data-search-place="top"], [data-search-place="link"]) .back-to-top.show {
   transform: translateX(150%);
