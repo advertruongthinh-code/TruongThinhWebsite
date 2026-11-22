@@ -25,6 +25,14 @@ xuất bản tĩnh owner duyệt 2026-11-15, ADR trên Notion. Spec này là con
 slice Contract phần nền tảng: ranh giới, quyền, trạng thái, lệnh admin, xuất bản, xem trước; kiểu nội dung, media,
 layout, menu, soạn chữ ở [nội dung CMS](cms-content.md). Chưa có code theo spec này; code dormant
 hiện có và phần giữ, bỏ nằm ở [Code dormant](#code-dormant-hiện-có). Build và demo thuộc [phát hành tĩnh](static-release.md).
+Bản tĩnh chạy trên demo; phát hành chính thức trên `truongthinhads.vn` cần xong phase này (owner 2026-10-18). AI agent của CMS dùng [Stack AI và media](../operations/TOOLING.md#stack-ai-và-media) (owner 2026-10-18).
+
+Quyết định owner trước đây vẫn giữ, chi tiết ở [nội dung CMS](cms-content.md):
+
+- Media gốc (owner 2026-10-03): giữ gốc ở storage private, public chỉ dùng biến thể cùng chuẩn site tĩnh
+  ([tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung)); media cần alt ([nội dung CMS R3](cms-content.md#r3-media)).
+- SEO media ([media-seo](media-seo.md), owner 2026-10-18): nhân viên chỉ nhập tên, mô tả card và alt VI/EN từng media;
+  hệ thống tự sinh trang card, canonical, og:image, JSON-LD, image sitemap và tên file upload theo tên sản phẩm.
 
 ## Hành vi
 
