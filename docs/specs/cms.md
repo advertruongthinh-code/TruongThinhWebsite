@@ -18,8 +18,8 @@ updated: 2026-11-15
 ## Mục đích
 
 Owner và nhân viên tự đăng, sửa mọi nội dung VI/EN của site (card Advertising, công trình, News, chữ và ảnh trang cố
-định) qua trang admin. Khách chỉ nhận file tĩnh; CMS ghi nội dung rồi dựng lại site. Kiến trúc theo
-[CMS xuất bản tĩnh](../decisions/cms-cloudflare-static-publish.md) (owner duyệt 2026-11-15). Spec này là contract của
+định) qua trang admin. Khách chỉ nhận file tĩnh; CMS ghi nội dung rồi dựng lại site. Kiến trúc CMS
+xuất bản tĩnh owner duyệt 2026-11-15, ADR trên Notion. Spec này là contract của
 slice Contract phần nền tảng: ranh giới, quyền, trạng thái, lệnh admin, xuất bản, xem trước; kiểu nội dung, media,
 layout, menu, soạn chữ ở [nội dung CMS](cms-content.md). Chưa có code theo spec này; code dormant
 hiện có và phần giữ, bỏ nằm ở [Code dormant](#code-dormant-hiện-có). Build và demo thuộc [phát hành tĩnh](static-release.md).
@@ -193,9 +193,7 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 
 ## Gate còn mở
 
-Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, nối domain khi owner chưa duyệt slice tương ứng
-([khóa Wrangler](../decisions/wrangler-deferred-until-cms.md)). Gate 1 tới 4 đã đóng ngày 2026-11-15
-([decision](../decisions/cms-cloudflare-static-publish.md)); owner mở slice Contract cùng ngày.
+Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, nối domain khi owner chưa duyệt slice tương ứng. Gate 1 tới 4 đã đóng ngày 2026-11-15; owner mở slice Contract cùng ngày.
 
 Hai gate thêm trước CMS (owner 2026-11-15): làm lại layout trang chuẩn theo Espacio
 (xong, PR #978) và motion hero Espacio (xong, PR #966); chi tiết ở [nội dung CMS](cms-content.md#gate-còn-mở).
