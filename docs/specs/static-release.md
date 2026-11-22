@@ -23,7 +23,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-16
+updated: 2026-11-22
 ---
 
 # Phát hành tĩnh
@@ -203,13 +203,14 @@ And không bước nào gọi Wrangler hoặc deploy
 `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
 chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)), dùng secret `CLOUDFLARE_API_TOKEN`,
 `CLOUDFLARE_ACCOUNT_ID` (không nằm trong repo hay chat); log Actions ghi commit và Worker version ID. Merge vào `main` là đồng ý deploy: agent không deploy tay, chỉ `--dry-run`; owner deploy tay được bằng `wrangler login` qua task VS Code `Demo: Deploy Cloudflare (main)` (chỉ chạy trên `main` sạch). Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
-Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>. Trang chính sách quyền riêng tư cho app Pinterest đã gỡ (owner 2026-11-14: không còn dùng Pinterest API).
+Tên miền chính: <https://truongthinhads.vn/vi/>. Tên miền đăng ký ở Sapo, nameserver trỏ về Cloudflare (`brad`, `linda.ns.cloudflare.com`, owner 2026-11-22); zone `truongthinhads.vn` gói Free cùng tài khoản với Worker. `[[routes]]` `custom_domain = true` trong `wrangler.static.toml` gắn apex vào Worker `truong-thinh-demo`, trùng host của `PUBLIC_ORIGIN` (`scripts/site/lib.mjs`) mà canonical, hreflang, sitemap, `og:url` dùng. Cấu hình zone nằm ở dashboard, ngoài repo: Redirect Rule `www to truongthinhads.vn` trả 301 `*://www.truongthinhads.vn/*` về `https://truongthinhads.vn/${2}` giữ query (bản ghi `www` là A `192.0.2.0` proxied), Always Use HTTPS bật, bản ghi MX và `mail` giữ như ở Sapo. Bản workers.dev vẫn bật (`workers_dev = true`) làm đường preview: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>. Trang chính sách quyền riêng tư cho app Pinterest đã gỡ (owner 2026-11-14: không còn dùng Pinterest API).
 
 ```gherkin
 Given một push vào main và bộ fast của CI xanh
 When workflow Deploy demo chạy
 Then .site-output/ của đúng commit đó được build lại và upload lên Worker truong-thinh-demo
 And CI đỏ, PR hoặc push từ fork không deploy
+And request www.truongthinhads.vn hoặc http:// trả 301 về https://truongthinhads.vn cùng path, query; workers.dev vẫn 200
 ```
 
 ### R12. Ranh giới với CMS dormant

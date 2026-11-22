@@ -7,6 +7,7 @@ import { ROUTES, localeHtml } from "../../scripts/tooling/serve-static-parity.mj
 import { loadBlockContent, newsListPages } from "../../scripts/site/block-pages.mjs";
 import { projectListPages } from "../../scripts/site/project-list.mjs";
 import { legacyRedirects } from "../../scripts/site/redirects.mjs";
+import { PUBLIC_ORIGIN } from "../../scripts/site/lib.mjs";
 
 test("static hosting gets the same localized HTML as the preview server", async () => {
   // 22 fixed routes (EN mobile-retail becomes a cluster page) plus two locales of each cluster page, product, card, project, News article, the News list page, and each moved path (legacyRedirects).
@@ -19,6 +20,13 @@ test("static hosting gets the same localized HTML as the preview server", async 
     assert.equal(deployed, localeHtml(original, locale), route);
     assert.match(deployed, new RegExp(`<html[^>]*lang="${locale}"`), route);
   }
+});
+
+test("the Worker custom domain is the host that canonical, sitemap and og:url point to", async () => {
+  const config = await readFile(new URL("../../wrangler.static.toml", import.meta.url), "utf8");
+  const domains = [...config.matchAll(/^\[\[routes\]\]\npattern = "([^"]+)"\ncustom_domain = true$/gm)].map((match) => match[1]);
+  assert.deepEqual(domains, [new URL(PUBLIC_ORIGIN).host]);
+  assert.match(config, /^workers_dev = true$/m, "workers.dev stays on as the preview URL");
 });
 
 test("demo and preview serve the localized 404 page for unknown paths", async () => {
