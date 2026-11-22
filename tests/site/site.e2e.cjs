@@ -7357,13 +7357,21 @@ async function runAdvertisingThreeThousandCardProbe() {
 
       await page.locator('[data-masonry-filter="mobile-retail"]').click();
       await page.locator('[data-masonry-filter="all"]').click();
+      // A filter brings the grid top into view; let that scroll finish before jumping back to the deep position.
+      await page.waitForFunction(() => document.querySelector('[data-masonry-filter="all"]')?.getAttribute("aria-current") === "true");
+      await page.waitForFunction(() => {
+        const y = Math.round(window.scrollY);
+        window.__ttStillPolls = window.__ttStillY === y ? (window.__ttStillPolls || 0) + 1 : 0;
+        window.__ttStillY = y;
+        return window.__ttStillPolls >= 3;
+      }, null, { polling: 100, timeout: 8_000 });
       await scrollInstant(page, target);
       await page.waitForTimeout(600);
       const afterFilter = await page.locator("[data-project-grid]").evaluate((grid) => ({
         scrollY: window.scrollY,
         prefix: [...grid.querySelectorAll(".masonry-card")].slice(0, 24).map((tile) => `${tile.dataset.masonryCard}:${tile.style.left}:${tile.style.top}`),
       }));
-      assert(afterFilter.scrollY >= target - 2, "filter round-trip shifted deep scroll position");
+      assert(afterFilter.scrollY >= target - 2, `filter round-trip shifted deep scroll position: ${afterFilter.scrollY} < ${target}`);
       assert(JSON.stringify(afterFilter.prefix) === JSON.stringify(nearFrontier.prefix), "filter round-trip changed the remounted deterministic window");
 
       await page.setViewportSize({ width: 1200, height: 900 });
@@ -7371,7 +7379,10 @@ async function runAdvertisingThreeThousandCardProbe() {
       const resizedLayout = await browseLayout(page, "all", await page.evaluate(() => document.documentElement.clientWidth));
       const resizedTarget = await scrollTargetFor(page, resizedLayout, deepId);
       await scrollInstant(page, resizedTarget);
-      await page.waitForTimeout(500);
+      // Relaying 3000 cards for the new width can take longer than a frame budget on a busy runner.
+      await page.waitForFunction((id) => Boolean(document.querySelector(`[data-project-grid] [data-masonry-card="${id}"]`)), deepId, { timeout: 5_000 })
+        .catch(() => {});
+      await page.waitForTimeout(300);
       const afterResize = await page.locator("[data-project-grid]").evaluate((grid, deepId) => ({
         count: grid.querySelectorAll(".masonry-card").length,
         overflow: document.documentElement.scrollWidth - innerWidth,
