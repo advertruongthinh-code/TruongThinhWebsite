@@ -38,8 +38,7 @@ body.is-detail .search-host {
   --search-morph: 1s;
   --search-ease: var(--ease-card);
   --search-hair: color-mix(in srgb, var(--ink) 14%, transparent);
-  /* --search-lift (dock.mjs) fades the shadow while the bar turns into its docked look under the finger (search-bar R7). */
-  --search-shadow: 0 12px 32px rgb(0 0 0 / calc(18% * var(--search-lift, 1)));
+  --search-shadow: 0 12px 32px rgb(0 0 0 / 18%);
 }
 
 /* Docked, the bar hangs from the slot's bottom: while it still carries the chip row on its way in, the row reaches above the slot
@@ -55,9 +54,21 @@ body.is-detail .search-host {
   left: 0;
 }
 
-/* Under the finger the inline values move every frame, and a new place takes its look at once: no transition may smooth them. */
-.search-bar:is(.is-linked, .is-moving) .search-bar__shell {
+/* A new place takes its look at once: no transition may smooth it (search-bar R7). */
+.search-bar.is-moving .search-bar__shell {
   transition: none;
+}
+
+/* Leaving the top slot, the floating bar flies up from below the bottom edge with the phone back-to-top button's rhythm (search-bar
+   R7, owner 2026-11-23); reduced motion skips it in dock.mjs. */
+.search-host.is-rising {
+  animation: search-rise 1s var(--ease-float);
+}
+
+@keyframes search-rise {
+  from {
+    transform: translate(-50%, calc(100% + 80px));
+  }
 }
 
 /* Off the root grid (search-bar R8): the floating bar slides down out of view; from a slot it is gone at once. */
@@ -425,7 +436,7 @@ body.is-detail .search-host {
 
 /* Back-to-top (search-bar R5): with the bar in a slot it stays out. While the bar floats, it sits on its own
    row 10px above the block, at the right edge like every other page (owner 2026-11-22). */
-body:is([data-search-place="cta"], [data-search-place="top"], [data-search-place="link"]) .back-to-top.show {
+body:is([data-search-place="cta"], [data-search-place="top"]) .back-to-top.show {
   transform: translateX(150%);
 }
 
