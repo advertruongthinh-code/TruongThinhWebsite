@@ -107,14 +107,14 @@ Then A ẩn ngay, skeleton phủ khung primary, Flow hóa kính mờ của B r�
 trên ảnh trước (sản phẩm đứng đầu), sau đó tag có ảnh cùng nhóm theo thứ tự băm `fnv1a32("<photo>:<tag>")`; tag đang chọn luôn có chỗ. Thứ tự cố định theo photo, không theo
 locale; bật, tắt tag không đổi vị trí nút. Mỗi nút một dòng, nhãn VI/EN, `aria-pressed`; nút đang bật nền trắng, chữ và viền
 đen, không ảnh. Bấm nút bật tag (bấm lại thì tắt) bằng `replaceTag`: `replaceState`, không thêm entry, giữ ảnh primary, đổi
-related; focus về nút. Không có tag nào thì ẩn khối. `N = 4` khối nằm cuối info; `N <= 3` (cả `pinterest` lẫn `split` màn ngang) là card đầu related (`rank 0`, cùng solver), luôn ở cột trái ngay dưới primary.
-Card này ghim theo đáy primary: primary đổi cao thì nó tới chỗ mới trong cùng frame, không motion shuffle hay đi vòng; card related khác giữ motion cũ nhưng đi vòng card này như vòng primary, không lòn dưới nó ([cta-center-parallax R10](advertising-cta-center-parallax.md#r10-card-related-không-đi-qua-primary), owner 2026-11-07). Resize qua hai layout chỉ chuyển cùng node, giữ focus và tag.
+related; focus về nút. Không có tag nào thì ẩn khối. Mọi layout khối là card đầu related (`rank 0`, cùng solver), không nằm trong info (owner 2026-11-22): `N = 4` ở đầu cột 4, ngang đỉnh primary; `N <= 3` (cả `pinterest` lẫn `split` màn ngang) ở cột trái ngay dưới primary.
+Card này ghim theo primary: primary đổi cao thì nó tới chỗ mới trong cùng frame, không motion shuffle hay đi vòng; card related khác giữ motion cũ nhưng đi vòng card này như vòng primary, không lòn dưới nó ([cta-center-parallax R10](advertising-cta-center-parallax.md#r10-card-related-không-đi-qua-primary), owner 2026-11-07). Resize qua hai layout chỉ chuyển cùng node, giữ focus và tag.
 
 ```gherkin
 Given detail kiosk-posm-07 ở 1440×900 với bốn nút suggestion
 When bấm nút "Trưng bày dùng thử" rồi resize xuống 820px
 Then URL thêm tag=use-sampling bằng replaceState, history.length không đổi, nút có aria-pressed="true"
-And sau resize khối suggestion là card đầu related, vẫn đúng một khối và nút vẫn bật
+And trước và sau resize khối suggestion là card đầu related (1440: cột 4 ngang đỉnh primary), vẫn đúng một khối và nút vẫn bật
 And resize 844×390 xuống 844×340 thì mọi frame card suggestion ở cột trái, cách đáy primary đúng một gap
 ```
 

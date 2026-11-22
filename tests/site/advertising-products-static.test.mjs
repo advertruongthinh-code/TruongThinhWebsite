@@ -104,8 +104,6 @@ assert.match(css, /detail-view__info\s*\{[^}]*overflow:\s*(?:clip|hidden);[^}]*o
   "info itself never scrolls or traps vertical scroll; only the description scrolls");
 assert.match(css, /\.detail-view__description-scroll\s*\{[^}]*overflow-y:\s*auto;[^}]*scrollbar-width:\s*none;/s,
   "description scrolls behind its own scrollbar instead of the native one");
-assert.match(runtime, /primary\.span\s*===\s*(?:primary\.columns|layout\.columns|relatedLayout\.layout\.columns|columns)[\s\S]*?["']pinterest["']/,
-  "Pinterest mode derives from primary span equalling total columns");
 for (const token of ["data-fade-start", "data-fade-end", "setPointerCapture", "lostpointercapture"]) {
   assert.match(runtime, new RegExp(token), `description scroll hints runtime is missing ${token}`);
 }

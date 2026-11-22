@@ -12,7 +12,7 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
   cách cột 70px; padding `35px 35px 0`.
 - Hàng cao `header-row-height`; khi thu gọn còn
   `header-collapsed-row-height`, padding dọc 10px.
-- Nút menu vuông, không pill. Nav chữ hoa 700, 1rem; `motion.js` ẩn nav
+- Nút menu vuông, không pill. Nav chữ hoa 600, 1rem; `motion.js` ẩn nav
   (`is-space-hidden`, `inert`) khi breakpoint tắt nó hoặc nav xuống dòng, bị
   cắt, đè lên lockup hay nút menu; nút menu luôn còn.
 
@@ -27,7 +27,7 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
 | `> 1200` | 102.52 | 81.39 | `35px 35px 0` | `10px 35px` | 70 | `260.97 × 67.52` | `65 × 67.52` |
 
 - Lockup sticky `191.88 × 49.64` mọi width.
-- Nav ẩn tới 750px; bốn link một hàng, chữ hoa 700 16/22.4, chỉ hiện khi
+- Nav ẩn tới 750px; bốn link một hàng, chữ hoa 600 16/22.4, chỉ hiện khi
   đủ chỗ (từ khoảng 1040px; hẹp hơn thì `is-space-hidden`, còn nút menu).
   Tới 1400px nav canh giữa, khe giữa các link co lại (tối đa 44.46px); trên
   1400px khe 39.46px, lệch trái 10% như Espacio.

@@ -417,7 +417,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   justify-self: center;
   align-self: center;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -577,47 +577,55 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   transform: translateX(0);
 }
 
-/* Back to top (owner 2026-11-13): phones on a page with a masonry layout, past the first screen, in the corner the floating CTA leaves;
-   the same black square as the CTA's icon-only form at 750px (35px plus 9px padding, 15px from the right). motion.js adds .show. */
+/* Back to top (owner 2026-11-13, unified 2026-11-22): every device, on a page with a masonry layout, past the first screen, in the
+   bottom-right corner the floating CTA leaves; white 50px square with the search block's shadow (search-bar R5). motion.js adds .show. */
 .back-to-top {
-  display: none;
+  position: fixed;
+  z-index: 975;
+  right: 35px;
+  bottom: calc(35px + var(--search-bar-offset, 0px));
+  display: grid;
+  box-sizing: border-box;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  cursor: pointer;
+  transform: translateX(150%);
+  transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
+}
+
+.back-to-top.show {
+  transform: translateX(0);
+}
+
+.back-to-top svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: square;
+}
+
+@media (max-width: 1200px) {
+  .back-to-top {
+    right: 25px;
+    bottom: calc(25px + var(--search-bar-offset, 0px));
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {
   .back-to-top {
-    position: fixed;
-    z-index: 975;
     right: 15px;
-    bottom: calc(25px + var(--search-bar-offset, 0px));
-    display: grid;
-    box-sizing: content-box;
-    width: 35px;
-    height: 35px;
-    padding: 9px;
-    place-items: center;
-    border: 2px solid #000;
-    background: #000;
-    color: #fff;
-    cursor: pointer;
-    transform: translateX(150%);
-    transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
-  }
-
-  .back-to-top.show {
-    transform: translateX(0);
-  }
-
-  .back-to-top svg {
-    width: 25px;
-    height: 25px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: square;
   }
 }
 
-@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) {
   .back-to-top {
     transition: none;
   }
@@ -691,7 +699,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
     170px minmax(0, 1fr) minmax(0, 1fr) 50px;
   align-items: center;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .menu-head::after {
@@ -817,7 +825,7 @@ html[lang="en"] .menu-language [data-language-option="en"]::after {
   gap: 10px;
   font-size: 0.85rem;
   line-height: 1.4;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -997,7 +1005,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   overflow-wrap: anywhere;
   margin-bottom: 15px;
   font-size: 1.8rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -1054,7 +1062,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   display: inline-block;
   color: inherit;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: max(22.4px, 1.3em);
   text-transform: uppercase;
 }
@@ -1229,7 +1237,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 .hero p:where(.hero-title),
 .legacy-copy h2 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   word-spacing: var(--word-spacing-display);
 }
@@ -1246,13 +1254,13 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 }
 
 em {
-  font-weight: 600;
+  font-weight: inherit;
 }
 
-/* Home: two lines bold 700, line 2 "Làm khác" additionally italic (owner 2026-10-24). */
+/* Home: line 2 "Làm khác" italic at the same weight; uppercase display titles are 500 like Espacio (owner 2026-11-22 weight audit). */
 .hero[data-hero-intro] h1 > .hero-line-mask:first-child,
 .hero[data-hero-intro] h1 em {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .hero-line-mask,
@@ -1407,7 +1415,7 @@ em {
   color: currentColor;
   cursor: pointer;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-align: center;
   text-transform: uppercase;
@@ -1563,7 +1571,7 @@ em {
 .editorial-item h3 {
   margin: 0 0 0.75rem;
   font-size: clamp(1rem, 2vw, 1.25rem);
-  font-weight: 700;
+  font-weight: 600;
   hyphens: auto;
   letter-spacing: 0;
   line-height: 1.35;
@@ -1655,7 +1663,7 @@ em {
 
 .portal-copy strong {
   font-size: clamp(3.05rem, 4.167vw, 4rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 1.18;
   text-wrap: balance;
@@ -1667,7 +1675,7 @@ em {
 }
 
 .portal-title__strong {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .portal-title-mask,
@@ -1694,7 +1702,7 @@ em {
 .portal-copy small {
   margin-top: 0.5rem;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -1712,7 +1720,7 @@ em {
 .commitment-title {
   margin: 0 0 0.625rem;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   line-height: 1.3;
   text-transform: uppercase;
@@ -1818,7 +1826,7 @@ em {
 :is(#dich-vu, #loai-hinh) .portal-title__quiet {
   bottom: calc(50% + var(--portal-title-half-line) + var(--portal-upper-gap));
   font-size: var(--portal-kicker-size);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
@@ -1828,7 +1836,7 @@ em {
   top: 50%;
   transform: translateY(-50%);
   font-size: var(--portal-title-size);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 :is(#dich-vu, #loai-hinh) .portal-copy small {
@@ -1904,7 +1912,7 @@ em {
   margin: 0;
   align-items: center;
   font-size: min(9.506vw, 6.25rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 1.08;
   text-transform: uppercase;
@@ -2022,7 +2030,7 @@ em {
   align-items: center;
   gap: 1.4rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2084,7 +2092,7 @@ em {
   margin-top: 5px;
   padding-top: 0.75rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   transition: opacity var(--dur-base) ease-out;
 }
@@ -2273,7 +2281,7 @@ em {
   padding-inline-end: 2.8rem;
   animation: marquee 25s linear infinite;
   font-size: clamp(1.5rem, 2.8vw, 3.2rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   text-transform: uppercase;
   word-spacing: var(--word-spacing-body);
@@ -2462,7 +2470,7 @@ em {
   gap: 1.5rem;
   border-bottom: 1px solid currentColor;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2478,7 +2486,7 @@ em {
   min-width: 0;
   margin: 0;
   font-size: clamp(2.8rem, 4.5vw, 5.4rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: calc(0.98em + 14px);
   overflow-wrap: anywhere;
@@ -2509,7 +2517,7 @@ em {
   column-gap: 0.65rem;
   /* From 1440px a text line is 36px tall (1.6rem x 1.4), equal to the social icon. */
   font-size: clamp(1.125rem, 1.8vw, 1.6rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
 }
@@ -3454,7 +3462,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   padding-left: 0.5rem;
   margin: 0 0 clamp(1.5rem, 3.8vh, 2.2rem);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -3473,7 +3481,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   padding-left: 0.5rem;
   margin: 0 0 clamp(1.5rem, 3.8vh, 2.2rem);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -3492,7 +3500,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 .detail-title__strong {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 /* Project hero (projects R3, owner 2026-11-14, measured on Espacio project pages): the italic part of the tagline is bold italic like the
@@ -3504,7 +3512,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
 .project-hero .hero-title em {
   font-style: italic;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .project-hero .hero-content:has(> .hero-title > :only-child) > .hero-kicker {
@@ -3518,7 +3526,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   margin: 32px auto 0;
   color: inherit;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-decoration: none;
   text-transform: uppercase;
@@ -3537,7 +3545,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
 .commercial-hero h1 em {
   font-style: italic;
-  font-weight: 700;
+  font-weight: 500;
 }
 
 /* Residential hero: the accent line "năng lượng sống" is bold 700 and italic (owner 2026-10-24). */
@@ -3568,7 +3576,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .detail-heading h2,
 .masonry-section h1 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   word-spacing: var(--word-spacing-display);
 }
@@ -3738,7 +3746,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .detail-eyebrow {
   margin: 0;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-wrap: balance;
@@ -3842,7 +3850,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .detail-lead__title {
   margin: 0;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.1;
 }
 
@@ -3919,7 +3927,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   margin-top: 10px;
   color: var(--ink);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -3974,14 +3982,14 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .process-step > span {
   color: var(--muted);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .process-step h3 {
   margin: auto 0 1rem;
   /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1500px max frame. */
   font-size: clamp(1.25rem, 2.9vw - 0.5rem, 2.2rem);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   word-spacing: 0.08em;
 }
@@ -4102,7 +4110,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .detail-cta__copy p {
   margin: 0 0 1rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1em;
 }
 
@@ -4110,7 +4118,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   margin: 0;
   font-size: var(--cta-title-size);
   text-wrap: balance;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 0.98;
   word-spacing: var(--word-spacing-display);
@@ -4124,7 +4132,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   align-items: center;
   margin-top: 2rem;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -4153,7 +4161,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   padding-left: 0.5rem;
   margin: 0;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -4190,7 +4198,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   color: var(--muted);
   cursor: pointer;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
   transition: color var(--dur-base) ease-out, text-decoration-color var(--dur-base) ease-out;
@@ -4268,7 +4276,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .detail-index-hero .rail-chip sup {
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   margin-left: 0.25em;
   vertical-align: 0.45em;
@@ -4649,7 +4657,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   margin: 0;
   /* Floor lets the tied last two words share a line in the 768px column (hero-typography R7). */
   font-size: clamp(2rem, 4.5vw, 5.4rem);
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   line-height: 0.95;
   word-spacing: var(--word-spacing-display);
@@ -4666,7 +4674,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 .about-timeline__copy strong {
-  font-weight: 700;
+  font-weight: inherit;
 }
 
 .about-chapter-lead {
@@ -4735,7 +4743,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .about-commitment > span {
   color: var(--muted);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .about-commitment h3 {
@@ -4743,7 +4751,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   max-width: 16ch;
   margin: auto 0 1rem;
   font-size: clamp(2rem, 3vw, 3.7rem);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   line-height: 1;
   word-spacing: 0.1em;
@@ -5010,7 +5018,7 @@ body.is-masonry-browse .masonry-grid {
   color: inherit;
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -5090,7 +5098,7 @@ body.is-masonry-browse .masonry-grid {
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
   text-shadow: var(--text-shadow-d);
   pointer-events: none;
@@ -5984,7 +5992,7 @@ body.is-masonry-browse .site-footer {
 .video-player__time {
   margin: 0 0 0 20px;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.5rem;
   white-space: nowrap;
@@ -6449,7 +6457,7 @@ body.is-masonry-browse .site-footer {
   background: transparent;
   color: var(--ink);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   text-transform: uppercase;
   text-decoration: none;
@@ -6501,7 +6509,7 @@ body.is-masonry-browse .site-footer {
   max-width: none;
   margin: 1rem 0 0;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
   letter-spacing: normal;
 }
@@ -6520,15 +6528,6 @@ body.is-masonry-browse .site-footer {
   width: 100%;
   pointer-events: auto;
   touch-action: pan-y;
-}
-
-[data-detail-layout="split"] .detail-view__info .detail-view__suggestion {
-  position: relative;
-  flex: 0 0 auto;
-  width: 100%;
-  height: auto;
-  margin-top: auto;
-  overflow: visible;
 }
 
 .detail-view__suggestion-link {
@@ -6625,7 +6624,7 @@ body.is-masonry-browse .site-footer {
   place-items: center;
   color: var(--white);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5;
   text-align: center;
   text-wrap: balance;
@@ -7549,7 +7548,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 60px 0 0;
   padding-inline: var(--gutter);
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0;
   text-wrap: pretty;
@@ -7595,7 +7594,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   max-width: 20ch;
   margin: 0;
   font-size: clamp(2.5rem, 6vw, 5.5rem);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: var(--tracking-display);
   text-wrap: balance;
@@ -7606,7 +7605,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0;
   max-width: 22ch;
   font-size: clamp(2.25rem, 4.45vw, 4rem);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.1;
   text-wrap: balance;
 }
@@ -7750,13 +7749,13 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-bottom: 1.5rem;
   color: var(--muted);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .blk-facts__label {
   margin: 0 0 0.5rem;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -7795,7 +7794,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   color: var(--white);
   background: var(--ink);
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-decoration: none;
   text-transform: uppercase;
@@ -7813,7 +7812,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   gap: 1.5rem;
   color: var(--ink);
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-decoration: none;
   text-transform: uppercase;
@@ -7854,7 +7853,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   display: block;
   padding-top: 0.75rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -7863,7 +7862,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0 0 var(--section-gap, 90px);
   padding-top: 50px;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   text-align: center;
 }
@@ -7949,7 +7948,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .blk-news-pager a {
   color: var(--ink);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-decoration: none;
   text-transform: uppercase;
@@ -8025,7 +8024,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-block: 0.83em;
   color: #2f2f2f;
   font-size: 1.3rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
 }
 
@@ -8120,7 +8119,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 /* Projects page hero tagline: only the accent text (em) bold 700 italic, the rest 500 like line one (owner 2026-11-08). */
 .projects-title__accent em {
   font-style: italic;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 /* Projects page type with no project yet (projects R2): the "đang cập nhật" line; build and detail.js toggle hidden by the filter. */
@@ -8133,7 +8132,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 /* News teasers (home strip news R4, "Other news" news R3) following espaciohomedesign.com (layout-bloque-noticias, measured 2026-11-11 and
    2026-11-14 from 384 to 1920): content capped at 1500px and centred; 3 columns 70px apart, 50px from 1200px, 2 columns from 960px, 30px from
-   750px, 1 column from 578px; each item a cover column (1fr : 1.5fr, 1fr : 2fr up to 960px) and text 20px apart; the cover keeps at least 5:6 and stretches when
+   750px, 1 column from 578px; each item a cover column (golden ratio 1fr : 1.618fr) and text 20px apart; the cover keeps at least 1 : 1.618 and stretches when
    the text is taller. Group 16px bold capitals 15px from the top, title 19.2px regular with 19.2px above and below, "Read more" 12.8px
    semibold. Hover: cover zooms 1.2 in 0.6s, the group gets the 3px underline, "Read more" fades in (0.6s in, 0.3s out). */
 .home-news__grid {
@@ -8147,7 +8146,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 .home-news__item {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  /* Golden ratio (owner 2026-11-22): cover : text = 1 : 1.618 and the cover is 1 : 1.618 portrait. */
+  grid-template-columns: 1fr 1.618fr;
   column-gap: 20px;
   color: #222;
   text-decoration: none;
@@ -8161,7 +8161,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__media::before {
   content: "";
   display: block;
-  padding-top: 120%;
+  padding-top: 161.8%;
 }
 
 .home-news__media img {
@@ -8189,7 +8189,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-top: 15px;
   color: #2f2f2f;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -8197,7 +8197,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__title {
   margin-block: 1.2rem;
   font-size: 1.2rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
 }
 
@@ -8229,7 +8229,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 
   .home-news__item {
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1.618fr;
   }
 }
 
@@ -8313,7 +8313,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0;
   color: inherit;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 [data-barba-namespace="project"] .blk-facts__label {
@@ -8326,7 +8326,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 [data-barba-namespace="project"] .blk-facts__text {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 @media (max-width: 980px) {
@@ -8389,7 +8389,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0 0 35px;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
   font-style: italic;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.4;
   text-align: center;
 }
@@ -8456,7 +8456,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   display: inline-block;
   margin: 1em 0 5px;
   font-size: 1.8rem;
-  /* Espacio sets the card name in its medium cut and the address in regular (silka-medium / silka-regular, measured 2026-11-22). */
+  /* Same weight as the menu group titles, 500 like Espacio mid headings (owner 2026-11-22); the address stays regular. */
   font-weight: 500;
   line-height: 1.4;
   text-transform: uppercase;

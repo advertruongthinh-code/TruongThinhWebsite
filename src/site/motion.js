@@ -17,7 +17,6 @@
   const routeVeil = document.querySelector(".route-veil");
   const floatingCta = document.querySelector(".floating-cta");
   const backToTop = document.querySelector(".back-to-top");
-  const phoneQuery = window.matchMedia("(hover: none) and (pointer: coarse)");
   const dialog = document.querySelector("#site-menu");
   const openButton = document.querySelector("[data-menu-open]");
   const closeButton = document.querySelector("[data-menu-close]");
@@ -730,9 +729,9 @@
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta?.classList.toggle("show", nextCtaShown);
     }
-    // Back to top (owner 2026-11-13): phones, on a page with a masonry layout, once the first screen is passed. It takes the corner the floating
-    // CTA leaves at that point (masonry browse hides the CTA altogether).
-    const topShown = phoneQuery.matches && scrollY > window.innerHeight && Boolean(document.querySelector("[data-masonry-item]"));
+    // Back to top (owner 2026-11-13, every device since 2026-11-22): on a page with a masonry layout, once the first screen is passed.
+    // It takes the corner the floating CTA leaves at that point (masonry browse hides the CTA altogether).
+    const topShown = scrollY > window.innerHeight && Boolean(document.querySelector("[data-masonry-item]"));
     if (backToTop && topShown !== backToTop.classList.contains("show")) {
       backToTop.classList.toggle("show", topShown);
       backToTop.tabIndex = topShown ? 0 : -1;

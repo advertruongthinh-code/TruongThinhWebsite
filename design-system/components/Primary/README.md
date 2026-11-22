@@ -2,8 +2,8 @@
 
 Nguồn: `src/site/masonry/detour-path.mjs`; CSS `.detail-view__primary`; spec [Detail](../../../docs/specs/advertising-detail.md).
 
-Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, mô tả, CTA trao
-đổi và suggestion. Markup khung tĩnh trong `advertising-products/index.html`
+Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, mô tả và CTA trao
+đổi. [Suggestion](../Suggestion/README.md) là card ghim đầu related, không nằm trong primary. Markup khung tĩnh trong `advertising-products/index.html`
 (`.detail-view__primary`), runtime điền nội dung.
 
 ## Bố cục
@@ -21,8 +21,8 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
   [Viewer](../Viewer/README.md). Màn cảm ứng ẩn nút này, chạm đúp ảnh để mở. Video có thêm nút tiếng.
   Nút không bao giờ khóa, icon phóng to đứng yên: ảnh chưa tải xong thì viewer vẫn mở ngay,
   ảnh chờ dưới lớp chờ (PC Flow, phone lớp màu). Màn cảm ứng chạm ảnh cũng vậy.
-- Cột chữ: breadcrumb phân loại (link tới từng cấp lọc), mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`,
-  [Suggestion](../Suggestion/README.md). Không có tiêu đề ảnh.
+- Cột chữ: breadcrumb phân loại (link tới từng cấp lọc), mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`.
+  Không có tiêu đề ảnh.
 - Mô tả dài chia trang trọn dòng. Từ 2 đến 5 trang, dưới mô tả là hàng chấm:
   nút 24px, chấm tròn 8px viền 1px `ink`, trang đang xem tô `ink`; bấm chấm để
   nhảy trang, focus outline 2px `ink`. Từ 6 trang là chữ `n / N` cỡ 0.75rem.

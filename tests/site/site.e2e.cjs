@@ -599,7 +599,7 @@ function assertPersistentNavigationContracts() {
     "The heritage montage must contain layout overflow without clipping first or last glyph ink",
   );
   assert(
-    /\.desktop-nav\s*\{[\s\S]*?font-size:\s*1rem;[\s\S]*?font-weight:\s*700;/.test(
+    /\.desktop-nav\s*\{[\s\S]*?font-size:\s*1rem;[\s\S]*?font-weight:\s*600;/.test(
       styleSource,
     ) &&
       /\.desktop-nav li\.selected a::after[\s\S]*?transform:\s*scaleX\(1\);[\s\S]*?transform-origin:\s*left center;/.test(
@@ -1756,7 +1756,7 @@ async function runPortalAlignmentChecks() {
           if (path) {
             // Sub-pages match the home portal's text tokens at the same card width.
             assert(
-              state.cards.every((card) => card.titleWeight === "600" && (!card.hasKicker || card.upperWeight === "700") && card.lowerWeight === "700"),
+              state.cards.every((card) => card.titleWeight === "500" && (!card.hasKicker || card.upperWeight === "600") && card.lowerWeight === "600"),
               `Detail portal weights drifted at ${route} ${width}px: ${JSON.stringify(state.cards)}`,
             );
           } else {
@@ -1781,7 +1781,7 @@ async function runPortalAlignmentChecks() {
           assert(
             state.cards.every(
               (card) =>
-                card.titleWeight === "600" &&
+                card.titleWeight === "500" &&
                 card.titleFontSize > card.lowerFontSize &&
                 (card.hasKicker
                   ? card.titleFontSize > card.upperFontSize &&
@@ -3374,9 +3374,9 @@ async function runEspacioTypographyChecks() {
                 document.documentElement.scrollWidth -
                 document.documentElement.clientWidth,
               // The masonry card counter "i/N" is 0.75rem regular like Pinterest's (media-card spec, owner 2026-11-10), outside the
-              // 500 weight and 12.5px floors. It only shows when a card with 6+ media lands in the first viewport, which the random
+              // 400 weight and 12.5px floors. It only shows when a card with 6+ media lands in the first viewport, which the random
               // card order decides, so without this exception the check failed at random.
-              lightText: visibleText.filter((item) => item.weight < 500 && !item.galleryTitle && item.selector !== "span.card-media__count"),
+              lightText: visibleText.filter((item) => item.weight < 400 && !item.galleryTitle && item.selector !== "span.card-media__count"),
               // Portal subtitle shrinks with the card width to stay on one line (page-home R5), not following the 12.5px floor.
               tinyText: visibleText.filter((item) => item.size < 12.5
                 && !["span.portal-subtitle", "span.card-media__count"].includes(item.selector)),
@@ -3397,7 +3397,7 @@ async function runEspacioTypographyChecks() {
           );
           assert(
             state.lightText.length === 0,
-            `${route} ${viewport.width}px has visible text below weight 500: ${JSON.stringify(state.lightText)}`,
+            `${route} ${viewport.width}px has visible text below weight 400: ${JSON.stringify(state.lightText)}`,
           );
           assert(
             state.tinyText.length === 0,
@@ -3405,7 +3405,7 @@ async function runEspacioTypographyChecks() {
           );
           assert(
             state.roles.cue &&
-              state.roles.cue.weight >= 700 &&
+              state.roles.cue.weight >= 600 &&
               state.roles.cue.capHeight >= 8 &&
               state.roles.cue.capHeight <= 11,
             `Scroll cue cap-height drifted on ${route}: ${JSON.stringify(state.roles.cue)}`,
@@ -3413,7 +3413,7 @@ async function runEspacioTypographyChecks() {
           if (viewport.width === 1440) {
             assert(
               state.roles.nav &&
-                state.roles.nav.weight >= 700 &&
+                state.roles.nav.weight >= 600 &&
                 state.roles.nav.capHeight >= 10 &&
                 state.roles.nav.capHeight <= 13,
               `Desktop nav cap-height drifted on ${route}: ${JSON.stringify(state.roles.nav)}`,
@@ -3425,14 +3425,14 @@ async function runEspacioTypographyChecks() {
               viewport.width === 1440 ? [35, 47] : [31, 46];
             assert(
               state.roles.portal &&
-                state.roles.portal.weight >= 600 &&
+                state.roles.portal.weight >= 500 &&
                 state.roles.portal.capHeight >= portalRange[0] &&
                 state.roles.portal.capHeight <= portalRange[1],
               `Portal cap-height drifted on ${route}: ${JSON.stringify(state.roles.portal)}`,
             );
           } else if (state.roles.detailLabel) {
             assert(
-              state.roles.detailLabel.weight >= 700 &&
+              state.roles.detailLabel.weight >= 600 &&
                 state.roles.detailLabel.capHeight >= 8 &&
                 state.roles.detailLabel.capHeight <= 11,
               `Detail label cap-height drifted on ${route}: ${JSON.stringify(state.roles.detailLabel)}`,
@@ -6015,7 +6015,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           assert(hero.kickerText === expectedKicker && hero.kickerLeadsTitle, `${locale} ${viewport.width}x${viewport.height}: hero kicker copy or order changed`);
           assert(hero.headingText === expectedTitle && hero.headingLineCount === 2 && hero.headingFits && hero.titleAlignment, `${locale} ${viewport.width}x${viewport.height}: two-line title overflowed, changed, or lost its reference alignment ${JSON.stringify({ text: hero.headingText, lines: hero.headingLineCount, fits: hero.headingFits, aligned: hero.titleAlignment })}`);
           assert(hero.headingFontSize <= 112.1 && hero.letterSpacing >= -4.49, `${locale} ${viewport.width}x${viewport.height}: hero title exceeded the editorial type bounds`);
-          assert(hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "700", `${locale} ${viewport.width}x${viewport.height}: hero emphasis line is not bold italic ${JSON.stringify(hero.strongLineStyle)}`);
+          assert(hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "500", `${locale} ${viewport.width}x${viewport.height}: hero emphasis line is not bold italic ${JSON.stringify(hero.strongLineStyle)}`);
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
           assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);

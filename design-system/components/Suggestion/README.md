@@ -2,15 +2,16 @@
 
 Nguồn: `src/site/masonry/suggestion-slideshow.mjs`; CSS `.detail-view__suggestion`; spec [Detail](../../../docs/specs/advertising-detail.md).
 
-Danh sách tối đa bốn nút gợi ý nhóm sản phẩm cùng loại, nằm trong cột mô tả
-của [Primary](../Primary/README.md). Runtime `masonry/runtime.mjs`
+Danh sách tối đa bốn nút gợi ý nhóm sản phẩm cùng loại, là card ghim đầu
+related cạnh [Primary](../Primary/README.md): bốn cột thì đầu cột 4 ngang đỉnh
+primary, ít cột hơn thì cột trái ngay dưới primary (owner 2026-11-22). Runtime `masonry/runtime.mjs`
 (`selectSuggestions`) chọn tag, `masonry/suggestion-slideshow.mjs` chạy
 chuỗi ảnh nền.
 
 ## Hành vi
 
 - Mỗi nút một dòng, nền là ảnh cover crop của tag kèm lớp tối, nhãn chữ trắng
-  đậm căn giữa, đủ chữ.
+  600 căn giữa, đủ chữ.
 - Bấm để lọc ảnh liên quan theo tag; chỉ một tag bật, bấm lại để tắt. Trạng
   thái bật dùng `aria-pressed`, khác hover và focus; thứ tự nút không đổi khi
   bật hoặc tắt.

@@ -157,12 +157,12 @@ Then tiêu đề gallery trượt lên lại bằng chữ EN, section khác khô
 ### R7. Gallery ngang
 
 `section.detail-gallery[data-gallery]` theo khối "The balance within the spaces" của Espacio interior-design (owner
-duyệt 2026-10-17). `h2` riêng một hàng, canh giữa, weight 300, chữ thường kiểu câu, phần cuối trong `<i>` (`data-en`
+duyệt 2026-10-17). `h2` riêng một hàng, canh giữa, weight 400, chữ thường kiểu câu, phần cuối trong `<i>` (`data-en`
 ở `span` và `i`, R4), cỡ `clamp(2.5rem, 4.45vw, 4rem)` (64px ở 1440px), vẫn tách dòng (R6). Dưới là track
 `[data-gallery-track]`: `region` focus được, `aria-label` trung tính, không ghi số ảnh; không nút prev/next. Track bắt buộc:
 thiếu thì `mount` ném lỗi. Mọi ảnh cao bằng nhau `min(50vw, 45rem)` (tới 750px `75vw`), rộng theo `width`, `height` của ảnh
 nên không crop và khung đúng tỷ lệ trước khi tải. Khối `gallery-carousel` trang công trình có ít ảnh không phủ hết track (Giếng trời: ba ảnh dọc ở 1920px) thì cả hàng cao lên tới khi ảnh cuối chạm mép phải track (owner chọn 2026-11-14): build ghi tổng tỷ lệ ảnh `--gallery-ratio` và số khe `--gallery-gaps` lên section, CSS lấy chiều cao lớn hơn giữa mức thường và mức phủ kín. `figure.detail-gallery__item` (trong `.detail-gallery__slides`) gồm khung
-`.detail-gallery__media` (vệt sáng chờ ảnh) và `figcaption` dưới ảnh 10px: label 0.8rem, 700, hoa, màu `ink`, không nới figure và rộng tối đa bằng track nhìn thấy (`100vw` trừ hai `--gutter`), nên ảnh ngang rộng hơn track vẫn xuống dòng chữ ở cỡ chữ 200%.
+`.detail-gallery__media` (vệt sáng chờ ảnh) và `figcaption` dưới ảnh 10px: label 0.8rem, 600, hoa, màu `ink`, không nới figure và rộng tối đa bằng track nhìn thấy (`100vw` trừ hai `--gutter`), nên ảnh ngang rộng hơn track vẫn xuống dòng chữ ở cỡ chữ 200%.
 Kéo, vuốt như gallery Espacio (đo Espacio): gallery cách viewport một màn hình thì `detail.js` tải Swiper
 14.2.0 (loader chung carousel Advertising) với tham số Espacio: `slidesPerView: "auto"`, `speed` 500 (reduced motion 0),
 `spaceBetween` 20 (dưới 600px 10; `.detail-gallery__item` đặt `transition: none` để giảm chuyển động không làm Swiper đo margin cũ), `grabCursor`, `edgeSwipeDetection`, `watchOverflow`, `mousewheel.forceToAxis`, resistance
@@ -212,7 +212,7 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 `.detail-cta#tu-van`: ảnh phủ khung có lớp tối 50%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
 "Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Rule CTA chung cho CTA này, khối
 "Giữ nghề" ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) và CTA Advertising: tiêu đề
-canh giữa ở mọi bề rộng, weight 600, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`; CTA Advertising giữ cỡ riêng,
+canh giữa ở mọi bề rộng, weight 500, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`; CTA Advertising giữ cỡ riêng,
 [R3](advertising-cta-center-parallax.md#r3-tiêu-đề-luôn-lớn-hơn-nút)); eyebrow (nếu có) ở trên, nút ở
 dưới. Ở `.detail-cta#tu-van` nét chữ nhìn thấy của tiêu đề (đỉnh chữ hoa tới chân chữ dòng cuối, không tính dấu) nằm đúng tâm
 khối theo chiều dọc, lệch tối đa 2px: copy là grid `1fr auto 1fr`, eyebrow và nút ở hai hàng 1fr bằng nhau, cả cụm dời
