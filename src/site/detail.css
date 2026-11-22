@@ -4706,12 +4706,10 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__media {
   position: relative;
   overflow: hidden;
-}
-
-.home-news__media::before {
-  content: "";
-  display: block;
-  padding-top: 161.8%;
+  /* Cover at least 1 : 1.618 (owner 2026-11-22), stretched by a taller text block. aspect-ratio, not a ::before spacer: the loading
+     sweep takes the frame's ::before (style.css media-frame) and made the spacer absolute, so the box grew when the image settled. */
+  aspect-ratio: 1 / 1.618;
+  align-self: stretch;
 }
 
 .home-news__media img {

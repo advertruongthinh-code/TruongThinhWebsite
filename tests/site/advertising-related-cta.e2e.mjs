@@ -194,8 +194,9 @@ try {
   await page.close();
 
   // Find a case where a batch frame has a straight line crossing primary: it must detour (R10). When related is empty the CTA sits right under primary.
-  // Whether such a case exists among the first heroes depends on the random order, so the search pins one seed that has it.
-  const DETOUR_SEED = process.env.CTA_DETOUR_SEED || "related-cta-detour-3";
+  // Whether such a case exists among the first heroes depends on the random order, so the search pins one seed that has it (re-pinned
+  // after the suggestion became the first related card on four columns, owner 2026-11-22).
+  const DETOUR_SEED = process.env.CTA_DETOUR_SEED || "related-cta-detour-5";
   const heroes = await (async () => {
     const list = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     await pinBrowseSeed(list, DETOUR_SEED);
