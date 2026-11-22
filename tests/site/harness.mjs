@@ -60,3 +60,54 @@ export const slowPacks = (target, ms, filter = null) => target.route(/\/masonry\
   body: `import "./layout-worker.mjs?inner"; const real = self.onmessage; self.onmessage = (event) => {
     const job = event.data?.pack; if (job && (${JSON.stringify(filter)} === null || job.filter === ${JSON.stringify(filter)})) setTimeout(() => real(event), ${ms}); else real(event); };`,
 }));
+
+// Real pointer input (verification roles, role 2): goes through the browser's input pipeline like a person, unlike
+// locator.click() or element.scrollLeft. Points are viewport pixels { x, y }.
+export async function mouseDrag(page, from, to, steps = 12) {
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(to.x, to.y, { steps });
+  await page.mouse.up();
+}
+
+// Touch swipe through CDP touch events; the context needs hasTouch (VIEWPORTS.phone, a04s or viewportAt under 600px).
+export async function touchSwipe(page, from, to, steps = 12) {
+  const cdp = await page.context().newCDPSession(page);
+  const at = (t) => [{ x: from.x + (to.x - from.x) * t, y: from.y + (to.y - from.y) * t, id: 1 }];
+  try {
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: at(0) });
+    for (let step = 1; step <= steps; step += 1) {
+      await cdp.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: at(step / steps) });
+      await frames(page, 1);
+    }
+    await cdp.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+  } finally {
+    await cdp.detach();
+  }
+}
+
+// Motion check (verification roles, role 3): samples the box of `selector` every animation frame for `ms` while `act` runs.
+// `jump` is the largest change of x, y, width or height between two frames as a share of that value's whole range over the
+// samples: a snap is 1, a morph spread over many frames stays small. Assert e.g. jump <= 0.5. Frames without the element are dropped.
+export async function trackMotion(page, selector, act, ms = 1500) {
+  await page.evaluate(([sel, duration]) => {
+    const samples = (window.__trackMotion = []);
+    const end = performance.now() + duration;
+    const tick = () => {
+      const box = document.querySelector(sel)?.getBoundingClientRect();
+      samples.push(box ? [box.x, box.y, box.width, box.height] : null);
+      if (performance.now() < end) requestAnimationFrame(tick);
+      else window.__trackMotionDone = true;
+    };
+    window.__trackMotionDone = false;
+    requestAnimationFrame(tick);
+  }, [selector, ms]);
+  await frames(page, 2); // the first samples are the box before `act`
+  await act();
+  await page.waitForFunction(() => window.__trackMotionDone, null, { timeout: ms + 5_000 });
+  const samples = (await page.evaluate(() => window.__trackMotion)).filter(Boolean);
+  const delta = (a, b) => Math.max(...a.map((value, i) => Math.abs(value - b[i])));
+  const total = Math.max(0, ...[0, 1, 2, 3].map((i) => Math.max(...samples.map((box) => box[i])) - Math.min(...samples.map((box) => box[i]))));
+  const step = Math.max(0, ...samples.slice(1).map((box, i) => delta(box, samples[i])));
+  return { samples, total, jump: total ? step / total : 0 };
+}

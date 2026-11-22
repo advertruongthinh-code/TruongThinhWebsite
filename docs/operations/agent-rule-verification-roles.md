@@ -7,7 +7,7 @@ Owner yêu cầu 2026-11-22 sau PR #1061 (hàng chip thanh tìm kiếm): 27/27 t
 Một claim chỉ mạnh bằng tầng thấp nhất có evidence. Từ đáy (mạnh nhất) lên đỉnh:
 
 1. Check máy: `qa:docs` ([R11](../specs/docs-system.md#r11-rule-agentsmd-máy-kiểm-được)), bộ test CI, owner lock. Agent không tự gỡ được.
-2. Test đã thấy đỏ: test mới hoặc sửa đỏ khi bỏ thay đổi trong `src/`, xanh khi có. Test chưa từng đỏ chưa chứng minh gì.
+2. Test đã thấy đỏ: test mới hoặc sửa đỏ khi bỏ thay đổi trong `src/`, xanh khi có. Test chưa từng đỏ chưa chứng minh gì; job CI `red-before` kiểm ([R13](../specs/ci-test-suites.md#r13-test-đã-thấy-đỏ)).
 3. Kiểm độc lập: vai dưới đây, ngữ cảnh mới, thao tác thật, evidence là ảnh, chuỗi frame, video.
 4. Tự kiểm: self-review, self-QA của chính implementer. Là claim, chưa là evidence.
 5. Văn xuôi: rule, brief, câu "đã test".
@@ -22,8 +22,8 @@ Vai là checklist, không phải agent riêng: một agent chạy được nhi�
 | Vai | Kiểm gì | Đạt khi |
 | --- | --- | --- |
 | 1. Đối chiếu lời owner | Mỗi câu trong nguyên văn tin owner thành một hành vi trên trang, kèm evidence; không thêm phạm vi owner chưa nói | Mọi câu có evidence |
-| 2. Thử tương tác | Thao tác thật ở PC 1440 và phone 384: chuột (`page.mouse` kéo, lăn, hover), touch (vuốt, chạm), bàn phím (Tab, Enter, Esc). Dữ liệu biên: 0, 1, rất nhiều kết quả, chữ dài, EN. Chuỗi: bấm lặp, đổi route, quay lại, resize. Kiểm bất biến: thứ không được đổi sau thao tác | Không lỗi; mỗi lỗi có test đỏ |
-| 3. Soát motion | Mọi chuyển trạng thái đã đổi: đo hình hộp từng frame hoặc quay video; không frame nào nhảy, đúng token [Design System](../../design-system/README.md), reduced motion, khớp chữ owner tả | Chuỗi frame hoặc video đính PR |
+| 2. Thử tương tác | Thao tác thật ở PC 1440 và phone 384: chuột (`mouseDrag`, lăn, hover), touch (`touchSwipe`, chạm) của [harness](../specs/ci-test-suites.md#r12-harness-test-trình-duyệt), bàn phím (Tab, Enter, Esc). Dữ liệu biên: 0, 1, rất nhiều kết quả, chữ dài, EN. Chuỗi: bấm lặp, đổi route, quay lại, resize. Kiểm bất biến: thứ không được đổi sau thao tác | Không lỗi; mỗi lỗi có test đỏ |
+| 3. Soát motion | Mọi chuyển trạng thái đã đổi: `trackMotion` của harness (`jump` tối đa 0,5) hoặc quay video; không frame nào nhảy, đúng token [Design System](../../design-system/README.md), reduced motion, khớp chữ owner tả | Chuỗi frame hoặc video đính PR |
 | 4. Soát giao diện | `pnpm qa:shots` trước và sau đủ sáu bề rộng, nhìn ảnh: chồng, tràn, lệch, cắt chữ; so mock, Design System | Ảnh trước, sau đính PR |
 | 5. Tiếp cận | Focus thấy được, thứ tự Tab, `aria-*`, tương phản, chữ 200% (skill `accessibility-review`) | Không lỗi chặn |
 | 6. Chữ và song ngữ | VI, EN đủ; dấu câu EN theo VI; [tên gọi chuẩn](../terminology.md) | Không lệch |
