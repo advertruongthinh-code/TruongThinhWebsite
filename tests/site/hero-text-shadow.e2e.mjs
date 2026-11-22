@@ -6,8 +6,9 @@ import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 const SHADOW_D = "rgba(0, 0, 0, 0.5) 0px 0px 2px, rgba(0, 0, 0, 0.4) 0px 0px 12px";
 const withShadow = [
   { route: "", selectors: [".hero h1", ".hero [data-scroll-cue]", ".portal-copy strong", ".legacy-copy h2", ".legacy-copy > p"] },
-  { route: "residential/", selectors: [".hero h1", ".portal-copy strong", ".detail-cta h2", ".detail-cta p"] },
-  { route: "commercial/", selectors: [".hero h1", ".portal-copy strong", ".detail-cta h2", ".detail-cta p"] },
+  // Residential and Commercial type portals have no link and reuse the commitment card (owner 2026-11-22, 2469d106).
+  { route: "residential/", selectors: [".hero h1", ".detail-cta h2", ".detail-cta p"] },
+  { route: "commercial/", selectors: [".hero h1", ".detail-cta h2", ".detail-cta p"] },
   { route: "about/", selectors: [".hero h1", ".detail-cta h2", ".detail-cta p"] },
 ];
 const withoutShadow = [

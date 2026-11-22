@@ -177,7 +177,7 @@ Owner 2026-11-14. Hai quy tắc chung toàn site, VI và EN, mọi bề rộng 3
   đi cùng chữ sau nó; heading kết thúc bằng phần nghiêng (`i`, `em`) nối phần đó với chữ trước.
 - Hai chữ cuối phải vừa một dòng của cột: chỗ nào không vừa thì hạ cỡ chữ chỗ đó (owner 2026-11-14), nếu không
   `overflow-wrap: anywhere` bẻ giữa chữ. Đã hạ: `.detail-heading h2` phone 3rem, mốc `.about-timeline__marker` sàn
-  2rem, `.about-commitment h3` rộng 16ch, 1.35rem ở 681 tới 980px, 2.4rem trên phone.
+  2rem, `.about-commitment h3` rộng 16ch, 1.35rem ở 681 tới 980px, 2.4rem trên phone; `.blk-contact__title` có cặp chữ cuối dài hơn 15 ký tự (VI hoặc EN, gắn lớp `--long-tail` lúc build) 32px trên phone.
 - Tiêu đề xuống dòng có chủ đích (tagline hero khối, `*-line-mask`, heading chia phần có `data-en` riêng, câu có
   `<br>`) không để `,` `.` `;` ở cuối dòng, kể cả dòng cuối; tiêu đề CTA cùng quy tắc. Một regex `LINE_END_PUNCT`
   trong `scripts/site/blocks.mjs`: validator khối báo lỗi tagline, `pnpm qa:content` báo lỗi các dòng trong HTML.

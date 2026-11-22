@@ -13,6 +13,10 @@ const SAFE_HREF = /^(?:\/(?:vi|en)\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
 // ponytail: v1 text is just plain paragraphs split by blank lines; bold, italic, in-paragraph links when the CMS needs them.
 const paragraphs = (text) => text.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
 const localized = (tag, text, attributes = "") => `<${tag}${attributes} data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</${tag}>`;
+// hero-typography R7: the orphan tie keeps the last two words on one line; at the 40px phone title a pair over 15 characters
+// ("wardrobe measured?") is wider than the 354px column, so such a title gets a smaller phone size instead.
+const LONG_TAIL_CHARS = 15;
+const hasLongTail = (text) => [text.vi, text.en].some((value) => value.trim().split(/\s+/).slice(-2).join(" ").length > LONG_TAIL_CHARS);
 const localizedParagraphs = (text, attributes = "") => {
   const vi = paragraphs(text.vi);
   const en = paragraphs(text.en);
@@ -219,7 +223,7 @@ const BLOCKS = {
     text: ["title"],
     render: (block) => [
       `<section class="blk blk-contact section-gap" id="${CONTACT_ID}" data-header-tone="ink">`,
-      `  ${localized("h2", block.title, ' class="blk-contact__title"')}`,
+      `  ${localized("h2", block.title, ` class="blk-contact__title${hasLongTail(block.title) ? " blk-contact__title--long-tail" : ""}"`)}`,
       `  <a class="blk-contact__zalo" href="${ZALO_HREF}" target="_blank" rel="noopener" data-en="Chat on Zalo">Nhắn Zalo</a>`,
       "</section>",
     ].join("\n"),

@@ -532,8 +532,12 @@ const tieLastWord = (text) => {
   glued = `${words.pop()}\u00a0${glued}`;
   return `${lead}${[...words, glued].join(" ")}${trail}`;
 };
-const tieElement = (_match, name, attributes, content) =>
-  `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`;
+// A part followed by the heading's italic tail is tied to that tail instead (TIE_ITALIC_TAIL); tying its own last two words
+// as well would glue "Spaces for business" into one unbreakable run wider than a phone.
+const ITALIC_TAIL_AHEAD = /^\s+<(i|em)\b[^>]*>[^<]*<\/\1>\s*<\/h[1-6]>/;
+const tieElement = (match, name, attributes, content, offset, html) =>
+  ITALIC_TAIL_AHEAD.test(html.slice(offset + match.length)) ? match :
+    `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`;
 // Page copy only: <head>, header and menu labels stay as written (exact strings for title, nav and their tests).
 const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/, (_match, open, body, close) =>
   open + body.replace(TIE_BLOCK, tieElement).replace(TIE_ITALIC_TAIL, "$1\u00a0$2") + close);

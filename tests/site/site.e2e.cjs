@@ -10371,7 +10371,9 @@ async function runSharedMediaHoverPortalChecks() {
         // Gallery has no zoom (detail-pages R7, runGalleryCheck).
         const triggers = page.locator(".detail-duo figure, .detail-cta");
         const count = await triggers.count();
-        assert(count >= 2, `Expected duo and CTA hover targets on ${route}`);
+        // Residential and Commercial dropped the duo in the fixed pages audit (29a144f7); only the CTA zooms there.
+        const expected = route === "/vi/about/" ? 3 : 1;
+        assert(count === expected, `Expected ${expected} duo and CTA hover targets on ${route}, got ${count}`);
         for (let index = 0; index < count; index += 1) {
           const trigger = triggers.nth(index);
           assert(await trigger.evaluate((element) => element.classList.contains("media-hover-zoom-trigger")),
