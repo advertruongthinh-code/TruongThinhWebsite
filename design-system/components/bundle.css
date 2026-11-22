@@ -1258,10 +1258,15 @@ em {
   font-weight: inherit;
 }
 
-/* Home: line 2 "Làm khác" italic at the same weight; uppercase display titles are 500 like Espacio (owner 2026-11-22 weight audit). */
-.hero[data-hero-intro] h1 > .hero-line-mask:first-child,
-.hero[data-hero-intro] h1 em {
-  font-weight: 500;
+/* Every hero title: the italic part is the em and is always bold, 600 = the heaviest of the 3 site weights (owner 2026-11-22). */
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) em {
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* Home hero: both lines bold, line 2 "Làm khác" also italic (owner 2026-11-22). */
+.hero[data-hero-intro] h1 {
+  font-weight: 600;
 }
 
 .hero-line-mask,
@@ -3504,16 +3509,11 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   font-weight: 500;
 }
 
-/* Project hero (projects R3, owner 2026-11-14, measured on Espacio project pages): the italic part of the tagline is bold italic like the
-   other hero accents; the CTA is 16px bold capitals, centred 32px under the title, underlined on hero hover (always on phone). On phone the
+/* Project hero (projects R3, owner 2026-11-14, measured on Espacio project pages): the italic part of the tagline follows the shared
+   hero em rule in style.css; the CTA is 16px bold capitals, centred 32px under the title, underlined on hero hover (always on phone). On phone the
    project name stays above the tagline (exception to the hidden kicker, owner 2026-11-14). */
 .project-hero .hero-kicker {
   text-transform: uppercase;
-}
-
-.project-hero .hero-title em {
-  font-style: italic;
-  font-weight: 500;
 }
 
 .project-hero .hero-content:has(> .hero-title > :only-child) > .hero-kicker {
@@ -3539,25 +3539,9 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   }
 }
 
-/* Commercial hero: regular text weight 500 light like other page hero titles, accent text (em) bold 700 italic (owner 2026-10-24). */
+/* Commercial hero: regular text weight 500 like other page hero titles; the em accent rule is shared in style.css. */
 .commercial-hero h1 :is(.detail-title__quiet, .detail-title__strong) {
   font-weight: 500;
-}
-
-.commercial-hero h1 em {
-  font-style: italic;
-  font-weight: 500;
-}
-
-/* Residential hero: the accent line "năng lượng sống" is bold 700 and italic (owner 2026-10-24). */
-.residential-hero h1 .detail-title__strong {
-  font-style: italic;
-}
-
-/* Advertising hero: the accent line "luôn trong tầm mắt" is bold 700 and italic (owner 2026-11-08).
-   Cluster and product pages change the tagline into <p id="page-title"> so select by id, not by h1. */
-.detail-index-hero #page-title .detail-title__strong {
-  font-style: italic;
 }
 
 .detail-intro,
@@ -8115,12 +8099,6 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   .blk-news-list__quad .blk-news-card__title {
     align-self: start;
   }
-}
-
-/* Projects page hero tagline: only the accent text (em) bold 700 italic, the rest 500 like line one (owner 2026-11-08). */
-.projects-title__accent em {
-  font-style: italic;
-  font-weight: 400;
 }
 
 /* Projects page type with no project yet (projects R2): the "đang cập nhật" line; build and detail.js toggle hidden by the filter. */
