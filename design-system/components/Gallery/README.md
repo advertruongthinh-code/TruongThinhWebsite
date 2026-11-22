@@ -9,7 +9,7 @@ balance within the spaces" của Espacio interior-design. Markup
 ## Cấu trúc
 
 - Tiêu đề `h2` riêng một hàng, canh giữa, `clamp(2.5rem, 4.45vw, 4rem)`
-  (64px ở 1440px), weight 300, line-height 1.1, chữ thường kiểu câu; phần cuối
+  (64px ở 1440px), weight 400, line-height 1.1, chữ thường kiểu câu; phần cuối
   nghiêng trong `<i>`. Không nút prev/next.
 - Swiper 14 cùng tham số gallery Espacio: `slidesPerView: "auto"`, speed
   500ms, khe 20px (dưới 600px 10px), grab cursor, thả tay hút về ảnh, wheel
