@@ -2195,6 +2195,8 @@ em {
   min-height: 600px;
   padding-block: 30px;
   margin-right: auto;
+  /* Espacio space below the banner (scroll-feel R5); the closer is the last section of main (owner 2026-11-22). */
+  margin-bottom: 90px;
   margin-left: auto;
   /* clip, not hidden: the -100vmax click layer of .legacy-link does not create a hidden scroll area. */
   overflow: clip;
@@ -3434,6 +3436,13 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 @media (max-width: 960px) {
   .legacy-closer {
     min-height: 400px;
+    margin-bottom: 60px;
+  }
+}
+
+@media (max-width: 578px) {
+  .legacy-closer {
+    margin-bottom: 30px;
   }
 }
 
