@@ -19,8 +19,8 @@ updated: 2026-11-22
 
 ## Mục đích
 
-Owner và nhân viên tự đăng, sửa mọi nội dung VI/EN của site (card Advertising, công trình, News, chữ và ảnh trang cố
-định) qua trang admin. Khách chỉ nhận file tĩnh; CMS ghi nội dung rồi dựng lại site. Kiến trúc CMS
+Owner và nhân viên tự đăng, sửa mọi nội dung VI/EN của site (card Advertising, công trình, News, chữ và ảnh trang
+chuẩn) qua trang admin. Khách chỉ nhận file tĩnh; CMS ghi nội dung rồi dựng lại site. Kiến trúc CMS
 xuất bản tĩnh owner duyệt 2026-11-15, ADR trên Notion. Spec này là contract của
 slice Contract phần nền tảng: ranh giới, quyền, trạng thái, lệnh admin, xuất bản, xem trước; kiểu nội dung, media,
 layout, menu, soạn chữ ở [nội dung CMS](cms-content.md). Chưa có code theo spec này; code dormant
@@ -47,7 +47,8 @@ hỏng, D1 hết hạn mức hay admin tắt thì site vẫn chạy bản dựng
 ### R2. Tài khoản và vai trò
 
 Hai vai trò, không có vai trò admin riêng: admin là owner (owner 2026-11-22). Lưu trong D1 (bảng tài khoản theo email, chữ thường). Email owner đầu tiên nằm ở secret
-`CMS_BOOTSTRAP_OWNER`, không ghi trong repo; lần chạy đầu tạo tài khoản owner từ secret nếu bảng trống.
+`CMS_BOOTSTRAP_OWNER`, không ghi trong repo; lần chạy đầu tạo tài khoản owner từ secret nếu bảng trống; email này được thêm vào chính sách Access một lần lúc dựng
+admin ở slice Storage.
 
 | Việc | Owner | Nhân viên |
 | --- | --- | --- |
@@ -87,20 +88,27 @@ Lưu nháp tự động chỉ ghi vào bản đang sửa riêng của người s
 lệnh `save` tạo phiên bản. Thùng rác giữ bản ghi và mọi phiên bản 30 ngày, khôi phục về đúng trạng thái trước khi xóa; quá 30 ngày hoặc owner xóa
 hẳn thì mất. Xóa hẳn cần gõ lại tên bản ghi để xác nhận; nhật ký giữ phiên bản cuối 1 năm; bản gốc media
 của bản ghi chờ hết 30 ngày orphan (R3 nội dung CMS) rồi mới dọn. URL của bài trong thùng rác rơi về trang 404 tĩnh: chọn vậy để route trang không cần Worker (thay mục 14 ý định
-2026-10-12 về 410). Xóa nội dung đang được nội dung khác trỏ tới (menu, `home-projects`, `news-cards`) thì lần dựng
+2026-10-12 về 410). Xóa nội dung đang được nội dung khác trỏ tới (menu, `home-projects`) thì lần dựng
 bỏ tham chiếu đó và admin báo chỗ bị ảnh hưởng.
 
 ```gherkin
 Given nhân viên xóa một công trình đang có trong menu
 When lần dựng xong
-Then trang công trình không còn, menu không còn mục đó, owner khôi phục được trong 30 ngày
+Then trang công trình không còn, menu không còn mục đó, owner hoặc nhân viên khôi phục được trong 30 ngày
 ```
 
 ### R4. Phiên bản, xung đột và nhật ký
 
 Mỗi lần lưu tạo một phiên bản mới có số `version` tăng dần; lệnh lưu gửi kèm `version` đang sửa. Lệch thì trả 409 kèm
 bản đang có, admin cho chọn giữ bản nào, không ghi đè im lặng. Mỗi lệnh ghi (thành công hay bị từ chối) thêm một dòng
-nhật ký: email, lệnh, kiểu, id, thời điểm, kết quả; giữ 1 năm.
+nhật ký: email, lệnh, kiểu, id, thời điểm, kết quả; giữ 1 năm. Dòng nhật ký của `purge` giữ thêm JSON phiên bản cuối để
+đối chiếu, CMS không khôi phục từ đó.
+
+Kiểu danh sách (`news`, `project`, `advertising-card`, `hero-slide`, `client-logo`, media) đi đủ vòng R3. Kiểu đơn (`menu`,
+`contact`, `page-copy`, `home-projects`) chỉ có `get`, `save`: luôn `published`, không `create`, thùng rác hay `draft`.
+Trường bắt buộc của mỗi kiểu là trường validator R1 nội dung CMS đánh dấu bắt buộc (VI, cover, alt VI, số media tối
+thiểu). `save` trả 400 khi dữ liệu sai dạng (kiểu, id, `layoutKey`, tỷ lệ khung); thiếu trường bắt buộc thì bản ghi giữ
+`draft`, riêng bản ghi đã `published` thì trả 400.
 
 ```gherkin
 Given owner và nhân viên cùng mở bài ở version 4
@@ -110,18 +118,19 @@ Then nhân viên nhận 409 kèm bản version 5, bài vẫn là bản của own
 
 ### R5. Lệnh admin có kiểu
 
-API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `audit-log`, `build-status`, `snapshot`; mỗi lệnh validate bằng module dùng chung ở
+API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `search-drafts`, `audit-log`, `build-status`, `snapshot`; mỗi lệnh validate bằng module dùng chung ở
 [nội dung CMS R1](cms-content.md#r1-kiểu-nội-dung-và-file-chiếu), kiểm quyền theo R2, ghi nhật ký theo R4.
 
 | Lệnh | Kết quả | Lỗi |
 | --- | --- | --- |
 | `create` | Bản ghi `draft` | 400 dữ liệu sai, 409 id hoặc slug trùng |
 | `save` | Phiên bản mới; đủ trường (kể cả số media tối thiểu) thì `published` và xếp lần dựng, chưa đủ thì giữ `draft` | 400 khi bản ghi đã `published` mà bản lưu chưa đủ, 409 version lệch |
-| `trash`, `restore` | Đổi trạng thái R3 | 404, 409 khi slug đã bị bài khác dùng lúc khôi phục |
+| `trash`, `restore` | Đổi trạng thái R3, áp cho cả bản ghi media | 404, 409 khi slug đã bị bài khác dùng lúc khôi phục |
 | `purge` | Xóa hẳn từ thùng rác hoặc thẳng (chỉ owner) | 403, 404 |
 | `upload-media`, `update-media` | Bản ghi media theo [nội dung CMS R3](cms-content.md#r3-media) | 400 loại hoặc cỡ sai, 413 quá cỡ |
 | `account-add`, `account-update` | Theo R2 (chỉ owner) | 403, 409 owner cuối |
-| `rollback` | Quay site về deployment trước (chỉ owner) | 403 |
+| `rollback`, `resume-publish` | Quay site về deployment trước; mở lại tự đăng (chỉ owner) | 403 |
+| `rebuild` | Dựng lại từ bản chụp hiện tại sau lần dựng lỗi | 409 khi đang tạm dừng tự đăng |
 
 Request ghi chỉ nhận `application/json` (upload là `multipart/form-data`, 415 nếu khác); mọi request không phải GET
 thiếu `Origin` hay `Origin` khác origin admin trả 403; GET không bao giờ đổi dữ liệu. Không dùng CSRF token riêng (suy
@@ -143,7 +152,8 @@ Lần lưu `published` gọi thẳng `workflow_dispatch` của `ci.yml` trên `m
 `workflow_call`). Không có hàng đợi riêng: nhóm `concurrency` của `Deploy demo` giữ một run đang chạy và một run chờ, run
 chờ mới thay run chờ cũ, và mỗi run lấy bản chụp lúc bắt đầu, nên lưu dồn dập gom lại mà không mất lần lưu nào. Token
 GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret. Workflow lấy bản chụp qua `GET /api/admin/snapshot`
-bằng service token, chạy validator dùng chung và bộ kiểm phát hành hiện có, rồi deploy. Mục tiêu: lên site trong 10
+bằng service token, chạy validator dùng chung và bộ kiểm phát hành hiện có, rồi deploy. Hôm nay `Deploy demo` đưa lên demo; khi domain chuyển sang `truongthinhads.vn`
+cùng workflow đưa lên site thật ([phát hành tĩnh](static-release.md)). Mục tiêu: lên site trong 10
 phút sau lần lưu cuối (suy luận theo thời gian `Deploy demo` hiện tại, đo ở slice Publishing). Từ khi CMS mở, mọi lần dựng kể cả merge code vào
 `main` đều lấy bản chụp mới nhất; file chiếu trong repo chỉ là bản seed và fixture, nên merge code không ghi đè nội dung
 CMS; endpoint bản chụp không trả lời thì lần dựng lỗi, không dùng file trong repo. Lỗi bước nào thì không deploy, site giữ bản cũ, admin hiện lý do bằng lời thường và nút "dựng lại"; lần lưu kế tiếp
@@ -155,9 +165,11 @@ projection thêm lệnh kéo bản chụp về repo để fixture không trôi x
 
 Owner quay về deployment trước bằng lệnh `rollback` (nút trong admin vì owner không chạy lệnh shell; lệnh
 `pnpm demo:wrangler rollback` ở [phát hành tĩnh R11](static-release.md) là đường dự phòng): admin Worker gọi workflow rollback trong GitHub Actions bằng cùng
-token, workflow dùng token deploy Cloudflare sẵn có của `Deploy demo`; admin Worker không giữ token deploy. D1 không đổi theo, nên rollback dừng tự đăng tới khi owner bấm
-"tiếp tục đăng" (lưu vẫn ghi D1, không dựng). Key biến thể media public không đổi theo nội dung (có hash) và được giữ
-khi còn deployment nào trong 10 bản gần nhất trỏ tới (suy luận về số bản Workers giữ, kiểm ở slice Publishing).
+token, workflow rollback mới (plan viết) dùng token deploy Cloudflare sẵn có của `Deploy demo`; admin Worker không giữ
+token deploy. D1 không đổi theo, nên rollback đặt cờ tạm dừng trong D1 tới khi owner bấm "tiếp tục đăng" (lưu vẫn ghi D1,
+không dựng); trong lúc dừng, `snapshot` trả 423 nên mọi lần dựng, kể cả merge code, dừng ở bước lấy bản chụp, không deploy. Key biến thể media public có hash (nội dung CMS R3); mỗi lần dựng ghi danh sách key nó dùng vào R2, và biến thể
+chỉ bị dọn khi orphan quá 30 ngày và không nằm trong danh sách của 10 deployment gần nhất (suy luận về số bản Workers
+giữ, kiểm ở slice Publishing).
 Phiên bản R4 dùng cho xung đột và nhật ký; lệnh khôi phục phiên bản cũ và hẹn giờ đăng để sau bản đầu (owner
 2026-11-15).
 
@@ -177,12 +189,12 @@ thứ hai, theo từng loại trang: trang khối (News, công trình) gọi đ�
 `renderBlockPage`) trong trình duyệt; trang chuẩn và lưới card dùng HTML đã dựng cộng overlay của
 [editor](cms-editor.md), áp cùng hàm điền slot và hàm dựng card mà build gọi (plan tách hai hàm này thành module thuần).
 Preview lưới card xếp như PC và tablet (máy tự xếp); lưới đầu dựng sẵn của phone chỉ có ở lần dựng thật. Mọi preview
-chạy với cùng CSS, JS, motion và biến thể ảnh của site, trong một `iframe` có khung trang thật. Nháp tự lưu nằm trong `localStorage` như editor R8. Phần render tách khỏi phần đọc file: module render
+chạy với cùng CSS, JS, motion và biến thể ảnh của site, trong một `iframe` có khung trang thật. Nháp tự lưu chỉ nằm trong `localStorage` như editor R8, không gửi lên server; "nháp" ở nơi khác là bản ghi `draft`. Phần render tách khỏi phần đọc file: module render
 thuần (không `node:fs`, `node:path`) chạy được cả ở Node lẫn trình duyệt; phần kiểm file ảnh, đọc JSON ở lại adapter
 của build. Sửa một khối là sửa một chỗ, build và preview đổi cùng lúc. Chỗ khác duy nhất: media chưa có biến thể dùng
 bản tạm trên R2 private qua admin, khung preview ghi "bản xem trước". Giao diện trực quan (owner 2026-11-15): soạn ngay
 trên preview, bấm chữ để sửa, bấm khung ảnh để kéo, phóng; layout khóa hiện hình thu nhỏ kèm số ảnh còn thiếu; đổi bề
-rộng preview theo sáu mốc 384 tới 1920.
+rộng preview theo sáu mốc 384, 768, 1024, 1280, 1440, 1920.
 
 ```gherkin
 Given người soạn sửa tiêu đề một khối section-title
@@ -222,7 +234,7 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 
 | Phần | Vị trí | Xử lý |
 | --- | --- | --- |
-| Kiểm JWT Access, `Origin`, đăng nhập dev loopback | `requireAdmin`, `verifyAccessJwt` trong `src/worker/index.js` | Giữ; đổi allowlist `ADMIN_EMAILS` sang bảng tài khoản R2 |
+| Kiểm JWT Access, `Origin`, đăng nhập dev loopback (chỉ khi chạy local trên `localhost`, bản deploy không bật) | `requireAdmin`, `verifyAccessJwt` trong `src/worker/index.js` | Giữ; đổi allowlist `ADMIN_EMAILS` sang bảng tài khoản R2 |
 | Kiểm upload WebP, SVG an toàn | `isWebp`, `isSafeSvg` | Giữ, mở rộng theo [nội dung CMS R3](cms-content.md#r3-media) |
 | Editor Dockview, overlay | `src/admin/` | Giữ; đổi đường lưu sang lệnh R5 ([editor](cms-editor.md)) |
 | Render public SSR, `page_edits`, API public, sitemap từ D1, route `/media/*` | `src/worker/index.js`, `content.mjs` | Bỏ (R1) |
@@ -251,3 +263,7 @@ bản chụp giống bản dựng từ repo, diễn tập rollback). Editor nố
 - **Access**: lớp đăng nhập Cloudflare đặt trước admin, cấp JWT (token có chữ ký).
 - **File chiếu**: file JSON CMS sinh ra cho build tĩnh đọc.
 - **Bản chụp**: bộ file chiếu tại một thời điểm, đầu vào của một lần dựng.
+- **Service token**: cặp id, secret Access cấp cho máy (workflow dựng), không gắn email.
+- **(owner ngày)**: owner quyết định điều đó vào ngày ghi.
+- **Slice**: một chặng làm CMS có gate owner duyệt (mục Gate còn mở).
+- **Espacio**: site espaciohomedesign.com, mẫu owner chọn cho layout, chữ và motion.

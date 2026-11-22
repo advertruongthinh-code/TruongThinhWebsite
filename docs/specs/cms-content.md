@@ -76,12 +76,15 @@ trang công trình và News nhận cả ảnh lẫn video, nên gọi chung là 
   chạy trong Worker); key theo hash của bản gốc, vùng crop và công thức biến thể, đổi công thức thì key đổi. Biến thể
   nằm ở bucket public sau `media.truongthinhads.vn`; lần dựng chỉ kiểm biến thể có đủ, không sinh. Không bao giờ phát
   bản gốc. Biến thể không còn bản ghi nào trỏ tới theo luật orphan dưới.
-- Xóa media đang được nội dung dùng trả 409 kèm danh sách chỗ dùng. Object không còn bản ghi nào trỏ tới (orphan) được
-  dọn sau 30 ngày.
+- Xóa media (lệnh `trash`, `purge`) đang được nội dung dùng trả 409 kèm danh sách chỗ dùng. Object không còn bản ghi nào
+  trỏ tới (orphan) được dọn sau 30 ngày, theo luật giữ biến thể của [CMS R6](cms.md#r6-xuất-bản-và-rollback).
+- Job biến thể: lệnh upload hay lưu crop gọi `workflow_dispatch` của workflow biến thể mới (cùng token GitHub), job đọc
+  bản gốc qua endpoint chỉ đọc sau service token như `snapshot`; media hiện "đang xử lý" tới khi xong. Lưu bản ghi có
+  media chưa có biến thể thì chưa dispatch lần dựng; job biến thể dispatch lần dựng khi xong.
 - Bản gốc ở bucket R2 private để lần dựng không cần PC bật; sao lưu tuần chép bản gốc về NAS (owner 2026-11-15, thay
   quyết định bản gốc trên NAS ngày 2026-10-12).
 
-[CẦN LÀM RÕ: giới hạn cỡ file upload; thang video sinh ở lần dựng hay trên PC lúc upload.]
+[CẦN LÀM RÕ: giới hạn cỡ file upload; thang video sinh trong job biến thể hay trên PC lúc upload.]
 
 ```gherkin
 Given một card có hai ảnh cùng altVi
@@ -94,9 +97,10 @@ Then trả 400, nêu id hai media trùng alt, không bản ghi nào đổi
 Card Advertising và card công trình dùng chung một contract [card nhiều media](media-card.md#r1-dữ-liệu-media-của-card):
 người soạn chọn khung card trước trong 8 tỷ lệ của [layout-library R7](layout-library.md#r7-khung-ảnh-cố-định-từng-khối),
 rồi đặt từng media vào khung bằng cách kéo, phóng; CMS chỉ lưu card, không tính gì lúc lưu: PC và tablet tự xếp lưới;
-phone nhận lưới đầu dựng sẵn trong chính trang lưới (`script[data-phone-packs]` của `phonePacks()`, owner 2026-11-16,
-masonry-live-layout R3), nên mỗi lần dựng hay preview phải dựng lại mọi trang lưới cùng artifact card trong một lần
-dựng; lệch lần dựng thì phone tự xếp. Không có trường span.
+điện thoại nhận sẵn thứ tự xếp đầu tiên nhúng trong HTML trang lưới (owner 2026-11-16,
+[masonry xếp trực tiếp R3](masonry-live-layout.md#r3-worker-và-luồng-chính)). Thứ tự đó tính từ danh sách card, nên mỗi
+lần dựng tạo lại mọi trang lưới cùng dữ liệu card trong cùng lần dựng; preview không có phần này. Không có trường span
+(card chiếm mấy cột).
 
 | Trường | Card Advertising | Card công trình |
 | --- | --- | --- |
@@ -108,13 +112,13 @@ dựng; lệch lần dựng thì phone tự xếp. Không có trường span.
 | Alt | Riêng từng media, không trùng trong card | Dùng alt của media trên trang |
 
 Card công trình lưu tham chiếu tới media của trang cộng vùng crop theo khung card, không chép file. Gỡ một media khỏi
-trang khi card đang dùng nó trả 409; card còn dưới 2 media thì trang không lưu được. Dữ liệu hiện tại (`card.media` là
+trang khi card đang dùng nó trả 409. Dữ liệu hiện tại (`card.media` là
 file cắt riêng như `can-ho-hero-card-wide.webp`) đổi sang tham chiếu ở slice Public projection.
 
 ```gherkin
 Given trang công trình có 6 media
 When người soạn tạo card và chọn 1 media
-Then trả 400 "card công trình cần ít nhất 2 media"
+Then card giữ `draft`, admin ghi "card công trình cần ít nhất 2 media"
 And danh sách chọn chỉ có 6 media của trang đó
 ```
 
@@ -132,8 +136,10 @@ thêm renderer. Layout Bài News và Chi tiết công trình khóa cứng theo s
 và [công trình R4](projects.md#r4-ảnh-và-video-công-trình): mỗi dòng là một layout, mở khi bài có số media lớn hơn hoặc
 bằng mức thấp nhất của dòng; dòng cao hơn khóa và admin ghi cần thêm mấy media. Mỗi dòng là một chuỗi khối cố định, mỗi
 khối có số media tối thiểu, tối đa; chỗ hai bảng còn ghi "hoặc", "tùy chọn", "hai tới bốn" được plan chốt thành một
-chuỗi, owner duyệt cùng plan. Sức chứa của dòng phải đủ mức cao nhất của dòng; dòng cuối (News 17+, công trình 13+) dồn
-media dư vào `media-carousel` cuối. Dưới mức thấp nhất (News dưới 2, công trình dưới 4 media) bài lưu thành `draft`;
+chuỗi, owner duyệt cùng plan. Media thuộc danh sách media của bài, có thứ tự, trước khi chọn layout; layout đặt chúng vào khối theo thứ tự đó. Sức
+chứa của dòng phải đủ mức cao nhất của dòng; dòng cuối (News 17+, công trình 13+) dồn media dư vào `media-carousel`
+cuối. Bài chọn dòng có mức cao nhất nhỏ hơn số media thì admin báo và bài giữ `draft` tới khi bỏ bớt media hoặc chọn
+dòng lớn hơn. Dưới mức thấp nhất (News dưới 2, công trình dưới 4 media) bài lưu thành `draft`;
 bài đã `published` mà lưu xuống dưới mức thì trả 400 ([CMS R5](cms.md#r5-lệnh-admin-có-kiểu)). Người soạn chọn layout đã mở rồi điền chữ và media; không thêm, bớt hay đổi thứ tự khối. Thêm layout hay khối mới là việc code qua PR. Field `template` cũ bỏ. Motion cố định theo layout và khối, CMS không có trường chỉnh
 motion (owner 2026-11-15).
 
@@ -181,7 +187,7 @@ trúc, không lưu HTML thô. Danh sách theo đúng site hiện tại:
 
 | Nhóm | Tùy chọn |
 | --- | --- |
-| Kiểu đoạn | Tiêu đề mục (400; 64, 56, 48, 40px theo 1200, 960, 750), Đoạn (400; 24, 20.8px), Nhãn (600, dòng nhỏ trên tiêu đề), Thẻ tên (500), Tiêu đề CTA (500; 64, 48px), Trích dẫn (cỡ Đoạn), Chữ nhỏ (16px, chú thích, metadata) |
+| Kiểu đoạn | Tiêu đề mục (độ đậm 400; 64px, 56px từ 1200px trở xuống, 48px từ 960px, 40px từ 750px), Đoạn (độ đậm 400; 24px, 20.8px từ 960px), Nhãn (600, dòng nhỏ trên tiêu đề), Thẻ tên (500), Tiêu đề CTA (500; 64, 48px), Trích dẫn (cỡ Đoạn), Chữ nhỏ (16px, chú thích, metadata) |
 | Trong dòng | đậm, nghiêng, chỉ số trên (m²), link, xuống dòng chủ ý, giữ cụm từ không tách dòng |
 | Khối | danh sách gạch đầu dòng, danh sách số |
 
@@ -202,8 +208,8 @@ Then trả 400, dữ liệu chữ không đổi
 
 Hướng owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/artifact/6zTDE4jQfcjrbP3tax9kXx)). Model, công thức
 vector (ảnh, alt, poster, frame video) và test thuộc [tìm kiếm Advertising](advertising-search.md); CMS chỉ giữ ranh giới
-dưới. Một hàm tính vector, một cache vector theo hash của model cộng đầu vào: lúc lưu, admin Worker điền cache để nháp
-tìm được ngay trong CMS (chỉ người dùng CMS); lần dựng `pnpm search:index` đọc cache, chỉ tính phần thiếu. Đổi model thì
+dưới. Một hàm tính vector, một cache vector theo hash của model cộng đầu vào: lúc lưu, admin Worker điền cache (R2
+private; CI đọc bằng token R2 chỉ đọc) để bản ghi `draft` tìm được ngay trong CMS qua `search-drafts` (chỉ người dùng CMS); lần dựng `pnpm search:index` đọc cache, chỉ tính phần thiếu. Đổi model thì
 hash đổi, tính lại toàn bộ một lần. Site không lưu nhật ký tìm kiếm.
 
 | Thao tác | Vector và lớp từ khóa |
@@ -223,9 +229,9 @@ owner; 5 ảnh giống nhất gợi ý sản phẩm, nhóm, tag; gợi ý Keywor
 trùng trong card, độ dài, chữ mồ côi). Không lưu gì tới khi người soạn bấm.
 
 ```gherkin
-Given Worker tính vector đang lỗi
+Given admin Worker gọi Workers AI tính vector đang lỗi
 When người soạn lưu một card mới
-Then card lưu và tìm được theo từ khóa, vector được tính lại khi Worker chạy lại
+Then card lưu và tìm được theo từ khóa, lần dựng kế tiếp tính bù vector còn thiếu
 ```
 
 ## Giao diện và dữ liệu
