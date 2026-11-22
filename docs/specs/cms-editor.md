@@ -1,5 +1,5 @@
 ---
-title: CMS editor placeholder
+title: CMS editor
 status: planned
 source:
   - src/admin/**
@@ -10,291 +10,252 @@ tests:
   - tests/admin/content.test.mjs
   - tests/admin/content-api.test.mjs
   - tests/admin/content-worker.e2e.mjs
-notion: https://app.notion.com/p/40a332849a0e81308d7aed22eac0a4f7
-updated: 2026-11-01
+notion: https://app.notion.com/p/420332849a0e81ffb9e4e85372f1a0f7
+updated: 2026-11-22
 ---
 
-# CMS editor placeholder
+# CMS editor
 
 ## Mục đích
 
-Giao diện `/admin/` để nhân viên và owner sửa nội dung ngay trên bản xem trước của trang thật: mỗi chữ, ảnh, danh
-sách ảnh là một placeholder đặt đúng vị trí trên trang; xem trước theo cỡ cửa sổ và thiết bị trước khi lưu. Spec sở
-hữu giao diện admin, overlay biên tập, script dựng admin và đường lưu, áp nội dung editor (R8, R10); Worker, xác thực,
-R2 ở [CMS](cms.md); nội dung và layout từng trang thuộc spec trang đó. Ý định owner (2026-10-31): nhân viên dùng nhiều
-nhất, chỉ trên máy tính, lưu là lên web, không có bước duyệt; mọi trang hiện có; News ngoài phạm vi vì site chưa có.
+Giao diện `/admin/` để owner và nhân viên tạo, sửa, xóa mọi nội dung của site ngay trên bản xem trước của trang thật, rồi lưu bằng lệnh của [CMS R5](cms.md#r5-lệnh-admin-có-kiểu). Spec này sở hữu khung làm việc, danh sách nội dung, xem trước, soạn bài và trang, nháp và lưu. Media, upload và khung crop ở [editor media](cms-editor-media.md); trạng thái dựng, phát hành, thùng rác, nhật ký, tài khoản ở [editor vận hành](cms-editor-ops.md); dock ở [dock](cms-dock.md). Editor chỉ gọi lệnh trong [dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) và chạy hoàn toàn bằng code cố định, không gọi AI ([CMS](cms.md#bối-cảnh-và-phương-án)).
 
-Trạng thái (2026-11-01): slice 1 (R1 đến R5, R9, lưới R6), slice 2 (R6, R7) và slice 3 (lưu D1 ở R8, R10) chạy local
-qua `pnpm cms:dev`. CMS vẫn dormant: không deploy, không có trên demo; mở cho nhân viên dùng thật theo Gate còn mở.
+Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
+
+Trạng thái (2026-11-22): code `src/admin/` hiện có là bản chạy local theo contract cũ (khóa `t<n>` theo thứ tự nguồn, bảng `page_edits`, `PUT /api/admin/content`). Dock, overlay chọn chỗ, sửa chữ tại chỗ, kéo thả media giữ lại; đường lưu, khóa và nguồn dữ liệu viết lại theo spec này ở phần 2 của plan CMS. Cho tới khi task đó merge, test trong frontmatter kiểm code cũ.
 
 ## Hành vi
 
-### R1. Dashboard Dockview trên máy tính
+### R1. Khung làm việc
 
-`/admin/` là một trang tiếng Việt, `noindex`, chỉ bố cục từ 1024px (hẹp hơn hiện "Mở CMS trên máy tính, cửa sổ rộng từ
-1024px."). Thân trang là một dock `createDockview()` của [Dockview](https://dockview.dev) (`dockview` 8.8.0, MIT, bản
-JavaScript không framework, theme `themeLight`; owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách
-nhóm, đóng và mở lại từ menu "Bảng". Panel: Trang (cây trang), Xem trước, Thuộc tính (placeholder đang chọn), Media
-(R6), Nháp (R8). Bố cục mặc định: Trang trái 260px, Xem trước giữa, Thuộc tính phải 360px, Media và Nháp là tab dưới
-Thuộc tính. Bố cục lưu bằng `toJSON()` vào `localStorage` `tt-cms-layout` sau mỗi `onDidLayoutChange`, mở lại bằng
-`fromJSON()`; mục "Bố cục mặc định" trong menu Bảng đặt lại. Thanh trên có nhóm và tên trang, trạng thái nháp (R8),
-nút Hoàn tác, Xuất JSON, Bảng, Lưu. Cây trang đọc `pages.json` (R9) có ô tìm bỏ dấu: Trang (Trang chủ, Nhà ở, Kinh
-doanh, Giới thiệu, 404), Sản phẩm Quảng cáo (trang gốc và 6 trang cụm), Trang sản phẩm (25), Trang card (285). Mở lại
-editor thì mở trang dùng lần cuối (`tt-cms-page`), lần đầu là Trang chủ. Admin dùng `editor.css` riêng và CSS của
-Dockview, không dùng token Design System và không chèn gì vào route public ([CMS UI](cms.md#ui)).
+`/admin/` là một trang tiếng Việt, `noindex`, chỉ bố cục từ 1024px (hẹp hơn hiện "Mở CMS trên máy tính, cửa sổ rộng từ 1024px."). Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight`; owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
 
-```gherkin
-Given mở /admin/ trên cửa sổ 1440px lần đầu
-When chưa chọn gì
-Then dock có 5 panel theo bố cục mặc định, Xem trước tải Trang chủ, Thuộc tính ghi "Bấm một chỗ trên trang để sửa"
-And kéo tab Media sang trái rồi tải lại trang thì Media vẫn ở bên trái
-```
-
-### R2. Xem trước theo cỡ cửa sổ và thiết bị
-
-Khung xem trước là `iframe` cùng origin. Bốn trang sửa được tải bản xem trước `/admin/preview/<locale>/<page>.html`
-(R3), trang Sản phẩm Quảng cáo (gốc, cụm, sản phẩm, card) tải `advertising.html?path=<route>` (R7), trang 404 tải
-route thật, chỉ xem. Thanh cỡ có preset Máy tính 1440, Laptop 1280, Tablet 768, Điện thoại 390,
-A04s 384 (máy đo chuẩn của repo) và ô bề rộng tự do 320 đến 2560. Khung lớn hơn panel thì thu nhỏ bằng `transform:
-scale` (ghi cỡ và phần trăm), đổi cỡ panel không tải lại. Đổi bề rộng thì tải lại iframe: runtime site (Locomotive,
-breakpoint, tách chữ) chỉ dựng đúng lúc tải trang, đổi cỡ tại chỗ khi đang cuộn có thể để trang trắng; placeholder đang
-chọn được cuộn lại sau khi tải. Nút "Tiếng Việt"/"English" đổi bản xem trước theo locale; "Chế độ sửa"/"Chế độ xem"
-bật tắt overlay (chế độ xem tương tác như khách: menu, kéo gallery, video; link chuyển trang bị chặn kèm thông báo vì
-iframe rời bản xem trước là mất nháp và overlay); "Tải lại" đặt lại `src` về bản xem trước; "Mở tab mới" mở route thật.
-
-```gherkin
-Given đang sửa Nhà ở ở cỡ 1440
-When chọn preset A04s 384
-Then iframe rộng 384px và tải lại, chữ đang sửa vẫn là chữ mới chưa lưu, chữ hero xuống dòng như trên phone thật
-```
-
-### R3. Overlay nhận diện placeholder
-
-`scripts/cms/build-admin.mjs` ghi bản xem trước từ HTML đã build (qua `localeHtml()` như static server) và thêm
-`<script src="/admin/cms-core.js" data-cms-boot="<page>">` đồng bộ cuối `<body>`, chạy trước script defer và module của
-site. Chỉ khi nằm trong iframe `data-cms-preview` của editor, `cms-core.js` gắn khóa, áp nháp (R8), giữ instance
-Locomotive để cuộn tới chỗ đang sửa, rồi nạp `overlay.js`, `overlay.css`. Khóa gắn vào `data-cms-key` theo thứ tự nguồn
-trong `<main>`: `t<n>` cho chữ, `i<n>` cho ảnh, thêm `title` và `description`; editor đọc lại bản xem trước bằng
-`DOMParser` và gắn cùng hàm nên ra cùng khóa. Overlay vẽ viền khi rê chuột, viền đậm khi chọn; nhấn là chọn, nhấn đúp
-vào chữ là sửa tại chỗ (`contentEditable="plaintext-only"`, Enter hoặc Esc kết thúc, phím gõ không lan ra site).
-Chế độ sửa chặn link, kéo gallery và chuyển trang của site.
-
-| Loại | Nhận diện | Sửa được |
+| Panel | Nội dung | Ai thấy |
 | --- | --- | --- |
-| Chữ | phần tử có `data-en` ([node lá VI/EN](detail-pages.md#r4-nội-dung-vien-và-hook)) hoặc phần tử lá có chữ; `title`, `meta[name=description]` | VI, EN, không nhận HTML |
-| Ảnh | `img` (kể cả trong `picture`, `data-src` lazy) | file từ thư viện (R5), alt VI, alt EN |
-| Danh sách | container trong bảng R4 | thêm, xóa, sắp lại item |
+| Nội dung | Danh sách bản ghi theo nhóm (R2) | Mọi người |
+| Xem trước | Trang đang sửa (R3) | Mọi người |
+| Thuộc tính | Trường của bản ghi hoặc chỗ đang chọn (R4 tới R7) | Mọi người |
+| Media | Thư viện ([editor media R1](cms-editor-media.md#r1-thư-viện-media)) | Mọi người |
+| Nháp | Thay đổi chưa lưu trên máy này (R8) | Mọi người |
+| Trạng thái, Thùng rác, Nhật ký | [Editor vận hành](cms-editor-ops.md) | Mọi người |
+| Tài khoản | [Editor vận hành R6](cms-editor-ops.md#r6-tài-khoản) | Chỉ owner |
 
-Sửa chữ gộp lại dòng đã tách (`TruongThinhDetail.revertSplitText()`), đổi chữ rồi tách lại sau 250ms. Sửa ảnh và danh
-sách tải lại iframe. Bản sao `aria-hidden` của marquee không có khóa, được dựng lại từ nhóm đứng trước. Header, menu,
-footer, floating CTA nằm ngoài `<main>` nên không chọn được (shell dùng chung mọi trang, có spec riêng).
+Panel Media là trang quản lý media (owner 2026-10-31): chi tiết ở [editor media](cms-editor-media.md). Bố cục mặc định: Nội dung trái 280px, Xem trước giữa, Thuộc tính phải 380px; Media và Nháp là tab cùng nhóm Thuộc tính; bốn panel vận hành đóng, mở từ menu "Bảng". Bố cục lưu trong `localStorage` `tt-cms-layout` như hiện tại. Thanh trên, từ trái sang: tên bản ghi đang mở và nhãn trạng thái của nó (R8), nút Hoàn tác, nút Lưu, menu Bảng, rồi dải trạng thái dựng và nút "Phát hành" ([editor vận hành R1, R2](cms-editor-ops.md#r1-trạng-thái-staging-và-site-chính)). Mở lại editor thì mở bản ghi dùng lần cuối (`tt-cms-open`), lần đầu là Trang chủ. Mở editor gọi `get` cho bản ghi đó và `list` cho nhóm đang mở; lệnh trả 403 thì trang hiện "Tài khoản của bạn chưa được mở trong CMS." và không hiện panel nào. Nút "Xuất JSON" của bản cũ bỏ. Admin dùng `editor.css` riêng, không dùng token Design System ([CMS UI](cms.md#ui)).
 
 ```gherkin
-Given iframe đã tải Giới thiệu và overlay đã chèn
-When nhấn dòng "Vững niềm tin" của h1
-Then dòng đó có viền chọn, Thuộc tính hiện "Tiêu đề chính · #top", ô VI "Vững niềm tin", ô EN "Earned trust"
-And rê lên logo header thì không có viền và không chọn được
+Given nhân viên mở /admin/ trên cửa sổ 1440px lần đầu
+When trang tải xong
+Then dock có Nội dung, Xem trước, Thuộc tính theo bố cục mặc định, Xem trước tải Trang chủ
+And menu Bảng không có mục Tài khoản
 ```
 
-### R4. Danh sách của từng trang
+### R2. Panel Nội dung
 
-Bảng danh sách là `LISTS` trong `src/admin/cms-core.js`, một dòng một container; overlay chỉ cho thêm, xóa, sắp lại ở
-các container này. Ảnh ngoài bảng (cặp ảnh `.detail-duo`, cụm portal ba mục, năm bước quy trình) chỉ đổi ảnh và chữ
-([ba trang con R4](detail-pages.md#r4-nội-dung-vien-và-hook)).
+Panel xếp bản ghi theo nhóm; mỗi nhóm đọc bằng lệnh `list` của kiểu đó, tải thêm khi cuộn tới cuối.
 
-| Trang | Container | Item | Nhãn |
+| Nhóm | Kiểu | Tạo mới | Xếp thứ tự |
 | --- | --- | --- | --- |
-| Trang chủ | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
-| Trang chủ | `.blk-projects__track` | `.blk-projects__card` | Dải công trình |
-| Trang chủ | `.client-logo-marquee__group` (bản không `aria-hidden`; markup ở `partials/client-logos.html`) | `.client-logo-slot` | Logo khách hàng |
-| Nhà ở, Kinh doanh | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
-| Nhà ở, Kinh doanh | `.detail-gallery__slides` | `.detail-gallery__item` | Gallery công trình |
-| Giới thiệu | `.about-timeline` | `.about-timeline__item` | Dòng thời gian |
-| Giới thiệu | `.about-commitments` | `.about-commitment` | Cam kết |
-| Sản phẩm Quảng cáo | lưới masonry, trang card | card | sửa card (R7), không thêm, xóa card |
+| Trang chuẩn: Trang chủ, Nhà ở, Kinh doanh, Giới thiệu | `page-copy` (bốn bản ghi cố định), kèm `hero-slide`, `home-projects`, `client-logo` của trang đó (R6, R7) | Không | Không |
+| Công trình | `project` | Có | Kéo thả |
+| News | `news` | Có | Theo ngày đăng, mới trước |
+| Card Advertising, theo cụm rồi sản phẩm | `advertising-card` | Có | Kéo thả trong một sản phẩm |
+| Menu và liên hệ | `menu`, `contact` | Không | Không |
 
-Chọn một placeholder trong danh sách thì Thuộc tính ghi "Thuộc ... · mục x/y" và nút "Mở danh sách": mỗi dòng có ảnh
-nhỏ, nhãn (ưu tiên chữ trong tiêu đề của item), nút lên, xuống, xóa, kéo thả để sắp. "Thêm mục" clone item cuối với
-khóa con `<khóa>@<id mới>`, chữ và ảnh trống (viền đỏ, ảnh "Chọn ảnh"), rồi mở Media để chọn ảnh nếu item có ảnh. Xóa
-mục bỏ luôn sửa đổi bên trong mục đó. Hero được script module của trang xáo mỗi lần tải ([page-home R3](page-home.md#r3-hero-slideshow-và-nút-dừng)),
-nên danh sách hero (`data-cms-shuffled`) không có nút sắp xếp, chỉ thêm và xóa.
+Mỗi dòng ghi tên, người và giờ sửa cuối, và các nhãn: "Nháp" (`draft`), "Đang xử lý media" (`pending > 0`), "Lỗi media" (có biến thể `error`), "Thiếu EN" ([nội dung CMS R2](cms-content.md#r2-hai-ngôn-ngữ)), "Chưa lưu" (có nháp trên máy này). Ô tìm lọc theo tên, bỏ dấu; bộ lọc: Tất cả, Nháp, Thiếu EN, Có lỗi. Bấm một dòng mở bản ghi đó ở Xem trước và Thuộc tính. Menu chuột phải của dòng: "Mở trên staging", "Đưa vào thùng rác" ([editor vận hành R4](cms-editor-ops.md#r4-thùng-rác)).
+
+Tạo mới mở một hộp thoại: tên tiếng Việt (bắt buộc) và các trường phân loại bắt buộc của kiểu (News: nhóm; công trình: mảng và loại; card: sản phẩm chính). `id` và slug VI tự sinh từ tên (chữ thường, bỏ dấu, nối bằng gạch ngang), sửa được trong hộp thoại; `id` không đổi sau khi tạo. Bấm "Tạo" gọi `create`, mở bản ghi mới ở trạng thái Nháp; 409 thì hộp thoại ghi "Tên định danh này đã có, đổi tên khác." và giữ nguyên dữ liệu đã gõ.
+
+Kéo thả đổi thứ tự gọi lệnh `reorder` với toàn bộ danh sách id theo thứ tự mới; 409 (danh sách đã đổi ở máy khác) thì tải lại nhóm và báo "Danh sách vừa đổi, xếp lại giúp."
 
 ```gherkin
-Given đang sửa Nhà ở, chọn một ảnh trong gallery rồi bấm "Mở danh sách"
-When bấm "Thêm mục" rồi chọn một ảnh trong Media
-Then gallery có thêm một figure cuối với ảnh đã chọn, caption trống được viền đỏ nhắc nhập VI và EN
-And kéo figure mới lên đầu thì thứ tự trong bản nháp đổi theo
+Given nhóm News có một bài thiếu description.en
+When chọn bộ lọc "Thiếu EN"
+Then chỉ bài đó hiện, kèm nhãn "Thiếu EN"
+When bấm Tạo, gõ tên "Chọn màu gỗ cho phòng ngủ", chọn nhóm rồi bấm Tạo
+Then bài mới có id "chon-mau-go-cho-phong-ngu", nhãn "Nháp" và mở ở Xem trước
 ```
 
-### R5. Thư viện media
+### R3. Xem trước
 
-`build-admin.mjs` quét `.site-output/assets/content/**` (`.webp`, `.svg`, `.png`, `.jpg`), bỏ biến thể cỡ (`-240`,
-`-480`, `-960`, `-1600`, `-2048`), ghi `.site-output/admin/media-index.json`: `src`, `width`, `height` (đọc bằng
-`sharp`), `folder`, `thumb` (bản `-240.webp` nếu có), alt VI/EN khi tìm được trong catalog Advertising,
-cover công trình hoặc thẻ `img` của bốn trang. Bấm "Đổi ảnh" (hoặc "Thêm mục") bật chế độ chọn: panel Media hiện dải
-"Bấm một ảnh bên dưới để đặt vào chỗ đang chọn"; bấm ảnh là ghi ảnh, cỡ và alt có sẵn vào nháp, tải lại preview. Áp ảnh
-bỏ `<source>`, `srcset`, `sizes` (ảnh mới chưa có biến thể), ghi `data-src` nếu ảnh lazy, không thì `src`. Tải ảnh từ
-máy chưa có: thư viện chỉ gồm media thật đang dùng trên demo (owner 2026-10-31).
+Khung xem trước là một `iframe` cùng origin, chạy cùng CSS, JS và motion của site ([CMS R7](cms.md#r7-xem-trước-gần-11-với-site)). Ba nguồn, không có renderer thứ hai:
+
+| Trang | Nguồn HTML |
+| --- | --- |
+| Bài News, chi tiết công trình | Module thuần `renderBlockPage` mà build dùng, chạy trong trình duyệt trên dữ liệu đang sửa |
+| Trang chuẩn | HTML đã dựng của trang, cộng hàm `fillSlots` mà build dùng (R6) |
+| Lưới và trang card Advertising | Bản xem trước `advertising.html` với catalog vá từ dữ liệu card đang sửa, như bản hiện có |
+
+Thanh cỡ có đúng sáu mốc 384, 768, 1024, 1280, 1440, 1920 (owner 2026-11-15); ô bề rộng tự do và các preset cũ bỏ. Khung lớn hơn panel thì thu nhỏ bằng `transform: scale`, ghi cỡ và phần trăm. Đổi mốc tải lại iframe (runtime của site chỉ dựng đúng lúc tải trang) rồi cuộn lại chỗ đang chọn. Sửa chữ cập nhật tại chỗ; đổi media, crop, layout hay thứ tự thì dựng lại HTML trong iframe sau 250 ms kể từ thay đổi cuối. Nút "Tiếng Việt"/"English" đổi ngôn ngữ xem trước; bản ghi chưa đủ EN thì nút English mờ kèm "Bài chưa có bản tiếng Anh". "Chế độ sửa"/"Chế độ xem" bật tắt overlay; chế độ xem tương tác như khách, link rời trang bị chặn kèm thông báo. "Mở trên staging" mở URL của trang trên staging trong tab mới, mờ khi bản ghi chưa `published`.
+
+Media chưa có biến thể hiện bằng bản gốc qua lệnh `media-file`, với vùng crop áp bằng CSS, và góc khung ghi "bản xem trước". Lưới card trong preview xếp như PC và tablet ở mọi mốc; thứ tự dựng sẵn của điện thoại chỉ có ở lần dựng thật.
 
 ```gherkin
-Given media-index.json đã sinh
-When mở Media và gõ "cnc"
-Then chỉ hiện ảnh có "cnc" trong tên file hoặc alt, mỗi ảnh ghi tên file, cỡ khi rê chuột
+Given đang sửa một bài News ở mốc 1440
+When chọn mốc 384
+Then iframe rộng 384px và tải lại, chữ vừa sửa chưa lưu vẫn còn, khối đang chọn được cuộn vào giữa
+And HTML của preview bằng HTML build sinh ra từ cùng dữ liệu
 ```
 
-### R6. Panel Media: quản lý toàn bộ media
+### R4. Soạn bài News và công trình
 
-Panel Media là trang quản lý media (owner 2026-10-31): lưới mọi media trong `media-index.json`, ô tìm theo tên file và
-alt, lọc theo thư mục và theo nơi dùng (Mọi media, Đang dùng, Chưa dùng); mỗi ô ghi số chỗ dùng. Nơi dùng tính trong
-editor: ảnh của bốn trang (bản gốc trừ mục đã xóa, cộng mục mới, src theo nháp hoặc bản đã lưu) và media của card (R7).
-Bấm một media mở chi tiết đầu panel: ảnh lớn, cỡ gốc, thư mục, biến thể có sẵn (`variants` do `build-admin.mjs` ghi, như
-`jxl`, `240 webp`), alt VI/EN với nút "Ghi alt vào n chỗ dùng (nháp)" (mỗi trang một mốc hoàn tác), nơi dùng dạng link
-mở đúng trang và chọn đúng placeholder hoặc card. Kéo một ô thả vào Xem trước (`application/x-tt-media`): thả vào danh
-sách R4 là thêm mục với ảnh đó, vào ảnh lẻ là đổi ảnh, vào card là thêm media. Tải lên, đổi tên, xóa file: nút mờ kèm
-"cần kho media R2 thật" ([CMS gate](cms.md#gate-còn-mở)).
+Panel Thuộc tính của một bài có bốn tab, làm từ trái sang phải; bài công trình có thêm tab Card ([editor media R7](cms-editor-media.md#r7-card-công-trình)).
+
+| Tab | Trường |
+| --- | --- |
+| Thông tin | Tên VI, EN; mô tả VI, EN; tiêu đề SEO (công trình); slug VI, EN; phân loại; ngày đăng (News); ảnh bìa, chọn trong media của bài |
+| Media của bài | Danh sách media có thứ tự: thêm từ thư viện hoặc upload, kéo thả đổi thứ tự, gỡ; đầu tab ghi tổng số |
+| Layout | Hình thu nhỏ của từng layout thuộc kiểu ([News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình)) |
+| Còn thiếu | Danh sách trường bắt buộc chưa đủ |
+
+Tab Layout: layout có mức media thấp nhất không vượt số media của bài thì mở; layout cao hơn mờ và ghi "thêm n media để mở"; layout có mức cao nhất nhỏ hơn số media ghi "bớt n media hoặc chọn layout lớn hơn". Trang `legacy` hiện một ô "Bố cục riêng (trang có trước CMS)", không chọn được cho bài khác. Chọn layout thì editor chia media vào khối bằng `assignMedia` theo thứ tự trong tab Media của bài và dựng lại preview. Người soạn không thêm, bớt hay đổi thứ tự khối; khối `quote` có một công tắc "Có trích dẫn" trong Thuộc tính của nó.
+
+Trên preview: bấm một chữ để sửa tại chỗ (R5); bấm một khung media để mở khung crop ([editor media R4](cms-editor-media.md#r4-khung-crop)); kéo một media từ tab Media của bài thả vào một khung để đổi media của khung đó (hai media đổi chỗ cho nhau trong danh sách). Khối `facts-grid` sửa từng ô nhãn và giá trị tại chỗ.
+
+Tab Còn thiếu chạy `shapeErrors` và `fullErrors` của `src/cms/contract.mjs` ngay trong trình duyệt sau mỗi thay đổi; mỗi dòng ghi lỗi bằng tiếng Việt và bấm vào thì chọn đúng chỗ trên preview hoặc đúng trường. Đổi slug của bài đã `published` hiện ghi chú "Link cũ sẽ tự chuyển sang link mới."
 
 ```gherkin
-Given panel Media mở, lọc "Chưa dùng"
-When chọn một ảnh rồi kéo thả vào gallery #cong-trinh trong Xem trước
-Then gallery có thêm figure với ảnh đó, lọc "Đang dùng" có ảnh đó, chi tiết ghi nơi dùng "Nhà ở · Gallery công trình"
+Given bài News có 5 media, đang ở layout "2 tới 5 ảnh"
+When mở tab Layout
+Then layout "6 tới 11 ảnh" mờ và ghi "thêm 1 media để mở"
+When thêm 1 media rồi chọn layout "6 tới 11 ảnh"
+Then preview dựng lại với chuỗi khối của layout đó, media đặt theo thứ tự trong tab Media của bài
 ```
 
-### R7. Card Sản phẩm Quảng cáo
+### R5. Soạn chữ
 
-Trang gốc, cụm, sản phẩm và trang card `p/<id>` dùng một bản xem trước `advertising.html?path=<route>`: script đầu
-`<head>` đổi URL sang route thật (`history.replaceState`, runtime định tuyến theo path); `cms-core.js` (boot
-`advertising`) gán `window.__TT_ADVERTISING_ARTIFACT__` là Promise catalog đã vá, hook có sẵn của `loadArtifact` trong
-`masonry/runtime.mjs`. `patchCatalog` nạp `catalog-artifact.mjs`, `masonry/layout.mjs` (không nạp `catalog-detail.mjs`:
-runtime gắn lười từng trường còn thiếu, card sửa nhận `related`), áp sửa đổi: `clusterIds`, `tagIds` theo sản phẩm mới,
-`media` là ảnh bìa; đổi sản phẩm chính sang cụm khác thì card nhận `sourceOrder` cuối cụm mới và hạng xếp lại bằng
-`scheduleRank`. Overlay chọn card trên lưới, gợi ý, hoặc ảnh chính của trang chi tiết; chế độ xem cho bấm
-link `p/` vì runtime mở chi tiết tại chỗ. Thuộc tính sửa: tên, mô tả VI/EN (rời ô thì tải lại), sản phẩm (thêm theo cụm
-của taxonomy, bỏ, đặt sản phẩm chính; cụm theo sản phẩm chính), media (thêm từ thư viện, xóa, lên xuống, ảnh bìa, alt
-VI/EN), "Khôi phục card gốc". Nháp chung `advertising`: `cards: { id: { titleVi, titleEn, descriptionVi, descriptionEn,
-productIds, mediaItems, coverMediaId } }`, giống gốc thì bỏ. Giữ theo build: tag khung hình, số đếm chip.
+Bấm một chữ trên preview thì chữ đó thành ô sửa tại chỗ (`contentEditable="plaintext-only"`); Enter kết thúc ở chữ một dòng, Esc luôn kết thúc; dán chỉ nhận chữ thuần. Ô Thuộc tính hiện cùng chữ đó ở hai ô VI và EN. Khi có vùng chữ được bôi, một thanh nhỏ nổi lên với đúng các nút chỗ đó cho phép ([nội dung CMS R8](cms-content.md#r8-soạn-chữ)):
+
+| Nút | Dữ liệu lưu | Hiện trên site |
+| --- | --- | --- |
+| Đậm | `**chữ**` | `<strong>` |
+| Nghiêng | `*chữ*` (dấu sẵn có của dòng hero) | `<em>` |
+| Chỉ số trên | `^2^` | `<sup>` |
+| Link | `[chữ](page:<id trang>)` hoặc `[chữ](https://…)` | `<a>`; link nội bộ chọn trang trong danh sách, không gõ URL |
+| Xuống dòng chủ ý | ký tự xuống dòng trong đoạn | `<br>` |
+| Không tách dòng | dấu cách không ngắt (U+00A0) giữa các từ | giữ cụm trên một dòng |
+| Danh sách | dòng bắt đầu bằng "• " hoặc "1. " | `<ul>`, `<ol>` (chỉ khối `paragraph` và slot cho phép) |
+
+Dữ liệu là chuỗi thuần kèm các dấu trên; một hàm thuần `inlineMarks` dùng chung cho build, preview và validator đổi dấu thành thẻ và thoát mọi ký tự HTML khác, nên không HTML, CSS hay script thô nào tới được trang. Đoạn mới trong khối `paragraph` là một dòng trống như dữ liệu hiện có. Mỗi chỗ có đúng một kiểu đoạn do khối hoặc slot quyết định; người soạn không chọn cỡ, màu, font. Bộ kiểm chữ (chữ mồ côi, dòng ngắt chủ ý kết thúc bằng dấu câu) chạy khi rời ô và hiện gạch chân vàng kèm lý do; `save` vẫn từ chối theo validator.
 
 ```gherkin
-Given đang sửa card signage-raised-letters-01 trên masonry
-When xóa media cover và chọn media còn lại làm cover
-Then card trên preview đổi ảnh, bản nháp ghi mediaItems mới, cover mới
+Given đang sửa một khối paragraph của bài News
+When bôi "25 m2", sửa thành "25 m" rồi gõ 2 và bấm Chỉ số trên
+Then dữ liệu lưu "25 m^2^", preview hiện m² bằng thẻ sup
+When dán một đoạn có thẻ <b> từ trang web khác
+Then chỉ chữ thuần được dán, không thẻ nào vào dữ liệu
 ```
 
-### R8. Bản nháp, lưu và xuất
-Bị thay: lưu và lệnh theo [CMS R3 tới R5](cms.md#r5-lệnh-admin-có-kiểu); phần dưới giữ làm tham khảo tới slice editor.
-Sửa đổi ghi vào nháp `{ page, base, anchors, text: { key: { vi, en } }, image: { key: { src, width, height, altVi, altEn
-} }, list: { listKey: [id] }, clone: { idMới: idGốc }, cards }`. Bản đang sửa là nháp trên máy nếu có, không thì bản đã
-lưu (`GET /api/admin/content/<page>` lúc mở editor, cache `tt-cms-saved:<page>` cho bản xem trước); `base` là
-`updatedAt` bản đã lưu nó dựa vào (hoàn tác giữ `base` hiện tại), `anchors` là dấu chỗ gốc (R10) của khóa lúc bắt đầu
-sửa. Nháp chỉ nằm trong `localStorage` `tt-cms-draft:<page>` khi khác bản đã lưu; mở trang mà dấu khác trang hiện tại
-(trang đổi bản build) thì bỏ sửa đổi ở khóa đó và báo. GET lỗi (khác 404, 501) thì khóa Lưu trang đó. Bản xem trước áp
-nháp lúc parse, trước runtime site, nên motion giữ nguyên. Thanh trên ghi "Không có thay đổi", "Đã lưu <giờ>" hoặc "Chưa
-lưu · n thay đổi". Panel Nháp: thay đổi chưa lưu (Bỏ là về bản đã lưu), giờ và người lưu gần nhất, cảnh báo bản đã lưu
-đổi sau lúc bắt đầu sửa và sửa đổi lệch, "Bỏ toàn bộ nháp", trang khác có nháp. Hoàn tác theo từng thao tác, gõ liên tục
-một ô gộp một mốc. Lưu chặn khi còn ô trống ("Còn n ô trống": chữ thiếu VI hoặc EN, ảnh trống, card thiếu trường), rồi
-gửi `PUT` `{ edits, baseUpdatedAt, anchors }`: 200 bỏ nháp; 409 (người khác vừa lưu) hỏi ghi đè; 400 hiện lỗi; 501, 404
-"Chưa nối lưu trữ, nháp vẫn ở máy này."; lỗi khác "(mã n)" hoặc "(mất kết nối)". Xuất JSON tải `tt-cms-<page>.json`.
-Không có bước duyệt: lưu thành công là lên web (owner 2026-10-31).
+### R6. Trang chuẩn
+
+Trang chủ, Nhà ở, Kinh doanh, Giới thiệu sửa theo slot ([nội dung CMS R6](cms-content.md#r6-trang-chuẩn)). Mỗi chỗ sửa được trong `<main>` của bốn trang mang thuộc tính `data-slot="<id>"` viết sẵn trong HTML nguồn; `id` có dạng `<section>.<tên>` (ví dụ `hero.title-1`, `intro.body`, `process.step-3.image`), duy nhất trong trang và không đổi khi HTML quanh nó đổi. Khóa `t<n>`, `i<n>` theo thứ tự nguồn của bản cũ và hook `data-cms` bỏ. Kiểu `page-copy` có đúng bốn bản ghi cố định `home`, `residential`, `commercial`, `about`, mỗi bản ghi là `{ slots: { <id>: { vi, en } } }` cho chữ và `{ slots: { <id>: { mediaId, crop } } }` cho media; slot không có trong bản ghi thì trang giữ nội dung viết sẵn trong HTML. Hàm thuần `fillSlots(html, record, locale)` dùng chung cho build và preview điền slot.
+
+Overlay vẽ viền khi rê chuột lên một slot, viền đậm khi chọn; chữ sửa theo R5, media theo khung crop. Xóa hết chữ của một slot thì slot hiện chữ mẫu, xóa media thì hiện `placeholder-ngang` hoặc `placeholder-doc` theo khung; lưu được, site hiện đúng chữ mẫu đó, và editor ghi ở đầu Thuộc tính "n chỗ đang hiện chữ mẫu trên site" kèm link tới từng slot. Số mục của một cụm (portal, bước quy trình, mốc thời gian, cam kết, ảnh gallery) là layout: bản đầu không thêm, không bớt. Header, menu, footer, floating CTA nằm ngoài `<main>` nên không chọn được trên preview; chúng sửa ở R7.
 
 ```gherkin
-Given pnpm cms:dev đang chạy, đã sửa h1 Nhà ở
-When bấm Lưu
-Then thanh trên ghi "Đã lưu", /vi/residential/ và /en/residential/ hiện h1 mới; PUT dựa bản cũ trả 409
+Given đang sửa trang Nhà ở
+When xóa hết chữ của slot intro.body rồi bấm Lưu
+Then lưu được, Thuộc tính ghi "1 chỗ đang hiện chữ mẫu trên site", lần dựng sau slot đó hiện chữ mẫu đúng khung
+When gõ lại chữ rồi Lưu
+Then lần dựng sau trang Nhà ở hiện chữ mới ở đúng slot, phần còn lại của trang không đổi
 ```
 
-### R9. Chạy local và CI
+### R7. Menu, liên hệ và danh sách của trang
 
-`pnpm cms:dev` ([CMS code dormant](cms.md#code-dormant-hiện-có)) chạy `prepare:site` rồi `node scripts/cms/build-admin.mjs`:
-chép `src/admin/` và Dockview (`vendor/`), ghi 10 bản xem trước, `pages.json`, `media-index.json` vào
-`.site-output/admin/`, rồi Worker local mở `http://127.0.0.1:8788/admin/`. `pnpm dev` và demo không dựng admin vì
-`prepare:site` xóa output: route public không đổi. Bộ `fast` chạy `tests/admin/cms-core.test.mjs` (Playwright
-`page.setContent`: khóa giống nhau giữa DOM thật và `DOMParser`, áp chữ, ảnh, danh sách, bản sao marquee) và
-`build-admin.mjs` rồi `tests/admin/editor.e2e.mjs` trên preview tĩnh (mở `/admin/index.html` vì static server không có
-index thư mục): Nhà ở (sửa h1, đổi A04s, thêm mục gallery, tải lại, Lưu), Media (lọc, kéo thả, alt), card (R7).
+Các phần không nằm trong `<main>` hoặc là danh sách dữ liệu sửa bằng biểu mẫu trong panel Thuộc tính; preview dựng lại sau mỗi thay đổi.
+
+| Mục | Sửa được | Luật |
+| --- | --- | --- |
+| Menu | Tiêu đề VI/EN, link, thứ tự của 6 mục lớn; mục con thêm, xóa, sửa, kéo thả | Luôn đủ 6 mục lớn; link nội bộ chọn trang ([nội dung CMS R7](cms-content.md#r7-menu-liên-hệ-và-cta)) |
+| Liên hệ | Zalo, hotline, văn phòng, mạng xã hội; chữ và link của từng nút CTA | Một nguồn `contact`, mọi nút trên site đọc từ đó |
+| Ảnh hero của Trang chủ, Nhà ở, Kinh doanh | Thêm từ thư viện, gỡ, điểm giữ, alt | Mỗi trang còn ít nhất một ảnh; thứ tự do site xáo nên không xếp |
+| Dải công trình trang chủ | Chọn công trình `published`, kéo thả thứ tự | Từ 3 công trình |
+| Logo khách hàng | Thêm (file SVG), tên, gỡ, kéo thả thứ tự | SVG qua kiểm an toàn ([editor media R2](cms-editor-media.md#r2-upload-ảnh)) |
+
+```gherkin
+Given menu có 6 mục lớn
+When mở biểu mẫu Menu
+Then mục lớn không có nút xóa; mục con có nút xóa và kéo thả được
+When gỡ ảnh hero cuối cùng của trang Kinh doanh
+Then lệnh trả 409, biểu mẫu ghi "Trang phải còn ít nhất một ảnh hero"
+```
+
+### R8. Nháp, lưu và xung đột
+
+Mọi thay đổi ghi ngay vào nháp trên máy `localStorage` `tt-cms-draft:<kiểu>:<id>`: `{ baseVersion, data }`, với `baseVersion` là `version` của bản đã tải. Nháp không gửi lên server; đổi máy hay xóa dữ liệu trình duyệt thì mất phần chưa lưu ([CMS R7](cms.md#r7-xem-trước-gần-11-với-site)). Nhãn trên thanh trên: "Nháp" hoặc "Đã đăng" theo bản ghi, thêm "Chưa lưu · n thay đổi" khi có nháp. Hoàn tác theo từng thao tác, gõ liên tục một ô gộp một mốc. Panel Nháp liệt kê mọi bản ghi có nháp trên máy, mỗi dòng có "Mở" và "Bỏ nháp".
+
+Bấm Lưu gọi `save` với `baseVersion`. Editor chỉ gửi `mediaId` và `crop` cho chỗ đặt media.
+
+| Trả về | Editor làm |
+| --- | --- |
+| 200, `published`, `pending` bằng 0 | Bỏ nháp; ghi "Đã lưu. Đang đưa lên staging." |
+| 200, `published`, `pending` lớn hơn 0 | Bỏ nháp; ghi "Đã lưu. Đang xử lý n media, xong sẽ tự lên staging." |
+| 200, `draft` | Bỏ nháp; ghi "Đã lưu nháp. Còn thiếu n mục." và mở tab Còn thiếu |
+| 400 | Giữ nháp; đánh dấu từng trường lỗi theo danh sách trả về |
+| 409 version | Hộp thoại ghi người và giờ lưu bản kia, hai nút: "Lấy bản mới" (bỏ nháp, tải bản kia) và "Giữ bản của tôi" (lưu lại trên `version` mới) |
+| 409 slug | Giữ nháp; ô slug ghi "Link này đã có bài khác dùng." |
+| 403 | Giữ nháp; ghi "Tài khoản không có quyền này." |
+| 429, 503, mất mạng | Giữ nháp; ghi "Chưa lưu được, nháp vẫn ở máy này. Thử lại sau." |
+
+Mở một bản ghi có nháp mà `baseVersion` nhỏ hơn `version` hiện tại thì hộp thoại 409 hiện ngay, trước khi sửa tiếp. Rời trang khi còn nháp không hỏi lại, vì nháp vẫn ở máy.
+
+```gherkin
+Given owner và nhân viên cùng mở một bài ở version 4
+When owner lưu, rồi nhân viên bấm Lưu
+Then nhân viên thấy hộp thoại ghi tên owner và giờ lưu, nháp của nhân viên chưa mất
+When nhân viên chọn "Giữ bản của tôi"
+Then bài lên version 6 với nội dung của nhân viên, nhật ký có đủ hai lần lưu
+```
+
+### R9. Dựng admin, chạy local và CI
+
+`scripts/cms/build-admin.mjs` ghi thư mục admin cho Worker admin phục vụ dưới `/admin/`: file của `src/admin/`, Dockview, các module thuần dùng chung (`src/cms/`, `renderBlockPage`, `fillSlots`, `inlineMarks`, dựng card) dưới dạng module trình duyệt, HTML đã dựng của bốn trang chuẩn và `advertising.html`, cùng CSS, JS của site. Route public không đổi và không có file admin. `pnpm cms:dev` dựng site, dựng admin rồi chạy Worker admin local với D1 local đã seed, mở `http://127.0.0.1:8788/admin/`. Bộ `fast` chạy test đơn vị của các module thuần và e2e của editor trên Worker local.
 
 ```gherkin
 Given pnpm cms:dev đang chạy
-When GET /admin/, /admin/media-index.json, /admin/preview/vi/home/
-Then 200; GET /vi/ không có cms-core.js
-```
-
-### R10. Worker áp nội dung đã lưu
-Bị thay: [CMS R1](cms.md#r1-ranh-giới-public-và-admin) bỏ Worker SSR và `page_edits`; phần dưới chỉ mô tả code dormant.
-`0005_page_edits.sql`: bảng `page_edits` (`page` là `home`, `residential`, `commercial`, `about` hoặc `advertising`;
-`edits_json`, `anchors_json`, `updated_at`, `updated_by`); áp migration trước khi deploy Worker đọc bảng. `GET
-/api/admin/content/<page>` (admin, [CMS code dormant](cms.md#code-dormant-hiện-có)) trả `{ edits, stale, updatedAt, updatedBy }`.
-`PUT` (body tối đa 512 KB, nháp 256 KB UTF-8) kiểm nháp bằng `validateEdits` của `src/worker/content.mjs` (khóa đúng
-mẫu, chữ đủ VI/EN và không có mã HTML dạng `&amp;`, ảnh chỉ trong `/assets/content/`, sản phẩm card có trong taxonomy,
-ảnh bìa thuộc media), ghi có điều kiện theo `baseUpdatedAt` (khác thì 409 kèm người, giờ lưu), ghi `audit_log`
-`content.save` (khóa, bản trước; lỗi audit chỉ ghi log). Dấu chỗ gốc (`anchorOf` của `cms-core.js`: chữ VI gộp khoảng
-trắng, đường dẫn ảnh, số mục danh sách) tính trên HTML nguồn lúc lưu; 400 khi khóa không có trên trang, dấu editor gửi
-khác dấu nguồn, hoặc mục mới còn ô trống; card phải có trang tĩnh `p/<id>`.
-
-Phục vụ bốn trang `/vi|en/`: dòng `page_edits` có sửa đổi thì Worker parse HTML nguồn bằng `linkedom`, chạy `stamp`,
-`apply` của `cms-core.js`, bỏ sửa đổi có dấu không khớp nguồn hiện tại (khóa lệch, GET trả trong `stale`), xóa thuộc
-tính `data-cms-*` của editor, rồi pipeline locale và SEO của [CMS code dormant](cms.md#code-dormant-hiện-có) chạy
-tiếp. Chỗ editor đã sửa thắng field CMS cũ (bỏ `data-cms` ở đó; title, description thay SEO trong `pages`); title ghi
-bằng HTMLRewriter (có thoát, linkedom thì không). Hero đã sửa thì bỏ script preload ở `<head>` và đánh lại `data-slide`.
-Bản render giữ trong isolate theo `updated_at` và ETag nguồn, module nạp lười. Trang dưới `/vi|en/advertising-products/`
-(GET, HEAD trả 200 hoặc 304) khi có card đã sửa: chèn đầu `<head>` script gán `window.__TT_ADVERTISING_ARTIFACT__` bằng
-mã `patchCatalog` (JSON thoát `<`); trang `p/<id>` của card sửa còn đổi title, description, `og:image`, JSON-LD, khối
-tĩnh cho bot. Trang đã áp bỏ ETag, `content-length` của file tĩnh (304 thì lấy lại bản đủ).
-
-```gherkin
-Given residential đã lưu h1 mới, sau đó HTML nguồn đổi chữ của h1 đó
-When GET /vi/residential/ và GET /api/admin/content/residential
-Then trang hiện h1 theo nguồn mới, không áp nhầm; API trả khóa h1 trong stale
+When GET /admin/ và một file module trong /admin/
+Then 200; GET /vi/ của site public không chứa file nào của admin
 ```
 
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| File | `src/admin/index.html`, `editor.css`, `editor.js`, `dock-tools.js` | shell editor, dock Dockview, panel (R1, R2, R4 đến R8); ghim tab, mép tự ẩn, lịch sử bố cục ([CMS dock](cms-dock.md)) |
-| File | `src/admin/cms-core.js` | `TTCms`: `LISTS`, `stamp`, `apply`, `setText`, `mirror`, `patchCatalog`, `readDraft`, `readSaved`; boot bản xem trước (R3, R4, R7, R8); Worker nạp cùng file (R10) |
-| File | `src/worker/content.mjs`, `src/db/migrations/0005_page_edits.sql` | kiểm nháp, dấu chỗ gốc, render linkedom, script vá catalog; bảng `page_edits` (R10) |
-| File | `src/admin/overlay.js`, `overlay.css` | chọn, sửa tại chỗ trong iframe (R3) |
-| File | `src/admin/forms.html`, `admin.js`, `admin.css` | form CRUD cũ ([CMS code dormant](cms.md#code-dormant-hiện-có)) |
-| Script | `scripts/cms/build-admin.mjs` | dựng `.site-output/admin/` (R5, R9) |
-| Data | `.site-output/admin/pages.json`, `media-index.json` (`variants`), `preview/<locale>/<page>.html`, `advertising.html` | cây trang (R1), thư viện (R5, R6), bản xem trước (R3, R7) |
-| DOM hook | `data-cms-key`, `data-cms-list`, `data-cms-item`, `data-cms-empty`, iframe `data-cms-preview` | khóa placeholder, danh sách, ô trống |
-| API trong trang | `window.TTEditor` (`onSelect`, `onInlineInput`, `onPreviewReady`, `onDropMedia`), `window.TTCmsOverlay` (`setText`, `select`, `setMode`), `window.__TT_ADVERTISING_ARTIFACT__` | editor, overlay, runtime catalog gọi nhau cùng origin |
-| Storage | `localStorage` `tt-cms-draft:<page>`, `tt-cms-saved:<page>`, `tt-cms-layout`, `tt-cms-page` | nháp, bản đã lưu (R8), bố cục (R1), trang mở lần cuối |
-| Thư viện | `dockview` 8.8.0 (`createDockview`, `themeLight`); `linkedom` 0.18.14 (ISC) | dashboard panel (R1); DOM trong Worker (R10) |
-| Endpoint | `GET`, `PUT /api/admin/content/<page>` | đọc, lưu nội dung editor; 409 xung đột; 501 khi không có D1 (R8, R10) |
+| File | `src/admin/index.html`, `editor.js`, `editor.css`, `dock-tools.js`, `overlay.js`, `overlay.css` | Khung, panel, overlay (R1 tới R8) |
+| Hàm | `renderBlockPage`, `fillSlots`, `inlineMarks`, `assignMedia`, `shapeErrors`, `fullErrors` | Module thuần dùng chung với build và Worker (R3 tới R6) |
+| DOM hook | `data-slot` trên bốn trang chuẩn; iframe `data-cms-preview` | Khóa slot (R6); khung preview |
+| Lệnh | `list`, `get`, `create`, `save`, `reorder`, `media-file` | [Dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) |
+| Storage | `localStorage` `tt-cms-draft:<kiểu>:<id>`, `tt-cms-layout`, `tt-cms-open` | Nháp (R8), bố cục, bản ghi mở lần cuối (R1) |
+| Thư viện | `dockview` 8.8.0 | Dock (R1) |
 
 ## UI
 
-Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tính, chữ hệ thống, viền chọn một màu nhấn
-`#1a5fd0` rõ trên mọi ảnh; placeholder trống viền đỏ đứt kèm chữ nhắc. Preview giữ nguyên UI của trang public.
+Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tính, chữ hệ thống, một màu nhấn `#1a5fd0` cho viền chọn và nút chính; chỗ còn thiếu viền đỏ đứt kèm chữ nhắc; nhãn trạng thái là chữ, không chỉ là màu. Mọi nút có nhãn chữ tiếng Việt. Preview giữ nguyên UI của trang public.
 
 ## Kiểm tra
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R4 đến R8 | `tests/admin/editor.e2e.mjs` |
-| R3, R4, R8, R10 | `tests/admin/cms-core.test.mjs` (khóa, dấu linkedom trùng DOMParser trên bốn trang thật), `content.test.mjs`, `content-api.test.mjs` (API, 409, ETag với D1 giả) |
-| R8, R10 | `tests/admin/content-worker.e2e.mjs` khi `pnpm cms:dev` chạy (wrangler, D1 local; không thuộc CI) |
-| R9 | `node scripts/cms/build-admin.mjs`; `pnpm qa:worker:security` (GET, PUT content cần admin); output public không có admin vì `prepare:site` xóa `.site-output` |
+| R1, R2, R8 | cần: e2e mở editor, tạo bài, lọc, lưu, xung đột 409 trên Worker local |
+| R3 | cần: HTML preview bằng HTML build trên fixture mọi khối, bốn trang chuẩn và card |
+| R4 | cần: e2e khóa layout theo số media; đơn vị `assignMedia` đã có ở phần 1 |
+| R5 | cần: đơn vị `inlineMarks` (từng dấu, thoát HTML, dán chữ thuần) |
+| R6, R7 | cần: đơn vị `fillSlots`; test mọi `data-slot` duy nhất trong trang; e2e luật 6 mục menu và ảnh hero cuối |
+| R9 | cần: output public không có file admin |
 
 ## Gate còn mở
 
-- Khóa tự sinh theo thứ tự nguồn: sửa HTML nguồn trước một chỗ làm lệch khóa; dấu chỗ gốc bỏ sửa đổi lệch thay vì áp
-  nhầm, nhưng nó mất trên web tới khi làm lại. Bền hơn cần `data-cms` cố định ([CMS R3](cms-content.md#r1-kiểu-nội-dung-và-file-chiếu)).
-- Motion trong bản xem trước giữ nguyên (owner 2026-10-31): nháp áp lúc parse, sửa chữ tại chỗ dùng revert/rebuild.
-- Hero đã sửa mất preload ảnh đầu (LCP chậm hơn); sinh lại preload cần ảnh mới có đủ biến thể.
-- linkedom tốn 6 đến 21 ms mỗi lần render (Node 22, 2026-11-01), Workers Free giới hạn 10 ms CPU: chốt gói, đo CPU Worker
-  trước khi mở thật. Card sửa chưa đổi `related`, tag khung hình, đếm chip, sitemap ảnh (sinh lúc build).
-- Upload ảnh từ máy (cần đủ biến thể), video, phân quyền, D1 và R2 thật: ngoài phạm vi ([CMS gate](cms.md#gate-còn-mở)).
+- Phần 2 của plan CMS viết lại code theo spec này. CMS mở cho người dùng một lần khi mọi nhóm nội dung đã xong, không mở từng đợt (owner 2026-11-22).
+- Số mục của các cụm trên trang chuẩn (ảnh gallery, mốc thời gian, cam kết) cố định ở bản đầu; thêm, bớt mục cần đổi `page-copy` thành danh sách và là việc sau bản đầu.
+- Motion trong bản xem trước giữ nguyên (owner 2026-10-31): preview chạy cùng JS và motion của site; sửa chữ tại chỗ gộp dòng đã tách rồi tách lại.
+- Editor trên điện thoại: ngoài phạm vi.
 
 ## Chú thích thuật ngữ
 
-- **Placeholder**: ô nội dung đặt đúng vị trí trên trang thật, nhập vào là thấy ngay.
-- **Overlay**: lớp script và CSS chèn vào trang xem trước để chọn và sửa placeholder.
-- **Preset cỡ**: cỡ khung xem trước định sẵn theo thiết bị.
-- **Bản nháp**: thay đổi chưa lưu, giữ trong trình duyệt.
-- **Bản xem trước**: bản sao HTML đã build của trang, có thêm `cms-core.js`, chỉ có trong admin.
-- **Slice**: phần việc nhỏ owner mở riêng, có gate duyệt.
-- **Bản đã lưu**: nội dung editor trong D1, Worker áp khi phục vụ trang.
-- **Khóa lệch**: khóa placeholder trỏ sai chỗ vì HTML nguồn đổi sau lúc lưu.
-- **Isolate**: một phiên chạy của Worker giữ bộ nhớ giữa các request.
+- **Slot**: chỗ đặt nội dung cố định trong một trang chuẩn, có khóa `data-slot`.
+- **Overlay**: lớp script và CSS chèn vào trang xem trước để chọn và sửa.
+- **Nháp trên máy**: thay đổi chưa lưu, chỉ nằm trong trình duyệt. Khác bản ghi `draft` là bản đã lưu nhưng chưa đủ trường.
+- **Dấu chữ**: ký hiệu trong chuỗi thuần (`**`, `*`, `^`, `[]()`) mà site đổi thành thẻ trình bày.
 - **Dock**: vùng chia panel có tab, kéo thả được.
+- **Staging**: bản thử `staging.truongthinhads.vn`, nơi mọi lần lưu hiện ra trước khi phát hành.
+- **Module thuần**: code không đọc file hay mạng, chạy được ở Node, Worker và trình duyệt.
+- **Mốc**: một bề rộng xem trước định sẵn.
