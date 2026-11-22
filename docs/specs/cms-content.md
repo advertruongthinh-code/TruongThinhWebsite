@@ -211,7 +211,7 @@ Hướng owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/arti
 vector và test thuộc [tìm kiếm Advertising](advertising-search.md). Bản đầu CMS giữ ba điều: lưu không bao giờ phụ thuộc
 AI; `pnpm search:index` ở mỗi lần dựng là nơi duy nhất tính vector, từ nội dung `published` trong bản chụp, nên thêm,
 sửa, xóa card hay media đổi kết quả tìm từ lần dựng sau; bản ghi `draft` không vào chỉ mục public. Tính vector lúc lưu,
-tìm bản ghi `draft` trong CMS và hỗ trợ nhập bằng AI để sau bản đầu.
+tìm bản ghi `draft` trong CMS và hỗ trợ nhập bằng AI để sau bản đầu (owner 2026-11-22).
 
 Không có trường từ khóa riêng: lớp từ khóa tự dựng từ tên, mô tả, alt (bỏ dấu) cộng bảng từ đồng nghĩa chung lấy từ dữ
 liệu Keyword Planner. Keyword Planner không chạy lại khi thêm, sửa, xóa, chỉ chạy lại 6 tháng một lần hoặc khi thêm nhóm
