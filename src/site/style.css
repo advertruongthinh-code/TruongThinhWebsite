@@ -630,8 +630,9 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   transform: translateX(0);
 }
 
-/* Back to top (owner 2026-11-13, unified 2026-11-22): every device, on a page with a masonry layout, past the first screen, in the
-   bottom-right corner the floating CTA leaves; white 50px square with the search block's shadow (search-bar R5). motion.js adds .show.
+/* Back to top (owner 2026-11-13, unified 2026-11-22): phones only (no PC, owner 2026-11-22), on a page with a masonry layout, past the
+   first screen, in the bottom-right corner the floating CTA leaves; white 50px square with the search block's shadow (search-bar R5).
+   motion.js adds .show.
    It stays at the right edge on every page and sits under the floating search block so its shadow never covers the bar (owner 2026-11-22). */
 .back-to-top {
   position: fixed;
@@ -676,6 +677,12 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
 @media (hover: none) and (pointer: coarse) {
   .back-to-top {
     right: 16px;
+  }
+}
+
+@media (hover: hover), (pointer: fine) {
+  .back-to-top {
+    display: none;
   }
 }
 
@@ -1311,10 +1318,15 @@ em {
   font-weight: inherit;
 }
 
-/* Home: line 2 "Làm khác" italic at the same weight; uppercase display titles are 500 like Espacio (owner 2026-11-22 weight audit). */
-.hero[data-hero-intro] h1 > .hero-line-mask:first-child,
-.hero[data-hero-intro] h1 em {
-  font-weight: 500;
+/* Every hero title: the italic part is the em and is always bold, 600 = the heaviest of the 3 site weights (owner 2026-11-22). */
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) em {
+  font-style: italic;
+  font-weight: 600;
+}
+
+/* Home hero: both lines bold, line 2 "Làm khác" also italic (owner 2026-11-22). */
+.hero[data-hero-intro] h1 {
+  font-weight: 600;
 }
 
 .hero-line-mask,

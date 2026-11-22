@@ -18,8 +18,8 @@
   },
   "lastChange": {
     "by": "Thịnh",
-    "at": "2026-11-14T13:50:00Z",
+    "at": "2026-11-22T09:50:00Z",
     "via": "Claude Code",
-    "note": "#941 thumbnail đúng tỷ lệ ảnh ở dãy Primary và dãy viewer (--detail-thumb-ratio); #942 dãy dọc viewer rộng 96px (Primary, Viewer, bundle.css)"
+    "note": "Hero: phần nghiêng của title mọi hero là em đậm 600; Advertising chỉ nghiêng \"tầm mắt\"; trang chủ hai dòng 600 (Hero README)"
   }
 }

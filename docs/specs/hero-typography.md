@@ -33,13 +33,15 @@ giữ bố cục riêng.
 | CTA "Giữ nghề" trang chủ | Giữ nghề | Không ngừng làm mới |
 | Hero Residential | Nơi tái tạo | năng lượng sống |
 | Hero Commercial | Thiết kế tối ưu | Vận hành bền bỉ |
-| Hero Advertising | Để thương hiệu | luôn trong tầm mắt |
+| Hero Advertising | Để thương hiệu | luôn trong *tầm mắt* |
 
 Bản EN tách hai dòng ở cùng vị trí ý nghĩa. Câu Commercial mới thay "Thiết kế để bán tốt. Thi công để vận hành bền."
 Bản EN là "Designed to perform / Built to last" (owner duyệt 2026-10-18).
-Commercial nhấn "tối ưu", "bền bỉ" (EN "perform", "last") bằng `em` nghiêng. Residential dòng 2 "năng lượng sống" nghiêng. Advertising kicker là "Sản phẩm tiêu biểu" / "Our featured products", dòng 2 "luôn trong tầm mắt" (EN "always in sight") nghiêng (owner 2026-11-08). Trang chủ dòng 2 "Làm khác" nghiêng. Phần nghiêng cùng weight với cả dòng: title hoa 500 (owner 2026-11-22, audit weight theo Espacio).
+Commercial nhấn "tối ưu", "bền bỉ" (EN "perform", "last") bằng `em` nghiêng. Residential dòng 2 "năng lượng sống" nghiêng. Advertising kicker là "Sản phẩm tiêu biểu" / "Our featured products", chỉ "tầm mắt" (EN "sight") nghiêng (owner 2026-11-22). Trang chủ dòng 2 "Làm khác" nghiêng.
 
-Weight chữ toàn site chỉ 3 mức như Espacio (owner 2026-11-22): 400 cho đoạn văn, số thứ tự, tiêu đề chữ thường kiểu câu (kể cả phần nghiêng); 500 cho tiêu đề lớn chữ hoa, tiêu đề vừa (nhóm menu, "Trụ sở / Xưởng / Tư vấn") và tiêu đề CTA; 600 cho nhãn nhỏ chữ hoa (menu, nút, kicker, chú thích ảnh, tên dự án, "Đọc tiếp"). Không dùng 700, 300, 200.
+Phần nghiêng của title mọi hero (trang tĩnh, trang Công trình, trang chi tiết công trình) luôn là `em` và luôn đậm 600, mức đậm nhất trong 3 mức weight của site (owner 2026-11-22). Phần không nghiêng giữ 500, riêng trang chủ cả hai dòng 600.
+
+Weight chữ toàn site chỉ 3 mức như Espacio (owner 2026-11-22): 400 cho đoạn văn, số thứ tự, tiêu đề chữ thường kiểu câu (kể cả phần nghiêng, trừ phần nghiêng của title hero); 500 cho tiêu đề lớn chữ hoa, tiêu đề vừa (nhóm menu, "Trụ sở / Xưởng / Tư vấn") và tiêu đề CTA; 600 cho nhãn nhỏ chữ hoa (menu, nút, kicker, chú thích ảnh, tên dự án, "Đọc tiếp"). Không dùng 700, 300, 200.
 
 ### R2. Bày chữ hero kiểu espacio
 
