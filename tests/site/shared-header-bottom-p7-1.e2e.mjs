@@ -64,8 +64,9 @@ try {
         await scrollTo(page, middle + 370);
         await scrollTo(page, middle + 350);
         await scrollTo(page, middle + 150);
-        assert(!await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),
-          `${label}: real upward scroll past threshold must reveal header`);
+        // site-shell R3: scrolling up does not reveal the header (owner 2026-11-22).
+        assert(await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),
+          `${label}: upward scroll in the middle zone must keep the header hidden`);
         await scrollTo(page, 0);
         assert(!await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-collapsed")),
           `${label}: top must restore expanded header`);
@@ -92,8 +93,10 @@ try {
       await page.waitForFunction(() => document.querySelector("[data-site-header]")?.classList.contains("is-hidden"),
         null, { timeout: 12_000 });
       for (let index = 0; index < 8; index += 1) await page.mouse.wheel(0, -600);
-      await page.waitForFunction(() => !document.querySelector("[data-site-header]")?.classList.contains("is-hidden"),
-        null, { timeout: 12_000 });
+      // site-shell R3: scrolling up in the middle zone keeps the header hidden (owner 2026-11-22).
+      await page.waitForTimeout(1_000);
+      assert(await page.locator("[data-site-header]").evaluate(node => node.classList.contains("is-hidden")),
+        `${label}: upward wheel in the middle zone must keep the header hidden`);
       for (let index = 0; index < 8; index += 1) await page.mouse.wheel(0, 600);
       await page.waitForFunction(() => document.querySelector("[data-site-header]")?.classList.contains("is-hidden"),
         null, { timeout: 12_000 });

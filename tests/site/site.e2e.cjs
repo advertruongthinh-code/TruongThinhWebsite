@@ -2390,13 +2390,14 @@ async function runHeaderParityChecks() {
         await page.waitForTimeout(70);
       }
       await page.waitForTimeout(1_050);
+      // site-shell R3: scrolling up does not reveal the header (owner 2026-11-22).
       assert(
         await page.locator("[data-site-header]").evaluate(
           (element) =>
-            !element.classList.contains("is-hidden") &&
-            Math.abs(element.getBoundingClientRect().top) <= 1,
+            element.classList.contains("is-hidden") &&
+            element.getBoundingClientRect().top < -80,
         ),
-        "A 150px upward direction change did not show the header",
+        "A 150px upward scroll showed the header",
       );
 
       await page.setViewportSize({ width: 1100, height: 900 });
@@ -12862,7 +12863,8 @@ async function runP13NavbarChecks() {
       );
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       // Touch screens hide the "Xem lớn hơn" button, tap the primary image to open the viewer (viewer-touch-zoom R7).
-      const hit = await page.locator("[data-detail-primary]").evaluate((primary) => {
+      // Aim at the photo frame: in the pinterest layout the primary column also holds the info and thumbnails under it.
+      const hit = await page.locator("[data-detail-primary] [data-detail-hero]").evaluate((primary) => {
         const rect = primary.getBoundingClientRect();
         const x = rect.left + rect.width / 2;
         const y = rect.top + rect.height / 2;
