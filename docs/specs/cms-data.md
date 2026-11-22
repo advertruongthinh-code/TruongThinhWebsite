@@ -118,7 +118,8 @@ Then không trả 200
 
 Media có hai nguồn: `repo` (file `.webp` trong `src/site/assets/content/`, trường `path`) và `r2` (bản gốc ở bucket
 private, key `originals/<mediaId>/original.<ext>`). Bản gốc giữ nguyên byte, không bao giờ phát ra ngoài; ảnh upload
-là JPEG, PNG, WebP, AVIF, tối đa 25 MB (SVG logo ở phần 2). Kích thước media là kích thước sau khi xoay theo EXIF; job
+là JPEG, PNG, WebP, AVIF, tối đa 25 MB. Logo SVG (tối đa 200 KB, qua bộ kiểm an toàn) không cắt, không sinh biến thể:
+file ghi thẳng `v/<key>/<mediaId>.svg` ở bucket public kèm manifest, kích thước lấy từ `viewBox` làm tròn. Kích thước media là kích thước sau khi xoay theo EXIF; job
 biến thể xoay trước khi cắt. Chỗ đặt media trong nội dung là `{ mediaId, crop: [x, y, w, h] }`; Worker tự ghi `src`,
 `width`, `height`, `altVi`, `altEn`, không tin giá trị client gửi. Chỗ đặt có `legacySrc` (chỉ dữ liệu seed, ví dụ file
 cắt riêng của card công trình) giữ nguyên `src` và alt cho tới khi người soạn đặt lại crop.
@@ -136,7 +137,9 @@ Video upload là MP4 tối đa 95 MB qua cùng lệnh upload (Cloudflare gói Fr
 `duration` và `posterId`: một media ảnh cùng tỷ lệ, lệch không quá 1%, không xóa được khi video còn. Video không cắt
 nên có đúng một biến thể: job chạy `build-video-ladder.mjs` ([tải video R1](video-delivery.md#r1-thang-chất-lượng-cho-mỗi-video)),
 bỏ metadata của bản gốc, ghi `v/<key>/master.m3u8`, `<bậc>.m3u8`, `<bậc>.mp4` rồi `manifest.json`. Mỗi video một lần gọi
-job; hạn `pending` của video là 90 phút. Trong phần 1 nội dung chưa trỏ được tới media video.
+job; hạn `pending` của video là 90 phút. Chỗ đặt media video (khối `media-single` có ô video, media của card
+Advertising) được Worker ghi `hlsSrc`, kích thước, alt, thời lượng và poster; build chọn bậc MP4 (`src` tối đa 960,
+`cardSrc` tối đa 480) và `hasAudio` từ manifest của biến thể.
 
 ```gherkin
 Given bài published có một media vừa upload, biến thể còn pending
@@ -183,11 +186,12 @@ Then lần dựng đó dùng code của commit X với nội dung mới
 | `update-media` | `{ id, version, altVi, altEn, tags }` | 200; alt mới ghi vào mọi bản ghi dùng media |
 | `account-add`, `account-update` | `{ email, role, status }` | 201, 200 |
 | `rollback` | `{ versionId, target }`; `target` là `staging` (mặc định) hoặc `production`; `versionId` là một trong 10 dấu gần nhất của đích đó | 202; đích `staging` thì tự đăng tạm dừng |
-| `release` | `{ commit, snapshotId }` của dấu deployment staging mới nhất | 202; 409 `staging-changed`, `staging-behind`, `paused` |
-| `reorder` | `{ type, ids }`: mọi id chưa vào thùng rác của kiểu, theo thứ tự mới | 200; 409 khi tập id khác hiện tại |
+| `release` | `{ commit, snapshotId }` của dấu deployment staging mới nhất | 202; 409 `staging-changed`, `staging-behind`, `paused`, `already-released`, `cms-not-live` |
+| `reorder` | `{ type, ids }`: mọi id chưa vào thùng rác của kiểu, theo thứ tự mới; card Advertising thêm `scope` (id sản phẩm chính), chỉ xếp card của sản phẩm đó | 200; 409 khi tập id khác hiện tại |
 | `retry-variant` | `{ key }` của một biến thể `error` | 202, biến thể về `pending` |
 | `resume-publish`, `rebuild` | `{}` | 200, 202 |
 | `list`, `get`, `media-list`, `account-list`, `audit-log`, `build-status` | query | 200; `get` kèm `variants` (`key`, `status`, `error` của từng biến thể bản ghi đang dùng); `build-status` kèm `held`, `releases` (10 dấu phát hành), `releaseRuns` |
+| `whoami`, `context`, `release-changes` | không | 200: `{ email, role }` của người gọi; `data` của mọi News và công trình `published` cho preview; thay đổi kể từ lần phát hành trước |
 | `media-file` | `?id=` | Byte bản gốc cho người đã đăng nhập, dùng cho xem trước; kèm `nosniff` và CSP `sandbox` |
 | `snapshot`, `media-original` | chỉ service token | R2; byte bản gốc kèm `X-Hash` |
 
@@ -196,7 +200,9 @@ Then lần dựng đó dùng code của commit X với nội dung mới
 lệnh thành công nằm trong cùng `batch` với câu ghi dữ liệu; lệnh bị từ chối do `Origin`, `Content-Type`, rate limit,
 vai trò hoặc lỗi 4xx cũng có một dòng. `upload-media` có thêm hạn mức 20 lần mỗi 60 giây. Lệnh xóa giữ luật cả bộ:
 `home-projects` còn từ 3 công trình, mỗi trang còn ít nhất một slide hero `published`. Khóa tài khoản ghi D1 trước rồi
-mới gỡ khỏi chính sách Access.
+mới gỡ khỏi chính sách Access. `list` nhận `status=trashed` và trả `enMissing` từ cột `records.en_missing` (Worker tính
+lúc lưu); `audit-log` lọc theo `email`, `command`. `trash` một card Advertising làm cụm thiếu loại khung thì 409
+`pool-min`; `purge` media mà site chính còn dùng thì 409 `live-on-production`.
 
 ## Giao diện và dữ liệu
 
@@ -212,7 +218,7 @@ mới gỡ khỏi chính sách Access.
 ## UI
 
 Không có UI public. Trang vận hành tạm `/admin/status.html` (trạng thái dựng, lưu thử, dựng lại, rollback, tài khoản)
-cho owner tới khi có [editor](cms-editor.md) mới.
+cho owner tới khi [editor](cms-editor.md) có panel Trạng thái, Nhật ký và Tài khoản; lúc đó trang tạm bị xóa.
 
 ## Kiểm tra
 
