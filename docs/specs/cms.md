@@ -88,8 +88,8 @@ owner luôn còn mở: lệnh khóa hay hạ vai trò owner cuối cùng trả 4
 tài khoản, vì Access tính seat ở lần đăng nhập đầu và chặn người mới khi hết seat (suy luận theo tài liệu Access, kiểm
 ở slice Storage). Trang tài khoản tự thêm, gỡ email
 trong chính sách Access qua API Cloudflare (owner 2026-11-15): token chỉ có quyền Access, nằm ở secret, Worker chỉ sửa
-đúng chính sách của app admin (id trong secret). Gọi API Access trước, thành công mới ghi D1; API lỗi thì trả 502, không
-đổi gì; nhật ký ghi cả hai bước. Cron Trigger hằng ngày của admin Worker so chính sách Access với bảng
+đúng chính sách của app admin (id trong secret). Thêm hoặc mở lại: gọi API Access trước, thành công mới ghi D1; API lỗi
+thì trả 502, không đổi gì. Khóa: ghi D1 trước để Worker từ chối ngay, rồi gỡ khỏi Access; API lỗi thì báo lệch. Nhật ký ghi cả lần lỗi. Cron Trigger hằng ngày của admin Worker so chính sách Access với bảng
 tài khoản, lệch thì admin báo owner, không tự sửa.
 
 ```gherkin
@@ -140,7 +140,7 @@ Then nhân viên nhận 409 kèm bản version 5, bài vẫn là bản của own
 
 ### R5. Lệnh admin có kiểu
 
-API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `audit-log`, `build-status`, `snapshot`; mỗi lệnh validate bằng module dùng chung ở
+API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `media-file`, `account-list`, `audit-log`, `build-status`, `snapshot`, `media-original` (thân, query, mã trả về ở [dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin)); mỗi lệnh validate bằng module dùng chung ở
 [nội dung CMS R1](cms-content.md#r1-kiểu-nội-dung-và-file-chiếu), kiểm quyền theo R2, ghi nhật ký theo R4.
 
 | Lệnh | Kết quả | Lỗi |
@@ -154,9 +154,9 @@ API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`
 | `rollback`, `resume-publish` | Quay site về deployment trước; mở lại tự đăng (chỉ owner) | 403 |
 | `rebuild` | Dựng lại từ bản chụp hiện tại sau lần dựng lỗi | 409 khi đang tạm dừng tự đăng |
 
-Request ghi chỉ nhận `application/json` (upload là `multipart/form-data`, 415 nếu khác); mọi request không phải GET
+Request ghi chỉ nhận `application/json` (upload gửi byte file làm thân, `Content-Type` là loại của file, 415 nếu khác); mọi request không phải GET
 thiếu `Origin` hay `Origin` khác origin admin trả 403; GET không bao giờ đổi dữ liệu. Không dùng CSRF token riêng (suy
-luận: Access chặn request không có JWT, `Origin` chặn form từ site khác, kể cả multipart không preflight). Email chỉ lấy
+luận: Access chặn request không có JWT, `Origin` chặn form từ site khác, thân upload không phải kiểu form nên luôn preflight). Email chỉ lấy
 từ JWT đã kiểm chữ ký, `aud`, `iss`, `exp`; không đọc header `Cf-Access-Authenticated-User-Email`. Lỗi D1 hay R2 trả 503 cho admin, không chạm site public.
 Rate limit dùng binding `[[ratelimits]]` của Workers như Worker tìm kiếm (`wrangler.static.toml`), quá hạn mức trả 429.
 
@@ -175,6 +175,7 @@ Lần lưu `published` gọi `workflow_dispatch` của `ci.yml` trên `main` (`c
 "dựng lại". Không
 có hàng đợi riêng: nhóm `concurrency` của `ci.yml` và `Deploy demo` giữ một run chạy và một run chờ, run chờ mới thay run
 chờ cũ, và job deploy lấy bản chụp lúc bắt đầu, nên lưu dồn dập được gom (hành vi dự kiến, kiểm ở slice Publishing).
+Lần dựng nội dung chờ run code trên `main` xong và dựng trên commit đang chạy trên site ([dữ liệu CMS R6](cms-data.md#r6-đường-dựng-trong-ci)).
 Token GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret; admin cảnh báo owner 14 ngày trước khi token hết
 hạn. Job deploy lấy bản chụp qua `GET /api/admin/snapshot` bằng service token, chạy validator dùng chung và bộ kiểm phát
 hành hiện có, rồi deploy. Hiện tại `Deploy demo` đưa lên demo; khi domain chuyển sang `truongthinhads.vn` cùng workflow
@@ -273,14 +274,15 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 
 Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, nối domain khi owner chưa duyệt slice tương ứng.
 
-Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: cỡ upload, thang video ở Storage; khóa slot `page-copy` ở editor.
-Plan chi tiết phải có: bảng D1, định dạng bản chụp, redirect 301 khi đổi slug qua `scripts/site/redirects.mjs`, tắt preview URL của hostname
-`workers.dev`, chuỗi khối cố định từng dòng layout ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)).
+Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: thang video ở Storage; khóa slot `page-copy` ở editor.
+Plan chi tiết đã chốt bảng D1, bản chụp, redirect 301 khi đổi slug, preview URL, đường dựng và bảng lệnh ở
+[dữ liệu CMS](cms-data.md); chuỗi khối cố định ở [News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình).
 
 Thứ tự slice, mỗi slice owner duyệt gate: Contract (spec này; gate: owner duyệt spec),
 Storage (migration `0001` mới, bucket, export; gate: migration có snapshot, khôi phục thử, đường lùi), Publishing
 (lệnh R5, dựng R6; gate: test contract, security, integration), Public projection (file chiếu; gate: bản dựng từ
 bản chụp giống bản dựng từ repo, diễn tập rollback). Editor nối API theo [cms-editor](cms-editor.md) sau Publishing.
+Storage, Publishing, Public projection là phần 1: site vẫn dựng từ repo. Phần 2 (editor, build đọc ảnh R2) kết thúc bằng task bật hẳn dựng từ bản chụp.
 
 ## Chú thích thuật ngữ
 
