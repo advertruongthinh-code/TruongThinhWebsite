@@ -40,7 +40,7 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 ### R1. Section và nội dung
 
 `main#noi-dung` có một `h1` (hero) và tám section theo bảng; section News và section 2 đến 5 có `h2` `.sr-only`, closer có
-`h2` hiện, marquee dùng `aria-label`. Sau `main` là lời mời dùng chung với ba trang detail rồi footer
+`h2` hiện, marquee dùng `aria-label`. Closer (CTA) luôn là section cuối của `main` (owner 2026-11-22). Sau `main` là lời mời dùng chung với ba trang detail rồi footer
 ([shell R10](site-shell.md#r10-floating-cta-và-footer)); cột Tone là `data-header-tone` ([shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop)).
 
 | # | Section | Nội dung (VI, EN ở `data-en`) | Link | Tone |
@@ -51,14 +51,14 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm" xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
 | 4 | `#nang-luc` | Bốn cam kết (owner 2026-11-16), bốn `article.service-portal` không link, chữ góc dưới trái: tiêu đề Tư vấn, Sản xuất, Chất lượng, Hậu mãi (EN Consultation, Production, Quality, Aftercare), phụ đề hai dòng, nội dung; không số thứ tự; ảnh và chữ phục vụ đều nhà ở, kinh doanh, sản phẩm quảng cáo (owner 2026-11-17) | Không | ink |
 | 5 | `.blk-projects`, rồi `.detail-heading#ghe-tham` + `.detail-places` | Dải công trình dùng chung (R8), mọi khung ảnh cùng cỡ, card chẵn hạ thấp so le như Espacio (180px, 120px từ 1200px trở xuống), bốn card trọn trên PC (owner 2026-11-22): card link sang trang công trình, dòng "Xem tất cả công trình". Sau đó `h2` một dòng, một kiểu chữ, không eyebrow như "Come and visit our kitchen showrooms" của Espacio: "Gặp chúng tôi tại văn phòng và xưởng" (owner 2026-11-22), ba thẻ như khối showroom trang kitchens của Espacio, không kicker trên thẻ (owner 2026-11-22) (ảnh cao 300px, tên in hoa gạch chân khi hover, ảnh phóng khi hover): Trụ sở (địa chỉ, điện thoại), Xưởng (địa chỉ đang cập nhật), Tư vấn (hotline); 3 / 2 (≤960) / 1 (≤578) cột; chuyển từ trang Kinh doanh (owner 2026-11-22); thẻ Trụ sở mở bản đồ, thẻ Tư vấn mở Zalo | Có | ink |
-| 6 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề / Không ngừng làm mới" (không dấu phẩy) cỡ CTA chung, mỗi dòng không xuống dòng và chỉ co khi không vừa khung ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), bố cục căn giữa dùng chung CTA trang con, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
-| 7 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
+| 6 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
+| 7 | `.legacy-closer` | Banner CTA theo Espacio: ảnh xưởng toàn cảnh, `h2` "Giữ nghề / Không ngừng làm mới" (không dấu phẩy) cỡ CTA chung, mỗi dòng không xuống dòng và chỉ co khi không vừa khung ([chữ hero R1](hero-typography.md#r1-xuống-dòng-theo-chốt-của-owner)), bố cục căn giữa dùng chung CTA trang con, link "VỀ CHÚNG TÔI" sang About ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) | Không | inverse |
 | sau | `.site-invitation` | "Có mặt bằng? / Mời chúng tôi đến xem" | "Gọi Zalo tư vấn" mở `https://zalo.me/0949131050` ở tab mới | ink |
 
 ```gherkin
 Given output đã build
 When mở /vi/ và đọc main
-Then có một h1 và tám section theo thứ tự hero, .home-news, #dich-vu, #tay-nghe, #nang-luc, .blk-projects, .blk-cta, closer, marquee
+Then có một h1 và tám section theo thứ tự hero, .home-news, #dich-vu, #tay-nghe, #nang-luc, .blk-projects, .blk-cta, marquee, closer
 And portal dịch vụ đầu trỏ /vi/residential/, phụ đề portal Quy trình là "Năm bước: Khảo sát đến Hậu mãi"
 ```
 

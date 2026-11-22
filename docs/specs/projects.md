@@ -34,14 +34,14 @@ Trang Nhà ở và Kinh doanh đang có thêm cuối trang một dải công tr�
 (`cta-arrow`) như Espacio `/en/interior-design` và `/en/kitchens` (owner chọn 2026-11-07, xem ảnh chụp trong thread): PC là
 hàng ảnh dọc so le cao thấp, tên công trình dưới ảnh; phone là dải trượt ngang. Nhà ở theo hình 1 (chữ đậm), Kinh doanh
 theo hình 2 (chữ mảnh). Phần còn lại của hai trang giữ layout hiện tại. Dải tự lấy tất cả công trình cùng mảng, theo thứ tự
-trong dữ liệu (owner 2026-11-08); bấm ảnh mở trang chi tiết (R3). Dòng mũi tên "Xem các công trình nhà ở" (hoặc kinh doanh) dẫn tới trang lọc cùng mảng (R2).
+trong dữ liệu (owner 2026-11-08); bấm ảnh mở trang chi tiết (R3). Dòng mũi tên "Xem các công trình nhà ở" (hoặc kinh doanh) dẫn tới trang lọc cùng mảng (R2). Dải và dòng mũi tên đứng ngay trước CTA `.detail-cta#tu-van`, CTA là khối cuối trang (owner 2026-11-22).
 Nội dung nằm sẵn trong khối dữ liệu CMS sửa được ([layout-library](layout-library.md)); media thiếu tạo bằng ChatGPT qua Codex CLI (owner 2026-11-07)
 theo [Tạo ảnh](../operations/agent-rule-ad-images.md#tạo-ảnh) (owner 2026-10-26).
 
 ```gherkin
 Given dữ liệu có 5 công trình mảng nhà ở
 When lần dựng xong
-Then cuối trang Nhà ở hiện đủ 5 công trình đó trong dải, bấm một ảnh mở trang chi tiết công trình đó
+Then ngay trên CTA cuối trang Nhà ở hiện đủ 5 công trình đó trong dải, bấm một ảnh mở trang chi tiết công trình đó
 ```
 
 ### R2. Trang toàn bộ công trình
@@ -114,7 +114,7 @@ Then trang chỉ ghi loại công trình và khu vực, không có tên khách
 
 Given mảng nhà ở có 9 công trình
 When mở trang chi tiết một công trình nhà ở
-Then cuối trang có dải 8 công trình nhà ở còn lại và dòng "Xem toàn bộ công trình"
+Then trên khối CTA cuối trang có dải 8 công trình nhà ở còn lại và dòng "Xem toàn bộ công trình"
 ```
 
 ### R4. Ảnh và video công trình
@@ -128,7 +128,7 @@ chụp và AI hiệu chỉnh, AI tạo; dấu nguồn chỉ hiện trong admin. 
 Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, CMS khóa
 layout theo số ảnh ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)). Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
 luôn là hero ngang 3:2; mỗi khối ảnh đứng sau một đoạn văn, không hai khối ảnh liền nhau; mọi chuỗi kết thúc bằng
-`contact-quick`, `cta-arrow`. Công trình mẫu dùng 6 ảnh; hai nhà phố Indochine,
+`cta-arrow`, `contact-quick`. Công trình mẫu dùng 6 ảnh; hai nhà phố Indochine,
 Japandi dùng 12 ảnh, nhiều cận đồ gỗ tấm (owner 2026-11-09). Ảnh chưa duyệt dùng ảnh giữ chỗ `placeholder-ngang`,
 `placeholder-doc` (owner 2026-11-09: dựng trang trước, thay ảnh khi owner Lấy).
 
@@ -144,7 +144,7 @@ Japandi dùng 12 ảnh, nhiều cận đồ gỗ tấm (owner 2026-11-09). Ảnh
 như Espacio `-layout-parrafo -layout-right`). Trang 6 ảnh xen kẽ theo thứ tự chữ cái: trang chẵn `gallery-carousel`, `facts-grid`,
 `image-text`, `paragraph`, `image-single` rộng; trang lẻ `facts-grid`, `image-text`, `paragraph`, `image-single` 2/3 trái,
 `gallery-carousel` cuối. Hai nhà phố thêm `image-pair` và hai `image-single`; Japandi dùng 10 ảnh thật (owner duyệt), ảnh tủ giày dọc thành `image-text`, chữ khớp ảnh (tường vuông, chỉ đồ gỗ bo). Homestay nhà gỗ ven sông dùng 8 ảnh thật 16:9 bộ E (owner 2026-11-15, chưa phóng to): hero cắt giữa thành 3:2, card dùng 16:9 nguyên khung, thêm một cặp `paragraph`, `image-pair` (bàn ăn, bếp) so với hàng 6-7. Tiệm bánh ngọt dùng 7 ảnh thật (owner duyệt bộ v11 2026-11-15, 3 ngang 4 dọc): hero ngang, `gallery-carousel` 3 ảnh dọc, `image-text` ảnh dọc, hai cặp `paragraph`, `image-single` (rộng, 2/3 trái); card và cover dùng ảnh dọc. Bốn trang
-có ảnh riêng giữ chuỗi riêng theo ảnh. Mọi trang kết thúc bằng đoạn xưởng, câu kết, `contact-quick`, `project-slider`, `cta-arrow`.
+có ảnh riêng giữ chuỗi riêng theo ảnh. Mọi trang kết thúc bằng đoạn xưởng, câu kết, `project-slider`, `cta-arrow`, `contact-quick`: khối CTA Zalo luôn cuối, ngay trên footer (owner 2026-11-22), `content-contract` chặn dữ liệu sai thứ tự.
 
 ```gherkin
 Given bản nháp công trình mới có ảnh AI tạo chưa qua gate

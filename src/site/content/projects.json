@@ -219,14 +219,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Muốn một căn hộ như thế này?",
-          "en": "Want a home like this?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -239,6 +231,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn một căn hộ như thế này?",
+          "en": "Want a home like this?"
+        }
       }
     ]
   },
@@ -471,14 +471,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Nhà phố của bạn cũng cần ánh sáng?",
-          "en": "Does your townhouse need more light?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -491,6 +483,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Nhà phố của bạn cũng cần ánh sáng?",
+          "en": "Does your townhouse need more light?"
+        }
       }
     ]
   },
@@ -721,14 +721,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Cần làm văn phòng cho đội của bạn?",
-          "en": "Planning an office for your team?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -741,6 +733,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần làm văn phòng cho đội của bạn?",
+          "en": "Planning an office for your team?"
+        }
       }
     ]
   },
@@ -972,14 +972,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Sắp mở tiệm bánh?",
-          "en": "Opening a bakery?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -992,6 +984,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở tiệm bánh?",
+          "en": "Opening a bakery?"
+        }
       }
     ]
   },
@@ -1210,14 +1210,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Sắp mở quán cà phê sân vườn?",
-          "en": "Opening a garden cafe?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -1230,6 +1222,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở quán cà phê sân vườn?",
+          "en": "Opening a garden cafe?"
+        }
       }
     ]
   },
@@ -1455,14 +1455,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Muốn căn hộ dịu và ấm như thế này?",
-          "en": "Want a calm, warm apartment like this?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -1475,6 +1467,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn căn hộ dịu và ấm như thế này?",
+          "en": "Want a calm, warm apartment like this?"
+        }
       }
     ]
   },
@@ -1700,14 +1700,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Căn hộ nhỏ cần thêm chỗ?",
-          "en": "Small apartment, need more space?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -1720,6 +1712,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Căn hộ nhỏ cần thêm chỗ?",
+          "en": "Small apartment, need more space?"
+        }
       }
     ]
   },
@@ -1945,14 +1945,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Sắp mở cửa hàng mỹ phẩm?",
-          "en": "Opening a cosmetics store?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -1965,6 +1957,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở cửa hàng mỹ phẩm?",
+          "en": "Opening a cosmetics store?"
+        }
       }
     ]
   },
@@ -2190,14 +2190,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Cửa hàng của bạn cần kệ trưng bày mới?",
-          "en": "Does your store need new display fixtures?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -2210,6 +2202,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cửa hàng của bạn cần kệ trưng bày mới?",
+          "en": "Does your store need new display fixtures?"
+        }
       }
     ]
   },
@@ -2435,14 +2435,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Đang làm homestay?",
-          "en": "Building a homestay?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -2455,6 +2447,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Đang làm homestay?",
+          "en": "Building a homestay?"
+        }
       }
     ]
   },
@@ -2714,14 +2714,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Muốn homestay mang chất địa phương?",
-          "en": "Want a homestay with local character?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -2734,6 +2726,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn homestay mang chất địa phương?",
+          "en": "Want a homestay with local character?"
+        }
       }
     ]
   },
@@ -2959,14 +2959,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Đang chuẩn bị khách sạn nhỏ?",
-          "en": "Planning a small hotel?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -2979,6 +2971,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Đang chuẩn bị khách sạn nhỏ?",
+          "en": "Planning a small hotel?"
+        }
       }
     ]
   },
@@ -3204,14 +3204,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Sắp mở nhà hàng?",
-          "en": "Opening a restaurant?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -3224,6 +3216,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở nhà hàng?",
+          "en": "Opening a restaurant?"
+        }
       }
     ]
   },
@@ -3449,14 +3449,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Cần làm khu điều hành cho công ty?",
-          "en": "Planning an executive suite?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -3469,6 +3461,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần làm khu điều hành cho công ty?",
+          "en": "Planning an executive suite?"
+        }
       }
     ]
   },
@@ -3694,14 +3694,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Cần làm showroom vật liệu?",
-          "en": "Planning a materials showroom?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -3714,6 +3706,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần làm showroom vật liệu?",
+          "en": "Planning a materials showroom?"
+        }
       }
     ]
   },
@@ -3939,14 +3939,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Đội của bạn sắp chuyển văn phòng?",
-          "en": "Is your team moving offices?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -3959,6 +3951,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Đội của bạn sắp chuyển văn phòng?",
+          "en": "Is your team moving offices?"
+        }
       }
     ]
   },
@@ -4260,14 +4260,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Muốn nhà phố mang chất Đông Dương?",
-          "en": "Want a townhouse with Indochine character?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -4280,6 +4272,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn nhà phố mang chất Đông Dương?",
+          "en": "Want a townhouse with Indochine character?"
+        }
       }
     ]
   },
@@ -4574,14 +4574,6 @@
         }
       },
       {
-        "id": "contact",
-        "type": "contact-quick",
-        "title": {
-          "vi": "Muốn nhà phố mềm mắt như thế này?",
-          "en": "Want a townhouse this soft?"
-        }
-      },
-      {
         "id": "others",
         "type": "project-slider"
       },
@@ -4594,6 +4586,14 @@
         },
         "hrefVi": "/vi/projects/",
         "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn nhà phố mềm mắt như thế này?",
+          "en": "Want a townhouse this soft?"
+        }
       }
     ]
   }

@@ -2142,6 +2142,8 @@ em {
   min-height: 600px;
   padding-block: 30px;
   margin-right: auto;
+  /* Espacio space below the banner (scroll-feel R5); the closer is the last section of main (owner 2026-11-22). */
+  margin-bottom: 90px;
   margin-left: auto;
   /* clip, not hidden: the -100vmax click layer of .legacy-link does not create a hidden scroll area. */
   overflow: clip;
@@ -2172,11 +2174,6 @@ em {
 .legacy-shade {
   /* Owner 2026-10-26: 0.5 (previously 0.2). */
   background: rgba(0, 0, 0, 0.5);
-}
-
-/* Do not use `+ *`: a rule adjacent to a universal subject makes every Advertising card insertion into the grid restyle the whole page (decision phone-frame-budget). */
-.legacy-closer + section {
-  margin-top: 90px;
 }
 
 /* The whole block is clickable ("Giữ nghề", child page CTA); the label reuses the subtitle of the service portal.
@@ -3386,22 +3383,19 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 @media (max-width: 960px) {
   .legacy-closer {
     min-height: 400px;
+    margin-bottom: 60px;
   }
+}
 
-  .legacy-closer + section {
-    margin-top: 60px;
+@media (max-width: 578px) {
+  .legacy-closer {
+    margin-bottom: 30px;
   }
 }
 
 @media (max-width: 750px) {
   .legacy-closer {
     width: calc(100% - 30px);
-  }
-}
-
-@media (max-width: 578px) {
-  .legacy-closer + section {
-    margin-top: 30px;
   }
 }
 
