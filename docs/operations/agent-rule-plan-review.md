@@ -10,6 +10,8 @@ Owner chọn 2026-11-21, học theo PrintWork: việc Mức 1 (đổi giao diệ
 2. Thi công, test, sửa lỗi: agent-skills tự gọi cùng `ponytail` ultra; việc Mức 0 vào thẳng chặng này. Không dùng `egm-lite` cho việc nhỏ.
 3. Nghiệm thu: five-axis review như mục dưới; wrap-up session chạy `egm-drift-report docs/specs/` để đối chiếu spec với code, lệch thì báo owner chọn sửa spec hay code.
 
+Phỏng vấn (`egm-brainstorm`, `interview-me` hay câu hỏi thường): đáp án đoán sẵn chỉ nằm trong phạm vi câu owner đã nói; thêm thiết bị, trang hay tính năng owner chưa nhắc thì hỏi câu riêng, không kèm đáp án đoán (owner 2026-11-22).
+
 Goldfish cần subagent ngữ cảnh mới: host không có thì dừng, không review trong cùng ngữ cảnh. PC đã cài `egm@egm` qua marketplace thì gỡ (`claude plugin uninstall egm@egm`) trước khi chạy `local-setup.ps1`, tránh hai bản.
 
 ## Spec và plan viết cho implementer yếu hơn
