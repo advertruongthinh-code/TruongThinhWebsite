@@ -24,5 +24,5 @@ export const nonPublicSourceAssets = [
   "assets/content/projects/process-commercial-handover.jpg",
   "assets/content/projects/khao-sat-mat-bang-cua-hang.png",
   "assets/content/projects/process-commercial-survey.jpg",
-  "assets/content/projects/process-residential-survey-v2.png",
+  "assets/content/projects/khao-sat-do-dac-nha-o.png",
 ];

@@ -7,7 +7,7 @@ import { fileImageCheck } from "../../scripts/site/content-files.mjs";
 import { BLOCK_TYPES, duplicatePageFields, renderBlocks, validateBlockPage } from "../../scripts/site/blocks.mjs";
 
 const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../src/site");
-const photo = { src: "/assets/content/projects/home-commercial-cafe.webp", width: 2304, height: 3072, altVi: "Quán cà phê nhà phố", altEn: "Shophouse café" };
+const photo = { src: "/assets/content/projects/thiet-ke-quan-cafe-ban-go.webp", width: 2304, height: 3072, altVi: "Quán cà phê nhà phố", altEn: "Shophouse café" };
 const photo2 = { src: "/assets/content/projects/kiosk-ca-phe-luu-dong.webp", width: 2048, height: 3072, altVi: "Xe cà phê", altEn: "Coffee cart" };
 const t = (vi, en) => ({ vi, en });
 

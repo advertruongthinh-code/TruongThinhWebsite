@@ -79,7 +79,7 @@ const COMPONENTS = [
   // src uses single quotes so localizeImages skips it: the frame still matches the /assets/content/ selector but the image never shows.
   { name: 'LoadSweep', group: 'Page', height: 520, file: 'src/site/style.css', start: /The content image frame waits with a light streak/, htmlClass: 'media-gate',
     markup: '<div style="display: grid; gap: 20px; width: 316px; margin: 20px 35px;">\n'
-      + '<figure class="detail-media" style="margin: 0;"><img src=\'/assets/content/shared/materials-black-hdf-20261117.webp\' width="1536" height="1024" alt=""></figure>\n'
+      + '<figure class="detail-media" style="margin: 0;"><img src=\'/assets/content/shared/mau-van-go-cong-nghiep.webp\' width="1536" height="1024" alt=""></figure>\n'
       + '<div class="detail-view__suggestion-links">\n'
       + '<button type="button" class="detail-view__suggestion-link" aria-pressed="false"><span class="detail-view__suggestion-label"><span>Chữ nổi Mica</span></span></button>\n'
       + '<button type="button" class="detail-view__suggestion-link" aria-pressed="false"><span class="detail-view__suggestion-label"><span>Logo và chữ nổi tòa nhà</span></span></button>\n'

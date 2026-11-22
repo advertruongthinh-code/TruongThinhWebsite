@@ -57,7 +57,7 @@ Mỗi media có `altVi`, `altEn` riêng, mô tả đúng thứ trong media đó 
 giữa các media trong cùng card, không nhồi từ khóa. Validator (`media-contract.mjs`) từ chối card có hai media trùng
 alt cùng ngôn ngữ. Tên file là tiếng Việt không dấu, từ khóa chính đứng đầu, 3-6 từ, không tên tỉnh, không ngày, ví dụ
 `menu-nhua-chong-nuoc-quan-an.webp`; mọi biến thể (`-240`, `-480`, `-960`, avif, jxl) theo cùng tên (owner 2026-11-22,
-đổi quy tắc giữ tên cũ). Ảnh Design System còn dùng giữ tên cũ tới khi owner "ok design system". VI và EN dùng chung một
+đổi quy tắc giữ tên cũ). Ảnh Design System cũng đổi tên (owner "ok design system" 2026-11-22). VI và EN dùng chung một
 file, không dịch tên file. Alt là một câu thường 6-14 từ, không tả điều hiển nhiên; ảnh hero, trang trí giữ alt rỗng. Alt ảnh bìa không lặp tên card: tên card là từ khóa ngách, alt tả ảnh (`altVi`, `altEn` trong `PHOTO_METADATA_BY_RECORD_ID`, viết từ ảnh, owner duyệt 2026-11-15); tên tiếng Anh card cũng là cụm riêng từng card.
 
 ```gherkin
