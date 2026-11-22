@@ -49,6 +49,7 @@
         "node scripts/site/build-image-variants.mjs --check",
         "pnpm qa:content",
         "pnpm qa:worker:security",
+        "node --test tests/worker/*.test.mjs",
         "pnpm qa:client-assets",
         "node scripts/tooling/serve-static-parity.mjs --self-test",
         "node --test tests/site/*.test.mjs",

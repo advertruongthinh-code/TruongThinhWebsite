@@ -270,7 +270,7 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 | Editor Dockview, overlay | `src/admin/` | Giữ; đổi đường lưu sang lệnh R5 ([editor](cms-editor.md)) |
 | Render public SSR, `page_edits`, API public, sitemap từ D1, route `/media/*` | `src/worker/index.js`, `content.mjs` | Bỏ (R1) |
 | CRUD chung sáu resource, `audit_log` | `src/worker/index.js` | Viết lại theo R4, R5 |
-| Migration `0001` tới `0005`, seed 36 product | `src/db/migrations/` | Bỏ; viết `0001` mới theo spec này |
+| Migration `0001` tới `0005`, seed 36 product | `src/db/migrations/` | Đã thay bằng `0001_cms.sql` ([dữ liệu CMS R1](cms-data.md)) |
 | `wrangler.toml` (`run_worker_first` route public), `scripts/cms/` | gốc repo | Viết lại cho admin Worker |
 
 ## Gate còn mở
