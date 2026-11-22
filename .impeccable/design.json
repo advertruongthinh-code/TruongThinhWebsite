@@ -36,6 +36,11 @@
         "purpose": "Đường cong card, primary hiện ảnh lần đầu và nền badge; xem motion.md mục Token motion."
       },
       {
+        "name": "ease-float",
+        "value": "cubic-bezier(0.63, 0, 0.08, 1)",
+        "purpose": "Đường cong floating CTA, nút về đầu trang phone và thanh tìm kiếm nổi bay lên; xem motion.md mục Token motion."
+      },
+      {
         "name": "ease-viewer",
         "value": "cubic-bezier(0.55, 0, 0, 1)",
         "purpose": "Đường cong mở, đóng viewer; xem motion.md mục Token motion."

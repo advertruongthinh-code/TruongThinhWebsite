@@ -183,7 +183,7 @@ Then fps trung bình của layer Chrome từ 60fps trở lên
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| DOM hook | `[data-scroll]`, `[data-scroll-speed]`; `[data-scroll-sticky]`, `[data-scroll-target]`, `[data-scroll-offset]` (thẻ lớn News, [news R2](news.md)) | Locomotive đọc; gắn trên lớp media nền theo R3 |
+| DOM hook | `[data-scroll]`, `[data-scroll-speed]`; `[data-sticky-column]` (cột dính trong phần tử cha; `motion.js` gắn `[data-scroll-sticky]`, `[data-scroll-target]`, `[data-scroll-offset]`, như thẻ lớn News, [news R2](news.md)) | Locomotive đọc; gắn trên lớp media nền theo R3 |
 | Cấu hình | `initSmoothScroll` trong `src/site/motion.js` | Cấu hình cuộn duy nhất của R1 |
 | Hàm public | `window.TruongThinhMotion` | Khóa, đặt, đọc vị trí cuộn logic; Advertising dùng chung |
 | Phần tử | `.autoscroll-origin` | Biểu tượng gốc của R6, `aria-hidden`, gắn vào `body` khi bắt đầu và gỡ khi dừng |

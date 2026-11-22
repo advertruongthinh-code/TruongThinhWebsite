@@ -1,5 +1,6 @@
 // Back to top (shell, owner 2026-11-13; phones only, owner 2026-11-22): on a phone a page with a masonry layout shows an icon-only white
-// 50px button once the first screen is passed; a tap or click scrolls to the top and the button goes. Pages without masonry never show it.
+// 50px button once the page is below the masonry top; a tap glides back to the masonry top (owner 2026-11-23) and the button goes.
+// Pages without masonry never show it.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/back-to-top.e2e.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -15,7 +16,7 @@ const state = (page) => page.evaluate(() => {
 const scrollPast = (page) => page.evaluate(() => scrollTo({ top: innerHeight * 3, behavior: "instant" }));
 
 for (const [name, viewport, touch] of [["phone", VIEWPORTS.phone, true]]) {
-  test(`${name} masonry page: the white button shows past the first screen and goes back to the top`, async () => {
+  test(`${name} masonry page: the white button shows below the masonry top and goes back to it`, async () => {
     const browser = await launchBrowser();
     const { context, page } = await openPage(browser, viewport, { hasTouch: touch, isMobile: touch });
     try {
@@ -40,8 +41,18 @@ for (const [name, viewport, touch] of [["phone", VIEWPORTS.phone, true]]) {
       assert(shown.label, "has an accessible name");
       if (touch) await page.locator(".back-to-top").tap();
       else await page.locator(".back-to-top").click();
-      await page.waitForFunction(() => (window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY) === 0, null, { timeout: 5000 });
+      // The grid's top lands one outer margin under the header, which comes back while the page moves up.
+      await page.waitForFunction(() => {
+        const grid = document.querySelector("[data-project-grid]").getBoundingClientRect().top;
+        const header = Math.max(0, document.querySelector("[data-site-header]").getBoundingClientRect().bottom);
+        const outer = Number.parseFloat(getComputedStyle(document.querySelector(".masonry-section")).getPropertyValue("--masonry-outer"));
+        return Math.abs(grid - header - outer) <= 2;
+      }, null, { timeout: 5000 });
       await page.waitForFunction(() => !document.querySelector(".back-to-top").classList.contains("show"));
+      // Just below the masonry top it shows again (after the 600ms glide has ended).
+      await page.waitForTimeout(700);
+      await page.evaluate(() => scrollBy({ top: 40, behavior: "instant" }));
+      await page.waitForFunction(() => document.querySelector(".back-to-top").classList.contains("show"), null, { timeout: 3000 });
     } finally {
       await context.close();
       await browser.close();

@@ -4,7 +4,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { readPageSource } from "../../scripts/site/sync-site-menu.mjs";
-import { SECTORS, loadBlockContent, renderBlockPage, renderHomeNews, renderProjectPage } from "../../scripts/site/block-pages.mjs";
+import { loadBlockContent } from "../../scripts/site/content-files.mjs";
+import { SECTORS, renderBlockPage, renderHomeNews, renderProjectPage } from "../../scripts/site/block-pages.mjs";
 
 const siteRoot = fileURLToPath(new URL("../../src/site/", import.meta.url));
 const templateOf = (sector) => readPageSource(`${sector}/index.html`);

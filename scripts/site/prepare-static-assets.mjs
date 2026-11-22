@@ -9,9 +9,10 @@ import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIE
 import "./sync-brand-lockup.mjs";
 import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
-import { expandHero, readHeroSources, validateHeroSlides } from "./hero-slides.mjs";
+import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
+import { fileImageCheck, loadBlockContent, readHeroSources } from "./content-files.mjs";
 import { validateHomeProjects } from "./home-projects.mjs";
-import { KINDS, PROJECT_FILTERS, SECTORS, loadBlockContent, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
+import { KINDS, PROJECT_FILTERS, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
@@ -54,7 +55,7 @@ if (path.dirname(outputRoot) !== projectRoot || path.dirname(sourceRoot) !== pat
 const artifact = buildAdvertisingArtifact();
 
 const hero = readHeroSources(sourceRoot);
-await validateHeroSlides(hero.data, sourceRoot);
+await validateHeroSlides(hero.data, fileImageCheck(sourceRoot));
 const homeTemplate = readPageSource("index.html");
 
 await rm(outputRoot, { recursive: true, force: true });
@@ -260,6 +261,8 @@ const cardUrl = (locale, card) => `${PUBLIC_ORIGIN}${cardHref(locale, card)}`;
 const coverOf = (card) => card.mediaItems.find(({ id }) => id === card.coverMediaId) ?? card.mediaItems[0];
 const mediaImage = (item) => (item.kind === "video" ? item.posterSrc : item.src);
 const mediaSize = (item) => (item.kind === "video" ? [item.posterWidth, item.posterHeight] : [item.width, item.height]);
+// Meta and JSON-LD descriptions take the opening paragraph only; the bullets below it are page copy (media-seo R7).
+const openingOf = (text) => text.split(/\n\s*\n/)[0].trim();
 const renderCardStatic = (card) => {
   const pages = [...new Set([...card.clusterIds, ...card.productIds])]
     .map((id) => ADVERTISING_PAGES.find(({ filter }) => filter === id)).filter(Boolean);
@@ -284,7 +287,7 @@ const cardJsonLd = (card) => {
   return JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
-      { "@type": "WebPage", "@id": url, url, name: card.titleVi, description: card.descriptionVi, inLanguage: "vi",
+      { "@type": "WebPage", "@id": url, url, name: card.titleVi, description: openingOf(card.descriptionVi), inLanguage: "vi",
         primaryImageOfPage: { "@id": `${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}` } },
       breadcrumbLd([["Trường Thịnh", "/"], ["Sản phẩm quảng cáo", "/advertising-products/"],
         ...card.clusterIds.slice(0, 1).map((id) => [clusterPageOf(id).labelVi, pageHref("vi", clusterPageOf(id))]), [card.titleVi, cardHref("vi", card)]]),
@@ -304,7 +307,7 @@ const renderCardPage = (card) => advertisingTemplate
       `<script type="application/ld+json">${cardJsonLd(card)}</script>`,
     ].join("\n    "))
     .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/,
-      (_match, before, middle) => `${before}${escapeHtml(card.descriptionVi)}${middle}${escapeHtml(card.descriptionEn)}"`)
+      (_match, before, middle) => `${before}${escapeHtml(openingOf(card.descriptionVi))}${middle}${escapeHtml(openingOf(card.descriptionEn))}"`)
     // The slogan becomes p.hero-title keeping its look; h1 is the card name in the static block.
     .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
     .replace('<main id="noi-dung">', () => `<main id="noi-dung">${renderCardStatic(card)}`)

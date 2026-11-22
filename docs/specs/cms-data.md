@@ -161,6 +161,8 @@ lần deploy staging, job ghi dấu `deploys/<khóa>.json` (version id, commit, 
 của CI nằm trong environment GitHub `cloudflare-deploy` chỉ nhánh `main` dùng được, không có quyền D1; migration áp
 bằng tay ở gate. Lần dispatch dựng lỗi thì Cron của admin Worker gọi lại mỗi 5 phút.
 
+Phát hành (phần 2): lệnh `release` gọi `release.yml` với input `commit`, `snapshot_id`. Workflow checkout `commit`, lấy bản chụp, tính `snapshotId`; khác input thì dừng trước khi build với dòng `snapshot changed`; bằng thì chạy cùng bước kiểm và build như staging, deploy đích `production`, ghi dấu `releases/<khóa>.json` cùng dạng dấu deployment. `rollback` đích `production` chỉ nhận id trong 10 dấu phát hành gần nhất và không đặt cờ tạm dừng. Phần 2 mở thêm kiểu `client-logo`, `contact` và `page-copy` (bốn bản ghi cố định `home`, `residential`, `commercial`, `about`).
+
 ```gherkin
 Given staging đang chạy commit X và main đã có commit Y chưa deploy xong
 When một lần lưu nội dung gọi lần dựng
@@ -180,9 +182,12 @@ Then lần dựng đó dùng code của commit X với nội dung mới
 | `upload-media` | Thân là byte file; query `slugBase`, `width`, `height`, `altVi`, `altEn` | 201, media và biến thể `pending` |
 | `update-media` | `{ id, version, altVi, altEn, tags }` | 200; alt mới ghi vào mọi bản ghi dùng media |
 | `account-add`, `account-update` | `{ email, role, status }` | 201, 200 |
-| `rollback` | `{ versionId }` (một trong 10 dấu deployment gần nhất) | 202, tự đăng tạm dừng |
+| `rollback` | `{ versionId, target }`; `target` là `staging` (mặc định) hoặc `production`; `versionId` là một trong 10 dấu gần nhất của đích đó | 202; đích `staging` thì tự đăng tạm dừng |
+| `release` | `{ commit, snapshotId }` của dấu deployment staging mới nhất | 202; 409 `staging-changed`, `staging-behind`, `paused` |
+| `reorder` | `{ type, ids }`: mọi id chưa vào thùng rác của kiểu, theo thứ tự mới | 200; 409 khi tập id khác hiện tại |
+| `retry-variant` | `{ key }` của một biến thể `error` | 202, biến thể về `pending` |
 | `resume-publish`, `rebuild` | `{}` | 200, 202 |
-| `list`, `get`, `media-list`, `account-list`, `audit-log`, `build-status` | query | 200 |
+| `list`, `get`, `media-list`, `account-list`, `audit-log`, `build-status` | query | 200; `get` kèm `variants` (`key`, `status`, `error` của từng biến thể bản ghi đang dùng); `build-status` kèm `held`, `releases` (10 dấu phát hành), `releaseRuns` |
 | `media-file` | `?id=` | Byte bản gốc cho người đã đăng nhập, dùng cho xem trước; kèm `nosniff` và CSP `sandbox` |
 | `snapshot`, `media-original` | chỉ service token | R2; byte bản gốc kèm `X-Hash` |
 

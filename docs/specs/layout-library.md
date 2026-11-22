@@ -36,11 +36,11 @@ Bài News theo 26 trang con `/en/news/` (owner duyệt 17:43). Số trang dùng 
 | `facts-grid` | 47 | |
 | `project-slider` | 47 | |
 | `cta-arrow` | 47 | 26 |
-| `image-single` | 43 | 25 |
-| `gallery-carousel` | 42 | 19 |
+| `media-single` | 43 | 25 |
+| `media-carousel` | 42 | 19 |
 | `contact-quick` (form đặt lịch và nút chat, đổi sang Zalo) | 32 | |
-| `image-pair` | 29 | 19 |
-| `video-single` | 8 | 2 |
+| `media-pair` | 29 | 19 |
+| `media-single` video | 8 | 2 |
 | `news-cards` | | 26 |
 | `banner-links` | 1 | 13 |
 | `quote` | | 4 |
@@ -57,11 +57,11 @@ của Claude, owner duyệt từng dòng `[CẦN LÀM RÕ: owner đánh dấu gi
 | `section-title` | `layout-titular` (thêm biến thể nửa trang) | Tiêu đề | Mở một ý mới | Giữ |
 | `paragraph` | `layout-parrafo` | Đoạn văn | Mọi trang | Giữ |
 | `paragraph-columns` | `layout-parrafo-columnas` | Đoạn văn hai cột | Bài dài | Giữ |
-| `image-single` | `layout-imagen-unica` và 6 biến thể | 1 ảnh; vị trí rộng, 2/3 trái hoặc phải, 1/2 trái hoặc phải | Nhịp ảnh trong bài | Giữ |
-| `image-text` | `layout-parrafo -layout-right` | 1 ảnh dọc cột trái 1/3, đoạn văn cột phải 2/3 cách 35px; phone ảnh trên chữ dưới | Ảnh cạnh đoạn văn trang công trình | Giữ |
-| `image-pair` | `layout-imagen-doble` 3 biến thể | 2 ảnh; bằng nhau, trái lớn, phải lớn | So sánh, chi tiết | Giữ |
-| `video-single` | `layout-imagen-unica -video` | 1 video có poster | Video thi công | Giữ |
-| `gallery-carousel` | `layout-galeria` | Tới 12 ảnh hoặc video, chú thích | Bộ ảnh công trình | Giữ |
+| `media-single` | `layout-imagen-unica` và 6 biến thể | 1 ảnh; vị trí rộng, 2/3 trái hoặc phải, 1/2 trái hoặc phải | Nhịp ảnh trong bài | Giữ |
+| `media-text` | `layout-parrafo -layout-right` | 1 ảnh dọc cột trái 1/3, đoạn văn cột phải 2/3 cách 35px; phone ảnh trên chữ dưới | Ảnh cạnh đoạn văn trang công trình | Giữ |
+| `media-pair` | `layout-imagen-doble` 3 biến thể | 2 ảnh; bằng nhau, trái lớn, phải lớn | So sánh, chi tiết | Giữ |
+| `media-single` video | `layout-imagen-unica -video` | 1 video có poster | Video thi công | Giữ |
+| `media-carousel` | `layout-galeria` | Tới 12 ảnh hoặc video, chú thích | Bộ ảnh công trình | Giữ |
 | `facts-grid` | `layout-bloque-facts` 2, 3, 4 cột | Ô đánh số: nhãn, mô tả | Thông tin công trình, quy trình 6 bước | Giữ |
 | `banner-links` | `layout-bloque-banners` 1, 2, 3 cột | Ảnh, tiêu đề, link | Dẫn sang ba mảng dịch vụ | Giữ |
 | `news-cards` | `layout-bloque-noticias` | 3 bài News tự lấy theo nhóm rồi mức liên quan khi không ghi `newsIds` (`autoNewsIds`, [news R3](news.md#r3-trang-bài)) | Cuối bài News; trang chủ dùng dải News riêng theo Espacio ([news R4](news.md#r4-news-trên-các-trang-khác)) | Giữ |
@@ -91,12 +91,12 @@ của mẫu; khối bắt buộc không bỏ được. Riêng Bài News và Chi 
 | Mẫu | Theo Espacio | Bắt buộc | Chuỗi mặc định (rút gọn) |
 | --- | --- | --- | --- |
 | Trang chủ | `/en` | `hero-fullscreen`, `news-cards` | hero, news-cards, banner-links, statement, cta-arrow, project-slider |
-| Công trình nhà ở | `/en/interior-design` | `hero-fullscreen`, `project-slider`, `cta-arrow` | hero, section-title, paragraph, image-single, gallery-carousel, banner-links, project-slider, cta-arrow (hình 1 owner) |
+| Công trình nhà ở | `/en/interior-design` | `hero-fullscreen`, `project-slider`, `cta-arrow` | hero, section-title, paragraph, media-single, media-carousel, banner-links, project-slider, cta-arrow (hình 1 owner) |
 | Công trình kinh doanh | `/en/kitchens` | như Công trình nhà ở | như Công trình nhà ở, thêm location-list (cta-arrow theo hình 2 owner) |
 | Toàn bộ công trình | `/en/projects` | `hero-project`, `project-masonry` | hero-project, project-masonry |
-| Chi tiết công trình | `/en/projects/<slug>` (47 trang, 11 đến 27 khối) | `hero-project`, `facts-grid`, `project-slider` | hero-project, section-title, paragraph, gallery-carousel, facts-grid, image-single, paragraph, contact-quick, project-slider, cta-arrow |
+| Chi tiết công trình | `/en/projects/<slug>` (47 trang, 11 đến 27 khối) | `hero-project`, `facts-grid`, `project-slider` | hero-project, section-title, paragraph, media-carousel, facts-grid, media-single, paragraph, contact-quick, project-slider, cta-arrow |
 | News | `/en/news` | `news-list` | section-title, news-list |
-| Bài News | `/en/news/<slug>` (26 trang, 7 đến 19 khối) | `section-title`, `news-cards` | section-title, paragraph, image-single, gallery-carousel, image-pair, quote, news-cards, cta-arrow |
+| Bài News | `/en/news/<slug>` (26 trang, 7 đến 19 khối) | `section-title`, `news-cards` | section-title, paragraph, media-single, media-carousel, media-pair, quote, news-cards, cta-arrow |
 | About, Liên hệ | `/en/about-us`, `/en/contact` | `hero-fullscreen` hoặc `section-title` | theo khảo sát |
 
 Trang chủ, About và Advertising giữ layout hiện tại trong bản đầu (owner 2026-10-26); dòng mẫu của chúng ở bảng trên chỉ để tham khảo sau.
@@ -168,13 +168,13 @@ nhất hai lần ở chỗ đó; rộng khung đo trên 48 trang công trình v�
 | Khối, chỗ ảnh | Tỷ lệ được chọn | 384 | 768 | 1024 | 1280 | 1440 | 1920 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `hero-project` | phủ màn hình, nguồn 3:2, điểm giữ | 461 × 1013 | 922 × 1013 | 1229 × 1080 | 1536 × 1080 | 1728 × 1080 | 2304 × 1080 |
-| `image-single` rộng | 3:2, 4:3, 16:9, 1:1 | 354 | 718 | 974 | 1210 | 1370 | 1500 |
-| `image-single` 2/3 | 3:2, 4:3, 1:1 | 354 | 507 | 676 | 845 | 950 | 1128 |
-| `image-text` | 2:3, 3:4 | 354 | 384 | 313 | 392 | 445 | 488 |
-| `image-pair` bằng nhau | 2:3, 3:4, 3:2; hai ảnh cùng tỷ lệ | 384 | 372 | 495 | 623 | 703 | 733 |
-| `image-pair` lớn trái, phải | lớn 3:2, 2:3, 4:5; nhỏ 2:3, 3:4, 1:1 | 384, 230 | 372, 223 | 495, 297 | 623, 374 | 703, 422 | 733, 440 |
-| `gallery-carousel` | cao cố định; mỗi ảnh 2:3, 3:2, 3:4, 1:1 | cao 288 | 384 | 512 | 640 | 720 | 960 |
-| `video-single` | 16:9 | 354 | 718 | 974 | 1210 | 1370 | 1500 |
+| `media-single` rộng | 3:2, 4:3, 16:9, 1:1 | 354 | 718 | 974 | 1210 | 1370 | 1500 |
+| `media-single` 2/3 | 3:2, 4:3, 1:1 | 354 | 507 | 676 | 845 | 950 | 1128 |
+| `media-text` | 2:3, 3:4 | 354 | 384 | 313 | 392 | 445 | 488 |
+| `media-pair` bằng nhau | 2:3, 3:4, 3:2; hai ảnh cùng tỷ lệ | 384 | 372 | 495 | 623 | 703 | 733 |
+| `media-pair` lớn trái, phải | lớn 3:2, 2:3, 4:5; nhỏ 2:3, 3:4, 1:1 | 384, 230 | 372, 223 | 495, 297 | 623, 374 | 703, 422 | 733, 440 |
+| `media-carousel` | cao cố định; mỗi ảnh 2:3, 3:2, 3:4, 1:1 | cao 288 | 384 | 512 | 640 | 720 | 960 |
+| `media-single` video | 16:9 | 354 | 718 | 974 | 1210 | 1370 | 1500 |
 | `project-slider` thẻ | từ ảnh bìa, điểm giữ | 200 × 300 | 200 × 300 | 300 × 400 | 300 × 420 | 300 × 420 | 300 × 420 |
 
 Khối phủ (`hero-project`, thẻ `project-slider`, `news-cards`, `banner-links`) đổi tỷ lệ theo thiết bị nên chỉ chọn điểm
@@ -186,7 +186,7 @@ Vùng an toàn (owner 2026-11-15): khung crop đánh dấu phần có thể bị
 [masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Chi tiết quan trọng đặt trong vùng không tô.
 
 ```gherkin
-Given người soạn đặt một ảnh 1200 × 1200 vào image-text và chọn 3:4
+Given người soạn đặt một ảnh 1200 × 1200 vào media-text và chọn 3:4
 When mở khung crop
 Then khung giữ 3:4, ảnh phủ kín khung, kéo và phóng đều hai chiều, không có thanh trống hay ảnh méo
 And card masonry hiện dải mờ 5% ở đáy khung

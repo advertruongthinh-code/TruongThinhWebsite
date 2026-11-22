@@ -501,7 +501,7 @@ async function runStates(browser,engine) {
       const original=new URL(page.url()),historyBefore=await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin,index:window.barba?.history?.current?.index??window.barba?.history?.i??null}));
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       const locale=route.startsWith('/')?'en':'vi';await page.locator(`#site-menu [data-language-option="${locale}"]`).click();
-      await page.waitForURL(url=>url.pathname===route.replace(/^\/(vi|en)\//,`${locale === "en" ? "/en" : ""}/`));await recordState(page,engine,`history locale ${route}`);
+      await page.waitForURL(url=>url.pathname===route.replace(/^\/(?:en\/)?/,`${locale === "en" ? "/en" : ""}/`));await recordState(page,engine,`history locale ${route}`);
       assert.equal(new URL(page.url()).search,original.search,'locale preserves search');assert.equal(new URL(page.url()).hash,'','locale clears hash');assert.equal(await page.evaluate(()=>document.documentElement.lang),locale,'DOM locale updates');
       // Changing language reloads the target page like F5 (site-shell R5): new document, no extra history entry.
       const historyAfter=await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin}));

@@ -38,7 +38,7 @@ là bộ file này, qua cùng validator với build (một module dùng chung, k
 | `contact` | `content/contact.json` (mới) | chưa có; plan viết, cách liên hệ và nút CTA (R7) |
 
 Định danh: `id` khớp `^[a-z0-9][a-z0-9-]{0,79}$`, không đổi sau khi tạo. `slugVi`, `slugEn` kebab-case theo
-[SEO media](media-seo.md); đổi slug sau khi đăng thì bản dựng thêm redirect 301 từ slug cũ. [CẦN LÀM RÕ: khóa slot của `page-copy` lấy từ `data-cms` hiện có hay đặt lại; chốt ở slice editor.]
+[SEO media](media-seo.md); đổi slug sau khi đăng thì bản dựng thêm redirect 301 từ slug cũ. Khóa slot của `page-copy` đặt lại bằng `data-slot` cố định, và `page-copy` có bốn bản ghi cố định, mỗi trang chuẩn một bản ghi ([editor R6](cms-editor.md#r6-trang-chuẩn)).
 
 ```gherkin
 Given bản chụp có một bài news thiếu cover.width
@@ -134,8 +134,8 @@ And danh sách chọn chỉ có 6 media của trang đó
 Khối trang công trình và News sẽ gọi chung theo media (owner 2026-11-15): `image-single` thành `media-single` (gộp
 `video-single`), `image-pair` thành `media-pair`, `image-text` thành `media-text`, `gallery-carousel` thành
 `media-carousel`; mỗi chỗ nhận ảnh hoặc video, khung theo [layout-library R7](layout-library.md#r7-khung-ảnh-cố-định-từng-khối)
-(video cần poster cùng khung). Tới PR đổi tên, tên contract vẫn là `image-*` như layout-library và News; dữ liệu cũ đổi
-theo trong cùng PR đó. `media-single` giữ bốn tỷ lệ của `image-single` cho ảnh, video chỉ nhận 16:9.
+(video cần poster cùng khung). `media-single` nhận đúng một trong hai trường `image` hoặc `video`: ảnh giữ bốn tỷ lệ cũ,
+video chỉ nhận 16:9 và vị trí `wide`.
 
 `layoutKey` của một khối là một id trong danh mục [layout-library R1](layout-library.md#r1-danh-mục-khối); id ngoài danh
 mục bị từ chối ở R1. Khối chưa có renderer (`statement`, `location-list`, băng logo, banner CTA) hiện khóa tới khi PR
@@ -190,7 +190,7 @@ Then trả 400; xóa một mục con của nó thì lưu được và menu, navb
 
 Người soạn có công cụ trình bày chữ như phần mềm dàn trang (owner 2026-11-15), theo đúng thang chữ Espacio đang chạy
 (owner 2026-11-22, `detail.css` "Espacio type scale", [trang chi tiết](detail-pages.md#ui)); lưu thành dữ liệu có cấu
-trúc, không lưu HTML thô. Danh sách theo đúng site hiện tại:
+trúc, không lưu HTML thô: chuỗi thuần kèm bộ dấu cố định ở [editor R5](cms-editor.md#r5-soạn-chữ). Danh sách theo đúng site hiện tại:
 
 | Nhóm | Tùy chọn |
 | --- | --- |
@@ -252,7 +252,7 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 
 ## Gate còn mở
 
-Mục `[CẦN LÀM RÕ]` của R1; slice chủ ghi ở [CMS](cms.md#gate-còn-mở).
+Không còn mục `[CẦN LÀM RÕ]`; thứ tự slice ở [CMS](cms.md#gate-còn-mở).
 
 ## Chú thích thuật ngữ
 

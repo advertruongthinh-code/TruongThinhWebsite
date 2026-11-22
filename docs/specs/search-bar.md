@@ -5,7 +5,7 @@ source: []
 tests:
   - tests/site/advertising-search.e2e.mjs
 notion: https://app.notion.com/p/420332849a0e81dda7d5ecc5fa185ea2
-updated: 2026-11-22
+updated: 2026-11-23
 ---
 
 # Thanh tìm kiếm, một khối ở ba chỗ
@@ -22,7 +22,7 @@ audit trang thật với mock (R6).
 
 **Một khối ở ba chỗ.** Thanh là một khối liền: nền `paper`, viền 1px `ink`, góc vuông. Ba chỗ dùng cùng khối đó; đổi chỗ chỉ đổi vị trí, bề rộng và bóng,
 không đổi dáng (bỏ đường kẻ ở khe CTA). Ngoại lệ có chủ ý so với mock: chữ ô 16px (mock 15px) và morph 1s (mock 0,6s, quyết định owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` như nay (thế chỗ hàng nhóm dưới tiêu đề hero; trang có lưới masonry bỏ "Cuộn xuống").
-Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe theo quãng cuộn ([R7](#r7-vào-khe-theo-quãng-cuộn)); chỉ trang gốc có thanh ([R8](#r8-chỉ-trang-gốc-có-thanh)).
+Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe dứt khoát theo vị trí cuộn ([R7](#r7-vào-khe-dứt-khoát)); chỉ trang gốc có thanh ([R8](#r8-chỉ-trang-gốc-có-thanh)).
 
 | | PC và tablet (từ 751px) | Phone (dưới 751px) |
 | --- | --- | --- |
@@ -77,8 +77,8 @@ chip) + 12px; Floating CTA và nút về đầu trang không cùng hiện nên k
 
 **Phone, bàn phím mở.** Ô chữ focus trên phone: hàng chip và nút về đầu trang ẩn, chỉ còn hàng chữ trên bàn phím; thanh không đổi chỗ tới khi blur (như nay).
 
-**Chuyển động.** Đổi chỗ giữa nổi và khe theo [R7](#r7-vào-khe-theo-quãng-cuộn), không có morph chạy theo thời gian. Có kết quả và bỏ tìm khi đang nổi: bề rộng 560 và 760px, hàng chip đổi bằng morph
-`--search-morph` 1s `--search-ease` (`--ease-card`). Giảm chuyển động: morph đó đổi ngay; R7 vẫn đi theo cuộn vì chỉ chạy khi khách cuộn.
+**Chuyển động.** Đổi chỗ giữa nổi và khe theo [R7](#r7-vào-khe-dứt-khoát): vào khe là đúng dáng khe ngay. Có kết quả và bỏ tìm khi đang nổi: bề rộng 560 và 760px, hàng chip đổi bằng morph
+`--search-morph` 1s `--search-ease` (`--ease-card`). Giảm chuyển động: morph đó và cú trượt lên của R7 đổi ngay.
 
 **Giữ nguyên.** Enter tìm, Esc bỏ tìm; đang tìm thì nút xoá chữ cũng bỏ tìm. Đang gõ thì Home, End, PageUp, PageDown, mũi tên, Space chỉ di con trỏ. Không có dòng
 trạng thái trên màn hình (owner 2026-11-17). Thanh nổi đẩy Floating CTA lên bằng `--search-bar-offset`. Không có JavaScript thì CTA vẫn có link cũ. Chữ trên thanh,
@@ -100,31 +100,29 @@ trang, nổi, khe CTA) và ba trạng thái (chưa tìm, có kết quả, 1 ản
 cụm CTA, vị trí nút về đầu trang) và so với số CSS của mock (mock thu nhỏ bằng `transform`, nên không so pixel ảnh), lệch tối đa 2px; màu và bóng so đúng giá trị
 CSS. Hai ngoại lệ ở R1 không tính là lệch. Kết quả là một trang so sánh đặt ảnh trang thật cạnh mock cho owner xem.
 
-### R7. Vào khe theo quãng cuộn
+### R7. Vào khe dứt khoát
 
-Owner chọn 2026-11-22 (thay cú bay 1 giây): thanh vào và rời khe theo đúng quãng cuộn, cả PC lẫn phone. Không có chuyển động tự chạy: cuộn dừng là thanh
-đứng yên giữa đường, cuộn ngược là thanh đi ngược lại. Ở khe CTA, bề rộng đổi dần từ bề rộng nổi (560px, 760px khi có kết quả) sang bề rộng khe, bóng mờ dần,
-hàng chip (nếu có) gập dần; tới khe là đúng dáng ở khe của R1.
+Owner sửa 2026-11-23 (thay bản "đi theo ngón tay" 2026-11-22): thanh đổi chỗ dứt khoát, cả PC lẫn phone, không có dáng nửa nổi nửa ở khe. Cuộn
+dừng ở đâu thì thanh cũng đang đúng một trong ba chỗ của R1 với đúng dáng của chỗ đó.
 
-- **Khe đầu trang.** Owner sửa 2026-11-22 (thanh đi chéo giữa màn hình che nhiều nội dung): thanh nằm yên trong khe và cuộn đi cùng trang. Khi hàng
-  nhập của khe đã chui dưới header, thanh nổi trồi lên từ mép dưới màn hình trong 120px cuộn tiếp, rồi nằm ở chỗ nổi. Thanh không bao giờ đi ngang qua
-  giữa màn hình. Cuộn lên thì ngược lại.
-- **Khe CTA.** Thanh nổi tới khi khe chạm thanh, rồi nằm trong khe và trôi lên theo trang; trong một phần tư chiều cao màn hình cuộn tiếp, thanh mở dần ra
-  bằng khe (ngắn hơn nếu trang hết sớm hơn), nên ở cuối trang thanh luôn đúng dáng khe. Lúc còn hàng chip, hàng chip nhô lên trên khe, khe không đổi cao.
-- **Nhảy cuộn** (Home, End, tải lại giữa trang, Back): thanh đứng ngay ở chỗ và dáng của vị trí mới, không chạy hiệu ứng.
-- **Phone đang gõ** (bàn phím mở): thanh đứng yên tới khi thôi gõ; đang trồi lên thì về chỗ nổi trước. Nút về đầu trang chỉ hiện khi
-  thanh nổi hẳn.
+- **Khe đầu trang.** Thanh nằm yên trong khe và cuộn đi cùng trang. Khi cả thanh đã khuất (chui hết dưới header, hoặc lên khỏi mép trên
+  màn hình khi header đã ẩn), thanh nổi mới hiện: bay lên từ mép dưới màn hình cùng nhịp nút về đầu trang phone, 1s `--ease-float` (owner 2026-11-23; giảm chuyển động thì hiện ngay).
+  Thanh không bao giờ đi ngang qua giữa màn hình. Cuộn lên tới khi khe lộ lại thì thanh về khe ngay.
+- **Khe CTA.** Thanh nổi tới khi hàng nhập của khe chạm hàng nhập của thanh nổi, rồi vào khe ngay với dáng khe (rộng bằng khe, không bóng,
+  không hàng chip), nằm trong khe trôi theo trang. Cuộn ngược qua điểm đó thì về nổi ngay.
+- **Nhảy cuộn** (Home, End, tải lại giữa trang, Back): thanh đứng ngay ở chỗ của vị trí mới, không chạy hiệu ứng.
+- **Phone đang gõ** (bàn phím mở): thanh đứng yên tới khi thôi gõ. Nút về đầu trang chỉ hiện khi thanh nổi.
 
 ```gherkin
 Given trang gốc ở 1440px, đầu trang, thanh trong khe đầu trang
 When cuộn xuống 60px
 Then thanh vẫn trong khe, lên theo trang đúng 60px
-When cuộn tiếp tới khi khe chui dưới header rồi thêm 40px
-Then thanh nổi đang trồi lên, còn nằm dưới chỗ nổi; cuộn lên lại đầu trang thì thanh về khe
+When cuộn tiếp tới khi đáy khe vừa chui dưới header
+Then thanh nổi trượt lên từ mép dưới; cuộn lên lại đầu trang thì thanh về khe
 
 Given thanh đang nổi giữa lưới ở 390px
-When cuộn xuống tới khi khe CTA chạm thanh rồi cuộn tiếp tới cuối trang
-Then thanh nằm trong khe trôi lên theo trang, mở dần ra, ở cuối trang rộng bằng khe và không còn bóng
+When cuộn xuống từng chút qua chỗ khe CTA chạm thanh
+Then bề rộng thanh chỉ có hai giá trị: bề rộng nổi rồi bề rộng khe, không có giá trị ở giữa
 ```
 
 ### R8. Chỉ trang gốc có thanh
@@ -145,13 +143,27 @@ Then URL sang trang nhóm, không còn thanh và khe; bấm "Tất cả" thì th
 ```
 
 Ghi chú kỹ thuật: build gắn `data-search-off` lên container của trang con và trang card; runtime masonry bật, tắt thuộc tính này khi đổi nhóm, mở hoặc đóng card;
-`dock.mjs` tính độ vào khe mỗi frame cuộn và chỉ đọc vị trí hai khe.
+`dock.mjs` chọn chỗ mỗi frame cuộn, chỉ đọc vị trí hai khe và đáy header.
+
+### R9. Tìm xong về đầu lưới
+
+Owner 2026-11-23: tìm xong (Enter, kính lúp, thêm ảnh) thì trang trượt tới đầu lưới, ở cả ba chỗ (khe đầu trang, nổi giữa lưới, khe CTA),
+PC và phone. Đầu lưới nằm dưới đáy header một khoảng bằng lề trái, phải của lưới so với mép trang (`--masonry-outer`); header ẩn khi cuộn
+xuống và hiện khi cuộn lên ([phone-header-scroll R2](phone-header-scroll.md#r2-header-đi-theo-quãng-cuộn)), nên cuộn xuống thì khoảng đó tính
+từ mép trên màn hình. Trượt 600ms theo đường `--ease-card`, cùng lúc lưới xếp lại; chạm, lăn chuột hoặc bấm phím thì dừng; giảm chuyển động
+thì nhảy ngay. Bấm chip trong kết quả hoặc bỏ tìm (Esc, nút xoá): chỉ trượt khi lưới mới ngắn hơn làm trang lùi về chỗ thấy CTA; còn lại đứng yên.
+
+```gherkin
+Given trang gốc ở 384px, cuộn tới tận cuối, thanh ở khe CTA
+When tìm "hộp đèn"
+Then trang trượt lên, đầu lưới cách đáy header 15px (lề của lưới), thanh nổi
+```
 
 ## Kiểm tra
 
 | R | Test |
 | --- | --- |
-| R1 đến R5, R7, R8 | `node tests/site/advertising-search.e2e.mjs` (bảng ở [Tìm kiếm](advertising-search.md#kiểm-tra)); R7 và R8 có test riêng `search-bar R7`, `search-bar R8` |
+| R1 đến R5, R7 đến R9 | `node tests/site/advertising-search.e2e.mjs` (bảng ở [Tìm kiếm](advertising-search.md#kiểm-tra)); R7, R8, R9 có test riêng `search-bar R7`, `search-bar R8`, `search-bar R9` |
 | R6 | script audit chạy trên dev server; số và ảnh đính kèm PR |
 
 ## Chú thích thuật ngữ

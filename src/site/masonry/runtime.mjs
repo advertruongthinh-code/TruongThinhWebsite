@@ -103,6 +103,28 @@ const mediaDescription = (record, mediaId, english) => {
   const own = record.mediaDescriptions?.[mediaId];
   return (english ? own?.en ?? record.descriptionEn : own?.vi ?? record.descriptionVi) || "";
 };
+// Description text (media-seo R7, owner 2026-11-22): a blank line opens a new paragraph, a line starting "• " is a bullet
+// with a hanging indent. Built from text nodes only, the description stays plain text in data.
+const renderDescription = (node, text) => {
+  let gap = false;
+  const rows = [];
+  for (const line of text.split("\n")) {
+    if (!line.trim()) { gap = rows.length > 0; continue; }
+    const row = document.createElement("span");
+    row.className = line.startsWith("• ") ? "detail-description__bullet" : "detail-description__line";
+    if (gap) row.classList.add("is-new-paragraph");
+    if (line.startsWith("• ")) {
+      const mark = document.createElement("span");
+      const body = document.createElement("span");
+      mark.textContent = "•";
+      body.textContent = line.slice(2);
+      row.append(mark, body);
+    } else row.textContent = line;
+    rows.push(row);
+    gap = false;
+  }
+  node.replaceChildren(...rows);
+};
 const advertisingCardPath = (locale, id) => `${localePrefix(locale)}/advertising-products/p/${encodeURIComponent(id)}/`;
 // Dominant color: project cards carry a ready color (build computes it with sharp), ad cards look up MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
@@ -3949,7 +3971,15 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   // Switches the grid to another card set (filter or search results), sliding cards from where they are now. reason tells the search
   // page why search ended (R6): "clear", "filter" (a click: rail, active chip, navbar, breadcrumb) or "history" (Back/Forward).
-  const relayoutTo = (apply, { animate = false, reason = "filter" } = {}) => {
+  // After a search the page glides so the grid's top sits one outer margin below the header (search-bar R9): always for new
+  // results; for a chip or clearing only when the shorter grid left the CTA in view. Two frames let the slide and site:layout land first.
+  const glideToGrid = (always) => requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (!always && !(gridCta && gridCta.getBoundingClientRect().top < innerHeight)) return;
+    const y = getLogicalScroll();
+    const target = scroll?.masonryTop?.(y);
+    if (target != null && Math.abs(target - y) > 1) scroll.glideTo(target);
+  }));
+  const relayoutTo = (apply, { animate = false, reason = "filter", toGrid } = {}) => {
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
     const leftSearch = search;
     apply();
@@ -3964,6 +3994,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     syncRail({ animate });
     syncPageHeading();
     measure({ animate, origins, sameWidth: true });
+    if (toGrid) glideToGrid(toGrid === "always");
   };
   // A filter change (rail click, Back to another category) also leaves search mode.
   // Search bar only on the root grid (search-bar R8): off on a filter page while not searching, and on any card.
@@ -3987,7 +4018,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!search || nextFilter === searchFilter) return;
     relayoutTo(() => {
       searchFilter = nextFilter;
-    }, { animate: true });
+    }, { animate: true, toGrid: "cta" });
   };
   let offer = null;
   const setOffer = (ids) => {
@@ -4019,7 +4050,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     relayoutTo(() => {
       search = next;
       searchFilter = "all";
-    }, { animate: true });
+    }, { animate: true, toGrid: "always" });
   };
   const clearResults = () => {
     setPending(false);
@@ -4028,7 +4059,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     whenLayoutReady(filter, () => relayoutTo(() => {
       search = null;
       searchFilter = "all";
-    }, { animate: true, reason: "clear" }));
+    }, { animate: true, reason: "clear", toGrid: "cta" }));
   };
   const getLogicalScroll = () => scroll?.getLogicalScroll?.() ?? currentVisualY;
   const setLogicalScroll = (scrollY) => scroll?.setLogicalScroll?.(scrollY) ?? false;
@@ -4472,7 +4503,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       rank: 0,
       layoutSpan: 1,
       media: {
-        src: "/assets/content/projects/advertising-print-decals-cover.webp",
+        src: "/assets/content/projects/xuong-in-decal-an-pham.webp",
         width: suggestionWidth,
         height: Math.max(1, suggestionHeight),
       },
@@ -4972,7 +5003,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     primaryFailed = false;
     heroFrame.classList.remove("is-media-error");
     photoView.dataset.masonryActiveMediaId = item.id;
-    if (photoDescription) photoDescription.textContent = mediaDescription(record, item.id, english);
+    if (photoDescription) renderDescription(photoDescription, mediaDescription(record, item.id, english));
     // Changing media within the same card keeps the viewer's sound choice like Pinterest; opening a new card goes back to muted.
     if (!slide) {
       photoVideo.muted = true;

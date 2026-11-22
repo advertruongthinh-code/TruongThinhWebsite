@@ -26,7 +26,7 @@ const CANONICAL_ROUTES = [
   ...(() => {
     const blocks = require("../../scripts/site/block-pages.mjs");
     const { projectListRoutes } = require("../../scripts/site/project-list.mjs");
-    const content = blocks.loadBlockContent(path.join(__dirname, "../../src/site/"));
+    const content = require("../../scripts/site/content-files.mjs").loadBlockContent(path.join(__dirname, "../../src/site/"));
     return [
       ...blocks.blockRoutes(content),
       ...projectListRoutes(content.projects),
@@ -3012,7 +3012,7 @@ async function runEspacioRouteLogoTimingChecks() {
       const diagnostics = monitorPage(page);
       await gotoRoute(page, "/");
       // Images load by AVIF/WebP srcset variant (media-delivery R3).
-      await page.route(/residential-detail-x1(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, async (requestRoute) => {
+      await page.route(/tu-ao-canh-lua-phong-ngu(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, async (requestRoute) => {
         // Image slower than the whole route: veil covers for 0.75s, holds fully covered for at least 0.7s (logo-route-crossfade R2), then opens.
         await new Promise((resolve) => setTimeout(resolve, 3_200));
         delayedHeroReleased = true;
@@ -3157,7 +3157,7 @@ async function runEspacioScrollCueChecks() {
 
   const cases = [
     ...ROUTES,
-    ...ROUTES.map((route) => `/en${route}`),
+    ...ROUTES.map((route) => route.replace(/^\//, "/en/")),
   ];
   for (const route of cases) {
     const viewport = { width: 1440, height: 900 };
@@ -3306,7 +3306,7 @@ async function runEspacioScrollCueChecks() {
 async function runEspacioTypographyChecks() {
   const localizedRoutes = [
     ...ROUTES,
-    ...ROUTES.map((route) => `/en${route}`),
+    ...ROUTES.map((route) => route.replace(/^\//, "/en/")),
   ];
   for (const viewport of [
     { width: 390, height: 844 },
@@ -4030,7 +4030,7 @@ async function runLanguagePersistenceCheck() {
       const diagnostics = monitorPage(page);
       for (const route of ROUTES) {
         const routeWithState = route === "/" ? "/?locale=test" : route;
-        const englishRoute = `/en${routeWithState}`;
+        const englishRoute = routeWithState.replace(/^\//, "/en/");
         await gotoRoute(page, routeWithState);
         await page.waitForFunction(
           () => document.documentElement.lang === "vi",
@@ -9419,7 +9419,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "detail CTA",
       route: "/commercial/?media-fallback=cta",
-      asset: "**/commercial-cta-survey.webp",
+      asset: "**/khao-sat-mat-bang-kinh-doanh.webp",
       surface: ".detail-cta",
       image: ":scope > img, :scope > picture > img",
       text: ".detail-cta__copy",
@@ -10084,10 +10084,10 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify(contract.heritage.sources) ===
           JSON.stringify([
-            "/assets/content/shared/legacy-hands-384.webp",
-            "/assets/content/shared/montage-creativity-palm-display-sketch-audit-a380-v4.webp",
-            "/assets/content/shared/montage-commitment-option-3-knot.webp",
-            "/assets/content/shared/montage-residential-product-detail.webp",
+            "/assets/content/shared/tho-moc-lay-dau-van-go.webp",
+            "/assets/content/shared/phac-thao-tu-trung-bay.webp",
+            "/assets/content/shared/nut-that-day-thung-chac.webp",
+            "/assets/content/shared/tu-console-go-mat-da.webp",
           ]),
         `Heritage montage sources changed: ${contract.heritage.sources.join(", ")}`,
       );

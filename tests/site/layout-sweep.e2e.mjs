@@ -2,7 +2,8 @@
 // screen edge. Catches layout that only breaks between the two QA screenshot sizes (tablet, wide PC). Pages come from data.
 import process from "node:process";
 import { fileURLToPath } from "node:url";
-import { loadBlockContent, pageHref } from "../../scripts/site/block-pages.mjs";
+import { pageHref } from "../../scripts/site/block-pages.mjs";
+import { loadBlockContent } from "../../scripts/site/content-files.mjs";
 import { BASE_URL, SWEEP_WIDTHS, launchBrowser, openPage, viewportAt } from "./harness.mjs";
 
 const { projects, news } = loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)));

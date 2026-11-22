@@ -1,7 +1,7 @@
 // Shared block set for project pages and News (layout-library R1, R4): validates JSON data then builds static HTML.
 // VI text goes in the tag, EN goes in data-en like existing pages; the localeHtml build swaps to EN.
 // The same data always yields the same HTML; text is plain text only, all HTML characters are escaped.
-import { IMAGE_SRC, escapeHtml, validateImage } from "./lib.mjs";
+import { IMAGE_SRC, escapeHtml } from "./lib-pure.mjs";
 
 export const BLOCK_SCHEMA_VERSION = 1;
 export const ZALO_HREF = "https://zalo.me/0949131050";
@@ -115,6 +115,18 @@ export const autoNewsIds = (ctx, page) => {
 };
 
 // Each block: required fields by type and the HTML builder. ctx holds the project and News lists so blocks can look them up.
+// media-single renders an image (old image-single) or a 16:9 video (old video-single); class names are unchanged.
+const renderImage = (block) => [
+  `<section class="blk blk-image ${IMAGE_POSITION[block.position]} section-gap" data-header-tone="ink">`,
+  `  <figure class="blk-image__figure">${image(block.image)}${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
+  "</section>",
+].join("\n");
+const renderVideo = (block) => [
+  '<section class="blk blk-video section-gap" data-header-tone="ink">',
+  `  <figure class="blk-video__figure"><video src="${block.video.src}" poster="${block.video.poster}" width="${block.video.width}" height="${block.video.height}" muted playsinline controls preload="metadata"></video>${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
+  "</section>",
+].join("\n");
+
 const BLOCKS = {
   "hero-project": {
     lines: { tagline: [1, 3] },
@@ -153,19 +165,15 @@ const BLOCKS = {
     text: ["text"],
     render: (block) => `<section class="blk blk-paragraph blk-paragraph--columns section-gap" data-header-tone="ink">${localizedParagraphs(block.text)}</section>`,
   },
-  "image-single": {
-    media: ["image"],
+  "media-single": {
     optionalText: ["caption"],
     enums: { position: Object.keys(IMAGE_POSITION) },
-    render: (block) => [
-      `<section class="blk blk-image ${IMAGE_POSITION[block.position]} section-gap" data-header-tone="ink">`,
-      `  <figure class="blk-image__figure">${image(block.image)}${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
-      "</section>",
-    ].join("\n"),
+    oneOf: ["image", "video"], // exactly one; a video is always wide and 16:9 (cms-content R5)
+    render: (block) => block.video ? renderVideo(block) : renderImage(block),
   },
   // Portrait image with a paragraph beside it, Espacio's most used single-image variant (".-layout-parrafo -layout-right", 22 of 48 project
   // pages, measured 2026-11-14): image one third, text in the paragraph column on the right; phone stacks image then text.
-  "image-text": {
+  "media-text": {
     text: ["text"],
     media: ["image"],
     render: (block) => [
@@ -175,21 +183,12 @@ const BLOCKS = {
       "</section>",
     ].join("\n"),
   },
-  "image-pair": {
+  "media-pair": {
     mediaList: { images: [2, 2] },
     enums: { layout: Object.keys(PAIR_LAYOUT) },
     render: (block) => `<section class="blk blk-pair ${PAIR_LAYOUT[block.layout]} section-gap" data-header-tone="ink">${block.images.map((media) => figure(media, "blk-pair__item")).join("")}</section>`,
   },
-  "video-single": {
-    video: ["video"],
-    optionalText: ["caption"],
-    render: (block) => [
-      '<section class="blk blk-video section-gap" data-header-tone="ink">',
-      `  <figure class="blk-video__figure"><video src="${block.video.src}" poster="${block.video.poster}" width="${block.video.width}" height="${block.video.height}" muted playsinline controls preload="metadata"></video>${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
-      "</section>",
-    ].join("\n"),
-  },
-  "gallery-carousel": {
+  "media-carousel": {
     mediaList: { images: [2, 12] },
     // Uses exactly the Homes page Gallery frame so detail.js attaches Swiper (detail-pages R5).
     // Summed image ratio and gap count let CSS grow the row height when the images are too few to fill the track (detail-pages R7).
@@ -286,14 +285,16 @@ const BLOCKS = {
 export const BLOCK_TYPES = Object.keys(BLOCKS);
 
 // Validate one page (project or News post). Returns the error list, does not stop at the first error.
-export async function validateBlockPage(page, { siteRoot, projects = new Map(), news = new Map(), at = page?.id ?? "page" }) {
+// checkImage(image, where) returns the errors of one image reference: fileImageCheck(siteRoot) in the build, a record check in the Worker.
+export async function validateBlockPage(page, { checkImage, projects = new Map(), news = new Map(), at = page?.id ?? "page" }) {
+  if (typeof checkImage !== "function") throw new Error("validateBlockPage: checkImage is required");
   const errors = [];
   const text = (value, where) => {
     if (!value || typeof value.vi !== "string" || !value.vi.trim()) errors.push(`${where}: missing VI text`);
     if (!value || typeof value.en !== "string" || !value.en.trim()) errors.push(`${where}: missing EN text`);
     else if (typeof value.vi === "string" && paragraphs(value.vi).length !== paragraphs(value.en).length) errors.push(`${where}: paragraph counts differ between VI and EN`);
   };
-  const media = async (value, where) => { errors.push(...await validateImage(value, siteRoot, where)); };
+  const media = async (value, where) => { errors.push(...await checkImage(value, where)); };
   const href = (value, where) => { if (!SAFE_HREF.test(value ?? "")) errors.push(`${where}: invalid link`); };
 
   if (!KEBAB.test(page?.id ?? "")) errors.push(`${at}: id must be kebab-case`);
@@ -323,6 +324,18 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
       }
     }
     for (const field of spec.media ?? []) await media(block[field], `${where}.${field}`);
+    if (spec.oneOf) {
+      const present = spec.oneOf.filter((field) => block[field] !== undefined);
+      if (present.length !== 1) errors.push(`${where}: needs exactly one of ${spec.oneOf.join(", ")}`);
+      else if (present[0] === "image") await media(block.image, `${where}.image`);
+      else {
+        const value = block.video;
+        // Same field check the video-single spec ran before.
+        if (!/^\/assets\/content\/[a-z0-9/-]+\.mp4$/.test(value?.src ?? "") || !IMAGE_SRC.test(value?.poster ?? "") || !Number.isInteger(value?.width) || !Number.isInteger(value?.height)) errors.push(`${where}.video: needs src .mp4, poster .webp, width, height`);
+        else if (value.width * 9 !== value.height * 16) errors.push(`${where}: a video must be 16:9`);
+        if (block.position !== "wide") errors.push(`${where}: a video must use position wide`);
+      }
+    }
     for (const field of spec.href ?? []) href(block[field], `${where}.${field}`);
     for (const [field, allowed] of Object.entries(spec.enums ?? {})) if (!allowed.includes(block[field])) errors.push(`${where}.${field}: must be ${allowed.join(", ")}`);
     for (const [field, [min, max]] of Object.entries(spec.mediaList ?? {})) {
@@ -339,10 +352,6 @@ export async function validateBlockPage(page, { siteRoot, projects = new Map(), 
         for (const field of spec.list.media ?? []) await media(value?.[field], `${where}.items[${item}].${field}`);
         for (const field of spec.list.href ?? []) href(value?.[field], `${where}.items[${item}].${field}`);
       }
-    }
-    if (spec.video) {
-      const value = block.video;
-      if (!/^\/assets\/content\/[a-z0-9/-]+\.mp4$/.test(value?.src ?? "") || !IMAGE_SRC.test(value?.poster ?? "") || !Number.isInteger(value?.width) || !Number.isInteger(value?.height)) errors.push(`${where}.video: needs src .mp4, poster .webp, width, height`);
     }
     if (spec.ids) {
       const field = spec.ids === "projects" ? "projectIds" : "newsIds";

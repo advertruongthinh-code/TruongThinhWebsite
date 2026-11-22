@@ -1,9 +1,7 @@
 // Block-built pages (projects R3, news R3, layout-library R4): header, menu and footer frame come from an existing page,
 // the <main> body is the block list from src/site/content/<kind>.json. Routes use VI and EN slugs, one shared source file.
-import { existsSync, readFileSync } from "node:fs";
-import path from "node:path";
 import { NEWS_GROUPS, newsTeaser, renderBlocks } from "./blocks.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, localePrefix, routeLocale } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, localePrefix, routeLocale } from "./lib-pure.mjs";
 
 export { NEWS_GROUPS };
 
@@ -18,12 +16,6 @@ export const KINDS = {
   // The About page is not on the navbar, so the frame underlines no item; drop the menu's aria-current.
   news: { dir: "news", frame: () => "about", namespace: "news", schema: "BlogPosting", parent: () => ({ name: "Tin tức", path: "/news/" }) },
 };
-
-
-export const loadBlockContent = (siteRoot) => Object.fromEntries(Object.keys(KINDS).map((kind) => {
-  const file = path.join(siteRoot, `content/${kind}.json`);
-  return [kind, existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : []];
-}));
 
 export const pageHref = (kind, locale, page) => `${localePrefix(locale)}/${KINDS[kind].dir}/${locale === "vi" ? page.slugVi : page.slugEn}/`;
 export const projectHref = (locale, project) => pageHref("projects", locale, project);

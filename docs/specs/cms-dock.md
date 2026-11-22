@@ -16,7 +16,7 @@ updated: 2026-11-01
 Owner yêu cầu 2026-11-01 hành vi giống bốn tính năng Dockview Enterprise (auto-hide edge groups, auto edge groups, pinned
 tabs, layout history). Không có fork MIT nào có sẵn, gói `dockview-enterprise` là giấy phép thương mại; `dock-tools.js`
 tự viết trên API công khai của `dockview` 8.8 (edge group, `collapse`, `moveTo`, `toJSON`/`fromJSON`), không dùng
-module enterprise. Dock, panel và bố cục mặc định thuộc [editor R1](cms-editor.md#r1-dashboard-dockview-trên-máy-tính).
+module enterprise. Dock, panel và bố cục mặc định thuộc [editor R1](cms-editor.md#r1-khung-làm-việc).
 
 ## Hành vi
 
