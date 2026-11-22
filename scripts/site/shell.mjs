@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { siteRoot } from "./lib.mjs";
 
-const PARTIALS = ["head", "boot", "styles", "route-veil", "header", "floating-cta", "menu", "footer", "scripts"];
+const PARTIALS = ["head", "boot", "styles", "route-veil", "header", "floating-cta", "menu", "footer", "scripts", "client-logos"];
 const partials = Object.fromEntries(PARTIALS.map((name) => [name, readFileSync(path.join(siteRoot, "partials", `${name}.html`), "utf8").trimEnd()]));
 
 const home = { extraScripts: "", logoVi: "— về trang chủ", logoEn: "— go to homepage", ctaVi: "Gọi Zalo tư vấn", ctaEn: "Talk to us on Zalo" };

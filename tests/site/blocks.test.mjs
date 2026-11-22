@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { fileImageCheck } from "../../scripts/site/content-files.mjs";
 import { BLOCK_TYPES, duplicatePageFields, renderBlocks, validateBlockPage } from "../../scripts/site/blocks.mjs";
 
 const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../src/site");
@@ -38,7 +39,7 @@ const fixture = () => ({
     { id: "banners", type: "banner-links", items: [{ title: t("Nhà ở", "Homes"), image: photo, hrefVi: "/vi/residential/", hrefEn: "/en/residential/" }] },
   ],
 });
-const ctx = { siteRoot, projects: new Map([["other", other]]), news: new Map([["other", other]]) };
+const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map([["other", other]]), news: new Map([["other", other]]) };
 
 test("fixture covers every block type and validates", async () => {
   const page = fixture();
@@ -160,4 +161,8 @@ test("strip and News blocks may omit ids", async () => {
   delete page.blocks[10].projectIds;
   delete page.blocks[13].newsIds;
   assert.deepEqual(await validateBlockPage(page, ctx), []);
+});
+
+test("validateBlockPage without checkImage names the missing option instead of a TypeError", async () => {
+  await assert.rejects(validateBlockPage(fixture(), {}), /validateBlockPage: checkImage is required/);
 });

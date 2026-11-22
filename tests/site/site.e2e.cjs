@@ -26,7 +26,7 @@ const CANONICAL_ROUTES = [
   ...(() => {
     const blocks = require("../../scripts/site/block-pages.mjs");
     const { projectListRoutes } = require("../../scripts/site/project-list.mjs");
-    const content = blocks.loadBlockContent(path.join(__dirname, "../../src/site/"));
+    const content = require("../../scripts/site/content-files.mjs").loadBlockContent(path.join(__dirname, "../../src/site/"));
     return [
       ...blocks.blockRoutes(content),
       ...projectListRoutes(content.projects),

@@ -5,6 +5,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
+import { fileImageCheck } from "../site/content-files.mjs";
 import { validateHomeProjects } from "../site/home-projects.mjs";
 import { LINE_END_PUNCT, duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
@@ -129,7 +130,7 @@ export async function checkSiteContent(siteRoot) {
 
   const heroFile = path.join(siteRoot, "content/hero-slides.json");
   if (existsSync(heroFile)) {
-    await validateHeroSlides(JSON.parse(readFileSync(heroFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
+    await validateHeroSlides(JSON.parse(readFileSync(heroFile, "utf8")), fileImageCheck(siteRoot)).catch((error) => errors.push(error.message));
   }
   // Project and News pages built from blocks (layout-library R4): blocks, VI/EN text, images, linked ids.
   const pages = {};
@@ -137,7 +138,7 @@ export async function checkSiteContent(siteRoot) {
     const file = path.join(siteRoot, `content/${kind}.json`);
     pages[kind] = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
   }
-  const ctx = { siteRoot, projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
+  const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
   for (const [kind, list] of Object.entries(pages)) {
     errors.push(...duplicatePageFields(list, `content/${kind}.json`));
     for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`));
