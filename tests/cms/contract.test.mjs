@@ -26,6 +26,9 @@ test("project card with one media is missing; card media outside the page is a s
   page.card.media = [{ ...page.cover }];
   assert.deepEqual(await shapeErrors("project", page, ctx), []);
   assert.ok((await fullErrors("project", page, ctx)).some(({ message }) => message.endsWith("card công trình cần ít nhất 2 media")));
+  delete page.card;
+  assert.ok((await fullErrors("project", page, ctx)).some(({ message }) => message.endsWith("card công trình cần ít nhất 2 media")), "a page without a card misses it too");
+  page.card = { width: 1, height: 1, media: [] };
   const other = [...ctx.mediaById.keys()].find((id) => id !== page.cover.mediaId && !JSON.stringify(page).includes(`"${id}"`));
   page.card.media = [{ ...page.cover, mediaId: other }];
   assert.ok((await shapeErrors("project", page, ctx)).some(({ code }) => code === "card-media"));
@@ -45,6 +48,18 @@ test("crop outside the image, unknown media, bad id and unknown block are shape 
   assert.ok(codes.some((text) => text.includes("unknown block type nope")));
   assert.deepEqual(await shapeErrors("menu", { id: "main", featuredProjects: [], featuredProductGroups: [] }), [{ message: "menu: a single record has no id field", level: "shape" }]);
   assert.deepEqual(await shapeErrors("news", { id: "draft-post", layout: "news-2-5" }), [], "a draft may lack optional fields");
+});
+
+test("legacySrc cannot carry a client src; a placement needs mediaId or legacySrc", async () => {
+  const { ctx, find } = seed();
+  const page = find("project", "can-ho-go-soi");
+  page.card.media[0] = { ...page.card.media[0], src: "https://evil.example/x.webp" };
+  assert.ok((await shapeErrors("project", page, ctx)).some(({ code }) => code === "legacy-src"));
+  page.card.media[0] = { ...page.card.media[0], src: "https://evil.example/x.webp", legacySrc: "https://evil.example/x.webp" };
+  assert.ok((await shapeErrors("project", page, ctx)).some(({ code }) => code === "legacy-src"));
+  const post = find("news", "chon-tu-bep");
+  delete post.cover.mediaId;
+  assert.ok((await shapeErrors("news", post, ctx)).some(({ code }) => code === "media-id"));
 });
 
 test("record names and slugs follow Q5", () => {

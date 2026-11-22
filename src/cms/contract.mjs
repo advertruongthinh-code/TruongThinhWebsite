@@ -5,6 +5,7 @@ import { kindFieldErrors, menuErrors } from "../../scripts/site/block-pages.mjs"
 import { heroSlideErrors } from "../../scripts/site/hero-slides.mjs";
 import { validateHomeProjects } from "../../scripts/site/home-projects.mjs";
 import { validateAdvertisingCardMedia } from "../../src/site/advertising-products/media-contract.mjs";
+import { IMAGE_SRC } from "../../scripts/site/lib-pure.mjs";
 import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 import { layoutErrors } from "./layouts.mjs";
 import { mediaRefs } from "./media-ref.mjs";
@@ -64,7 +65,12 @@ export async function shapeErrors(type, data, ctx = {}) {
   }
   const mediaById = ctx.mediaById ?? new Map();
   for (const ref of mediaRefs(type, data)) {
-    if (ref.legacySrc !== undefined || ref.mediaId === undefined) continue;
+    // legacySrc keeps seeded fields as is, so it must not let a client keep its own src (Q6: legacySrc equals the seeded src).
+    if (ref.legacySrc !== undefined) {
+      if (typeof ref.legacySrc !== "string" || ref.src !== ref.legacySrc || !IMAGE_SRC.test(ref.src)) errors.push(shape(`${at}: legacySrc must equal src and be a repo image path`, "legacy-src"));
+      continue;
+    }
+    if (ref.mediaId === undefined) { errors.push(shape(`${at}: a media placement needs mediaId`, "media-id")); continue; }
     const media = mediaById.get(ref.mediaId);
     if (!media) errors.push(shape(`${at}: media ${ref.mediaId} does not exist`, "media-unknown"));
     else errors.push(...cropErrors(ref.crop, media, `${at}: media ${ref.mediaId}`));
@@ -94,7 +100,8 @@ export async function fullErrors(type, data, ctx = {}) {
     messages = [
       ...await validateBlockPage(data, { checkImage: ctx.checkImage, projects, news: ctx.news ?? new Map() }),
       ...kindFieldErrors(kind, data, at).filter((message) => !layoutText.has(message)),
-      ...(type === "project" && Array.isArray(data.card?.media) && data.card.media.length < 2 ? [`${at}: card công trình cần ít nhất 2 media`] : []),
+      // cms-content R4: a project card always has 2 or more media, so a page without a card is missing them too.
+      ...(type === "project" && !(Array.isArray(data.card?.media) && data.card.media.length >= 2) ? [`${at}: card công trình cần ít nhất 2 media`] : []),
     ];
   } else if (type === "hero-slide") {
     messages = [
