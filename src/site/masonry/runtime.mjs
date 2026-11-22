@@ -97,6 +97,28 @@ const mediaDescription = (record, mediaId, english) => {
   const own = record.mediaDescriptions?.[mediaId];
   return (english ? own?.en ?? record.descriptionEn : own?.vi ?? record.descriptionVi) || "";
 };
+// Description text (media-seo R7, owner 2026-11-22): a blank line opens a new paragraph, a line starting "• " is a bullet
+// with a hanging indent. Built from text nodes only, the description stays plain text in data.
+const renderDescription = (node, text) => {
+  let gap = false;
+  const rows = [];
+  for (const line of text.split("\n")) {
+    if (!line.trim()) { gap = rows.length > 0; continue; }
+    const row = document.createElement("span");
+    row.className = line.startsWith("• ") ? "detail-description__bullet" : "detail-description__line";
+    if (gap) row.classList.add("is-new-paragraph");
+    if (line.startsWith("• ")) {
+      const mark = document.createElement("span");
+      const body = document.createElement("span");
+      mark.textContent = "•";
+      body.textContent = line.slice(2);
+      row.append(mark, body);
+    } else row.textContent = line;
+    rows.push(row);
+    gap = false;
+  }
+  node.replaceChildren(...rows);
+};
 const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
 // Dominant color: project cards carry a ready color (build computes it with sharp), ad cards look up MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
@@ -4475,7 +4497,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       rank: 0,
       layoutSpan: 1,
       media: {
-        src: "/assets/content/projects/advertising-print-decals-cover.webp",
+        src: "/assets/content/projects/xuong-in-decal-an-pham.webp",
         width: suggestionWidth,
         height: Math.max(1, suggestionHeight),
       },
@@ -4975,7 +4997,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     primaryFailed = false;
     heroFrame.classList.remove("is-media-error");
     photoView.dataset.masonryActiveMediaId = item.id;
-    if (photoDescription) photoDescription.textContent = mediaDescription(record, item.id, english);
+    if (photoDescription) renderDescription(photoDescription, mediaDescription(record, item.id, english));
     // Changing media within the same card keeps the viewer's sound choice like Pinterest; opening a new card goes back to muted.
     if (!slide) {
       photoVideo.muted = true;

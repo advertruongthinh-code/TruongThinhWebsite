@@ -66,7 +66,7 @@ try {
   const card = {
     titleVi: "Card lưu thật", titleEn: "Saved card", descriptionVi: "Mô tả lưu", descriptionEn: "Saved description",
     productIds: ["signage/aluminium-signs-facades"],
-    mediaItems: [{ id: `${id}-m1`, kind: "image", src: "/assets/content/projects/home-hero-walnut-bedroom.webp", width: 3072, height: 2048, altVi: "Phòng ngủ", altEn: "Bedroom" }],
+    mediaItems: [{ id: `${id}-m1`, kind: "image", src: "/assets/content/projects/phong-ngu-op-go-oc-cho.webp", width: 3072, height: 2048, altVi: "Phòng ngủ", altEn: "Bedroom" }],
     coverMediaId: `${id}-m1`,
   };
   assert.equal((await reset("advertising", { cards: { [id]: card } })).status, 200);
@@ -82,7 +82,7 @@ try {
   const residential = await page.evaluate((url) => fetch(url).then((response) => response.headers.get("etag")), "/vi/residential/");
   assert.equal(residential, null, "a page with editor content does not keep the static file's ETag");
   assert.match(cardPage, /<title[^>]*>Saved card — Trường Thịnh/);
-  assert.match(cardPage, /data-masonry-card-static><h1[^>]*>Saved card<\/h1><p[^>]*>Saved description<\/p><figure><img src="\/assets\/content\/projects\/home-hero-walnut-bedroom\.webp"/);
+  assert.match(cardPage, /data-masonry-card-static><h1[^>]*>Saved card<\/h1><p[^>]*>Saved description<\/p><figure><img src="\/assets\/content\/projects\/phong-ngu-op-go-oc-cho\.webp"/);
   await page.goto(`${baseUrl}/vi/advertising-products/`);
   const patched = await page.evaluate(async (cardId) => (await window.__TT_ADVERTISING_ARTIFACT__).cards.find((entry) => entry.id === cardId), id);
   assert.equal(patched.titleVi, "Card lưu thật");

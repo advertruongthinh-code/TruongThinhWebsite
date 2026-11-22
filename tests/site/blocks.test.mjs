@@ -8,7 +8,7 @@ import { BLOCK_TYPES, duplicatePageFields, renderBlocks, validateBlockPage } fro
 
 const siteRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../src/site");
 const photo = { src: "/assets/content/projects/home-commercial-cafe.webp", width: 2304, height: 3072, altVi: "Quán cà phê nhà phố", altEn: "Shophouse café" };
-const photo2 = { src: "/assets/content/projects/kiosk-active-v2.webp", width: 2048, height: 3072, altVi: "Xe cà phê", altEn: "Coffee cart" };
+const photo2 = { src: "/assets/content/projects/kiosk-ca-phe-luu-dong.webp", width: 2048, height: 3072, altVi: "Xe cà phê", altEn: "Coffee cart" };
 const t = (vi, en) => ({ vi, en });
 
 // The fixture uses all 16 blocks; images are real images already in the site.

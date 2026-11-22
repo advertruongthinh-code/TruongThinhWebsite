@@ -2856,6 +2856,21 @@ body.is-masonry-browse .site-footer {
   margin: 0;
 }
 
+/* Description rows (media-seo R7, owner 2026-11-22): paragraphs split by a blank line, bullets indented with a hanging indent. */
+.detail-view__info [data-detail-description] > span {
+  display: block;
+}
+
+.detail-view__info [data-detail-description] > .is-new-paragraph {
+  margin-top: 0.6em;
+}
+
+.detail-view__info [data-detail-description] > .detail-description__bullet {
+  display: grid;
+  grid-template-columns: 1.1em minmax(0, 1fr);
+  margin-left: 2em;
+}
+
 /* A single-row thumbnail strip fits a whole number of thumbnails (at least 60px, gap 8px), overflow scrolls horizontally (owner 2026-10-24); the runtime
    widens each thumbnail (--detail-thumb-size) so the strip spans the full column like the text below (owner 2026-11-12). */
 .detail-view__media-thumbs {

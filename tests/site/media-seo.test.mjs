@@ -62,3 +62,19 @@ test("image sitemap lists every card page with one image:loc per media (media-se
     }
   }
 });
+
+// Owner 2026-11-22: an opening paragraph, a blank line, "• " bullets, a blank line and one closing line; plain text, the indent is CSS.
+const descriptionShape = /^[^\n•]+(?:\n[^\n•]+)*\n\n(?:• [^\n]+\n)+\n[^\n•]+$/;
+test("card and media descriptions keep the rich-text shape, meta takes the opening (media-seo R7)", async () => {
+  for (const card of ADVERTISING_CARDS) {
+    const texts = [card.descriptionVi, card.descriptionEn,
+      ...Object.values(card.mediaDescriptions ?? {}).flatMap(({ vi, en }) => [vi, en])];
+    for (const text of texts) {
+      assert.doesNotMatch(text, /[\t<>*#]/, `${card.id} plain text`);
+      assert.match(text, descriptionShape, `${card.id} shape`);
+    }
+    const html = await page("vi", card.id);
+    const opening = card.descriptionVi.split("\n\n")[0];
+    assert.ok(html.replace(/\s+/g, " ").includes(`name="description" content="${opening.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[c])}"`), `${card.id} meta`);
+  }
+});
