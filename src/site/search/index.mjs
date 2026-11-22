@@ -148,31 +148,71 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   }, { signal });
 
   // Floating chip row (search-bar R2): the products with results, mirrored from the page's chips, which own the filter and its counts.
+  // Most cards first (owner 2026-11-23). When the row overflows, "Show all (N)" stays pinned at its right end and opens every product
+  // in a panel above the bar.
+  const shell = bar.querySelector(".search-bar__shell");
   const railRoot = container.querySelector("[data-masonry-filter]")?.closest(".detail-index-hero, section") ?? container;
   const allFilter = () => container.querySelector('[data-masonry-filter="all"]');
+  const countOf = (product) => Number.parseInt(product.querySelector("sup")?.textContent ?? "", 10) || 0;
+  const panel = Object.assign(document.createElement("div"), { className: "search-bar__all", hidden: true, id: "search-bar-all" });
+  panel.setAttribute("role", "group");
+  panel.setAttribute("aria-label", copy.chips);
+  shell.append(panel);
+  const more = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip search-bar__more", hidden: true });
+  more.setAttribute("aria-controls", panel.id);
+  more.setAttribute("aria-expanded", "false");
+  const setPanel = (open) => {
+    panel.hidden = !open;
+    more.setAttribute("aria-expanded", String(open));
+  };
+  more.addEventListener("click", () => setPanel(panel.hidden), { signal });
+  panel.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    event.stopPropagation();
+    setPanel(false);
+    more.focus();
+  }, { signal });
+  document.addEventListener("pointerdown", (event) => !panel.hidden && !shell.contains(event.target) && setPanel(false), { signal });
+  const chipFor = (product) => {
+    const button = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip" });
+    const pressed = product.getAttribute("aria-current") === "true";
+    button.setAttribute("aria-pressed", String(pressed));
+    button.append(Object.assign(document.createElement("b"), { textContent: product.querySelector("span")?.textContent ?? product.textContent }),
+      Object.assign(document.createElement("sup"), { textContent: product.querySelector("sup")?.textContent ?? "" }));
+    // Again on the chip in use: back to all results, the query stays.
+    button.addEventListener("click", () => {
+      setPanel(false);
+      (pressed ? allFilter() : product)?.click();
+    });
+    return button;
+  };
+  const rowObserver = new ResizeObserver(([entry]) => {
+    const row = entry.target;
+    more.hidden = true;
+    more.hidden = row.scrollWidth <= row.clientWidth + 1;
+    row.toggleAttribute("data-more", row.scrollLeft + row.clientWidth < row.scrollWidth - 1);
+  });
+  signal?.addEventListener("abort", () => rowObserver.disconnect(), { once: true });
   let chipsQueued = false;
   function syncChips() {
     chipsQueued = false;
     const cluster = [...container.querySelectorAll("[data-masonry-filter][aria-current=\"true\"]")].find((node) => node.dataset.masonryFilter !== "all");
     const scope = cluster ? container.querySelector(`[data-masonry-chips="${cluster.dataset.masonryFilter}"]`) : container;
     const products = client.active ? [...(scope ?? container).querySelectorAll("[data-masonry-product]")].filter((node) => !node.hasAttribute("data-search-empty")) : [];
+    products.sort((a, b) => countOf(b) - countOf(a)); // stable: equal counts keep the rail order
     const row = Object.assign(document.createElement("div"), { className: "search-bar__chiprow" });
-    row.append(...products.map((product) => {
-      const button = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip" });
-      const pressed = product.getAttribute("aria-current") === "true";
-      button.setAttribute("aria-pressed", String(pressed));
-      button.append(Object.assign(document.createElement("b"), { textContent: product.querySelector("span")?.textContent ?? product.textContent }),
-        Object.assign(document.createElement("sup"), { textContent: product.querySelector("sup")?.textContent ?? "" }));
-      // Again on the chip in use: back to all results, the query stays.
-      button.addEventListener("click", () => (pressed ? allFilter() : product)?.click());
-      return button;
-    }));
-    const scrollLeft = chips.firstElementChild?.scrollLeft ?? 0;
-    chips.replaceChildren(row);
+    row.append(...products.map(chipFor));
+    panel.replaceChildren(...products.map(chipFor));
+    if (!products.length) setPanel(false);
+    more.textContent = copy.showAll(products.length);
+    const scrollLeft = chips.querySelector(".search-bar__chiprow")?.scrollLeft ?? 0;
+    chips.replaceChildren(row, more);
     row.scrollLeft = scrollLeft;
     const fade = () => row.toggleAttribute("data-more", row.scrollLeft + row.clientWidth < row.scrollWidth - 1);
     row.addEventListener("scroll", fade, { passive: true });
-    requestAnimationFrame(fade);
+    // The row's width follows the bar (the 1s results morph, resize): the button shows while any chip is cut off.
+    rowObserver.disconnect();
+    rowObserver.observe(row);
     bar.toggleAttribute("data-results", products.length > 0);
     syncOffset();
   }
@@ -211,7 +251,6 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   }, { signal });
 
   // The floating buttons stand above the floating bar; the phone's back-to-top sits on its own row above the block (search-bar R5).
-  const shell = bar.querySelector(".search-bar__shell");
   const syncOffset = () => {
     const floating = !dock?.docked && !dock?.off;
     document.body.dataset.searchPlace = dock?.off ? "off" : dock?.place ?? "float";
