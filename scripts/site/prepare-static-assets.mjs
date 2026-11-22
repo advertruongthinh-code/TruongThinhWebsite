@@ -586,6 +586,16 @@ for (const [mergedId, coverId] of Object.entries(MERGED_CARD_REDIRECTS)) {
     await writeFile(destination, html, "utf8");
   }
 }
+// Self canonical and hreflang (SEO audit 2026-11-22): a route template without its own canonical (home, residential, commercial,
+// about) gets the links of its VI and EN routes, so every indexable page is in sitemap-pages.xml below.
+const localeRoutes = new Map();
+for (const [route, source] of ROUTES) localeRoutes.set(source, { ...localeRoutes.get(source), [route.slice(1, 3)]: route });
+for (const [source, { vi, en }] of localeRoutes) {
+  if (!vi || !en) continue;
+  const file = path.join(outputRoot, source);
+  const html = await readFile(file, "utf8");
+  if (!html.includes('rel="canonical"')) await writeFile(file, html.replace("</title>", () => `</title>\n    ${alternateLinks(vi, en).join("\n    ")}`), "utf8");
+}
 await localizeHtmlOutput(outputRoot);
 
 for (const [route, source] of ROUTES) {
