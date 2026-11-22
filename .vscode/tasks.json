@@ -28,7 +28,7 @@
       "options": { "cwd": "${workspaceFolder}" },
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
-      "detail": "Owner deploy tay demo từ main mới nhất khi CI deploy kẹt; cần đăng nhập Cloudflare một lần bằng: pnpm demo:wrangler login."
+      "detail": "Owner deploy tay bản thử staging từ main mới nhất khi CI deploy kẹt; cần đăng nhập Cloudflare một lần bằng: pnpm demo:wrangler login."
     },
     {
       "label": "Tooling: Watch",

@@ -2,7 +2,7 @@
 title: Kiến trúc runtime Trường Thịnh
 type: architecture
 status: living
-updated: 2026-10-18
+updated: 2026-11-22
 related_specs:
   - specs/detail-pages.md
   - specs/page-home.md
@@ -38,7 +38,7 @@ flowchart LR
 | Static build | Đang dùng | `scripts/site/prepare-static-assets.mjs` copy source/vendor, tạo catalog artifact, sáu compatibility HTML và 22 HTML VI/EN vào `.site-output/` |
 | Local preview | Đang dùng | `pnpm dev` chạy `prepare:site` rồi `scripts/tooling/serve-static-parity.mjs --port 8787` |
 | QA | Chỉ ở repository | `tests/` và scripts kiểm chứng source/build; không thuộc public output |
-| Demo hosting | Đã chọn cho static release | `pnpm deploy:demo` đẩy `.site-output/` lên Workers static assets qua `wrangler.static.toml`; Worker script chỉ cho `/api/*` ([tìm kiếm](specs/advertising-search.md)) |
+| Demo hosting | Đã chọn cho static release | `pnpm deploy:demo` đẩy `.site-output/` lên bản thử staging, `pnpm release:site` lên `truongthinhads.vn`, cùng Workers static assets qua `wrangler.static.toml`; Worker script chỉ cho `/api/*` ([tìm kiếm](specs/advertising-search.md)) |
 | Worker | Dormant | `src/worker/index.js` giữ route, SEO, API và CMS boundary; Wrangler chưa thuộc static gate |
 | Admin | Dev/dormant | `src/admin/` là shell private cho CMS, không copy vào public output |
 | CMS data | Planned | D1/R2/Access/provider chỉ chọn và verify khi owner mở CMS phase |
@@ -57,7 +57,7 @@ Nguồn: `package.json`, `pnpm-workspace.yaml`, `wrangler*.toml`, `.github/workf
 | Hosting demo | Cloudflare Workers static assets (`wrangler.static.toml`) | Worker script chỉ cho `/api/*` ([tìm kiếm](specs/advertising-search.md)), binding AI, ASSETS, rate limit |
 | CMS (dormant) | Cloudflare Worker, D1, R2, Access (`wrangler.toml`, `src/worker/`, `src/db/migrations/`) | Chưa activate, xem [CMS](specs/cms.md) |
 | Test | Playwright 1.64 (Chromium, Firefox, WebKit), `node --test`, contract script `.cjs` | [Bộ test CI](specs/ci-test-suites.md), [tests](../tests/README.md) |
-| CI/CD | GitHub Actions trên `ubuntu-latest`: `ci.yml`, `docs.yml`, `automerge.yml`, `deploy-demo.yml` | [Gate CI](specs/static-release.md#r10-gate-ci) |
+| CI/CD | GitHub Actions trên `ubuntu-latest`: `ci.yml`, `docs.yml`, `automerge.yml`, `deploy-demo.yml`, `release.yml` | [Gate CI](specs/static-release.md#r10-gate-ci) |
 | Tooling agent | Graphify, ponytail, agent-skills | Pin trong `tooling-versions.json`, xem [TOOLING](operations/TOOLING.md) |
 
 ## Route canonical
