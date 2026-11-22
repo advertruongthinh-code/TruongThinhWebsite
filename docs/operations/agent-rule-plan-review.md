@@ -49,7 +49,7 @@ Lý do (suy luận): task từ `200 LOC` đã phải ghi estimate trên card; 40
 
 1. Plan ghi trước task có dài không theo bảng trên. Diff vượt ngưỡng giữa chừng thì implementer báo điều phối ngay.
 2. Implementer mở PR dạng draft hoặc gắn nhãn `hold` để `Automerge` không merge trước khi review xong; tự review và chạy `ponytail-review` như thường.
-3. Điều phối mở thread reviewer (model theo [routing](agent-rule-model-routing.md#bảng-mặc-định); chạm CMS thì opus high), brief gồm link PR, spec, plan (card) và ngưỡng nào bị chạm. Reviewer không phải thread implementer.
+3. Điều phối mở thread reviewer (model theo [routing](agent-rule-model-routing.md#bảng-mặc-định); chạm CMS thì opus high, trừ khi plan đã được owner duyệt ghi model khác), brief gồm link PR, spec, plan (card) và ngưỡng nào bị chạm. Reviewer không phải thread implementer.
 4. Reviewer chỉ đọc, không push code. Đi đủ các bước:
    - `using-agent-skills` định tuyến, ghi dòng `Skill:` cho từng skill.
    - `code-review-and-quality` (five-axis) trên toàn diff, đọc cả code liên quan, không chỉ dòng đổi; `ponytail-review` target link PR.
