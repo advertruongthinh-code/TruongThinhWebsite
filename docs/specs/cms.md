@@ -43,9 +43,10 @@ Quyết định owner trước đây vẫn giữ:
 | Access đăng nhập Google | Tự làm đăng nhập | Không giữ mật khẩu; Access chặn trước Worker |
 | 404 tĩnh cho bài trong thùng rác | 410 (quyết định cũ) | Route trang không cần Worker |
 
-Ngoài phạm vi bản đầu: khôi phục phiên bản cũ, hẹn giờ đăng (owner 2026-11-15), hỗ trợ nhập bằng AI, sửa bảng đồng nghĩa
+Ngoài phạm vi bản đầu: khôi phục phiên bản cũ, hẹn giờ đăng (owner 2026-11-15), tìm kiếm bản ghi `draft` trong CMS, hỗ trợ nhập bằng AI, sửa bảng đồng nghĩa
 trong CMS, page builder đa dụng. Rủi ro chính và chỗ xử lý: GitHub hay token hỏng (R6), Access lệch D1 (R2), mất nội
-dung (R3, sao lưu R6), bản chụp lỗi chặn deploy (R6).
+dung (R3, sao lưu R6), bản chụp lỗi chặn deploy (R6), test CI không liên quan
+chậm hay chập chờn làm chậm lần lưu (R6).
 
 ## Hành vi
 
@@ -81,8 +82,8 @@ admin ở slice Storage.
 | Xem nhật ký thao tác | Có | Chỉ thao tác của mình |
 
 Worker cho qua khi JWT Access hợp lệ và email có tài khoản đang mở trong D1; thiếu một trong hai thì 403. Riêng
-`GET /api/admin/snapshot` nằm sau chính sách Service Auth riêng: chỉ nhận service token của workflow dựng, chỉ đọc,
-không qua bảng tài khoản. Ít nhất một
+`GET /api/admin/snapshot` và `GET /api/admin/media-original` nằm sau chính sách Service Auth riêng: chỉ nhận service
+token của workflow, chỉ đọc, không qua bảng tài khoản. Ít nhất một
 owner luôn còn mở: lệnh khóa hay hạ vai trò owner cuối cùng trả 409. Danh sách email của chính sách Access phải khớp bảng
 tài khoản, vì Access tính seat ở lần đăng nhập đầu và chặn người mới khi hết seat (suy luận theo tài liệu Access, kiểm
 ở slice Storage). Trang tài khoản tự thêm, gỡ email
@@ -139,7 +140,7 @@ Then nhân viên nhận 409 kèm bản version 5, bài vẫn là bản của own
 
 ### R5. Lệnh admin có kiểu
 
-API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `search-drafts`, `audit-log`, `build-status`, `snapshot`; mỗi lệnh validate bằng module dùng chung ở
+API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `audit-log`, `build-status`, `snapshot`; mỗi lệnh validate bằng module dùng chung ở
 [nội dung CMS R1](cms-content.md#r1-kiểu-nội-dung-và-file-chiếu), kiểm quyền theo R2, ghi nhật ký theo R4.
 
 | Lệnh | Kết quả | Lỗi |
@@ -170,7 +171,8 @@ Then trả 415, không phiên bản nào được tạo
 ### R6. Xuất bản và rollback
 
 Lần lưu `published` gọi `workflow_dispatch` của `ci.yml` trên `main` (`ci.yml` gọi `Deploy demo`, workflow này chỉ có
-`workflow_call`); gọi lỗi thì admin Worker thử lại 3 lần, vẫn lỗi thì bản ghi hiện "chưa dựng" kèm nút "dựng lại". Không
+`workflow_call`); gọi lỗi thì admin Worker thử lại 3 lần, vẫn lỗi thì admin hiện "site chậm hơn lần lưu cuối" (so thời điểm deploy cuối với lần lưu cuối) kèm nút
+"dựng lại". Không
 có hàng đợi riêng: nhóm `concurrency` của `ci.yml` và `Deploy demo` giữ một run chạy và một run chờ, run chờ mới thay run
 chờ cũ, và job deploy lấy bản chụp lúc bắt đầu, nên lưu dồn dập được gom (hành vi dự kiến, kiểm ở slice Publishing).
 Token GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret; admin cảnh báo owner 14 ngày trước khi token hết
@@ -190,10 +192,8 @@ Owner quay về deployment trước bằng lệnh `rollback` (nút trong admin v
 mới (plan viết), workflow chỉ nhận id một trong 10 deployment gần nhất và dùng token deploy Cloudflare sẵn có của `Deploy
 demo`; admin Worker không giữ token deploy. D1 không đổi theo, nên rollback đặt cờ tạm dừng trong D1; trong lúc dừng,
 `snapshot` trả 423 nên mọi lần dựng, kể cả merge code, dừng ở bước lấy bản chụp. Owner sửa hoặc đưa bản ghi lỗi vào
-thùng rác rồi bấm "tiếp tục đăng"; bản sửa code khẩn cũng chờ tới lúc đó. Key biến thể media public có hash
-([nội dung CMS R3](cms-content.md#r3-media)); mỗi lần dựng ghi danh sách key nó dùng vào R2, và biến thể chỉ bị dọn khi
-orphan quá 30 ngày và không nằm trong danh sách của 10 deployment gần nhất (suy luận về số bản Workers giữ, kiểm ở
-slice Publishing).
+thùng rác rồi bấm "tiếp tục đăng"; bản sửa code khẩn cũng chờ tới lúc đó. Bản đầu không dọn biến thể public tự động: biến thể chỉ bị xóa khi
+`purge` bản gốc của nó, nên deployment cũ vẫn có đủ ảnh khi rollback.
 
 ```gherkin
 Given lần dựng có một ảnh thiếu biến thể
@@ -201,9 +201,10 @@ When bộ kiểm phát hành chạy
 Then không deploy, site giữ bản trước, admin báo id media lỗi
 ```
 
-Sao lưu: D1 Time Travel 7 ngày (suy luận, kiểm ở slice Storage); Cron Trigger hằng ngày export D1 ra R2 private; mỗi
-tuần một tác vụ hẹn giờ trên PC owner chép export và bản gốc media về PC rồi NAS (plan viết). Admin hiện lần sao lưu cuối,
-quá 8 ngày thì cảnh báo owner. Khôi phục làm thử một lần trước khi mở CMS cho nhân viên.
+Sao lưu: D1 Time Travel 7 ngày (suy luận, kiểm ở slice Storage); Cron Trigger hằng ngày export D1 ra R2 private qua REST
+API D1 (token D1 trong secret; suy luận, kiểm ở slice Storage); mỗi tuần một tác vụ hẹn giờ trên PC owner chép export và
+bản gốc media về PC rồi NAS (plan viết, không báo về admin). Admin xem tuổi file export mới nhất trong R2, quá 2 ngày thì
+cảnh báo owner. Khôi phục làm thử một lần trước khi mở CMS cho nhân viên.
 
 ### R7. Xem trước gần 1:1 với site
 
@@ -211,7 +212,8 @@ Khung xem trước cập nhật trong lúc người soạn gõ hay đổi media 
 chưa có biến thể dùng bản tạm trên R2 private qua admin, khung ghi "bản xem trước"; lưới card xếp như PC và tablet, lưới
 đầu dựng sẵn của phone chỉ có ở lần dựng thật. Không có renderer thứ hai: trang khối (News, công trình) gọi đúng hàm
 render mà build dùng (`renderBlocks`, `renderBlockPage`) trong trình duyệt; trang chuẩn và lưới card dùng HTML đã dựng
-cộng overlay của [editor](cms-editor.md), áp cùng hàm điền slot và hàm dựng card mà build gọi. Plan tách các hàm này
+cộng overlay của [editor](cms-editor.md), áp cùng hàm điền slot và hàm dựng card mà build gọi (hàm điền slot là
+việc mới: trang chuẩn hiện là HTML tĩnh có `data-cms`, `page-copy.json` chưa có). Plan tách các hàm này
 thành module thuần (không `node:fs`, `node:path`) chạy được ở Node lẫn trình duyệt; phần kiểm file ảnh, đọc JSON ở lại
 adapter của build. Preview chạy với cùng CSS, JS, motion của site trong một `iframe` có khung trang thật.
 
@@ -232,8 +234,8 @@ And test so HTML preview và HTML build của cùng dữ liệu trả kết qu�
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
 | Data | `src/site/content/*.json` | File chiếu ([nội dung CMS](cms-content.md)); build tĩnh đọc như hiện tại |
-| Binding | `DB` (D1, `apac`), `MEDIA_ORIGINALS`, `MEDIA_PUBLIC`, `VECTOR_CACHE` (Cloudflare R2), `AI` (Workers AI), `ADMIN_WRITE_LIMIT` (`[[ratelimits]]`) | Chỉ ở admin Worker; khai và chốt hạn mức ở slice Storage |
-| Secret | `CMS_BOOTSTRAP_OWNER`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, token Access API, id chính sách Access, service token, token GitHub Actions; ở CI: token R2 chỉ đọc | R2, R6; không ghi trong repo |
+| Binding | `DB` (D1, `apac`), `MEDIA_ORIGINALS`, `MEDIA_PUBLIC` (Cloudflare R2), `ADMIN_WRITE_LIMIT` (`[[ratelimits]]`) | Chỉ ở admin Worker; khai và chốt hạn mức ở slice Storage |
+| Secret | `CMS_BOOTSTRAP_OWNER`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, token Access API, id chính sách Access, service token, token GitHub Actions, token D1 export; ở CI: token R2 chỉ ghi bucket public | R2, R6; không ghi trong repo |
 | Header | `Cf-Access-Jwt-Assertion`, `Origin` | Đầu vào R2, R5 |
 | Endpoint | `/api/admin/<lệnh>`; sau service token: `GET /api/admin/snapshot`, `GET /api/admin/media-original` | R5, R6; không có API public của CMS |
 | Workflow | `ci.yml` (dispatch dựng), workflow biến thể, workflow rollback (mới) | R6, [nội dung CMS R3](cms-content.md#r3-media) |

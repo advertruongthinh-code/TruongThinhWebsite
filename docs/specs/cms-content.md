@@ -75,12 +75,13 @@ trang công trình và News nhận cả ảnh lẫn video, nên gọi chung là 
   [tải video](video-delivery.md)) sinh một lần khi upload hoặc lưu vùng crop, bằng một job GitHub Actions (sharp không
   chạy trong Worker); key theo hash của bản gốc, vùng crop và công thức biến thể, đổi công thức thì key đổi. Biến thể
   nằm ở bucket public sau `media.truongthinhads.vn`; lần dựng chỉ kiểm biến thể có đủ, không sinh. Không bao giờ phát
-  bản gốc. Biến thể không còn bản ghi nào trỏ tới theo luật orphan dưới.
-- Xóa media (lệnh `trash`, `purge`) đang được nội dung dùng trả 409 kèm danh sách chỗ dùng. Object không còn bản ghi nào
-  trỏ tới (orphan) được dọn sau 30 ngày, theo luật giữ biến thể của [CMS R6](cms.md#r6-xuất-bản-và-rollback).
+  bản gốc. Job biến thể ghi vào bucket public bằng token R2 chỉ ghi bucket đó.
+- Xóa media (lệnh `trash`, `purge`) đang được nội dung dùng trả 409 kèm danh sách chỗ dùng. Bản gốc không còn bản ghi nào
+  trỏ tới (orphan) được dọn sau 30 ngày; biến thể public theo [CMS R6](cms.md#r6-xuất-bản-và-rollback).
 - Job biến thể: lệnh upload hay lưu crop gọi `workflow_dispatch` của workflow biến thể mới (cùng token GitHub), job đọc
-  bản gốc qua endpoint chỉ đọc sau service token như `snapshot`; media hiện "đang xử lý" tới khi xong. Lưu bản ghi có
-  media chưa có biến thể thì chưa dispatch lần dựng; job biến thể dispatch lần dựng khi xong.
+  bản gốc qua endpoint chỉ đọc sau service token như `snapshot`; media hiện "đang xử lý" tới khi xong, job lỗi thì hiện
+  "lỗi" kèm nút thử lại. Bản chụp bỏ qua bản ghi có media chưa sẵn sàng (giữ phiên bản `published` trước của bản ghi
+  đó nếu có), nên upload dở hay job lỗi không chặn lần dựng của người khác; job biến thể dispatch lần dựng khi xong.
 - Bản gốc ở bucket R2 private để lần dựng không cần PC bật; sao lưu tuần chép bản gốc về NAS (owner 2026-11-15, thay
   quyết định bản gốc trên NAS ngày 2026-10-12).
 
@@ -204,34 +205,22 @@ When gửi một khối kiểu Tiêu đề CTA vào slot đó
 Then trả 400, dữ liệu chữ không đổi
 ```
 
-### R9. Tìm kiếm ngữ nghĩa và hỗ trợ nhập
+### R9. Tìm kiếm ngữ nghĩa
 
-Hướng owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/artifact/6zTDE4jQfcjrbP3tax9kXx)). Model, công thức
-vector (ảnh, alt, poster, frame video) và test thuộc [tìm kiếm Advertising](advertising-search.md); CMS chỉ giữ ranh giới
-dưới. Một hàm tính vector, một cache vector theo hash của model cộng đầu vào: lúc lưu, admin Worker điền cache (R2
-private; CI đọc bằng token R2 chỉ đọc) để bản ghi `draft` tìm được ngay trong CMS qua `search-drafts` (chỉ người dùng CMS); lần dựng `pnpm search:index` đọc cache, chỉ tính phần thiếu. Đổi model thì
-hash đổi, tính lại toàn bộ một lần. Site không lưu nhật ký tìm kiếm.
+Hướng owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/artifact/6zTDE4jQfcjrbP3tax9kXx)); model, công thức
+vector và test thuộc [tìm kiếm Advertising](advertising-search.md). Bản đầu CMS giữ ba điều: lưu không bao giờ phụ thuộc
+AI; `pnpm search:index` ở mỗi lần dựng là nơi duy nhất tính vector, từ nội dung `published` trong bản chụp, nên thêm,
+sửa, xóa card hay media đổi kết quả tìm từ lần dựng sau; bản ghi `draft` không vào chỉ mục public. Tính vector lúc lưu,
+tìm bản ghi `draft` trong CMS và hỗ trợ nhập bằng AI để sau bản đầu.
 
-| Thao tác | Vector và lớp từ khóa |
-| --- | --- |
-| Thêm card hoặc media | Tạo vector, cập nhật từ khóa |
-| Sửa tên, mô tả | Tính lại vector chữ của card |
-| Sửa alt hoặc thay media | Tính lại vector của media đó |
-| Xóa | Gỡ vector và từ khóa |
-
-Admin Worker gọi Workers AI lỗi thì card vẫn lưu, vẫn tìm được theo từ khóa; cache thiếu được lần dựng kế tiếp tính bù. Không có trường từ khóa riêng: lớp từ khóa
-tự dựng từ tên, mô tả, alt (bỏ dấu) cộng bảng từ đồng nghĩa chung lấy từ dữ liệu Keyword Planner. Keyword Planner không
-chạy lại khi CRUD, chỉ chạy lại 6 tháng một lần hoặc khi thêm nhóm sản phẩm; sửa bảng đồng nghĩa trong CMS để sau bản
-đầu.
-
-Hỗ trợ nhập lúc upload (phase sau): Gemma 4 trên Workers AI (suy luận, kiểm khi mở phase) đọc ảnh, soạn nháp tên, mô tả, alt VI/EN theo luật chữ của
-owner; 5 ảnh giống nhất gợi ý sản phẩm, nhóm, tag; gợi ý Keyword Planner hiện khi gõ; kiểm trước khi lưu (alt không
-trùng trong card, độ dài, chữ mồ côi). Không lưu gì tới khi người soạn bấm.
+Không có trường từ khóa riêng: lớp từ khóa tự dựng từ tên, mô tả, alt (bỏ dấu) cộng bảng từ đồng nghĩa chung lấy từ dữ
+liệu Keyword Planner. Keyword Planner không chạy lại khi thêm, sửa, xóa, chỉ chạy lại 6 tháng một lần hoặc khi thêm nhóm
+sản phẩm.
 
 ```gherkin
-Given admin Worker gọi Workers AI tính vector đang lỗi
-When người soạn lưu một card mới
-Then card lưu và tìm được theo từ khóa, lần dựng kế tiếp tính bù vector còn thiếu
+Given người soạn lưu một card mới đủ trường
+When lần dựng kế tiếp chạy xong
+Then card tìm được trên site theo từ khóa và theo vector, lần lưu không gọi Workers AI
 ```
 
 ## Giao diện và dữ liệu
@@ -253,7 +242,7 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 | R3 | `pnpm qa:worker:security` (WebP, SVG an toàn); cần thêm: loại, cỡ, poster, alt trùng, orphan, crop |
 | R4 | `media-contract.mjs` hiện tại; cần thêm: card công trình từ 2 media, media thuộc trang |
 | R6, R7, R8 | chưa có; cần: placeholder slot, 6 mục menu, CTA đọc một nguồn, bộ kiểm chữ |
-| R9 | test thuộc [tìm kiếm Advertising](advertising-search.md); CMS cần: lưu vẫn chạy khi admin Worker gọi Workers AI lỗi |
+| R9 | test thuộc [tìm kiếm Advertising](advertising-search.md); CMS cần: lưu không gọi Workers AI, bản ghi `draft` không vào chỉ mục |
 
 ## Gate còn mở
 
