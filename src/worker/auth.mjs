@@ -34,13 +34,13 @@ export async function bootstrapOwner(env, email) {
   const { n } = await env.DB.prepare("SELECT COUNT(*) AS n FROM accounts").first();
   if (n !== 0) return null;
   const now = new Date().toISOString();
-  await env.DB
+  const inserted = await env.DB
     .prepare(
       "INSERT INTO accounts (email, role, status, created_at, created_by, updated_at, updated_by) SELECT ?, 'owner', 'active', ?, 'bootstrap', ?, 'bootstrap' WHERE NOT EXISTS (SELECT 1 FROM accounts)",
     )
     .bind(email, now, now)
     .run();
-  return { email, role: "owner" };
+  return inserted.meta.changes === 1 ? { email, role: "owner" } : null;
 }
 
 export function hasAllowedOrigin(request, url) {

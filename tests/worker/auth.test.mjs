@@ -28,8 +28,8 @@ globalThis.fetch = async (url) => {
   return new Response(JSON.stringify({ keys: [jwk] }), { headers: { "content-type": "application/json" } });
 };
 
-async function token(claims, { key = pair.privateKey } = {}) {
-  const head = b64(JSON.stringify({ alg: "RS256", kid: "k1", typ: "JWT" }));
+async function token(claims, { key = pair.privateKey, alg = "RS256" } = {}) {
+  const head = b64(JSON.stringify({ alg, kid: "k1", typ: "JWT" }));
   const body = b64(JSON.stringify({ iss: TEAM, aud: ["user-aud"], exp: Math.floor(Date.now() / 1000) + 300, ...claims }));
   const signature = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(`${head}.${body}`));
   return `${head}.${body}.${b64(new Uint8Array(signature))}`;
@@ -90,6 +90,8 @@ test("a bad JWT is refused without an audit row", async () => {
     "wrong iss": await token({ email: "staff@example.test", iss: "https://other.cloudflareaccess.com" }),
     expired: await token({ email: "staff@example.test", exp: Math.floor(Date.now() / 1000) - 1 }),
     "not yet valid": await token({ email: "staff@example.test", nbf: Math.floor(Date.now() / 1000) + 600 }),
+    "alg HS256": await token({ email: "staff@example.test" }, { alg: "HS256" }),
+    "alg none": await token({ email: "staff@example.test" }, { alg: "none" }),
     "no email": await token({}),
     missing: undefined,
   };
@@ -115,6 +117,22 @@ test("bootstrap creates the first owner only for CMS_BOOTSTRAP_OWNER on an empty
   const filled = setup({ accounts: [["staff@example.test", "staff", "active"]] });
   assert.equal((await call(filled, "build-status", { jwt: await token({ email: "owner@example.test" }) })).status, 403);
   assert.equal(filled.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM accounts").get().n, 1);
+
+  // Another account lands between the count and the insert: the bootstrap insert writes nothing and grants nothing.
+  const raced = setup();
+  const prepare = raced.DB.prepare;
+  raced.DB.prepare = (sql) => {
+    if (sql.startsWith("INSERT INTO accounts")) raced.DB.sqlite.prepare("INSERT INTO accounts VALUES ('staff@example.test', 'staff', 'active', ?, 's', ?, 's')").run(NOW, NOW);
+    return prepare(sql);
+  };
+  assert.equal((await call(raced, "build-status", { jwt: await token({ email: "owner@example.test" }) })).status, 403);
+});
+
+test("nbf allows 60 seconds of clock skew and no more", async () => {
+  const env = setup({ accounts: [["staff@example.test", "staff", "active"]] });
+  const now = Math.floor(Date.now() / 1000);
+  assert.equal((await call(env, "build-status", { jwt: await token({ email: "staff@example.test", nbf: now + 30 }) })).status, 200);
+  assert.equal((await call(env, "build-status", { jwt: await token({ email: "staff@example.test", nbf: now + 120 }) })).status, 403);
 });
 
 test("the service token reaches only machine paths, and a user JWT never does", async () => {
