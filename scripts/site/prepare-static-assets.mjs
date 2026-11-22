@@ -10,7 +10,7 @@ import "./sync-brand-lockup.mjs";
 import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
-import { contentDirOf, fileImageCheck, loadBlockContent, readHeroSources } from "./content-files.mjs";
+import { contentDirOf, fileImageCheck, loadBlockContent, readHeroSources, readRedirects } from "./content-files.mjs";
 import { validateHomeProjects } from "./home-projects.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
@@ -324,6 +324,7 @@ for (const card of ADVERTISING_CARDS) {
 }
 // Project pages and News articles built from blocks (projects R3, news R3): content-contract already checked the data in the fast suite.
 const blockContent = loadBlockContent(sourceRoot);
+const redirects = readRedirects(sourceRoot);
 const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
 // Project strip (projects R1, page-home R8): Residential and Commercial list their sector's projects in projects.json order and link to the
 // sector filter; the home page lists the projects picked in content/home-projects.json and links to all projects.
@@ -386,12 +387,12 @@ for (const listPage of projectListPages(blockContent.projects)) {
 }
 // Moved paths other than merged cards (their compatibility page is written below): a noindex fallback page for the preview
 // server; Cloudflare answers them with a real 301 from _redirects.
-for (const [from, to] of legacyRedirects(blockContent).filter(([from]) => !from.includes("/advertising-products/p/"))) {
+for (const [from, to] of legacyRedirects(blockContent, redirects).filter(([from]) => !from.includes("/advertising-products/p/"))) {
   const destination = path.join(outputRoot, from, "index.html");
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, renderRedirectPage(to), "utf8");
 }
-await writeFile(path.join(outputRoot, "_redirects"), redirectsFile(blockContent), "utf8");
+await writeFile(path.join(outputRoot, "_redirects"), redirectsFile(blockContent, redirects), "utf8");
 // Image sitemap (media-seo R5): one url per card page, one image:loc per media (video uses its poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>
   `<url><loc>${cardUrl(locale, card)}</loc>${card.mediaItems.map((item) => `<image:image><image:loc>${PUBLIC_ORIGIN}${mediaImage(item)}</image:loc></image:image>`).join("")}</url>`));

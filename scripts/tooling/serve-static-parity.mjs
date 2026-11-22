@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { blockRoutes, newsListRoutes } from "../site/block-pages.mjs";
-import { loadBlockContent } from "../site/content-files.mjs";
+import { loadBlockContent, readRedirects } from "../site/content-files.mjs";
 import { projectListRoutes } from "../site/project-list.mjs";
 import { legacyRedirects } from "../site/redirects.mjs";
 import { localePrefix, routeLocale } from "../site/lib.mjs";
@@ -31,7 +31,7 @@ export const ROUTES = new Map([
   // The all-projects page and the filter-by-sector pages (projects R2).
   ...projectListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).projects),
   // Moved paths (renamed project filter, removed News year pages): fallback redirect page; merged cards are listed above.
-  ...legacyRedirects(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)))).filter(([from]) => !from.includes("/advertising-products/p/")).map(([from]) => [from, `${from.slice(1)}index.html`]),
+  ...legacyRedirects(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))), readRedirects(fileURLToPath(new URL("../../src/site/", import.meta.url)))).filter(([from]) => !from.includes("/advertising-products/p/")).map(([from]) => [from, `${from.slice(1)}index.html`]),
   // The News list page, group pages and paginated pages (news R2).
   ...newsListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).news),
   ["/about/", "about/index.html"],

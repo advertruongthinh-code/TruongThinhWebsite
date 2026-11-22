@@ -13,6 +13,12 @@ export const loadBlockContent = (siteRoot) => Object.fromEntries(Object.keys(KIN
   return [kind, existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : []];
 }));
 
+// Old slugs of renamed pages (cms Q3); the file exists only in a projected snapshot, so a repo build gets none.
+export const readRedirects = (siteRoot) => {
+  const file = path.join(contentDirOf(siteRoot), "redirects.json");
+  return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
+};
+
 // For the build scripts: load data and the order script from the site source root.
 export const readHeroSources = (siteRoot) => ({
   data: JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "hero-slides.json"), "utf8")),

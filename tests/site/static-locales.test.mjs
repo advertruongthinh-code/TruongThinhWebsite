@@ -7,7 +7,7 @@ import { ROUTES, localeHtml } from "../../scripts/tooling/serve-static-parity.mj
 import { newsListPages } from "../../scripts/site/block-pages.mjs";
 import { loadBlockContent } from "../../scripts/site/content-files.mjs";
 import { projectListPages } from "../../scripts/site/project-list.mjs";
-import { legacyRedirects } from "../../scripts/site/redirects.mjs";
+import { legacyRedirects, redirectsFile, slugRedirects } from "../../scripts/site/redirects.mjs";
 import { PUBLIC_ORIGIN } from "../../scripts/site/lib.mjs";
 
 test("static hosting gets the same localized HTML as the preview server", async () => {
@@ -51,4 +51,27 @@ test("Vietnamese lives at the root: no built page links /vi/, and old /vi/ URLs 
     const html = await readFile(new URL(`../../.site-output${route}index.html`, import.meta.url), "utf8");
     assert.ok(!/(?:href|content|url)=["']?(?:https:\/\/truongthinhads\.vn)?\/vi\//.test(html), `${route} (${source}) links /vi/`);
   }
+});
+
+const content = loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)));
+const [article] = content.news;
+
+test("an old slug of a live page gets one 301 per locale to its current slug", () => {
+  const redirects = [{ type: "news", locale: "vi", slug: "bai-cu", id: article.id }, { type: "news", locale: "en", slug: "old-post", id: article.id }];
+  assert.deepEqual(slugRedirects(redirects, content), [["/news/bai-cu/", `/news/${article.slugVi}/`], ["/en/news/old-post/", `/en/news/${article.slugEn}/`]]);
+  assert.match(redirectsFile(content, redirects), new RegExp(`^/news/bai-cu/ /news/${article.slugVi}/ 301$`, "m"));
+  assert.match(redirectsFile(content, redirects), new RegExp(`^/vi/news/bai-cu/ /news/${article.slugVi}/ 301$`, "m"));
+});
+
+test("a slug of a page that is not projected, or equal to the current slug, gets no redirect", () => {
+  assert.deepEqual(slugRedirects([{ type: "news", locale: "vi", slug: "bai-cu", id: "not-there" }], content), []);
+  assert.deepEqual(slugRedirects([{ type: "news", locale: "vi", slug: article.slugVi, id: article.id }], content), []);
+  assert.equal(redirectsFile(content), redirectsFile(content, []));
+});
+
+test("redirectsFile stops the build above 1,900 lines", () => {
+  const fill = (count) => Array.from({ length: count }, (_, index) => ({ type: "news", locale: "en", slug: `old-${index}`, id: article.id }));
+  const base = redirectsFile(content).split("\n").length - 1;
+  assert.doesNotThrow(() => redirectsFile(content, fill(1900 - base)));
+  assert.throws(() => redirectsFile(content, fill(1901 - base)), /_redirects has 1901 lines, limit 1900/);
 });
