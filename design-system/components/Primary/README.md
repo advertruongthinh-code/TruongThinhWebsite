@@ -23,6 +23,7 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
   ảnh chờ dưới lớp chờ (PC Flow, phone lớp màu). Màn cảm ứng chạm ảnh cũng vậy.
 - Cột chữ: breadcrumb phân loại (link tới từng cấp lọc), mô tả (chia trang khi dài), CTA `Trao đổi ý tưởng`.
   Không có tiêu đề ảnh.
+- Mô tả hiện từng dòng: đoạn mở, các dòng `•` thụt một tab và treo đầu dòng (cột `•` 1.1em, lùi 2em), câu kết; giữa các đoạn cách 0.6em (media-seo R7).
 - Mô tả dài chia trang trọn dòng. Từ 2 đến 5 trang, dưới mô tả là hàng chấm:
   nút 24px, chấm tròn 8px viền 1px `ink`, trang đang xem tô `ink`; bấm chấm để
   nhảy trang, focus outline 2px `ink`. Từ 6 trang là chữ `n / N` cỡ 0.75rem.
