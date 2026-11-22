@@ -56,7 +56,7 @@ try {
   page.on('console',m=>{if(['error','warning'].includes(m.type())) messages.push({type:m.type(),text:m.text()});});
   page.on('response',r=>{if(r.status()>=400) network.push({url:r.url(),status:r.status()});});
   await page.setViewportSize({width:1440,height:900});
-  await page.goto(`${base}/vi/about/`); await ready(page);
+  await page.goto(`${base}/about/`); await ready(page);
   await page.mouse.move(600,300);
   await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.c-scrollbar')).opacity) === 0);
   const idle = await measure(page); record('desktop idle',idle);
@@ -146,7 +146,7 @@ try {
   // A soft route keeps the document gutter-free throughout the page change: the native scrollbar must not flash then hide (horizontal jerk).
   // Read the class on every change (microtask) instead of waiting for a frame, because the gap between removing the old page and mounting the new one can fall
   // between two frames.
-  await page.goto(`${base}/vi/`); await ready(page);
+  await page.goto(`${base}/`); await ready(page);
   await page.evaluate(() => {
     window.__routeGutters = new Set();
     const html = document.documentElement;
@@ -155,8 +155,8 @@ try {
     window.__routeObserver.observe(html, { attributes: true, attributeFilter: ['class'] });
     check();
   });
-  await page.click('.desktop-nav a[href="/vi/residential/"]');
-  await page.waitForFunction(() => location.pathname === '/vi/residential/' && !document.body.classList.contains('is-transitioning') && !document.documentElement.classList.contains('route-enter'));
+  await page.click('.desktop-nav a[href="/residential/"]');
+  await page.waitForFunction(() => location.pathname === '/residential/' && !document.body.classList.contains('is-transitioning') && !document.documentElement.classList.contains('route-enter'));
   const routeGutters = await page.evaluate(() => { window.__routeObserver.disconnect(); return [...window.__routeGutters]; });
   assert.deepEqual(routeGutters,['overlay'],`route never drops to native scrollbar (saw ${routeGutters.join(', ')})`);
   record('route no native flash',await measure(page));
@@ -171,14 +171,14 @@ try {
   for(const mode of ['reduced','dependency-failure']) {
     const fallback=await browser.newPage({viewport:{width:1440,height:900},reducedMotion:mode==='reduced'?'reduce':'no-preference'});
     if(mode==='dependency-failure') await fallback.route('**/assets/vendor/locomotive-scroll-4.1.4.min.js',request=>request.abort());
-    await fallback.goto(`${base}/vi/about/`); await ready(fallback);
+    await fallback.goto(`${base}/about/`); await ready(fallback);
     const m=await measure(fallback); assert.equal(m.count,0); assert.equal(m.smooth,false); assert.equal(m.transform,'');
     assert.equal(m.rootScrollbar,nativeDefault.width);
     await fallback.keyboard.press('End'); await fallback.waitForFunction(()=>scrollY>100);
     record(mode,await measure(fallback)); await fallback.close();
   }
   await page.setViewportSize({width:1440,height:900});
-  await page.goto(`${base}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-09`); await ready(page);
+  await page.goto(`${base}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-09`); await ready(page);
   await page.locator('[data-detail-expand]').click();
   await page.waitForFunction(()=>document.querySelector('[data-detail-dialog]').open);
   const viewerY=(await measure(page)).y;
@@ -197,13 +197,13 @@ try {
   await page.mouse.move(600,300); await page.keyboard.press('PageDown');
   await page.waitForFunction(()=>!document.documentElement.classList.contains('has-scroll-scrolling'));
   await page.setViewportSize({width:1440,height:900});
-  await page.goto(`${base}/vi/about/`); await ready(page);
-  await page.locator('[data-site-header] a[href="/vi/residential/"]').click();
+  await page.goto(`${base}/about/`); await ready(page);
+  await page.locator('[data-site-header] a[href="/residential/"]').click();
   // The About edge is a native navigation (L04H), so body may be null briefly.
-  await page.waitForFunction(()=>location.pathname==='/vi/residential/'&&document.body&&!document.body.classList.contains('is-transitioning')); await ready(page);
+  await page.waitForFunction(()=>location.pathname==='/residential/'&&document.body&&!document.body.classList.contains('is-transitioning')); await ready(page);
   assert.equal((await measure(page)).count,1,'soft route owns one scrollbar');
   await page.goBack();
-  await page.waitForFunction(()=>location.pathname==='/vi/about/'&&document.body&&!document.body.classList.contains('is-transitioning')); await ready(page);
+  await page.waitForFunction(()=>location.pathname==='/about/'&&document.body&&!document.body.classList.contains('is-transitioning')); await ready(page);
   assert.equal((await measure(page)).count,1,'history return owns one scrollbar');
   await page.locator('[data-menu-open]').click();
   await page.locator('[data-language-option="en"]').click();
@@ -212,7 +212,7 @@ try {
   record('soft navigation/history/locale',await measure(page));
   for (const locale of ['vi','en']) {
     for (const route of ['', 'residential/','commercial/','advertising-products/','about/']) {
-      await page.goto(`${base}/${locale}/${route}`); await ready(page);
+      await page.goto(`${base}${locale === "en" ? "/en" : ""}/${route}`); await ready(page);
       for (const width of (channel?[390,1440]:[320,390,768,959,980,981,1024,1199,1440,1569])) {
         await page.setViewportSize({width,height:900});
         await page.waitForFunction(smooth => document.documentElement.classList.contains('has-scroll-smooth')===smooth,width>=981);

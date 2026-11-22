@@ -21,7 +21,7 @@ try {
     const page = await context.newPage();
     for (const locale of ["vi", "en"]) {
       for (const route of routes) {
-        await page.goto(`${origin}/${locale}/${route}`, { waitUntil: "load" });
+        await page.goto(`${origin}${locale === "en" ? "/en" : ""}/${route}`, { waitUntil: "load" });
         await page.evaluate(() => document.fonts.ready);
         // Wait for intro, SplitText and mask measurement to finish; no scrolling, so blocks below the screen stay hidden.
         await page.waitForTimeout(3000);
@@ -48,7 +48,7 @@ try {
             return textTop < clipBottom ? [`${label} leaks ${(clipBottom - textTop).toFixed(1)}px`] : [];
           });
         }, maskSelector);
-        leaks.forEach((leak) => failures.push(`/${locale}/${route} ${viewport.width}px: ${leak}`));
+        leaks.forEach((leak) => failures.push(`${locale === "en" ? "/en" : ""}/${route} ${viewport.width}px: ${leak}`));
         // Scroll the whole page so every line reveals; lines back in place must reopen the shadow region (no more is-text-masked).
         await page.evaluate(async () => {
           for (let y = 0; y < document.documentElement.scrollHeight; y += innerHeight * 0.6) {
@@ -65,7 +65,7 @@ try {
             .filter((mask) => new DOMMatrixReadOnly(getComputedStyle(mask.firstElementChild).transform).m42 < 1)
             .map((mask) => `${mask.className} "${mask.textContent.trim().slice(0, 24)}" still clips the shadow area after reveal`),
         maskSelector);
-        closed.forEach((item) => failures.push(`/${locale}/${route} ${viewport.width}px: ${item}`));
+        closed.forEach((item) => failures.push(`${locale === "en" ? "/en" : ""}/${route} ${viewport.width}px: ${item}`));
       }
     }
     await context.close();

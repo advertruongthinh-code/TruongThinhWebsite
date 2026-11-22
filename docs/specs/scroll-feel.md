@@ -109,14 +109,14 @@ into design" của Espacio (`layout-banner-cta`), ở mọi cỡ cửa sổ và 
 - Dưới tiêu đề là link sang About ("VỀ CHÚNG TÔI" / "ABOUT US"), cách hộp tiêu đề bằng nút CTA trang con (2rem cộng
   vùng chạm 44px, đo 42,8px ở 1440), tái dùng phụ đề portal trang chủ
   ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)): 16px, semibold, viết hoa, gạch chân 3px chạy từ trái
-  khi hover hoặc focus. Cả khối bấm được, đích `/vi/about/` hoặc `/en/about/`.
+  khi hover hoặc focus. Cả khối bấm được, đích `/about/` hoặc `/en/about/`.
 - Hover cả khối: ảnh phóng theo hover ảnh dùng chung ([trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)).
   Focus bàn phím có focus ring của Design System (Espacio bỏ focus ring, không chép).
 - Vào viewport: dòng tiêu đề trượt lên trong mask (`2em → -0.1em`, 1,9s, stagger 0,1s), link hiện sau 0,3s; dùng hook
   reveal sẵn có, không thêm thư viện.
 
 ```gherkin
-Given /vi/ ở bất kỳ bề rộng nào từ 320 tới 1920px, VI hoặc EN
+Given / ở bất kỳ bề rộng nào từ 320 tới 1920px, VI hoặc EN
 When cuộn tới khối "Giữ nghề"
 Then chiều cao (tối thiểu), gutter, khoảng dưới khối đúng bảng R5, tiêu đề cỡ CTA chung và không tràn vùng chữ
 And hộp tiêu đề ở tâm khối (lệch tối đa 1px), link cách hộp tiêu đề 40 tới 46px như CTA trang con

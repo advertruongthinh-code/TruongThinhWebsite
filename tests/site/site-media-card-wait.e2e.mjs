@@ -32,7 +32,7 @@ async function setup(page) {
     await route.continue().catch(() => {});
   });
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, slowArtifact());
-  await page.goto(`${BASE_URL}/vi/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);
@@ -160,7 +160,7 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
         await route.continue().catch(() => {});
       });
       await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, slowArtifact());
-      await page.goto(`${BASE_URL}/vi/advertising-products/?category=signage-raised-letters&photo=${fixtureId}`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${BASE_URL}/advertising-products/?category=signage-raised-letters&photo=${fixtureId}`, { waitUntil: "domcontentloaded" });
       await page.locator("[data-detail-view]").waitFor({ state: "visible" });
       await page.waitForFunction(() => {
         const image = document.querySelector("[data-detail-view] [data-detail-image]");
@@ -221,7 +221,7 @@ async function openSlowPhoto(page, { slowCover = false } = {}) {
     card.mediaItems[0] = { ...card.mediaItems[0], src: `${card.mediaItems[0].src}?media-wait=0` };
   }
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
-  await page.goto(`${BASE_URL}/vi/advertising-products/?category=signage-raised-letters&photo=${fixtureId}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/advertising-products/?category=signage-raised-letters&photo=${fixtureId}`, { waitUntil: "domcontentloaded" });
   await page.locator("[data-detail-view]").waitFor({ state: "visible" });
 }
 

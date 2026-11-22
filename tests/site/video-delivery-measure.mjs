@@ -21,7 +21,7 @@ const arg = (name, fallback) => { const index = process.argv.indexOf(`--${name}`
 const bases = { base: arg("base"), candidate: arg("candidate") };
 const runs = Number(arg("runs", 9));
 const output = arg("out", ".tmp/video-delivery");
-const route = "/vi/advertising-products/";
+const route = "/advertising-products/";
 const SLOW = { offline: false, latency: 150, downloadThroughput: 1_600_000 / 8, uploadThroughput: 750_000 / 8 };
 const WEAK = { ...SLOW, downloadThroughput: 300_000 / 8 };
 const FAST = { offline: false, latency: 0, downloadThroughput: -1, uploadThroughput: -1 };

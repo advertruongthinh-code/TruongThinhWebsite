@@ -13,7 +13,7 @@ const failures = [];
 
 // hero-slides.json decides which slide pans, so each check rewrites every slide to the move it tests instead of trusting the data.
 const rewriteMoves = (html, attributes) => html.replace(/data-hero-move="(?:zoom-out|pan)"(?: data-hero-pan-dir="\w+")?/g, attributes);
-const routeMoves = (page, attributes) => page.route(`${BASE_URL}/vi/`, async (route) => {
+const routeMoves = (page, attributes) => page.route(`${BASE_URL}/`, async (route) => {
   const response = await route.fetch();
   await route.fulfill({ response, body: rewriteMoves(await response.text(), attributes) });
 });
@@ -31,7 +31,7 @@ try {
     try {
       await pinOrder(page);
       await routeMoves(page, 'data-hero-move="zoom-out"');
-      await page.goto(`${BASE_URL}/vi/`, { waitUntil: "load" });
+      await page.goto(`${BASE_URL}/`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector(".hero-slide.is-active img")?.complete);
 
       // Sample the active slide image every 200ms; a slide change inside the window starts a new run, so a fresh zoom is not read as growth.
@@ -47,7 +47,7 @@ try {
         return out;
       }, { interval: SAMPLE_MS, total: DURATION_MS });
 
-      const label = `/vi/ ${name}`;
+      const label = `/ ${name}`;
       if (samples.length < 20) failures.push(`${label}: only ${samples.length} samples`);
       const first = samples[0];
       const [low, high] = SCALE_RANGE[name];
@@ -74,7 +74,7 @@ try {
     try {
       await pinOrder(page);
       await routeMoves(page, `data-hero-move="pan" data-hero-pan-dir="${dir}"`);
-      await page.goto(`${BASE_URL}/vi/`, { waitUntil: "load" });
+      await page.goto(`${BASE_URL}/`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector(".hero-slide.is-active img")?.complete);
 
       const samples = await page.evaluate(async ({ interval, total }) => {
@@ -95,7 +95,7 @@ try {
         return out;
       }, { interval: SAMPLE_MS, total: PAN_MS });
 
-      const label = `/vi/ a04s pan ${dir}`;
+      const label = `/ a04s pan ${dir}`;
       const horizontal = dir === "left" || dir === "right";
       const axis = horizontal ? "x" : "y";
       const other = horizontal ? "y" : "x";

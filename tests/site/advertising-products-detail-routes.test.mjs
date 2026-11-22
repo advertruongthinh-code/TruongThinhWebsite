@@ -35,7 +35,7 @@ for (const slug of slugs) {
   const html = await readFile(output(path), "utf8");
   // The compatibility page redirects to the new cluster page (taxonomy R4).
   const cluster = ADVERTISING_CATEGORIES.find(({ legacySlug }) => legacySlug === slug);
-  const targets = { vi: "/vi/advertising-products/" + cluster.slugVi + "/", en: "/en/advertising-products/" + cluster.slugEn + "/" };
+  const targets = { vi: "/advertising-products/" + cluster.slugVi + "/", en: "/en/advertising-products/" + cluster.slugEn + "/" };
   assert.match(html, new RegExp('<link rel="canonical" href="' + targets.vi + '" data-en-href="' + targets.en + '">'));
   assert.match(html, new RegExp('<noscript>\\s*<meta http-equiv="refresh" content="0; url=' + targets.vi + '" data-en-content="0; url=' + targets.en + '">\\s*<\/noscript>'));
   assert.match(html, new RegExp('<a href="' + targets.vi + '" data-en-href="' + targets.en + '"'));

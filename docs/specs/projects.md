@@ -97,7 +97,7 @@ carousel, ô thông số (`facts-grid` 4 ô: Khu vực, Diện tích, Hạng m�
 hay doanh nghiệp chỉ hiện khi owner xác nhận khách đồng ý. Dữ liệu cấu trúc `Article` và `BreadcrumbList` (Trường Thịnh, Công trình, tên công trình; SEO audit 2026-11-15). Trang lọc có `CollectionPage` + `ItemList` các công trình và ảnh share là ảnh bìa công trình đầu.
 Mỗi công trình là một mục trong `src/site/content/projects.json` (`id`, `sector`, `type`, `slugVi`, `slugEn`, tên, `seoTitle`, mô tả, ảnh bìa,
 chuỗi khối); `seoTitle` (vi và en, tùy chọn) là title tìm kiếm: từ khóa loại đứng đầu cộng nét riêng, ví dụ "Thiết kế nội thất nhà phố Indochine hiện đại"; `h1` giữ tên hiển thị, thiếu `seoTitle` thì title lấy tên (owner duyệt bảng từ khóa 2026-11-14); `scripts/site/block-pages.mjs` dựng trang từ khung trang cùng mảng (header, menu, footer), namespace `project`; navbar và menu đánh dấu (`aria-current`) mục Công trình, không phải mảng của khung (owner 2026-11-11); như detail sản phẩm quảng cáo, gạch chân ẩn trừ khi hover, focus (body `is-project-detail` dùng chung luật `is-detail` trong `detail.css`, owner 2026-11-13),
-route `/vi/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Chữ kể chuyện như giới thiệu công trình, không đọc như AI; công
+route `/projects/<slugVi>/` và `/en/projects/<slugEn>/` cùng một file nguồn. Chữ kể chuyện như giới thiệu công trình, không đọc như AI; công
 trình mẫu được ghi khu vực và diện tích ước lượng, không ghi tên khách, không ghi nhãn "công trình mẫu" (owner 2026-11-14, thay
 luật 2026-11-07); thay bằng công trình thật trước khi lên domain.
 Cỡ chữ và khối đo theo trang con `/en/projects/` của Espacio ở 1440 và 390 (2026-11-11, owner "phải giống"): tiêu đề mục 64px
@@ -163,7 +163,7 @@ Then bị chặn và thấy ảnh nào còn thiếu điểm chấm
 ### R5. Liên kết qua lại
 
 Trang công trình không có khối News (owner 2026-11-11, News chỉ ở trang chủ, [news R4](news.md#r4-news-trên-các-trang-khác)); bài
-News nhắc tới công trình thì link tới trang công trình. Đường dẫn `/vi/projects/<slug>/`, `/en/projects/<slug>/`; đổi slug sau
+News nhắc tới công trình thì link tới trang công trình. Đường dẫn `/projects/<slug>/`, `/en/projects/<slug>/`; đổi slug sau
 khi đăng có redirect 301.
 
 ```gherkin

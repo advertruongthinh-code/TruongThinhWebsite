@@ -62,7 +62,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   for (const locale of ["vi", "en"]) {
     const portalPage = await browser.newPage({ viewport: { width: 1569, height: 912 } });
-    await portalPage.goto(`${baseUrl}/${locale}/`, { waitUntil: "networkidle" });
+    await portalPage.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/`, { waitUntil: "networkidle" });
     const portal = portalPage.locator(".service-portal").first();
     await portal.scrollIntoViewIfNeeded();
     const overlay = () => portal.locator(".portal-shade").evaluate((shade) => getComputedStyle(shade).backgroundColor);
@@ -80,7 +80,7 @@ try {
   page.on("console", (message) => {
     if (message.type() === "error") pageErrors.push(message.text());
   });
-  await page.goto(`${baseUrl}/vi/advertising-products/?photo=${heroId}&tag=${activeTag}`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/advertising-products/?photo=${heroId}&tag=${activeTag}`, { waitUntil: "networkidle" });
   await page.locator(`[data-masonry-suggestion-tag="${activeTag}"]`).scrollIntoViewIfNeeded();
   await page.waitForFunction(() => document.querySelectorAll("[data-masonry-suggestion-tag]").length === 4);
   const initial = await page.evaluate(snapshotSuggestions);
@@ -308,7 +308,7 @@ try {
   await reduced.close();
 
   const direct = await browser.newPage({ viewport: { width: 820, height: 1180 } });
-  await direct.goto(`${baseUrl}/vi/advertising-products/?photo=kiosk-posm-01&tag=use-sampling`, { waitUntil: "networkidle" });
+  await direct.goto(`${baseUrl}/advertising-products/?photo=kiosk-posm-01&tag=use-sampling`, { waitUntil: "networkidle" });
   await direct.waitForSelector('[data-masonry-suggestion-tag="use-sampling"][aria-pressed="true"]');
   assert.equal(await direct.locator("[data-masonry-suggestion-tag]").count(), 4, "direct URL keeps four fixed D17 slots");
   await direct.close();

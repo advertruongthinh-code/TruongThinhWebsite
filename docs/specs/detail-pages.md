@@ -22,7 +22,7 @@ updated: 2026-11-14
 
 ## Mục đích
 
-Ba trang con `/vi/residential/`, `/vi/commercial/`, `/vi/about/` (EN tương đương, mỗi trang một file
+Ba trang con `/residential/`, `/commercial/`, `/about/` (EN tương đương, mỗi trang một file
 `src/site/<trang>/index.html`) dùng chung `detail.css`, `detail.js`. Residential, Commercial giới thiệu một lĩnh vực
 nội thất; About kể cách làm của Trường Thịnh; cả ba kết bằng lời mời Zalo trong `.detail-cta`. Header, menu, footer, veil, scroll thuộc
 [shell](site-shell.md); build, route locale thuộc [phát hành tĩnh](static-release.md); file ảnh, vệt sáng chờ ảnh thuộc
@@ -39,7 +39,7 @@ preload hai font, CSS Locomotive chỉ từ 981px, `style.css`, `detail.css`, sc
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)); không canonical, alternate, Open Graph,
 JSON-LD. `body.detail-page` (About thêm `about-page`) có `data-detail-hero-profile` `words-09` (Residential, About) hoặc
 `zoom-09` (Commercial); namespace Barba là tên trang. Script `defer`: GSAP, SplitText, Locomotive, Barba, `detail.js`,
-`motion.js`; Swiper chỉ tải động cho gallery (R7). Build ghi `/vi/`, `/en/` từ cùng file ([phát hành R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)).
+`motion.js`; Swiper chỉ tải động cho gallery (R7). Build ghi `/`, `/en/` từ cùng file ([phát hành R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)).
 Vào hoặc rời About đi route mềm như các trang khác ([shell R6](site-shell.md#r6-route-mềm-và-click-trong-shell)).
 
 ```gherkin
@@ -72,7 +72,7 @@ footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lờ
 
 ```gherkin
 Given output đã build
-When mở /vi/residential/ và /vi/commercial/
+When mở /residential/ và /commercial/
 Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có bốn mươi mốt và mười bảy figure
 ```
 
@@ -93,7 +93,7 @@ Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, g
 
 ```gherkin
 Given output đã build
-When mở /vi/about/
+When mở /about/
 Then main có một h1 "Vững nghề Vững niềm tin", ba chương I, II, III, năm bước quy trình và ba cam kết
 ```
 
@@ -130,7 +130,7 @@ Scroll cue như [trang chủ R4](page-home.md#r4-hero-vào-trang-và-scroll-cue)
 giữa intro) thì tiêu đề hero mọi trang, kể cả Advertising, về chỗ mới ngay, không trượt.
 
 ```gherkin
-Given /vi/residential/ ở 1440px, không reduced motion
+Given /residential/ ở 1440px, không reduced motion
 When tải trực tiếp trang
 Then 8 slide theo thứ tự ngẫu nhiên, slide đầu zoom từ 1.06 và là ảnh đã preload, tiêu đề hiện theo từ, kicker sau tiêu đề
 ```
@@ -149,7 +149,7 @@ trang: `unmount` hủy listener (AbortSignal), observer, frame, split, GSAP cont
 [danh sách tự host](static-release.md#r4-font-và-thư-viện-tự-host).
 
 ```gherkin
-Given /vi/residential/ đang xem #cong-trinh
+Given /residential/ đang xem #cong-trinh
 When mở menu và chọn EN
 Then tiêu đề gallery trượt lên lại bằng chữ EN, section khác không reveal lại
 ```
@@ -173,7 +173,7 @@ snap `start` proximity, ẩn thanh cuộn ([shell R9](site-shell.md#r9-scrollbar
 ngoại thất; nhà phố ba tầng: bếp), theo thứ tự đi qua nhà; caption "<CÔNG TRÌNH> · <KHÔNG GIAN>"; thêm chuỗi là thêm `figure` (R4). Mỗi trang không dùng một ảnh hai lần, kể cả ảnh khác file nhưng cùng khung hình. Commercial: sáu ảnh lẻ, tiệm bánh ngọt, shop hoa tươi, cửa hàng kính mắt, tiệm may áo dài, rồi chuỗi "Văn phòng chia sẻ" mở bằng toàn cảnh, qua bàn làm việc chung, phòng một người, phòng nhóm, phòng họp, pantry, phòng nghỉ.
 
 ```gherkin
-Given /vi/commercial/ ở 1440px với chuột
+Given /commercial/ ở 1440px với chuột
 When đo gallery rồi kéo track sang trái 220px
 Then mọi ảnh cao 720px đúng tỷ lệ, caption cách ảnh 10px, không có nút prev/next
 And thả tay hút về ảnh kế, chấm thứ hai active, không dragstart; bấm chấm thứ ba tới ảnh ba; hover không zoom
@@ -189,7 +189,7 @@ Dải `.editorial-strip.detail-process-editorial` là `region` focus được, g
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.
 
 ```gherkin
-Given /vi/residential/ ở 390px
+Given /residential/ ở 390px
 When cuộn qua #quy-trinh và #loai-hinh
 Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít nhất 400px, document không tràn ngang
 ```
@@ -202,7 +202,7 @@ tới 980px thành rail vuốt ngang. Chapter lead và `.about-process-note` hai
 cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc đầu là năm 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chưa có bảo hành tới khi owner xác nhận fact.
 
 ```gherkin
-Given /vi/about/ ở 390px
+Given /about/ ở 390px
 When cuộn qua dòng thời gian, quy trình và cam kết
 Then mỗi khối một cột, chữ không bị cắt, document không tràn ngang
 ```
@@ -227,7 +227,7 @@ thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp t
 cổng này. Khung ảnh nội dung (gồm gallery) có vệt sáng tới khi ảnh giải mã xong; build bọc `<picture>` ([chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh)).
 
 ```gherkin
-Given ảnh nền CTA /vi/commercial/ bị trễ
+Given ảnh nền CTA /commercial/ bị trễ
 When CTA vào viewport rồi ảnh tải xong
 Then chữ trắng hiện ngay trên media-loading-surface, lớp tối ẩn, ảnh opacity 0 tới khi khung có is-media-settled
 ```
@@ -242,7 +242,7 @@ GSAP có mà SplitText lỗi tải: chữ giữ nguyên, hiện ngay; reveal ả
 
 ```gherkin
 Given trình duyệt bật reduced motion
-When tải /vi/about/ ở 1024px và cuộn hết trang
+When tải /about/ ở 1024px và cuộn hết trang
 Then không phần tử reveal nào bị ẩn, ảnh hero không scale, marquee đứng yên
 ```
 

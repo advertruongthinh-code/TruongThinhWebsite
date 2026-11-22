@@ -40,3 +40,14 @@ test("demo and preview serve the localized 404 page for unknown paths", async ()
   assert.match(await output("404.html"), /<html[^>]*lang="vi"[\s\S]*<h1 id="page-title">404<\/h1>[\s\S]*không còn ở đây/);
   assert.match(await output("en/404.html"), /<html[^>]*lang="en"[\s\S]*<h1 id="page-title">404<\/h1>[\s\S]*no longer here or has\smoved/);
 });
+
+test("Vietnamese lives at the root: no built page links /vi/, and old /vi/ URLs answer 301 (owner 2026-11-22)", async () => {
+  const redirects = (await readFile(new URL("../../.site-output/_redirects", import.meta.url), "utf8")).trim().split("\n");
+  assert.deepEqual(redirects.slice(-2), ["/vi / 301", "/vi/* /:splat 301"], "prefix fallback comes after every specific line");
+  assert.ok(redirects.slice(0, -2).every((line) => !/ \/vi\//.test(line)), "no redirect targets a /vi/ URL");
+  for (const [route, source] of ROUTES) {
+    assert.ok(!route.startsWith("/vi/"), route);
+    const html = await readFile(new URL(`../../.site-output${route}index.html`, import.meta.url), "utf8");
+    assert.ok(!/(?:href|content|url)=["']?(?:https:\/\/truongthinhads\.vn)?\/vi\//.test(html), `${route} (${source}) links /vi/`);
+  }
+});

@@ -14,7 +14,7 @@ function observeAdvertisingQueryTraffic(page) {
   const traffic = [];
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (!/^\/(?:vi|en)\/advertising-products\/$/.test(url.pathname)) return;
+    if (!/^\/(?:en\/)?advertising-products\/$/.test(url.pathname)) return;
     if (!url.searchParams.has("category")) return;
     if (!["document", "fetch", "xhr"].includes(request.resourceType())) return;
     traffic.push({ resourceType: request.resourceType(), url: url.href });
@@ -125,7 +125,7 @@ async function installHeroOnceProbe(page) {
     };
     const recordQueryCall = (input, transport) => {
       const url = new URL(String(input), location.href);
-      if (/^\/(?:vi|en)\/advertising-products\/$/.test(url.pathname) && url.searchParams.has("category")) {
+      if (/^\/(?:en\/)?advertising-products\/$/.test(url.pathname) && url.searchParams.has("category")) {
         probe.queryCalls.push({ transport, url: url.href });
       }
     };
@@ -191,7 +191,7 @@ async function runDelayedAdapterCase(browser) {
   });
 
   try {
-    await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "domcontentloaded" });
     // A held catalog keeps the direct-load veil always on, so scroll is locked and only
     // keyboard-style activation can reach the filter before the adapter is ready.
     // Hero text waits for the veil to open (first-load-parity R2), so at this point it has only been split into words.
@@ -231,7 +231,7 @@ async function runReadyLoopCase(browser) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const queryTraffic = observeAdvertisingQueryTraffic(page);
   try {
-    await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
@@ -258,9 +258,9 @@ async function runRouteEntryCase(browser) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const queryTraffic = observeAdvertisingQueryTraffic(page);
   try {
-    await page.goto(`${baseUrl}/vi/`, { waitUntil: "networkidle" });
-    await page.locator('.site-header a[href="/vi/advertising-products/"]').click();
-    await page.waitForURL(`${baseUrl}/vi/advertising-products/`);
+    await page.goto(`${baseUrl}/`, { waitUntil: "networkidle" });
+    await page.locator('.site-header a[href="/advertising-products/"]').click();
+    await page.waitForURL(`${baseUrl}/advertising-products/`);
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
@@ -282,18 +282,18 @@ async function runRouteEntryCase(browser) {
 async function runRouteReturnCase(browser, locale) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   try {
-    await page.goto(`${baseUrl}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/`, { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await installHeroOnceProbe(page);
-    await page.locator(`.site-header a[href="/${locale}/residential/"]`).click();
-    await page.waitForURL(`${baseUrl}/${locale}/residential/`);
+    await page.locator(`.site-header a[href="${locale === "en" ? "/en" : ""}/residential/"]`).click();
+    await page.waitForURL(`${baseUrl}${locale === "en" ? "/en" : ""}/residential/`);
     await page.waitForFunction(() => (
       document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "residential"
       && !document.body.classList.contains("is-transitioning")
     ));
-    await page.locator(`.site-header a[href="/${locale}/advertising-products/"]`).click();
-    await page.waitForURL(`${baseUrl}/${locale}/advertising-products/`);
+    await page.locator(`.site-header a[href="${locale === "en" ? "/en" : ""}/advertising-products/"]`).click();
+    await page.waitForURL(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/`);
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await waitForHeroSettled(page);
     await page.locator('[data-masonry-filter="displays-booths"]').click();
@@ -310,13 +310,13 @@ async function runFailedAdapterFallbackCase(browser) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   await page.route("**/masonry/runtime.mjs", (route) => route.abort("failed"));
   try {
-    await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => (
       document.querySelector('[data-barba-namespace="advertising-products"]')?.dataset.masonryFallback === "failed"
     ));
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
-      return url.pathname === "/vi/advertising-products/standee-ke-trung-bay/"
+      return url.pathname === "/advertising-products/standee-ke-trung-bay/"
         && ["document", "fetch", "xhr"].includes(request.resourceType());
     });
     await page.locator('[data-masonry-filter="displays-booths"]').click({ noWaitAfter: true });
@@ -337,14 +337,14 @@ async function runPendingAdapterFailureCase(browser) {
     await route.abort("failed");
   });
   try {
-    await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "domcontentloaded" });
     await waitForHeroPrepared(page);
     await page.locator('[data-masonry-filter="displays-booths"]').dispatchEvent("click");
     const trafficBeforeReject = [...queryTraffic];
     const fallbackRequest = page.waitForRequest((request) => {
       const url = new URL(request.url());
       return request.resourceType() === "document"
-        && url.pathname === "/vi/advertising-products/standee-ke-trung-bay/";
+        && url.pathname === "/advertising-products/standee-ke-trung-bay/";
     });
     rejectCatalog();
     const request = await fallbackRequest;
@@ -384,11 +384,11 @@ try {
   assert.equal(delayed.probe.activeFilter, "printing-decals",
     "latest queued pre-adapter filter intent was not activated after catalog ready");
   // The rail points to a cluster page (taxonomy R4), so the fallback anchor opens that page directly.
-  assert.equal(new URL(fallback.url).pathname, "/vi/advertising-products/standee-ke-trung-bay/",
+  assert.equal(new URL(fallback.url).pathname, "/advertising-products/standee-ke-trung-bay/",
     "failed adapter kept the synchronous filter queue locked instead of restoring anchor fallback");
   assert.deepEqual(pendingFailure.trafficBeforeReject, [],
     "pending filter escaped before the delayed catalog import rejected");
-  assert.equal(new URL(pendingFailure.request.url).pathname, "/vi/advertising-products/standee-ke-trung-bay/",
+  assert.equal(new URL(pendingFailure.request.url).pathname, "/advertising-products/standee-ke-trung-bay/",
     "rejected catalog import swallowed the pending filter destination");
 
   assert.deepEqual(ready.queryTraffic, [], "ready filter loop performed document/XHR query navigation");

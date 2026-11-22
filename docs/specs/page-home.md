@@ -29,7 +29,7 @@ updated: 2026-11-12
 
 ## Mục đích
 
-Trang chủ `/vi/`, `/en/` (một file `src/site/index.html`) giới thiệu ba lĩnh vực, bằng chứng tay
+Trang chủ `/`, `/en/` (một file `src/site/index.html`) giới thiệu ba lĩnh vực, bằng chứng tay
 nghề, công trình và khách hàng, rồi mời tư vấn qua Zalo. Spec giữ thứ tự section, nội dung, hero,
 reveal và responsive riêng của trang chủ. Header, menu, footer, veil, scroll thuộc
 [shell](site-shell.md); build và route locale thuộc [phát hành tĩnh](static-release.md); file ảnh và
@@ -47,8 +47,8 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 | --- | --- | --- | --- | --- |
 | 1 | `.hero#top` | Mười ảnh slideshow (tính từ HTML), `h1` "Làm chắc / Làm khác" ("Built solid / Made different", EN không dấu chấm, giống VI; bố cục theo [chữ hero](hero-typography.md)), nút dừng chuyển động, scroll cue | Cue cuộn tới section 2 | inverse |
 | News | `.home-news` | 3 bài News mới nhất theo trang chủ Espacio ([news R4](news.md#r4-news-trên-các-trang-khác)), build chèn vào `<!-- home-news -->` | Trang từng bài | ink |
-| 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/vi/residential/`, `/vi/commercial/`, `/vi/advertising-products/` | ink |
-| 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm" xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/vi/about/` | ink |
+| 2 | `#dich-vu` | Ba `a.service-portal`: Không gian Nhà ở, Không gian Kinh doanh, Sản phẩm Quảng cáo, mỗi portal một phụ đề | `/residential/`, `/commercial/`, `/advertising-products/` | ink |
+| 3 | `#tay-nghe` | Heritage: bốn hàng "Kinh nghiệm và / sáng tạo là / cam kết trong / Từng sản phẩm" xen bốn ảnh nhỏ | "Xem cách chúng tôi làm" tới `/about/` | ink |
 | 4 | `#nang-luc` | Bốn cam kết (owner 2026-11-16), bốn `article.service-portal` không link, chữ góc dưới trái: tiêu đề Tư vấn, Sản xuất, Chất lượng, Hậu mãi (EN Consultation, Production, Quality, Aftercare), phụ đề hai dòng, nội dung; không số thứ tự; ảnh và chữ phục vụ đều nhà ở, kinh doanh, sản phẩm quảng cáo (owner 2026-11-17) | Không | ink |
 | 5 | `.blk-projects`, rồi `.detail-heading#ghe-tham` + `.detail-places` | Dải công trình dùng chung (R8), mọi khung ảnh cùng cỡ, card chẵn hạ thấp so le như Espacio (180px, 120px từ 1200px trở xuống), bốn card trọn trên PC (owner 2026-11-22): card link sang trang công trình, dòng "Xem tất cả công trình". Sau đó `h2` một dòng, một kiểu chữ, không eyebrow như "Come and visit our kitchen showrooms" của Espacio: "Gặp chúng tôi tại văn phòng và xưởng" (owner 2026-11-22), ba thẻ như khối showroom trang kitchens của Espacio, không kicker trên thẻ (owner 2026-11-22) (ảnh cao 300px, tên in hoa gạch chân khi hover, ảnh phóng khi hover): Trụ sở (địa chỉ, điện thoại), Xưởng (địa chỉ đang cập nhật), Tư vấn (hotline); 3 / 2 (≤960) / 1 (≤578) cột; chuyển từ trang Kinh doanh (owner 2026-11-22); thẻ Trụ sở mở bản đồ, thẻ Tư vấn mở Zalo | Có | ink |
 | 6 | `.capability-marquee--clients` | Marquee 12 logo khách hàng (R9) | Không | ink |
@@ -57,17 +57,17 @@ vệt sáng chờ ảnh thuộc [tải ảnh](media-delivery.md).
 
 ```gherkin
 Given output đã build
-When mở /vi/ và đọc main
+When mở / và đọc main
 Then có một h1 và tám section theo thứ tự hero, .home-news, #dich-vu, #tay-nghe, #nang-luc, .blk-projects, .blk-cta, marquee, closer
-And portal dịch vụ đầu trỏ /vi/residential/, phụ đề portal Quy trình là "Năm bước: Khảo sát đến Hậu mãi"
+And portal dịch vụ đầu trỏ /residential/, phụ đề portal Quy trình là "Năm bước: Khảo sát đến Hậu mãi"
 ```
 
 ### R2. Head và bản EN
 
 Head có `title` "Trường Thịnh — Hơn 20 năm vững tay nghề" (EN "Trường Thịnh — 20+ Years of Craft"),
 `meta description` VI kèm `data-en-content`, `theme-color` trắng, favicon sáng, tối, preload hai font, CSS
-Locomotive chỉ từ 981px; không có canonical, alternate, Open Graph, JSON-LD. Build ghi `/vi/`, `/en/` từ
-cùng file ([phát hành R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)), link nội bộ `/vi/...`
+Locomotive chỉ từ 981px; không có canonical, alternate, Open Graph, JSON-LD. Build ghi `/`, `/en/` từ
+cùng file ([phát hành R5](static-release.md#r5-văn-bản-song-ngữ-và-route-locale)), link nội bộ `/...`
 hoặc `/` thành `/<locale>/...`. Mọi chữ, `alt`, `aria-label` có cặp EN ở node lá; nhãn nút dừng
 có `data-en-aria-label`, runtime đổi theo trạng thái (R3). Đổi ngôn ngữ tại chỗ theo [shell R5](site-shell.md#r5-đổi-ngôn-ngữ-và-ghi-nhớ).
 
@@ -89,7 +89,7 @@ Slideshow và scroll cue dừng khi hero ra khỏi viewport, tab ẩn hoặc b�
 trục giữa nút vuông, cách 14px. Hai nút không chồng nhau.
 
 ```gherkin
-Given /vi/ ở 1440px, không reduced motion
+Given / ở 1440px, không reduced motion
 When chờ slideshow đi hết 10 slide
 Then 10 slide, gồm ảnh đầu, theo thứ tự ngẫu nhiên mỗi lần tải; ảnh đầu là ảnh đã preload, chỉ tải một lần
 And mỗi lần chuyển là crossfade, scale ảnh vào không nhảy
@@ -107,7 +107,7 @@ mềm bỏ nhánh này, slide đầu và shade hiện ngay lúc mount. Scroll cu
 thì cue mờ đi, rời thứ tự Tab.
 
 ```gherkin
-Given /vi/ ở 768px, không reduced motion
+Given / ở 768px, không reduced motion
 When tải trực tiếp trang
 Then veil phủ rồi mở, slide đầu hiện đầy đủ ngay khi trang dựng xong, tiêu đề hiện theo từ
 When cuộn xuống 300px
@@ -139,7 +139,7 @@ card không đổi, ảnh bị clip; touch không giả hover. `portal-shade` (`
 tối ở normal, hover, focus. Consumer không thêm transition, scale riêng. Reduced motion: không zoom.
 
 ```gherkin
-Given /vi/ ở 1440px với chuột
+Given / ở 1440px với chuột
 When hover lần lượt bảy portal
 Then ảnh đạt scale 1.15 sau 600ms ease-out, kích thước card không đổi, màu portal-shade không đổi
 When bật reduced motion
@@ -163,7 +163,7 @@ chỉ giãn đúng cặp dòng đó (margin hàng dưới, hoặc `row-gap` vớ
 trang, đổi bề rộng, đổi ngôn ngữ. Link "Xem cách chúng tôi làm" có mũi tên trượt khi hover.
 
 ```gherkin
-Given /vi/ ở 390px
+Given / ở 390px
 When cuộn tới #tay-nghe
 Then bốn hàng hiện đủ chữ và ảnh, chữ không bị cắt, document không tràn ngang
 And chữ cỡ khoảng 25.4px, mỗi hàng một dòng, khoảng từ section trước tới chữ và từ link tới section sau đều 64px
@@ -173,10 +173,10 @@ And ở 1185px sau animation, móc chữ Ẩ cách đáy ảnh sợi dây ít nh
 
 ### R8. Dải công trình
 
-`#du-an` cũ (rail ảnh không bấm được) được thay bằng dải công trình dùng chung với Residential, Commercial (owner 2026-11-16): block `project-slider` và `cta-arrow` của `scripts/site/blocks.mjs`, cùng markup, CSS, motion như dải cuối trang Nhà ở ([projects R1](projects.md), [Blocks](../../design-system/components/Blocks/README.md)). Mỗi card là link sang trang công trình, ảnh là cover của công trình, tên chữ hoa dưới ảnh; dòng mũi tên "Xem tất cả công trình" (EN "See all projects") dẫn tới `/vi/projects/`. Nguồn duy nhất là `src/site/content/home-projects.json`: mảng 3 tới 8 id công trình có trong `projects.json`, không trùng, theo thứ tự hiển thị; `validateHomeProjects` (`scripts/site/home-projects.mjs`) kiểm trong build và content-contract, dữ liệu sai thì build dừng. Build thay `<!-- project-strip -->` trong `index.html`.
+`#du-an` cũ (rail ảnh không bấm được) được thay bằng dải công trình dùng chung với Residential, Commercial (owner 2026-11-16): block `project-slider` và `cta-arrow` của `scripts/site/blocks.mjs`, cùng markup, CSS, motion như dải cuối trang Nhà ở ([projects R1](projects.md), [Blocks](../../design-system/components/Blocks/README.md)). Mỗi card là link sang trang công trình, ảnh là cover của công trình, tên chữ hoa dưới ảnh; dòng mũi tên "Xem tất cả công trình" (EN "See all projects") dẫn tới `/projects/`. Nguồn duy nhất là `src/site/content/home-projects.json`: mảng 3 tới 8 id công trình có trong `projects.json`, không trùng, theo thứ tự hiển thị; `validateHomeProjects` (`scripts/site/home-projects.mjs`) kiểm trong build và content-contract, dữ liệu sai thì build dừng. Build thay `<!-- project-strip -->` trong `index.html`.
 
 ```gherkin
-Given /vi/ ở 390px
+Given / ở 390px
 When vuốt ngang dải công trình
 Then track dừng ở từng card, mọi card tới được, bấm card mở trang công trình đó
 Given home-projects.json có id không có trong projects.json
@@ -195,7 +195,7 @@ Track chạy CSS `client-logo-marquee` lặp, không lộ mép nối, chỉ ch�
 tab hiện và chuyển động không bị dừng (R3). Reduced motion: đứng yên ở nhóm đầu.
 
 ```gherkin
-Given /vi/ ở 1440px
+Given / ở 1440px
 When cuộn tới marquee
 Then track có is-running, mỗi nhóm 12 logo, khe giữa hai nhóm lệch tối đa 0,5px ở mọi pha
 ```
@@ -222,7 +222,7 @@ Then khung portal có is-media-settled, ảnh và shade hiện
 trang, hero và mọi entrance chạy lại như lần tải đầu (owner 2026-11-08).
 
 ```gherkin
-Given /vi/ đang xem #nang-luc
+Given / đang xem #nang-luc
 When mở menu và chọn EN
 Then /en/ tải lại ở đầu trang, hero chạy intro như F5
 ```
@@ -237,7 +237,7 @@ reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không Java
 
 ```gherkin
 Given trình duyệt bật reduced motion
-When tải /vi/ ở 1024px
+When tải / ở 1024px
 Then không phần tử reveal nào bị ẩn, slide đầu hiện ngay, nút dừng ẩn, marquee không chạy
 ```
 

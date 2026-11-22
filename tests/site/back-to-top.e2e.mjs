@@ -19,7 +19,7 @@ for (const [name, viewport, touch] of [["phone", VIEWPORTS.phone, true]]) {
     const browser = await launchBrowser();
     const { context, page } = await openPage(browser, viewport, { hasTouch: touch, isMobile: touch });
     try {
-      await page.goto(`${BASE_URL}/vi/advertising-products/`, { waitUntil: "load" });
+      await page.goto(`${BASE_URL}/advertising-products/`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector("[data-masonry-item]"));
       assert.equal((await state(page)).shown, false, "hidden on the first screen");
       // PC scrolls through Locomotive, which can still reset the page while it starts: scroll again until the page stays down.
@@ -53,7 +53,7 @@ test("PC never shows it (owner 2026-11-22)", async () => {
   const browser = await launchBrowser();
   const { context, page } = await openPage(browser, VIEWPORTS.desktop, { hasTouch: false, isMobile: false });
   try {
-    await page.goto(`${BASE_URL}/vi/advertising-products/`, { waitUntil: "load" });
+    await page.goto(`${BASE_URL}/advertising-products/`, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelector("[data-masonry-item]"));
     await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll?.(innerHeight * 3) || scrollTo({ top: innerHeight * 3 }));
     await page.waitForTimeout(1500);
@@ -68,7 +68,7 @@ test("PC never shows it (owner 2026-11-22)", async () => {
 test("pages without masonry never show it", async () => {
   const browser = await launchBrowser();
   try {
-    for (const [viewport, touch, path] of [[VIEWPORTS.desktop, false, "/vi/about/"], [VIEWPORTS.phone, true, "/vi/about/"]]) {
+    for (const [viewport, touch, path] of [[VIEWPORTS.desktop, false, "/about/"], [VIEWPORTS.phone, true, "/about/"]]) {
       const { context, page } = await openPage(browser, viewport, { hasTouch: touch, isMobile: touch });
       await page.goto(`${BASE_URL}${path}`, { waitUntil: "load" });
       await scrollPast(page);
@@ -88,7 +88,7 @@ for (const [name, viewport] of [["portrait", VIEWPORTS.phone], ["landscape", { w
     const browser = await launchBrowser();
     const { context, page } = await openPage(browser, viewport, { hasTouch: true, isMobile: true });
     try {
-      await page.goto(`${BASE_URL}/vi/advertising-products/p/kiosk-posm-01/`, { waitUntil: "load" });
+      await page.goto(`${BASE_URL}/advertising-products/p/kiosk-posm-01/`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector("[data-masonry-item]"));
       await page.waitForFunction(() => {
         scrollTo({ top: innerHeight * 3, behavior: "instant" });

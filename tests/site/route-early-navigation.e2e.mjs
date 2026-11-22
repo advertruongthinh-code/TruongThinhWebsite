@@ -10,8 +10,8 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 // Site shell R6: a soft route started while the direct-load reveal still waits (fonts, veil hold) must finish.
 // The stale reveal used to kill the new cover tween, so Barba's leave() never resolved and isRunning stayed true.
 const cases = [
-  { from: "/vi/advertising-products/", to: "/vi/projects/", viewport: { width: 1440, height: 900 } },
-  { from: "/vi/", to: "/vi/residential/", viewport: { width: 390, height: 844 } },
+  { from: "/advertising-products/", to: "/projects/", viewport: { width: 1440, height: 900 } },
+  { from: "/", to: "/residential/", viewport: { width: 390, height: 844 } },
 ];
 
 try {

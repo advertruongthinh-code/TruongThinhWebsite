@@ -59,7 +59,7 @@ try {
     const errors = [];
     page.on("pageerror", (error) => errors.push(String(error)));
     try {
-      await page.goto(`${origin}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
+      await page.goto(`${origin}${locale === "en" ? "/en" : ""}/advertising-products/`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
       // A lazy card above can make the page grow, so scroll to the end until it settles.
       for (let pass = 0, last = -1; pass < 8; pass += 1) {
@@ -145,7 +145,7 @@ try {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
     const page = await context.newPage();
     try {
-      await page.goto(`${origin}/vi/advertising-products/`, { waitUntil: "networkidle" });
+      await page.goto(`${origin}/advertising-products/`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
       for (let pass = 0, last = -1; pass < 8; pass += 1) {
         const end = await page.evaluate(() => document.documentElement.scrollHeight);
@@ -174,7 +174,7 @@ try {
   for (const [width, height, photo, overflow] of [[1440, 900, "kiosk-posm-09", true], [390, 844, "kiosk-posm-28", false]]) {
     const page = await browser.newPage({ viewport: { width, height } });
     try {
-      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=${photo}`, { waitUntil: "networkidle" });
+      await page.goto(`${origin}/advertising-products/?category=kiosk-posm&photo=${photo}`, { waitUntil: "networkidle" });
       await page.waitForTimeout(1500);
       const state = await page.evaluate(() => {
         const glass = document.querySelector(".detail-view__hero-frame > .glass-surface");
@@ -214,7 +214,7 @@ try {
           && !photo.parentElement.querySelector("[data-masonry-loading-skeleton]");
       }, null, { timeout: 20000 });
       slow = true;
-      await page.goto(`${origin}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
+      await page.goto(`${origin}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-11`);
       await settled();
       await page.waitForFunction(() => document.querySelector("[data-masonry-related-card] a"));
       await page.evaluate(() => [...document.querySelectorAll("[data-masonry-related-card]")]

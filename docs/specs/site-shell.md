@@ -111,7 +111,7 @@ thiếu thì theo `tt-lang`. Fallback (R7) đổi ngôn ngữ bằng `location.a
 `sessionStorage`, khôi phục khi tải.
 
 ```gherkin
-Given /vi/residential/ đã cuộn 1200px
+Given /residential/ đã cuộn 1200px
 When mở menu và chọn EN
 Then URL thành /en/residential/, history không thêm entry, trang tải lại ở đầu với intro như F5, reload vẫn là EN
 ```
@@ -129,9 +129,9 @@ navbar hoặc tiêu đề menu của Residential, Commercial, Advertising (khôn
 history ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
 
 ```gherkin
-Given /vi/ ở 1440px
+Given / ở 1440px
 When click Residential trên navbar
-Then veil phủ rồi gỡ, URL thành /vi/residential/ không tải lại document, header vẫn là phần tử cũ
+Then veil phủ rồi gỡ, URL thành /residential/ không tải lại document, header vẫn là phần tử cũ
 ```
 
 ### R7. Veil khi tải trực tiếp, fallback và bfcache
@@ -149,7 +149,7 @@ Mạng chậm giữ veil tới khi mount xong, không mốc thời gian từ `<h
 
 ```gherkin
 Given motion.js không tải được
-When mở /vi/about/ trực tiếp
+When mở /about/ trực tiếp
 Then tại DOMContentLoaded có motion-fallback, không còn route-enter, nội dung hiện, menu dùng được
 ```
 
@@ -163,7 +163,7 @@ vị trí đã nhớ theo index history; điều hướng mới về 0. Back/For
 ngữ. `scroll-padding-top` của `html` bằng hàng header cộng gutter để focus, anchor không bị che.
 
 ```gherkin
-Given /vi/ cuộn 1500px rồi sang /vi/residential/ bằng route mềm
+Given / cuộn 1500px rồi sang /residential/ bằng route mềm
 When nhấn Back
 Then trang chủ hiện lại ở 1500px; đi link mới thì trang đích bắt đầu ở 0
 ```
@@ -178,7 +178,7 @@ scrollbar native mặc định, app không style scrollbar document. Rail ngang 
 `.detail-gallery__track`, `.project-filters`) ẩn thanh ngang, vẫn kéo, vuốt được.
 
 ```gherkin
-Given /vi/about/ ở 1440×900
+Given /about/ ở 1440×900
 When kéo thumb xuống mép dưới cửa sổ
 Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không có .c-scrollbar
 ```
@@ -232,7 +232,7 @@ Media query reduced motion và phone định nghĩa một lần ở `window.Truo
 
 ```gherkin
 Given trình duyệt bật reduced motion
-When tải /vi/, mở menu, chọn Residential
+When tải /, mở menu, chọn Residential
 Then không có veil hay timeline menu, scroll native, trang Residential hiện đầy đủ
 ```
 

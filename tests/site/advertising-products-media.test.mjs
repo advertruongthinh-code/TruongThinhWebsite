@@ -444,14 +444,14 @@ test("filter matches every product and cluster on the card by rank, and ?categor
   const artifact = buildAdvertisingArtifact();
   const schema = { cards: artifact.cards, categories: artifact.categories };
   const browseAt = (locale, category) => parseBrowseLocation(
-    `https://example.test/${locale}/advertising-products/?category=${encodeURIComponent(category)}`, schema).category;
+    `https://example.test${locale === "en" ? "/en" : ""}/advertising-products/?category=${encodeURIComponent(category)}`, schema).category;
   for (const cluster of ADVERTISING_CLUSTERS) {
     for (const slug of [cluster.legacySlug, cluster.id, cluster.slugVi, cluster.slugEn]) {
       assert.equal(browseAt("vi", slug), cluster.id, slug);
       assert.equal(browseAt("en", slug), cluster.id, slug);
     }
     for (const [locale, slug] of [["vi", cluster.slugVi], ["en", cluster.slugEn]]) {
-      const url = serializeBrowseLocation(`https://example.test/${locale}/advertising-products/`, { category: cluster.id }, artifact.categories);
+      const url = serializeBrowseLocation(`https://example.test${locale === "en" ? "/en" : ""}/advertising-products/`, { category: cluster.id }, artifact.categories);
       assert.equal(url.searchParams.get("category"), slug);
     }
   }

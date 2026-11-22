@@ -108,8 +108,13 @@ từ chữ của chính nó; đếm lệch thì build dừng và nêu file. Rồ
 route trong `ROUTES` (năm trang và sáu trang tương thích, VI và EN) bằng
 `localeHtml(html, locale)`: đặt `lang`, `data-route-locale`; bản EN thay chữ
 `data-en` và `alt`, `aria-label`, `content`, `href` từ `data-en-*` (runtime đổi ngôn ngữ cũng vậy), giữ bản Việt ở
-`data-vi-*`; link nội bộ đổi sang `/<locale>/...`, trừ `[data-language-option]`.
+`data-vi-*`; link nội bộ đổi sang path của locale, trừ `[data-language-option]`.
 Preview (R8) dùng cùng hàm nên host tĩnh không cần rewrite.
+
+Đường dẫn (owner 2026-11-22): tiếng Việt ở gốc (`/`, `/about/`, `/advertising-products/...`), tiếng Anh dưới `/en/`;
+một hàm `localePrefix` (`scripts/site/lib.mjs`) dựng mọi URL. URL `/vi/...` cũ trả 301 về path không tiền tố: `_redirects`
+ghi trang đã dời đi thẳng tới đích cuối (một bước), sau đó `/vi` và `/vi/*` về gốc (`/vi/about/?topic=process` sang
+`/about/?topic=process`); preview (R8) trả cùng 301. Canonical, hreflang và sitemap không còn `/vi/`.
 
 ```gherkin
 Given output đã build
@@ -179,7 +184,7 @@ And request http://127.0.0.1:8787/ trả 404
 Given demo đã deploy bản có _headers
 When request /assets/vendor/gsap-3.15.0.min.js
 Then Cache-Control là public, max-age=31536000, immutable
-And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
+And / vẫn trả Cache-Control max-age=0, must-revalidate
 ```
 
 ### R10. Gate CI
@@ -200,7 +205,7 @@ And không bước nào gọi Wrangler hoặc deploy
 `wrangler.static.toml` có hai Worker cùng asset, script chỉ cho `/api/*`, `[assets] directory = ".site-output"`,
 `not_found_handling = "404-page"`, `main` và binding theo [spec tìm kiếm](advertising-search.md#giao-diện-và-dữ-liệu). Path không có file trả 404 kèm `404.html` gần nhất:
 `/en/*` dùng `en/404.html`, path khác dùng `404.html` bản VI; build dựng hai file từ `src/site/404.html` qua `localeHtml`.
-Hai bản (owner 2026-11-22): "demo" là bản thử `truong-thinh-staging` ở <https://staging.truongthinhads.vn/vi/> (cấu hình gốc); bản thật `truong-thinh-demo` (`[env.production]`, giữ tên cũ để apex và bộ đếm rate limit không đổi) ở <https://truongthinhads.vn/vi/>. Cả hai `workers_dev = false`, `preview_urls = false`; binding `ai`, `ratelimits` khai lại trong env (env không kế thừa), rate limit tách namespace (staging 7303/7304, thật 7301/7302).
+Hai bản (owner 2026-11-22): "demo" là bản thử `truong-thinh-staging` ở <https://staging.truongthinhads.vn/> (cấu hình gốc); bản thật `truong-thinh-demo` (`[env.production]`, giữ tên cũ để apex và bộ đếm rate limit không đổi) ở <https://truongthinhads.vn/>. Cả hai `workers_dev = false`, `preview_urls = false`; binding `ai`, `ratelimits` khai lại trong env (env không kế thừa), rate limit tách namespace (staging 7303/7304, thật 7301/7302).
 `pnpm deploy:demo` build, dựng chỉ mục tìm kiếm (`pnpm search:index`, [R1](advertising-search.md#r1-chỉ-mục-vector-lúc-deploy)) rồi `pnpm demo:wrangler deploy --config wrangler.static.toml` lên staging; `pnpm release:site` làm y vậy với `--env production`. `demo:wrangler` gọi `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`, input `target`)
 chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)); workflow `Release site` (`.github/workflows/release.yml`, chạy tay `workflow_dispatch`, chỉ từ `main`) gọi nó với `target: production` để chạy `pnpm release:site`. Hàng đợi `concurrency` tách theo target. Secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` không nằm trong repo hay chat; log Actions ghi commit và Worker version ID. Merge vào `main` là đồng ý deploy staging; bản thật chỉ phát hành khi owner nói "ok phát hành" (agent dispatch `Release site` hoặc owner bấm Run workflow). Agent không deploy tay, chỉ `--dry-run`; owner deploy tay staging được bằng `wrangler login` qua task VS Code `Demo: Deploy Cloudflare (main)` (chỉ chạy trên `main` sạch). Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml [--env production]` hoặc dashboard.
 Tên miền đăng ký ở Sapo, nameserver trỏ về Cloudflare (`brad`, `linda.ns.cloudflare.com`, owner 2026-11-22); zone `truongthinhads.vn` gói Free cùng tài khoản. `[[routes]]` `custom_domain = true` gắn apex vào bản thật, trùng host của `PUBLIC_ORIGIN` (`scripts/site/lib.mjs`) mà canonical, hreflang, sitemap, `og:url` dùng, và `staging.` vào bản thử. Cấu hình zone nằm ở dashboard, ngoài repo: Redirect Rule `www to truongthinhads.vn` trả 301 `*://www.truongthinhads.vn/*` về `https://truongthinhads.vn/${2}` giữ query (bản ghi `www` là A `192.0.2.0` proxied), Always Use HTTPS bật, domain không nhận mail (MX null, SPF `-all`, DMARC reject); Cloudflare Access khóa `staging.truongthinhads.vn` bằng đăng nhập email owner, Response Header Transform Rule gắn `X-Robots-Tag: noindex` cho host đó. Trang chính sách quyền riêng tư cho app Pinterest đã gỡ (owner 2026-11-14: không còn dùng Pinterest API).
@@ -218,9 +223,8 @@ And request www.truongthinhads.vn hoặc http:// trả 301 về https://truongth
 `wrangler.toml` (Worker `truong-thinh-website`, `main = "src/worker/index.js"`,
 binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
-`pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
-`/vi/` và redirect `projects-products` chỉ có ở Worker CMS dormant, không chuyển sang static assets (owner 2026-11-22: giữ
-trang gốc như hiện tại). Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
+`pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `projects-products` và các path `/vi/` cũ của
+Worker CMS dormant chưa đổi theo gốc tiếng Việt (owner 2026-11-22, R5); thread CMS sửa khi mở phase. Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
 theo [điều kiện mở CMS](cms.md#gate-còn-mở).
 
 ```gherkin
@@ -282,9 +286,6 @@ phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham k
 
 - LCP residential mobile đóng (owner 2026-11-15: motion giữ đúng contract, không cắt để đạt LCP): demo 2026-11-14 VI median
   3,01 s, p90 3,22 s; EN 5,14 s là ngoại lệ đã chấp nhận, do chữ title phone phóng sau lần vẽ đầu và hiện cuối reveal.
-- Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
-  trả 404 cho `/`, site trả 200 cho `/` và `/residential/` (đo 2026-11-22). Owner 2026-11-22: giữ như hiện tại, không
-  redirect về `/vi/`.
 
 ## Chú thích thuật ngữ
 

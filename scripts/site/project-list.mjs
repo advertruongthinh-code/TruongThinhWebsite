@@ -3,7 +3,7 @@
 // is embedded in the page so the runtime changes the filter in place.
 import { MASONRY_LAYOUT_VERSION, fnv1a32, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { PROJECT_FILTERS, PROJECT_TYPES, SECTORS, SECTOR_LABEL, pageHref } from "./block-pages.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, collectionLd, escapeHtml, pageNameHeading, phonePacksScript } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, collectionLd, escapeHtml, localePrefix, routeLocale, pageNameHeading, phonePacksScript } from "./lib.mjs";
 
 // Hero kicker (unchanged for every filter, owner 2026-11-08) and slogan; only the accent word of line two is bold italic (owner 2026-11-08), like the em of the Commercial hero.
 const ROOT_KICKER = { vi: "Công trình tiêu biểu", en: "Our featured projects" };
@@ -53,7 +53,7 @@ export const FILTER_SEO = {
 // Renamed filter slugs (old -> new): the old path stays as a redirect page so shared links keep working.
 export const RENAMED_FILTER_SLUGS = { "homestay-hotel": "homestay-khach-san", "cafe-nha-hang": "quan-cafe" };
 
-const filterHref = (filter) => `/vi/projects/${filter.slug ? `${filter.slug}/` : ""}`;
+const filterHref = (filter) => `/projects/${filter.slug ? `${filter.slug}/` : ""}`;
 
 // The "Tất cả" page, sector pages that have projects, and type pages always exist (an empty type is noindex). The filter row shows only filters
 // that have projects, plus the filter of the page being viewed.
@@ -68,7 +68,7 @@ export const projectListPages = (projects) => {
   }));
 };
 export const projectListSource = (listPage) => `${listPage.path.slice(1)}index.html`;
-export const projectListRoutes = (projects) => projectListPages(projects).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, projectListSource(listPage)]));
+export const projectListRoutes = (projects) => projectListPages(projects).flatMap((listPage) => ["vi", "en"].map((locale) => [`${localePrefix(locale)}${listPage.path}`, projectListSource(listPage)]));
 
 // Project card set in the Advertising masonry runtime artifact shape (projects R2): sector is the category, type is the cluster
 // (clusterIds) for filtering; cards carry only an image like Advertising cards, with the detail page link and the cover image dominant color (computed at build) built in.
@@ -140,7 +140,7 @@ const main = ({ filter, projects }, artifact, template) => {
   // Every page: the kicker is fixed as p, the slogan is p.hero-title, h1 is the filter keyword name (owner 2026-11-15); filters differ only in title, description and URL. The filter row follows the DOM contract of
   // catalog-runtime (like the Advertising page, without the viewer and product chips).
   // The rail lists Tất cả and the types only (owner 2026-11-15); the sector pages stay reachable from the menu and old links.
-  const chipLinks = artifact.pages.filter((page) => artifact.categories.find((entry) => entry.slug === page.filter)?.rail !== false).map((page) => `<a class="project-filter" href="/vi/projects/${page.vi ? `${page.vi}/` : ""}" data-masonry-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
+  const chipLinks = artifact.pages.filter((page) => artifact.categories.find((entry) => entry.slug === page.filter)?.rail !== false).map((page) => `<a class="project-filter" href="/projects/${page.vi ? `${page.vi}/` : ""}" data-masonry-filter="${page.filter}" aria-current="${page.filter === (filter.slug ?? "all")}"${page.filter === "all" || page.filter === (filter.slug ?? "all") || artifact.cards.some((card) => card.category === page.filter || card.clusterIds.includes(page.filter)) ? "" : " hidden"} data-en="${escapeHtml(page.filter === "all" ? "All" : artifact.categories.find((entry) => entry.slug === page.filter).titleEn)}">${escapeHtml(page.filter === "all" ? "Tất cả" : artifact.categories.find((entry) => entry.slug === page.filter).titleVi)}</a>`).join("\n              ");
   return `<main id="noi-dung">
         <section class="hero detail-hero detail-index-hero" id="top" data-header-tone="ink">
           ${pageNameHeading(filter.name)}
@@ -172,10 +172,10 @@ export const renderProjectListPage = (template, listPage, artifact) => {
   const { filter, path: listPath, projects } = listPage;
   const head = [
     `<title data-en="${escapeHtml(filter.name.en)} — Trường Thịnh">${escapeHtml(filter.name.vi)} — Trường Thịnh</title>`,
-    ...alternateLinks(`/vi${listPath}`, `/en${listPath}`),
+    ...alternateLinks(`${listPath}`, `/en${listPath}`),
     ...(projects.length ? [`<meta property="og:image" content="${PUBLIC_ORIGIN}${projects[0].cover.src}" />`] : ['<meta name="robots" content="noindex" />']),
-    collectionLd({ path: `/vi${listPath}`, name: filter.name.vi, description: filter.description.vi, items: projects.map((project) => [project.title.vi, pageHref("projects", "vi", project)]),
-      crumbs: [["Trường Thịnh", "/vi/"], ["Công trình", "/vi/projects/"], ...(filter.slug ? [[filter.label.vi, `/vi${listPath}`]] : [])] }),
+    collectionLd({ path: `${listPath}`, name: filter.name.vi, description: filter.description.vi, items: projects.map((project) => [project.title.vi, pageHref("projects", "vi", project)]),
+      crumbs: [["Trường Thịnh", "/"], ["Công trình", "/projects/"], ...(filter.slug ? [[filter.label.vi, `${listPath}`]] : [])] }),
   ].join("\n    ");
   const { description } = filter;
   return [
@@ -186,9 +186,9 @@ export const renderProjectListPage = (template, listPage, artifact) => {
     // Advertising products shell: switch the current navbar and menu item to Projects.
     [' aria-current="page"', "", "menu current page", 2],
     ['<li class="selected">', "<li>", "nav selected"],
-    ['<li><a href="/vi/projects/"', '<li class="selected"><a href="/vi/projects/" aria-current="page"', "nav projects"],
-    ['class="menu-group__title" href="/vi/projects/"', 'class="menu-group__title" href="/vi/projects/" aria-current="page"', "menu projects"],
-    ['href="/vi/advertising-products/" data-language-option="vi"', `href="/vi${listPath}" data-language-option="vi"`, "language vi"],
+    ['<li><a href="/projects/"', '<li class="selected"><a href="/projects/" aria-current="page"', "nav projects"],
+    ['class="menu-group__title" href="/projects/"', 'class="menu-group__title" href="/projects/" aria-current="page"', "menu projects"],
+    ['href="/advertising-products/" data-language-option="vi"', `href="${listPath}" data-language-option="vi"`, "language vi"],
     ['href="/en/advertising-products/" data-language-option="en"', `href="/en${listPath}" data-language-option="en"`, "language en"],
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => main(listPage, artifact, template), "main"],
   ].reduce((html, [pattern, replacement, name, expected]) => replaceCounted(html, pattern, replacement, name, expected), template);

@@ -37,7 +37,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const travel = {};
   for (const [name, route] of Object.entries(pages)) {
-    await page.goto(`${baseUrl}/vi/${route}`, { waitUntil: "load" });
+    await page.goto(`${baseUrl}/${route}`, { waitUntil: "load" });
     await settle(page);
     await page.waitForTimeout(1500);
 
@@ -113,7 +113,7 @@ try {
   for (const locale of ["vi", "en"]) {
     for (const width of [320, 375, 390, 414, 600, 768, 980, 1024, 1280, 1440, 1920]) {
       const view = await browser.newPage({ viewport: { width, height: 900 } });
-      await view.goto(`${baseUrl}/${locale}/`, { waitUntil: "load" });
+      await view.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/`, { waitUntil: "load" });
       await settle(view);
       await view.evaluate(() => document.fonts.ready);
       const block = await view.evaluate(() => {
@@ -152,7 +152,7 @@ try {
       const ctaSize = Math.min(Math.max(51.2, width * 0.06), 112);
       assert.ok(Math.abs(block.fontSize - ctaSize) <= 1, `${label}: title size ${block.fontSize} vs ${ctaSize}`);
       assert.ok(block.fits, `${label}: title fits the copy box`);
-      assert.equal(block.href, `/${locale}/about/`, `${label}: link goes to About`);
+      assert.equal(block.href, `${locale === "en" ? "/en" : ""}/about/`, `${label}: link goes to About`);
       // Shared CTA layout (detail-pages R10): button sits 2rem below the title box plus half the surplus of the 44px touch area, title at block center.
       assert.ok(block.linkGap >= 40 && block.linkGap <= 46, `${label}: link sits under the title (${block.linkGap}px)`);
       assert.ok(Math.abs(block.titleCenter) <= 1, `${label}: title box centred in the block (${block.titleCenter}px)`);

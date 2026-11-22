@@ -81,10 +81,16 @@ export const VISIT_SEED_HANDOFF_KEY = "tt-advertising-visit-seed-handoff-v1";
 const VISIT_SEED_HANDOFF_TTL_MS = 30_000;
 // Root page and cluster, product pages (taxonomy R4): /<locale>/advertising-products/[<cluster>/[<product>/]].
 // The Projects page (projects R2) shares the runtime with the root /<locale>/projects/; group 2 is the root, group 3 is the part after the root.
-const ADVERTISING_PATH_PATTERN = /^\/(vi|en)\/(advertising-products|projects)(?:\/((?:[^/]+\/){0,2}))?$/;
-const browseBase = (pathname) => pathname.match(ADVERTISING_PATH_PATTERN)?.[2] ?? "advertising-products";
+const ADVERTISING_PATH_PATTERN = /^\/(?:(en)\/)?(advertising-products|projects)(?:\/((?:[^/]+\/){0,2}))?$/;
+// Vietnamese pages live at the root, English under /en (owner 2026-11-22): the match always names its locale.
+const matchBrowsePath = (pathname) => {
+  const match = pathname.match(ADVERTISING_PATH_PATTERN);
+  return match && [match[0], match[1] ?? "vi", match[2], match[3]];
+};
+const localePrefix = (locale) => (locale === "en" ? "/en" : "");
+const browseBase = (pathname) => matchBrowsePath(pathname)?.[2] ?? "advertising-products";
 // Card page (media-seo R1): detail has the URL /<locale>/advertising-products/p/<card-id>/; the old ?photo= is still read.
-const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:vi|en)\/advertising-products\/p\/([^/]+)\/$/;
+const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:en\/)?advertising-products\/p\/([^/]+)\/$/;
 // Colors generated at build time from the image file name: [card dominant color, 4 Flow colors light to dark, pill-area luminance 0-100].
 const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/, "")];
 const flowColors = (src) => mediaColors(src)?.slice(1, 5);
@@ -97,7 +103,7 @@ const mediaDescription = (record, mediaId, english) => {
   const own = record.mediaDescriptions?.[mediaId];
   return (english ? own?.en ?? record.descriptionEn : own?.vi ?? record.descriptionVi) || "";
 };
-const advertisingCardPath = (locale, id) => `/${locale}/advertising-products/p/${encodeURIComponent(id)}/`;
+const advertisingCardPath = (locale, id) => `${localePrefix(locale)}/advertising-products/p/${encodeURIComponent(id)}/`;
 // Dominant color: project cards carry a ready color (build computes it with sharp), ad cards look up MEDIA_COLORS.
 const cardColor = (card) => card.color ?? mediaColors(card.media.src)?.[0];
 // The 4 colors of the phone wait layer (progressive-loading R9): the file's Flow colors; without a full palette the layer stays the flat fallback color.
@@ -354,14 +360,14 @@ export function isQueryOnlyNavigation(previousHref, nextHref, pages = null) {
     return false;
   }
   // Changing the filter now also changes the cluster, product path; within the same locale it is still in-place navigation.
-  const [, previousLocale, previousBase] = previous.pathname.match(ADVERTISING_PATH_PATTERN) || [];
-  const [, , nextBase, nextRest] = next.pathname.match(ADVERTISING_PATH_PATTERN) || [];
+  const [, previousLocale, previousBase] = matchBrowsePath(previous.pathname) || [];
+  const [, , nextBase, nextRest] = matchBrowsePath(next.pathname) || [];
   // The ad page and the Projects page share a path pattern but are two different pages: a different root is not an in-place filter change.
   if (previousBase !== nextBase) return false;
   if (nextBase === "projects" && nextRest && !pages?.some((page) => `${page[previousLocale]}/` === nextRest)) return false;
   return previous.origin === next.origin
     && Boolean(previousLocale)
-    && next.pathname.match(ADVERTISING_PATH_PATTERN)?.[1] === previousLocale
+    && matchBrowsePath(next.pathname)?.[1] === previousLocale
     && previous.pathname + previous.search !== next.pathname + next.search;
 }
 
@@ -372,7 +378,7 @@ const resolveFilter = (value, categories, cards) =>
 
 // Cluster, product pages (taxonomy R4) set the filter by path; pages is artifact.pages (vi, en are the path after the root).
 const advertisingPathFilter = (pathname, pages) => {
-  const [, locale, , rest] = pathname.match(ADVERTISING_PATH_PATTERN) || [];
+  const [, locale, , rest] = matchBrowsePath(pathname) || [];
   return rest ? pages.find((page) => `${page[locale]}/` === rest)?.filter ?? null : null;
 };
 
@@ -398,7 +404,7 @@ export function serializeBrowseLocation(input, browse = {}, categories = [], pag
   const url = input instanceof URL ? new URL(input.href) : new URL(input, "https://invalid.local");
   for (const key of ["category", "photo", "tag"]) url.searchParams.delete(key);
   // A filter with a page (taxonomy R4) is written as a path using the locale's slug; a filter with no entry goes back to the root with ?category=.
-  const locale = url.pathname.match(ADVERTISING_PATH_PATTERN)?.[1];
+  const locale = matchBrowsePath(url.pathname)?.[1];
   // Detail writes the card page path, without category (media-seo R1).
   if (locale && browse.photo) {
     url.pathname = advertisingCardPath(locale, browse.photo);
@@ -406,7 +412,7 @@ export function serializeBrowseLocation(input, browse = {}, categories = [], pag
     return url;
   }
   const page = locale && pages.find((entry) => entry.filter === (browse.category || "all"));
-  if (locale) url.pathname = `/${locale}/${browseBase(url.pathname)}/${page?.[locale] ? `${page[locale]}/` : ""}`;
+  if (locale) url.pathname = `${localePrefix(locale)}/${browseBase(url.pathname)}/${page?.[locale] ? `${page[locale]}/` : ""}`;
   // Cluster writes the slug for the URL's locale; product id is written as is.
   const entry = categories.find((item) => item.slug === browse.category);
   const category = entry?.[url.pathname.startsWith("/en/") ? "slugEn" : "slugVi"] ?? browse.category;
@@ -2398,7 +2404,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         control.dataset.masonryFilter = entry.slug;
         filters.append(control);
       }
-      control.href = `/${locale}/${browseBase(location.pathname)}/${entry.slug === "all" ? "" : `${locale === "en" ? entry.slugEn : entry.slugVi}/`}`;
+      control.href = `${localePrefix(locale)}/${browseBase(location.pathname)}/${entry.slug === "all" ? "" : `${locale === "en" ? entry.slugEn : entry.slugVi}/`}`;
       control.dataset.en = entry.titleEn;
       control.textContent = locale === "en" ? entry.titleEn : entry.titleVi;
     });
@@ -5660,7 +5666,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const targetUrl = new URL(link.href, window.location.href);
     const targetLocale = link.dataset.languageOption === "en" ? "en" : "vi";
     if (targetUrl.origin !== window.location.origin || targetLocale === locale
-      || targetUrl.pathname.match(ADVERTISING_PATH_PATTERN)?.[1] !== targetLocale) return;
+      || matchBrowsePath(targetUrl.pathname)?.[1] !== targetLocale) return;
     pendingLocaleSeedHandoff = {
       locale: targetLocale,
       seed: browseHistory.current.seed,

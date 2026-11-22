@@ -22,7 +22,7 @@ const scrollThrough = async (page, wait) => {
 try {
   for (const viewport of [{ width: 1920, height: 1000 }, { width: 390, height: 844 }]) {
     const page = await browser.newPage({ viewport });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "networkidle" });
     await scrollThrough(page, 800);
     const edges = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] .masonry-card")].flatMap((tile) => {
       const media = tile.querySelector(".masonry-card__media");
@@ -70,7 +70,7 @@ try {
       await new Promise((resolve) => setTimeout(resolve, 8000));
       await route.continue().catch(() => {});
     });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     // PC: wait for the Flow frames themselves, not the loading mark: right after the mark appears the frames can be missing from the media box
     // for one task; they are there by the next animation frame, before any paint.
     await page.waitForFunction((selector) => document.querySelectorAll(selector).length > 2,

@@ -21,7 +21,7 @@ try {
   for (const [width, expected] of Object.entries(ESPACIO)) {
     const { context, page } = await openPage(browser, viewportAt(Number(width)));
     try {
-      await page.goto(`${BASE_URL}/vi/`, { waitUntil: "load" });
+      await page.goto(`${BASE_URL}/`, { waitUntil: "load" });
       const items = await page.$$eval(".home-news__item", (links) => links.map((link) => {
         const box = link.getBoundingClientRect();
         return [Math.round(box.left), Math.round(box.width)];

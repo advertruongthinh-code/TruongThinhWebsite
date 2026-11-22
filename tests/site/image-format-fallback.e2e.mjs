@@ -16,13 +16,13 @@ try {
   page.on("request", (request) => request.url().endsWith(".jxl") && jxl.push(request.url()));
 
   // Static page: <picture> picks the WebP img.
-  await page.goto(`${base}/vi/residential/`);
+  await page.goto(`${base}/residential/`);
   await page.waitForFunction(() => document.querySelector('img[fetchpriority="high"]')?.closest(".is-media-settled"), null, { timeout: 30_000 });
   const hero = await page.$$eval('img[fetchpriority="high"]', loaded());
   assert.ok(hero.length && hero.every(({ src, ok }) => ok && src.endsWith(".webp")), `static hero loads WebP ${JSON.stringify(hero)}`);
 
   // Advertising: card, primary and viewer all use WebP and show no error marker.
-  await page.goto(`${base}/vi/advertising-products/`);
+  await page.goto(`${base}/advertising-products/`);
   await page.waitForFunction(() => [...document.querySelectorAll("[data-masonry-card] img")].filter((image) => image.naturalWidth).length >= 4,
     null, { timeout: 30_000 });
   const cards = await page.$$eval("[data-masonry-card] img", loaded());

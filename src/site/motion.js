@@ -26,14 +26,14 @@
   const originalAttributes = new WeakMap();
   // The Advertising root page and cluster and product pages (taxonomy R4) are the same masonry page.
   const isAdvertisingPath = (pathname) =>
-    /^\/(?:vi|en)\/advertising-products(?:\/(?:[^/]+\/){0,2})?$/.test(pathname);
+    /^\/(?:en\/)?advertising-products(?:\/(?:[^/]+\/){0,2})?$/.test(pathname);
   // Barba keeps the namespace of each history entry. Projects (/projects/ and its filter pages) runs the same masonry
   // runtime, but its paths look like project detail paths, so only the entry namespace tells a grid page apart.
   const isMasonryHistoryEntry = (pathname) => isAdvertisingPath(pathname)
     || window.history.state?.states?.[window.history.state.index]?.ns === "projects";
   // Detail: card page (media-seo R1) or the old ?photo=.
   const isAdvertisingPhotoUrl = (url) =>
-    url.searchParams.has("photo") || /^\/(?:vi|en)\/advertising-products\/p\//.test(url.pathname);
+    url.searchParams.has("photo") || /^\/(?:en\/)?advertising-products\/p\//.test(url.pathname);
   const localeScrollStateKey = (url) =>
     `tt-locale-scroll:${url.pathname}${url.search}`;
   const textMaskSelector =
@@ -2593,7 +2593,7 @@
       const linksMatchPage = pathOf(document.querySelector(`[data-language-option="${currentLanguage}"][href]`)) === url.pathname;
       const option = (isAdvertisingPath(url.pathname) || linksMatchPage)
         && document.querySelector(`[data-language-option="${nextLanguage}"][href]`);
-      url.pathname = option ? new URL(option.href).pathname : `/${nextLanguage}${suffix}`;
+      url.pathname = option ? new URL(option.href).pathname : `${nextLanguage === "en" ? "/en" : ""}${suffix}`;
       url.hash = "";
       try {
         window.localStorage.setItem("tt-lang", nextLanguage);
@@ -2641,12 +2641,12 @@
         "[data-site-header] .desktop-nav a, #site-menu .menu-group__title",
       );
       const persistentAdvertisingLink = persistentNavbarLink
-        && /^\/(?:vi|en)\/advertising-products\/?$/.test(destination.pathname);
+        && /^\/(?:en\/)?advertising-products\/?$/.test(destination.pathname);
       const currentParentLink = plainPrimaryClick
         && persistentNavbarLink
         && !link.target
         && !link.hasAttribute("download")
-        && /^\/(?:vi|en)\/(?:residential|commercial|advertising-products)\/?$/.test(
+        && /^\/(?:en\/)?(?:residential|commercial|advertising-products)\/?$/.test(
           window.location.pathname,
         )
         && normalizePathname(destination.pathname) === normalizePathname(window.location.pathname)

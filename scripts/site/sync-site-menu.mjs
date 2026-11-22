@@ -13,10 +13,10 @@ const navMarker = /( *)<!-- menu-nav -->/;
 const desktopMarker = /( *)<!-- desktop-nav -->/;
 // Navbar (site-shell R4): four main items in the exact order of menu groups 01-04.
 const DESKTOP_LINKS = [
-  { href: "/vi/residential/", vi: "Không gian Nhà ở", en: "Residential spaces" },
-  { href: "/vi/commercial/", vi: "Không gian Kinh doanh", en: "Commercial spaces" },
-  { href: "/vi/projects/", vi: "Công trình", en: "Projects" },
-  { href: "/vi/advertising-products/", vi: "Sản phẩm Quảng cáo", en: "Advertising products" },
+  { href: "/residential/", vi: "Không gian Nhà ở", en: "Residential spaces" },
+  { href: "/commercial/", vi: "Không gian Kinh doanh", en: "Commercial spaces" },
+  { href: "/projects/", vi: "Công trình", en: "Projects" },
+  { href: "/advertising-products/", vi: "Sản phẩm Quảng cáo", en: "Advertising products" },
 ];
 const FEATURED_PRODUCT_GROUPS = 5;
 // Menu labels are longer than the taxonomy rail labels; a new group without a menu label uses its rail label.
@@ -36,7 +36,7 @@ const SOCIAL = [
 ];
 
 // A VI-to-EN route that only changes the prefix is swapped by the runtime itself; a different slug needs data-en-href.
-const hrefAttrs = (vi, en) => `href="${vi}"${en && en !== vi.replace(/^\/vi\//, "/en/") ? ` data-en-href="${en}"` : ""}`;
+const hrefAttrs = (vi, en) => `href="${vi}"${en && en !== `/en${vi}` ? ` data-en-href="${en}"` : ""}`;
 const option = ({ vi, en, label }) => `<a class="menu-option" ${hrefAttrs(vi, en)} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`;
 const typeOption = (type) => option({ vi: projectTypeHref(type, "vi"), en: projectTypeHref(type, "en"), label: PROJECT_TYPES[type].label });
 const typesOf = (sector) => Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === sector);
@@ -57,38 +57,38 @@ const group = (number, { title, aria, href, options }) => [
 export const renderMenuNav = ({ projects, productGroups }) => {
   const groups = [
     {
-      title: SECTOR_LABEL.residential, aria: { vi: "Không gian Nhà ở", en: "Residential spaces" }, href: { vi: "/vi/residential/" },
-      options: [option({ vi: "/vi/residential/", label: { vi: "Thiết kế không gian nhà ở", en: "Residential interior design" } }), ...typesOf("residential").map(typeOption)],
+      title: SECTOR_LABEL.residential, aria: { vi: "Không gian Nhà ở", en: "Residential spaces" }, href: { vi: "/residential/" },
+      options: [option({ vi: "/residential/", label: { vi: "Thiết kế không gian nhà ở", en: "Residential interior design" } }), ...typesOf("residential").map(typeOption)],
     },
     {
-      title: SECTOR_LABEL.commercial, aria: { vi: "Không gian Kinh doanh", en: "Commercial spaces" }, href: { vi: "/vi/commercial/" },
-      options: [option({ vi: "/vi/commercial/", label: { vi: "Thiết kế không gian kinh doanh", en: "Commercial interior design" } }), ...typesOf("commercial").map(typeOption)],
+      title: SECTOR_LABEL.commercial, aria: { vi: "Không gian Kinh doanh", en: "Commercial spaces" }, href: { vi: "/commercial/" },
+      options: [option({ vi: "/commercial/", label: { vi: "Thiết kế không gian kinh doanh", en: "Commercial interior design" } }), ...typesOf("commercial").map(typeOption)],
     },
     {
-      title: { vi: "Công trình", en: "Projects" }, href: { vi: "/vi/projects/" },
+      title: { vi: "Công trình", en: "Projects" }, href: { vi: "/projects/" },
       options: [
-        option({ vi: "/vi/projects/", label: { vi: "Các công trình của chúng tôi", en: "Our projects" } }),
+        option({ vi: "/projects/", label: { vi: "Các công trình của chúng tôi", en: "Our projects" } }),
         ...projects.map((project) => option({ vi: pageHref("projects", "vi", project), en: pageHref("projects", "en", project), label: project.title })),
       ],
     },
     {
-      title: { vi: "Quảng cáo", en: "Advertising" }, aria: { vi: "Sản phẩm Quảng cáo", en: "Advertising products" }, href: { vi: "/vi/advertising-products/" },
+      title: { vi: "Quảng cáo", en: "Advertising" }, aria: { vi: "Sản phẩm Quảng cáo", en: "Advertising products" }, href: { vi: "/advertising-products/" },
       options: [
-        option({ vi: "/vi/advertising-products/", label: { vi: "Các sản phẩm của chúng tôi", en: "Our products" } }),
+        option({ vi: "/advertising-products/", label: { vi: "Các sản phẩm của chúng tôi", en: "Our products" } }),
         ...productGroups.slice(0, FEATURED_PRODUCT_GROUPS).map((category) => option({
-          vi: `/vi/advertising-products/${category.slugVi}/`, en: `/en/advertising-products/${category.slugEn}/`,
+          vi: `/advertising-products/${category.slugVi}/`, en: `/en/advertising-products/${category.slugEn}/`,
           label: PRODUCT_GROUP_LABELS[category.slug] ?? { vi: category.titleVi, en: category.titleEn },
         })),
       ],
     },
     {
-      title: { vi: "Về chúng tôi", en: "About us" }, href: { vi: "/vi/about/" },
+      title: { vi: "Về chúng tôi", en: "About us" }, href: { vi: "/about/" },
       options: [
         ["heritage", "Di sản", "Heritage"], ["process", "Cách làm", "How we work"], ["commitment", "Cam kết", "Commitment"],
-      ].map(([topic, vi, en]) => option({ vi: `/vi/about/?topic=${topic}`, label: { vi, en } })).concat(option({ vi: "/vi/news/", label: { vi: "Tin tức", en: "News" } })),
+      ].map(([topic, vi, en]) => option({ vi: `/about/?topic=${topic}`, label: { vi, en } })).concat(option({ vi: "/news/", label: { vi: "Tin tức", en: "News" } })),
     },
     {
-      title: { vi: "Liên hệ", en: "Contact" }, href: { vi: "/vi/about/?topic=contact" },
+      title: { vi: "Liên hệ", en: "Contact" }, href: { vi: "/about/?topic=contact" },
       options: SOCIAL.map(({ label, href }) => href
         ? `<a class="menu-option" href="${href}" target="_blank" rel="noreferrer">${label}</a>`
         : `<a class="menu-option" role="link" aria-disabled="true" tabindex="-1">${label}</a>`),
@@ -117,8 +117,8 @@ export const readPageSource = (relativePath) => {
   if (!desktopMarker.test(source)) throw new Error(`${relativePath} is missing <!-- desktop-nav -->`);
   // A page's own group title carries a static aria-current; pages built from blocks remove it in block-pages.
   const section = relativePath.split("/")[1] ? relativePath.split("/")[0] : null;
-  const current = section ? nav.replace(`class="menu-group__title" href="/vi/${section}/"`, `class="menu-group__title" href="/vi/${section}/" aria-current="page"`) : nav;
-  const markCurrent = (list) => section ? list.replace(`<li><a href="/vi/${section}/"`, `<li class="selected"><a href="/vi/${section}/" aria-current="page"`) : list;
+  const current = section ? nav.replace(`class="menu-group__title" href="/${section}/"`, `class="menu-group__title" href="/${section}/" aria-current="page"`) : nav;
+  const markCurrent = (list) => section ? list.replace(`<li><a href="/${section}/"`, `<li class="selected"><a href="/${section}/" aria-current="page"`) : list;
   return source
     .replace(navMarker, (_match, indent) => `${indent}${current}`)
     .replace(desktopMarker, (_match, indent) => `${indent}${markCurrent(renderDesktopList(indent))}`);

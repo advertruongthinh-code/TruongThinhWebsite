@@ -32,7 +32,7 @@ try {
       });
       const label = `${locale}/${route || "home"}`;
       try {
-        await page.goto(`${baseUrl}/${locale}/${route}`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/${route}`, { waitUntil: "domcontentloaded" });
         await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready")
           || document.documentElement.classList.contains("motion-fallback"));
         await page.evaluate(() => document.fonts?.ready);
@@ -81,7 +81,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const label = `desktop/${route || "home"}`;
     try {
-      await page.goto(`${baseUrl}/vi/${route}`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${baseUrl}/${route}`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => document.documentElement.classList.contains("has-scroll-smooth")
         && !document.documentElement.classList.contains("route-enter"));
       await catalogSettled(page);

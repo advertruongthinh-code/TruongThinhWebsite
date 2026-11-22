@@ -75,7 +75,7 @@ Việc nặng không được giữ veil hay làm trễ motion chữ. Ảnh đ�
 
 ```gherkin
 Given demo Cloudflare, cache trống, PC Chrome 1440 và phone Android thật nối adb
-When mở /vi/advertising-products/ và mọi trang có hero bằng link
+When mở /advertising-products/ và mọi trang có hero bằng link
 Then header, chữ hero, rail và chip hiện (veil tan) dưới 1 s sau điều hướng, median 5 lượt mỗi thiết bị
 And khung masonry có kích thước đúng trước khi ảnh đầu về
 And CLS từ lúc điều hướng tới lúc ảnh khung nhìn đầu xong không vượt 0,05
