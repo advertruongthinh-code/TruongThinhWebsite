@@ -74,22 +74,44 @@ And hàng lọc chỉ có "Tất cả" và các năm, trang năm có noindex
 ### R3. Trang bài
 
 Theo mẫu Bài News của [layout-library R2](layout-library.md): tiêu đề, khối nội dung theo chuỗi người soạn ghép, cuối bài là
-khối "Tin khác" (`news-cards`, tiêu đề căn giữa rồi 3 bài dạng dải trang chủ R4, build tự lấy khi khối không ghi `newsIds`: bài cùng nhóm trước, mới nhất trước, không lấy chính bài đó; nhóm chưa đủ thì lấy bài mới nhất nhóm khác cho đủ 3) và dòng "Xem tất cả bài viết" (`cta-arrow`), rồi lời mời Zalo hoặc đặt lịch khảo sát.
+khối "Tin khác" (`news-cards`, tiêu đề căn giữa rồi 3 bài dạng dải trang chủ R4, build tự lấy khi khối không ghi `newsIds`: bài cùng nhóm trước, rồi bài liên quan nhất trước, không lấy chính bài đó; nhóm chưa đủ thì lấy bài liên quan nhất nhóm khác cho đủ 3) và dòng "Xem tất cả bài viết" (`cta-arrow`), rồi lời mời Zalo hoặc đặt lịch khảo sát.
+Mức liên quan (owner 2026-11-22, chuẩn cho CMS và SEO): độ giống chữ tiếng Việt giữa hai bài (TF-IDF cosine trên tiêu đề tính 3 lần, mô tả,
+đoạn văn, trích dẫn; từ đơn và cặp từ liền nhau), bằng nhau thì bài mới hơn rồi theo `id`; trang EN dùng cùng thứ tự. Người soạn ghim tay
+bằng `newsIds` (id có thật, không trỏ chính bài). Ba bài là link tĩnh trong HTML. Đăng hoặc sửa một bài có thể đổi "Tin khác" của bài
+khác, nên CMS đăng bài phải build lại mọi trang bài; việc đó không đổi `dateModified` của bài khác. CMS lọc bài nháp và bài hẹn giờ
+đăng trước khi build, để chúng không hiện ở đây.
 Bài có ngày đăng và ngày cập nhật hiển thị khớp dữ liệu cấu trúc, tác giả là người duyệt. Dữ liệu cấu trúc `BlogPosting`,
 `BreadcrumbList`, `VideoObject` khi có video, theo [SEO](seo.md); ảnh, video trong bài theo [tải ảnh](media-delivery.md).
 Ảnh bài là ảnh riêng của bài đó, không dùng lại ảnh trang khác hay bài khác ([bộ kiểm nội dung](content-independent-tests.md#r2-bộ-kiểm-nội-dung) mục 7); mỗi ảnh là một cảnh riêng minh họa đúng đoạn văn cạnh nó, không cần cùng một không gian (owner 2026-11-13). Mẫu ảnh mỗi bài: ảnh rộng đầu bài (cũng là bìa 3:2), cặp ảnh dọc 2:3, ảnh dọc 2:3 lệch phải.
 
+Số ảnh và bố cục (owner 2026-11-15, CMS khóa theo bảng): rút từ 26 bài `/en/news/` của Espacio tải ngày 2026-11-15 (ảnh
+thân bài, không tính ảnh banner dẫn link; ít nhất 2, trung vị 10). Mỗi khối ảnh đứng sau một đoạn văn; mọi chuỗi kết thúc
+bằng `news-cards`, `cta-arrow`.
+
+Mỗi dòng là một layout khóa của CMS ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media), owner duyệt cùng plan
+CMS). Số trong ngoặc vuông là số media khối nhận; khối nhận 0 media thì bỏ cùng đoạn văn ngay trước nó; `quote` có
+hay không đều được. Media dư chia theo cột cuối.
+
+| `layout` | Số media | Bài Espacio | Chuỗi khối ([layout-library](layout-library.md)) | Media dư vào |
+| --- | --- | --- | --- | --- |
+| `news-2-5` | 2-5 | 7 | `paragraph`, `image-single` rộng [1], `paragraph`, `image-pair` bằng nhau [0 hoặc 2], `paragraph`, `image-single` 2/3 phải [0-1], `paragraph`, `image-single` 2/3 trái [0-1] | theo chuỗi |
+| `news-6-11` | 6-11 | 10 | `paragraph`, `image-single` rộng [1], `paragraph`, `image-pair` bằng nhau [2], `quote`, `paragraph`, `image-single` 2/3 phải [1], `paragraph`, `gallery-carousel` [2-5], `paragraph`, `image-pair` trái lớn [0 hoặc 2] | cặp cuối, rồi carousel |
+| `news-12-16` | 12-16 | 7 | như `news-6-11` nhưng `gallery-carousel` [5-8], `image-pair` trái lớn [2], thêm `paragraph`, `image-pair` phải lớn [0 hoặc 2] | cặp cuối, rồi carousel |
+| `news-17` | 17-30 | 2 | `paragraph`, `image-single` rộng [1], `paragraph`, `image-pair` bằng nhau [2], `quote`, `paragraph`, `gallery-carousel` [8-10], `paragraph`, `image-pair` trái lớn [2], `paragraph`, `image-single` 2/3 phải [1], `paragraph`, `image-pair` phải lớn [0 hoặc 2], `paragraph`, `gallery-carousel` [2-12] | cặp cuối, carousel đầu, carousel cuối |
+
+Bài có trước CMS mà chuỗi khác bảng (`nha-pho-giu-mat`) giữ chuỗi riêng dạng `legacy`.
+
 ```gherkin
 Given một bài thuộc nhóm Sản phẩm quảng cáo
 When mở bài
-Then cuối bài có 3 bài khác cùng nhóm, mới nhất trước, và link tới trang News
+Then cuối bài có 3 bài khác, cùng nhóm trước, bài có nội dung gần nhất trước bài mới hơn, và link tới trang News
 ```
 
 ### R4. News trên các trang khác
 
 Khối News chỉ có ở trang chủ (owner 2026-11-11), theo trang chủ espaciohomedesign.com/en: ngay dưới hero, 3 bài mới nhất
 thành 3 cột (tablet 2 cột, phone một cột), mỗi bài ảnh bìa nhỏ bên trái, bên phải là nhóm chữ hoa (gạch chân khi rê chuột), tiêu đề và chữ "Đọc tiếp" chỉ hiện khi rê
-chuột hoặc focus, ảnh phóng 1.2 trong 0.6s; nhóm chữ hoa nét 700, ảnh bìa tối thiểu 5:6 và kéo cao theo khối chữ (owner 2026-11-14 giữ bản trước), phone cách hero
+chuột hoặc focus, ảnh phóng 1.2 trong 0.6s; nhóm chữ hoa nét 600, ảnh bìa theo tỉ lệ vàng: cột ảnh : chữ = 1 : 1.618, ảnh tối thiểu 1 : 1.618 dọc và kéo cao theo khối chữ (owner 2026-11-22), phone cách hero
 và khối dưới 30px như Espacio; lề và cột như Espacio ở mọi cỡ: khung tối đa 1500px canh giữa, gap 70px (50px từ 1200px, 30px từ 750px),
 2 cột từ 960px, 1 cột từ 578px (đo lại 384 tới 1920 ngày 2026-11-14); cả bài là một link (`newsTeaser` trong `scripts/site/blocks.mjs`, `renderHomeNews` trong `scripts/site/block-pages.mjs`, chỗ đặt `<!-- home-news -->` trong
 `src/site/index.html`). Trang Nhà ở, Kinh doanh, Advertising và trang chi tiết công trình không có khối News. Cuối bài News vẫn

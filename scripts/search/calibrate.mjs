@@ -1,6 +1,7 @@
 // pnpm search:calibrate: scores tests/search/fixtures/queries.json against the real index (spec advertising-search R11).
 // Anchors come from one seeded half of the queries, the threshold from the best F1 on the other half. The config is
-// written only when every query type reaches top 5 in at least 80% of its queries and overall P@5 is at least 0.8.
+// written only when every query type reaches top 5 in at least 80% of its queries, overall P@5 is at least 0.8 and P@5 is
+// not below the current config's (a passing but weaker fit must not replace a better live one).
 import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
@@ -128,6 +129,8 @@ export function summarize(results) {
   return { byType, p5, pass: Object.values(byType).every((t) => t.top5 >= GATE.top5) && p5 >= GATE.p5 };
 }
 
+export const accepts = (before, after) => after.pass && after.p5 >= before.p5;
+
 // Micro F1 of "card passes the threshold" against "card is expected", over the held-out half.
 export function fitThreshold(queries, ctx) {
   let best = { threshold: ctx.config.threshold, f1: -1 };
@@ -166,7 +169,7 @@ export function report({ before, after, held, config, f1, results }) {
     .map((r) => `- "${r.text}": ${r.keyword[0].ids.length} card ở 0,4 (đúng ${r.keyword[0].right}), ${r.keyword[1].ids.length} card ở 0,6 (đúng ${r.keyword[1].right})`);
   return [
     "# Báo cáo search:calibrate", "",
-    `Cổng: ${after.pass ? "ĐẠT, đã ghi score-config.json" : "CHƯA ĐẠT, không đổi score-config.json"}.`, "",
+    `Cổng: ${!after.pass ? "CHƯA ĐẠT, không đổi score-config.json" : accepts(before, after) ? "ĐẠT, đã ghi score-config.json" : "ĐẠT nhưng P@5 thấp hơn config cũ, không đổi score-config.json"}.`, "",
     "## Config cũ", "", table(before), "",
     "## Config mới (cả bộ)", "", table(after), "",
     "## Config mới (nửa giữ lại, không dùng để chọn mốc)", "", table(held), "",
@@ -211,7 +214,7 @@ export async function run({
   const held = summarize(evaluate(heldHalf, { ...ctx, config }));
   const text = report({ before, after, held, config, f1, results });
   await writeFile(`${out}/report.md`, text);
-  if (after.pass) await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`);
+  if (accepts(before, after)) await writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`);
   console.log(text);
   return { after, config };
 }

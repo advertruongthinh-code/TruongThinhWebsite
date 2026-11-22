@@ -8,6 +8,7 @@ const ENTRIES = [
   "scripts/site/blocks.mjs",
   "scripts/site/block-pages.mjs",
   "scripts/site/hero-slides.mjs",
+  "scripts/site/home-projects.mjs",
   "src/site/advertising-products/media-contract.mjs",
 ];
 

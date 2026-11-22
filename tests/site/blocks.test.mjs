@@ -144,6 +144,16 @@ test("strip and News blocks without ids pick their items at build", () => {
   // News post: never itself, same group first, newest first, filled up to 3 from other groups.
   const article = { ...post("self", "nha-o", "2026-04-01"), blocks: [{ type: "news-cards" }] };
   assert.deepEqual(links(renderBlocks(article, auto)), ["new-home", "old-home", "new-trend"]);
+  // Relevance (owner 2026-11-22): inside a group and among the rest, the post with the closest text beats a newer one.
+  const about = (id, group, published, title) => ({ ...post(id, group, published), title: t(title, title) });
+  const related = { projects: auto.projects, news: new Map([
+    about("self", "nha-o", "2026-04-01", "Chọn tủ bếp gỗ công nghiệp"),
+    about("newest-home", "nha-o", "2026-03-01", "Giếng trời cho nhà phố"),
+    about("kitchen-home", "nha-o", "2026-01-01", "Phụ kiện tủ bếp gỗ công nghiệp"),
+    about("newest-sign", "quang-cao", "2026-03-15", "Biển hiệu hộp đèn"),
+    about("panel-trend", "xu-huong", "2025-12-01", "Cạnh ván gỗ công nghiệp"),
+  ].map((item) => [item.id, item])) };
+  assert.deepEqual(links(renderBlocks({ ...related.news.get("self"), blocks: [{ type: "news-cards" }] }, related)), ["kitchen-home", "newest-home", "panel-trend"]);
 });
 
 test("strip and News blocks may omit ids", async () => {

@@ -89,15 +89,15 @@ test("other /api/* paths are not found and GET is not allowed", async () => {
   assertHeaders(get);
 });
 
-test("text plus two images: one input call, one messages call, a score row per card per input", async () => {
+test("text plus one image: one input call, one messages call, a score row per card per input", async () => {
   const worker = await loadWorker();
   const { env, calls } = makeEnv();
-  const res = await post(worker, env, { text: "hộp đèn tay vẫy", images: [IMG, IMG] });
+  const res = await post(worker, env, { text: "hộp đèn tay vẫy", images: [IMG] });
   assert.equal(res.status, 200);
   assertHeaders(res);
   const data = await res.json();
   assert.equal(data.status, "ok");
-  assert.deepEqual(data.inputs.map((input) => input.kind), ["text", "image", "image"]);
+  assert.deepEqual(data.inputs.map((input) => input.kind), ["text", "image"]);
   for (const input of data.inputs) {
     assert.deepEqual(input.scores.map(([id]) => id), ["a", "b", "c"]);
     for (const row of input.scores) {
@@ -109,7 +109,7 @@ test("text plus two images: one input call, one messages call, a score row per c
   // The two calls run in parallel, so their order is not part of the contract.
   const [textCall, imageCall] = [calls.ai.find((c) => c.input), calls.ai.find((c) => c.messages)];
   assert.deepEqual(textCall.input, ["task: search result | query: hộp đèn tay vẫy"]);
-  assert.equal(imageCall.messages.length, 2);
+  assert.equal(imageCall.messages.length, 1);
   assert.deepEqual(imageCall.messages[0][0].content, [{ type: "image_url", image_url: { url: `data:image/jpeg;base64,${IMG}` } }]);
   assert.deepEqual(calls.limit, [["image", "203.0.113.9"]]);
 });
@@ -138,7 +138,7 @@ test("malformed bodies are 400", async () => {
     { text: "   " },
     { text: 5 },
     { images: "x" },
-    { images: [IMG, IMG, IMG, IMG, IMG, IMG] },
+    { images: [IMG, IMG] },
     { images: [png] },
     { images: [5] },
     { images: ["@@@@"] },
@@ -155,17 +155,17 @@ test("malformed bodies are 400", async () => {
   assert.equal(calls.ai.length, 1);
 });
 
-test("bodies over 2.2 MB are 413 by header, by length or as a stream without Content-Length", async () => {
+test("bodies over 450 KB are 413 by header, by length or as a stream without Content-Length", async () => {
   const worker = await loadWorker();
   const { env, calls } = makeEnv();
-  assert.equal((await post(worker, env, { text: "a" }, { "content-length": "2200001" })).status, 413);
+  assert.equal((await post(worker, env, { text: "a" }, { "content-length": "450001" })).status, 413);
   const chunk = new Uint8Array(1_000_000).fill(0x61);
   let sent = 0;
   const stream = new ReadableStream({ pull(c) { if (sent++ < 10) c.enqueue(chunk); else c.close(); } });
   const streamed = await worker.fetch(new Request("https://x.test/api/search", { method: "POST", body: stream, duplex: "half" }), env);
   assert.equal(streamed.status, 413);
   assert.ok(sent <= 4, `read ${sent} chunks`);
-  const res = await post(worker, env, { text: "a".repeat(2_200_001) });
+  const res = await post(worker, env, { text: "a".repeat(450_001) });
   assert.equal(res.status, 413);
   assert.deepEqual(await res.json(), { status: "too_large" });
   assert.equal(calls.ai.length, 0);
@@ -195,8 +195,8 @@ test("unavailable index, model errors and short model output are 503", async () 
   assert.equal(res.status, 503);
   assert.deepEqual(await res.json(), { status: "model_error" });
 
-  const short = makeEnv({ ai: () => ({ data: [{ embedding: fakeVec(1) }] }) });
-  res = await post(await loadWorker(), short.env, { images: [IMG, IMG] });
+  const short = makeEnv({ ai: () => ({ data: [] }) });
+  res = await post(await loadWorker(), short.env, { images: [IMG] });
   assert.equal(res.status, 503);
 });
 

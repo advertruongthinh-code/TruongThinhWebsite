@@ -11,7 +11,7 @@ import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
 import { fileImageCheck, loadBlockContent, readHeroSources } from "./content-files.mjs";
-import { renderProjectReel, validateProjectReel } from "./project-reel.mjs";
+import { validateHomeProjects } from "./home-projects.mjs";
 import { KINDS, PROJECT_FILTERS, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
@@ -54,20 +54,15 @@ if (path.dirname(outputRoot) !== projectRoot || path.dirname(sourceRoot) !== pat
 
 const artifact = buildAdvertisingArtifact();
 
-// Home page project rail: validate data and placeholders before deleting old output (page-home R8).
-const projectReel = await readJson(path.join(sourceRoot, "content", "project-reel.json"));
-await validateProjectReel(projectReel, sourceRoot);
-const projectReelCards = renderProjectReel(projectReel);
 const hero = readHeroSources(sourceRoot);
 await validateHeroSlides(hero.data, fileImageCheck(sourceRoot));
 const homeTemplate = readPageSource("index.html");
-if (!homeTemplate.includes("<!-- project-reel-cards -->")) throw new Error("index.html lost <!-- project-reel-cards -->");
 
 await rm(outputRoot, { recursive: true, force: true });
 await cp(sourceRoot, outputRoot, { recursive: true });
 // Menu and navbar list are rendered here, not stored in the source pages; the home page is overwritten next with its project reel.
 await Promise.all(MENU_PAGES.map((page) => writeFile(path.join(outputRoot, page), readPageSource(page), "utf8")));
-await writeFile(path.join(outputRoot, "index.html"), homeTemplate.replace("<!-- project-reel-cards -->", () => projectReelCards), "utf8");
+await writeFile(path.join(outputRoot, "index.html"), homeTemplate, "utf8");
 await Promise.all(vendorAssets.map(async ([source, destination]) => {
   const target = path.join(outputRoot, destination);
   await mkdir(path.dirname(target), { recursive: true });
@@ -246,7 +241,9 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   .replace(`data-masonry-filter="${page.cluster}"`, `data-masonry-filter="${page.cluster}" aria-current="true"`)
   .replace(`data-masonry-chips="${page.cluster}" hidden`, `data-masonry-chips="${page.cluster}"`)
   .replaceAll(`data-masonry-product="${page.filter}"`, `data-masonry-product="${page.filter}" aria-current="true"`)
-  .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);
+  .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`)
+  // The search bar lives on the root page only (search-bar R8); the runtime clears this when a visitor filters back to all.
+  .replace('data-barba-namespace="advertising-products"', 'data-barba-namespace="advertising-products" data-search-off');
 for (const page of ADVERTISING_PAGES) {
   const html = withPhonePacks(renderAdvertisingPage(page), page.filter);
   for (const locale of ["vi", "en"]) {
@@ -313,7 +310,8 @@ const renderCardPage = (card) => advertisingTemplate
     .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
     .replace('<main id="noi-dung">', () => `<main id="noi-dung">${renderCardStatic(card)}`)
     .replace('href="/vi/advertising-products/" data-language-option="vi"', `href="${cardHref("vi", card)}" data-language-option="vi"`)
-    .replace('href="/en/advertising-products/" data-language-option="en"', `href="${cardHref("en", card)}" data-language-option="en"`);
+    .replace('href="/en/advertising-products/" data-language-option="en"', `href="${cardHref("en", card)}" data-language-option="en"`)
+    .replace('data-barba-namespace="advertising-products"', 'data-barba-namespace="advertising-products" data-search-off');
 for (const card of ADVERTISING_CARDS) {
   const html = renderCardPage(card);
   for (const locale of ["vi", "en"]) {
@@ -325,15 +323,25 @@ for (const card of ADVERTISING_CARDS) {
 // Project pages and News articles built from blocks (projects R3, news R3): content-contract already checked the data in the fast suite.
 const blockContent = loadBlockContent(sourceRoot);
 const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
-// Project strip at the end of the Residential, Commercial pages (projects R1): projects of the same sector, in projects.json order.
-for (const sector of SECTORS) {
-  const file = path.join(outputRoot, sector, "index.html");
+// Project strip (projects R1, page-home R8): Residential and Commercial list their sector's projects in projects.json order and link to the
+// sector filter; the home page lists the projects picked in content/home-projects.json and links to all projects.
+const homeProjectIds = await readJson(path.join(sourceRoot, "content", "home-projects.json"));
+const homeProjectErrors = validateHomeProjects(homeProjectIds, blockContext.projects);
+if (homeProjectErrors.length) throw new Error(`home-projects data invalid:\n${homeProjectErrors.join("\n")}`);
+const projectStrips = [
+  ...SECTORS.map((sector) => ({
+    file: `${sector}/index.html`,
+    projectIds: blockContent.projects.filter((project) => project.sector === sector).map((project) => project.id),
+    more: sector === "residential" ? { vi: "Xem các công trình nhà ở", en: "See our residential projects" } : { vi: "Xem các công trình kinh doanh", en: "See our commercial projects" },
+    path: `/projects/${PROJECT_FILTERS[sector]}/`,
+  })),
+  { file: "index.html", projectIds: homeProjectIds, more: { vi: "Xem tất cả công trình", en: "See all projects" }, path: "/projects/" },
+];
+for (const { file: page, projectIds, more, path: morePath } of projectStrips) {
+  const file = path.join(outputRoot, page);
   const html = await readFile(file, "utf8");
-  if (!html.includes("<!-- project-strip -->")) throw new Error(`${sector}/index.html lost <!-- project-strip -->`);
-  const projectIds = blockContent.projects.filter((project) => project.sector === sector).map((project) => project.id);
-  // The arrow line under the strip leads to the project page filtered by sector (projects R1, R2).
-  const more = sector === "residential" ? { vi: "Xem các công trình nhà ở", en: "See our residential projects" } : { vi: "Xem các công trình kinh doanh", en: "See our commercial projects" };
-  const cta = { type: "cta-arrow", text: more, hrefVi: `/vi/projects/${PROJECT_FILTERS[sector]}/`, hrefEn: `/en/projects/${PROJECT_FILTERS[sector]}/` };
+  if (!html.includes("<!-- project-strip -->")) throw new Error(`${page} lost <!-- project-strip -->`);
+  const cta = { type: "cta-arrow", text: more, hrefVi: `/vi${morePath}`, hrefEn: `/en${morePath}` };
   const strip = projectIds.length ? renderBlocks({ blocks: [{ type: "project-slider", projectIds }, cta] }, blockContext) : "";
   await writeFile(file, html.replace("<!-- project-strip -->", () => strip), "utf8");
 }
@@ -578,6 +586,16 @@ for (const [mergedId, coverId] of Object.entries(MERGED_CARD_REDIRECTS)) {
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, html, "utf8");
   }
+}
+// Self canonical and hreflang (SEO audit 2026-11-22): a route template without its own canonical (home, residential, commercial,
+// about) gets the links of its VI and EN routes, so every indexable page is in sitemap-pages.xml below.
+const localeRoutes = new Map();
+for (const [route, source] of ROUTES) localeRoutes.set(source, { ...localeRoutes.get(source), [route.slice(1, 3)]: route });
+for (const [source, { vi, en }] of localeRoutes) {
+  if (!vi || !en) continue;
+  const file = path.join(outputRoot, source);
+  const html = await readFile(file, "utf8");
+  if (!html.includes('rel="canonical"')) await writeFile(file, html.replace("</title>", () => `</title>\n    ${alternateLinks(vi, en).join("\n    ")}`), "utf8");
 }
 await localizeHtmlOutput(outputRoot);
 

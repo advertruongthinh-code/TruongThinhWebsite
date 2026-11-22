@@ -146,7 +146,7 @@ const main = ({ filter, projects }, artifact, template) => {
           ${pageNameHeading(filter.name)}
           <div class="hero-content" data-motion-hero-wrapper-zoom>
             <p class="hero-kicker" data-motion-hero-kicker data-en="${ROOT_KICKER.en}">${ROOT_KICKER.vi}</p>
-            <p id="page-title" class="hero-title" data-motion-words data-motion-hero-title>${line(SLOGAN.first, "detail-title__quiet")}<span class="detail-hero-line-mask"><span class="detail-title__quiet projects-title__accent" data-motion-word-source><span data-en="${SLOGAN.lead.en}">${SLOGAN.lead.vi}</span> <em data-en="${SLOGAN.accent.en}">${SLOGAN.accent.vi}</em></span></span></p>
+            <p id="page-title" class="hero-title" data-motion-words data-motion-hero-title>${line(SLOGAN.first, "detail-title__quiet")}<span class="detail-hero-line-mask"><span class="detail-title__quiet" data-motion-word-source><span data-en="${SLOGAN.lead.en}">${SLOGAN.lead.vi}</span> <em data-en="${SLOGAN.accent.en}">${SLOGAN.accent.vi}</em></span></span></p>
           </div>
           <div class="hero-browse">
             <div class="project-filters" role="group" aria-label="Lọc công trình" data-en-aria-label="Filter projects">

@@ -7,7 +7,7 @@ tests:
   - tests/site/site-media-card-contract.test.mjs
   - tests/site/advertising-products-lifecycle.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81978563c89bcb5d1ffc
-updated: 2026-10-31
+updated: 2026-11-22
 ---
 
 # SEO cho media của card
@@ -82,7 +82,7 @@ Then mục Image metadata hợp lệ, không có lỗi nghiêm trọng
 
 Build sinh `sitemap-advertising.xml`: mỗi trang R1 (VI và EN) một `<url>`, trong đó mỗi media một `<image:image>` với
 `<image:loc>` tuyệt đối, video dùng poster. Chỉ dùng thẻ `loc`; các thẻ caption, title của image sitemap Google đã bỏ.
-`sitemap.xml` của bản tĩnh là sitemap index gồm file này và `sitemap-pages.xml` ([static-release R9](static-release.md#r9-cache-header)). Sitemap chính của Worker CMS trỏ tới file này ([CMS R2](cms.md#r2-redirect-route-locale-robots-và-sitemap)).
+`sitemap.xml` của bản tĩnh là sitemap index gồm file này và `sitemap-pages.xml` ([static-release R9](static-release.md#r9-cache-header)). Bản dựng do CMS xuất bản giữ sitemap index này ([CMS R6](cms.md#r6-xuất-bản-và-rollback)).
 
 ```gherkin
 Given catalog 285 card, 285 media
@@ -93,7 +93,7 @@ Then sitemap-advertising.xml có 570 url và mỗi url có số image:loc bằng
 ### R6. URL tuyệt đối theo truongthinhads.vn
 
 Một hằng origin `https://truongthinhads.vn` dùng cho `canonical`, `hreflang`, `og:image`, JSON-LD và sitemap của R1
-đến R5. Demo trên workers.dev dùng cùng HTML nên canonical của demo trỏ về domain thật.
+đến R5. Bản thử staging dùng cùng HTML nên canonical của nó trỏ về domain thật.
 
 ```gherkin
 Given build hiện tại
@@ -131,7 +131,6 @@ Không đổi giao diện: trang R1 hiện detail đã có ([detail](advertising
 - `VideoObject` chờ field ngày đăng thật trong media contract khi có video thật.
 - Video chỉ có thể lên kết quả video khi là nội dung chính của trang (suy luận từ yêu cầu lập chỉ mục video của
   Google); card nhiều ảnh, một video có thể không đạt.
-- Demo workers.dev chưa có `noindex`; quyết thuộc [phát hành tĩnh](static-release.md).
 - Ảnh site cũ có nằm trên CDN Sapo không: chưa kiểm được (domain không phân giải từ môi trường cloud).
 - Placeholder đang lặp alt của card nên sẽ trượt validator R3: plan sinh alt tạm phân biệt (thêm số thứ tự ảnh),
   alt thật viết khi có ảnh thật.

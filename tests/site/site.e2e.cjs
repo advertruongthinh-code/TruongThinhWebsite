@@ -444,8 +444,8 @@ function assertPersistentNavigationContracts() {
   )?.[0];
   assert(
     /class="hero detail-hero commercial-hero"/.test(commercialSource) &&
-      commercialHeroContent?.includes("CAFE · NHÀ HÀNG · SHOWROOM · VĂN PHÒNG") &&
-      commercialHeroContent?.includes('data-en="CAFE · RESTAURANT · SHOWROOM · OFFICE"') &&
+      commercialHeroContent?.includes("SHOWROOM · CỬA HÀNG · CAFE · NHÀ HÀNG · VĂN PHÒNG · KHU LÀM VIỆC") &&
+      commercialHeroContent?.includes('data-en="SHOWROOM · SHOP · CAFE · RESTAURANT · OFFICE · WORKSPACE"') &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Thiết kế tối ưu") &&
       commercialHeroContent?.replace(/<[^>]+>/g, "").includes("Vận hành bền bỉ") &&
       commercialHeroContent?.includes('<span data-en="Designed to">Thiết kế</span> <em data-en="perform">tối ưu</em>') &&
@@ -466,9 +466,8 @@ function assertPersistentNavigationContracts() {
       projectsHeroContent?.includes("Sản phẩm tiêu biểu") &&
       projectsHeroContent?.includes('data-en="Our featured products"') &&
       projectsHeroContent?.includes("để thương hiệu") &&
-      projectsHeroContent?.includes("luôn trong tầm mắt") &&
+      projectsHeroContent?.includes('<span data-en="always in">luôn trong</span> <em data-en="sight">tầm mắt</em>') &&
       projectsHeroContent?.includes('data-en="Keep your brand"') &&
-      projectsHeroContent?.includes('data-en="always in sight"') &&
       !projectsHeroContent?.includes("project-filters") &&
       !projectsHeroContent?.includes("detail-hero-motto") &&
       // Masonry pages have no scroll cue (owner 2026-11-18); the search bar takes the rail's place.
@@ -599,7 +598,7 @@ function assertPersistentNavigationContracts() {
     "The heritage montage must contain layout overflow without clipping first or last glyph ink",
   );
   assert(
-    /\.desktop-nav\s*\{[\s\S]*?font-size:\s*1rem;[\s\S]*?font-weight:\s*700;/.test(
+    /\.desktop-nav\s*\{[\s\S]*?font-size:\s*1rem;[\s\S]*?font-weight:\s*600;/.test(
       styleSource,
     ) &&
       /\.desktop-nav li\.selected a::after[\s\S]*?transform:\s*scaleX\(1\);[\s\S]*?transform-origin:\s*left center;/.test(
@@ -636,7 +635,8 @@ function assertPersistentNavigationContracts() {
   assert(
     /const collapsed = scrollY > 100 \|\| document\.body\.classList\.contains\("is-detail"\);/.test(motionSource) &&
       /scrollY - directionStartY > 150/.test(motionSource) &&
-      /directionStartY - scrollY > 150/.test(motionSource) &&
+      // Scrolling up does not reveal the header (owner 2026-11-22; behaviour checked in phone-header-scroll.e2e).
+      !/directionStartY - scrollY > 150/.test(motionSource) &&
       /const isMiddle =\s*scrollY > window\.innerHeight \* 0\.5 &&\s*scrollY < pageHeight - window\.innerHeight \* 1\.25;/.test(
         motionSource,
       ) &&
@@ -1606,7 +1606,8 @@ async function runSmokeMatrix() {
 }
 
 async function runPortalAlignmentChecks() {
-  // The three-tier portal shares the site-wide text tokens (page-home R5): the home page and the sub-page types.
+  // The three-tier portal is the home field portal (page-home R5); every portal without a link is a commitment card
+  // (owner 2026-11-22), on the home page and on the sub-pages.
   for (const [label, path] of [["root", ""], ["residential", "residential/"], ["commercial", "commercial/"]]) {
   for (const locale of ["vi", "en"]) {
     for (const width of [320, 390, 430, 750, 751, 960, 961, 1024, 1200, 1201, 1329, 1440, 1569, 1920]) {
@@ -1620,7 +1621,7 @@ async function runPortalAlignmentChecks() {
           const diagnostics = monitorPage(page);
           await gotoRoute(page, route);
           const state = await page.evaluate(() => ({
-            cards: [...document.querySelectorAll(":is(#dich-vu, #loai-hinh) .service-portal")].map(
+            cards: [...document.querySelectorAll("#dich-vu .service-portal")].map(
               (card) => {
                 const cardRect = card.getBoundingClientRect();
                 const upper = card.querySelector(".portal-title__quiet");
@@ -1665,30 +1666,29 @@ async function runPortalAlignmentChecks() {
               },
             ),
             capabilityCards: [
-              ...document.querySelectorAll("#nang-luc .service-portal"),
+              ...document.querySelectorAll(".service-portal:not([href])"),
             ].map((card) => {
               const cardRect = card.getBoundingClientRect();
-              const title = card.querySelector(".portal-title-mask");
-              const subtitle = card.querySelector(".portal-subtitle");
-              const titleRect = title.getBoundingClientRect();
-              const subtitleRect = subtitle.getBoundingClientRect();
-              const titleStyle = getComputedStyle(title);
-              const subtitleStyle = getComputedStyle(subtitle);
+              const copy = card.querySelector(".commitment-copy");
+              if (!copy) return { commitment: false, html: card.outerHTML.slice(0, 120) };
+              const copyRect = copy.getBoundingClientRect();
+              const lines = [...card.querySelectorAll(".commitment-lead .portal-line")];
+              const lineWidth = Math.max(...lines.map((line) => {
+                const range = document.createRange();
+                range.selectNodeContents(line);
+                return range.getBoundingClientRect().width;
+              }));
+              const copyStyle = getComputedStyle(copy);
               return {
-                title: card.querySelector(".portal-line")?.textContent.trim(),
-                titleFontSize: Number.parseFloat(titleStyle.fontSize),
-                subtitleFontSize: Number.parseFloat(subtitleStyle.fontSize),
-                titleOverflow: title.scrollWidth - title.clientWidth,
-                subtitleOverflow: subtitle.scrollWidth - subtitle.clientWidth,
-                titleWhiteSpace: titleStyle.whiteSpace,
-                subtitleWhiteSpace: subtitleStyle.whiteSpace,
-                titleWithin: titleRect.left >= cardRect.left + 8 && titleRect.right <= cardRect.right - 8,
-                subtitleWithin: subtitleRect.left >= cardRect.left + 8 && subtitleRect.right <= cardRect.right - 8,
-                titleCenterOffset:
-                  titleRect.top +
-                  titleRect.height / 2 -
-                  (cardRect.top + cardRect.height / 2),
-                gap: subtitleRect.top - titleRect.bottom,
+                commitment: true,
+                group: [...document.querySelectorAll(".service-portals")].indexOf(card.parentElement),
+                title: card.querySelector(".commitment-title")?.textContent.replace(/\s+/g, " ").trim(),
+                leadLines: lines.length,
+                hasBody: Boolean(card.querySelector(".commitment-body .portal-subtitle")?.textContent.trim()),
+                leadFits: lineWidth <= cardRect.width - Number.parseFloat(copyStyle.paddingLeft) - Number.parseFloat(copyStyle.paddingRight) + 0.5,
+                bottomAnchored: Math.abs(cardRect.bottom - copyRect.bottom) <= 1 && copyStyle.textAlign === "left",
+                textShadow: copyStyle.textShadow !== "none",
+                titleOffset: card.querySelector(".commitment-title").getBoundingClientRect().top - cardRect.top,
               };
             }),
             advertisingImage: (() => {
@@ -1722,18 +1722,14 @@ async function runPortalAlignmentChecks() {
               })(),
             }));
             const roles = {
-              serviceTitles: read(":is(#dich-vu, #loai-hinh) .portal-title__strong"),
-              serviceKickers: read(":is(#dich-vu, #loai-hinh) .portal-title__quiet"),
-              serviceSubtitles: read(":is(#dich-vu, #loai-hinh) .portal-subtitle"),
+              serviceTitles: read("#dich-vu .portal-title__strong"),
+              serviceKickers: read("#dich-vu .portal-title__quiet"),
+              serviceSubtitles: read("#dich-vu .portal-subtitle"),
             };
-            if (document.querySelector("#nang-luc")) {
-              roles.capabilityTitles = read("#nang-luc .portal-title-mask");
-              roles.capabilitySubtitles = read("#nang-luc .portal-subtitle");
-            }
             return roles;
           });
           for (const [role, samples] of Object.entries(zoomed)) {
-            if (role === "serviceKickers" && samples.length === 0) continue;
+            if (path) continue;
             assert(
               samples.length === 3 && samples.every(({ overflow, whiteSpace, within }) => overflow <= 0.5 && whiteSpace === "nowrap" && within),
               `Portal ${role} clips or wraps at 200% text zoom for ${locale} ${width}px: ${JSON.stringify(samples)}`,
@@ -1752,37 +1748,42 @@ async function runPortalAlignmentChecks() {
             `Service portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.cards)}`,
           );
           assert(
-            state.capabilityCards.every((card) => card.titleOverflow <= 0.5 && card.subtitleOverflow <= 0.5
-              && card.titleWhiteSpace === "nowrap" && card.subtitleWhiteSpace === "nowrap"
-              && card.titleWithin && card.subtitleWithin),
-            `Capability portal text clips or wraps at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
+            state.capabilityCards.every((card) => card.commitment),
+            `Portal without a link must be a commitment card at ${route}: ${JSON.stringify(state.capabilityCards.filter((card) => !card.commitment))}`,
           );
+          assert(
+            state.capabilityCards.every((card) => card.leadLines === 2 && card.leadFits && card.hasBody && card.bottomAnchored && card.textShadow),
+            `Commitment card text drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
+          );
+          if (path) {
+            // Sub-pages: residential types and items, commercial types; titles level within each row.
+            const expected = { "residential/": 6, "commercial/": 3 }[path];
+            assert(state.capabilityCards.length === expected, `Expected ${expected} commitment cards at ${route}, found ${state.capabilityCards.length}`);
+            if (width >= 579) {
+              for (const group of new Set(state.capabilityCards.map((card) => card.group))) {
+                const offsets = state.capabilityCards.filter((card) => card.group === group).map((card) => card.titleOffset);
+                assert(Math.max(...offsets) - Math.min(...offsets) <= 1, `Commitment titles not level at ${route} ${width}px: ${offsets.join(", ")}`);
+              }
+            }
+            assert(state.horizontalOverflow <= 0, `Portals introduced ${state.horizontalOverflow}px horizontal overflow at ${route}`);
+            assertDiagnostics(diagnostics);
+            return;
+          }
           assert(state.cards.length === 3, `Expected 3 portals, found ${state.cards.length}`);
           assert(
             new Set(state.cards.map(({ hasKicker }) => hasKicker)).size === 1,
             `Portal kicker must be all or none in a group at ${route}: ${JSON.stringify(state.cards)}`,
           );
-          if (path) {
-            // Sub-pages match the home portal's text tokens at the same card width.
-            assert(
-              state.cards.every((card) => card.titleWeight === "600" && (!card.hasKicker || card.upperWeight === "700") && card.lowerWeight === "700"),
-              `Detail portal weights drifted at ${route} ${width}px: ${JSON.stringify(state.cards)}`,
-            );
-          } else {
           assert(
-            state.capabilityCards[1]?.title ===
-              (locale === "vi" ? "Xưởng CNC" : "Workshop"),
-            `Workshop capability copy drifted at ${locale}: ${state.capabilityCards[1]?.title}`,
+            state.capabilityCards.map((card) => card.title).join("|") ===
+              (locale === "vi" ? "Tư vấn|Sản xuất|Chất lượng|Hậu mãi" : "Consultation|Production|Quality|Aftercare"),
+            `Commitment portal titles drifted at ${locale}: ${state.capabilityCards.map((card) => card.title)}`,
           );
-          assert(
-            state.capabilityCards.length === 3 &&
-              state.capabilityCards.every(
-                (card) =>
-                  Math.abs(card.titleCenterOffset) <= 1 &&
-                  Math.abs(card.gap - 17.6) <= 0.25,
-              ),
-            `Capability portal title anchor or gap drifted at ${locale} ${width}px: ${JSON.stringify(state.capabilityCards)}`,
-          );
+          assert(state.capabilityCards.length === 4, `Expected 4 commitment cards at ${locale}`);
+          if (width >= 579) {
+            const offsets = state.capabilityCards.map((card) => card.titleOffset);
+            assert(Math.max(...offsets) - Math.min(...offsets) <= 1, `Commitment titles not level at ${locale} ${width}px: ${offsets.join(", ")}`);
+          }
           assert(
             state.advertisingImage?.src ===
               "/assets/content/projects/home-advertising-products-blue-grid.webp" &&
@@ -1790,11 +1791,10 @@ async function runPortalAlignmentChecks() {
               state.advertisingImage.declaredHeight === 3072,
             `Advertising portal image contract drifted at ${locale} ${width}px: ${JSON.stringify(state.advertisingImage)}`,
           );
-          }
           assert(
             state.cards.every(
               (card) =>
-                card.titleWeight === "600" &&
+                card.titleWeight === "500" &&
                 card.titleFontSize > card.lowerFontSize &&
                 (card.hasKicker
                   ? card.titleFontSize > card.upperFontSize &&
@@ -3387,9 +3387,9 @@ async function runEspacioTypographyChecks() {
                 document.documentElement.scrollWidth -
                 document.documentElement.clientWidth,
               // The masonry card counter "i/N" is 0.75rem regular like Pinterest's (media-card spec, owner 2026-11-10), outside the
-              // 500 weight and 12.5px floors. It only shows when a card with 6+ media lands in the first viewport, which the random
+              // 400 weight and 12.5px floors. It only shows when a card with 6+ media lands in the first viewport, which the random
               // card order decides, so without this exception the check failed at random.
-              lightText: visibleText.filter((item) => item.weight < 500 && !item.galleryTitle && item.selector !== "span.card-media__count"),
+              lightText: visibleText.filter((item) => item.weight < 400 && !item.galleryTitle && item.selector !== "span.card-media__count"),
               // Portal subtitle shrinks with the card width to stay on one line (page-home R5), not following the 12.5px floor.
               tinyText: visibleText.filter((item) => item.size < 12.5
                 && !["span.portal-subtitle", "span.card-media__count"].includes(item.selector)),
@@ -3410,7 +3410,7 @@ async function runEspacioTypographyChecks() {
           );
           assert(
             state.lightText.length === 0,
-            `${route} ${viewport.width}px has visible text below weight 500: ${JSON.stringify(state.lightText)}`,
+            `${route} ${viewport.width}px has visible text below weight 400: ${JSON.stringify(state.lightText)}`,
           );
           assert(
             state.tinyText.length === 0,
@@ -3418,7 +3418,7 @@ async function runEspacioTypographyChecks() {
           );
           assert(
             state.roles.cue &&
-              state.roles.cue.weight >= 700 &&
+              state.roles.cue.weight >= 600 &&
               state.roles.cue.capHeight >= 8 &&
               state.roles.cue.capHeight <= 11,
             `Scroll cue cap-height drifted on ${route}: ${JSON.stringify(state.roles.cue)}`,
@@ -3426,7 +3426,7 @@ async function runEspacioTypographyChecks() {
           if (viewport.width === 1440) {
             assert(
               state.roles.nav &&
-                state.roles.nav.weight >= 700 &&
+                state.roles.nav.weight >= 600 &&
                 state.roles.nav.capHeight >= 10 &&
                 state.roles.nav.capHeight <= 13,
               `Desktop nav cap-height drifted on ${route}: ${JSON.stringify(state.roles.nav)}`,
@@ -3438,14 +3438,14 @@ async function runEspacioTypographyChecks() {
               viewport.width === 1440 ? [35, 47] : [31, 46];
             assert(
               state.roles.portal &&
-                state.roles.portal.weight >= 600 &&
+                state.roles.portal.weight >= 500 &&
                 state.roles.portal.capHeight >= portalRange[0] &&
                 state.roles.portal.capHeight <= portalRange[1],
               `Portal cap-height drifted on ${route}: ${JSON.stringify(state.roles.portal)}`,
             );
           } else if (state.roles.detailLabel) {
             assert(
-              state.roles.detailLabel.weight >= 700 &&
+              state.roles.detailLabel.weight >= 600 &&
                 state.roles.detailLabel.capHeight >= 8 &&
                 state.roles.detailLabel.capHeight <= 11,
               `Detail label cap-height drifted on ${route}: ${JSON.stringify(state.roles.detailLabel)}`,
@@ -5952,8 +5952,10 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
               headingFontSize: Number.parseFloat(getComputedStyle(heading).fontSize),
               strongLineStyle: (() => {
                 const strong = heading.querySelector(".detail-title__strong");
+                const accent = strong?.querySelector("em");
                 const style = strong && getComputedStyle(strong);
-                return style ? { fontStyle: style.fontStyle, fontWeight: style.fontWeight } : null;
+                const accentStyle = accent && getComputedStyle(accent);
+                return style && accentStyle ? { lineStyle: style.fontStyle, fontStyle: accentStyle.fontStyle, fontWeight: accentStyle.fontWeight, accentText: normalize(accent.textContent) } : null;
               })(),
               headingLineCount: lineRects.length,
               headingText: normalize(heading.textContent),
@@ -6028,7 +6030,8 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           assert(hero.kickerText === expectedKicker && hero.kickerLeadsTitle, `${locale} ${viewport.width}x${viewport.height}: hero kicker copy or order changed`);
           assert(hero.headingText === expectedTitle && hero.headingLineCount === 2 && hero.headingFits && hero.titleAlignment, `${locale} ${viewport.width}x${viewport.height}: two-line title overflowed, changed, or lost its reference alignment ${JSON.stringify({ text: hero.headingText, lines: hero.headingLineCount, fits: hero.headingFits, aligned: hero.titleAlignment })}`);
           assert(hero.headingFontSize <= 112.1 && hero.letterSpacing >= -4.49, `${locale} ${viewport.width}x${viewport.height}: hero title exceeded the editorial type bounds`);
-          assert(hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "700", `${locale} ${viewport.width}x${viewport.height}: hero emphasis line is not bold italic ${JSON.stringify(hero.strongLineStyle)}`);
+          // Only "tầm mắt" / "sight" is italic, and every italic hero part is bold 600 (owner 2026-11-22).
+          assert(hero.strongLineStyle?.lineStyle === "normal" && hero.strongLineStyle?.fontStyle === "italic" && hero.strongLineStyle?.fontWeight === "600" && hero.strongLineStyle?.accentText === (locale === "en" ? "sight" : "tầm mắt"), `${locale} ${viewport.width}x${viewport.height}: hero emphasis is not only the bold italic last words ${JSON.stringify(hero.strongLineStyle)}`);
           assert(hero.filterBorders.every((border) => border === "none") && hero.activeUnderlineVisible, `${locale} ${viewport.width}x${viewport.height}: filters are not plain text controls with an active underline`);
           assert(hero.scrollText === expectedScroll && hero.scrollBottomMatches, `${locale} ${viewport.width}x${viewport.height}: localized scroll cue is missing or not at the reference bottom offset`);
           assert(hero.filtersAreLower && hero.gridGutterMatches && hero.noHorizontalOverflow, `${locale} ${viewport.width}x${viewport.height}: lower filter rhythm, grid gutter, or horizontal bounds failed`);
@@ -9733,7 +9736,7 @@ async function runPhysicalWheelTransformChecks() {
     { name: "residential hero", route: "/vi/residential/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "commercial hero", route: "/vi/commercial/", selector: ".hero-slides", axis: "y", limit: 12 },
     { name: "about hero", route: "/vi/about/", selector: "[data-motion-hero-media]", axis: "y", limit: 12 },
-    { name: "home project rail", route: "/vi/", selector: ".project-track", axis: "x", limit: 1 },
+    { name: "home project strip", route: "/vi/", selector: ".blk-projects__track", axis: "x", limit: 1 },
   ];
 
   for (const testCase of cases) {
@@ -9999,8 +10002,8 @@ async function runHomeMotionRegressionCheck() {
             height: item.getBoundingClientRect().height,
           })),
           track: {
-            speed: document.querySelector(".project-track")?.dataset.scrollSpeed,
-            direction: document.querySelector(".project-track")?.dataset
+            speed: document.querySelector(".blk-projects__track")?.dataset.scrollSpeed,
+            direction: document.querySelector(".blk-projects__track")?.dataset
               .scrollDirection,
           },
           hero: {
@@ -10108,7 +10111,7 @@ async function runHomeMotionRegressionCheck() {
         "A text mask can clip Vietnamese font ink",
       );
       assert(
-        contract.media.length === require(path.join(SITE_ROOT, "content", "project-reel.json")).length &&
+        contract.media.length === require(path.join(SITE_ROOT, "content", "home-projects.json")).length &&
           contract.media.every(
             // An image frame waiting to load gets overflow: clip from .media-gate (media-delivery R6), hidden once loaded; both clip the mask.
             ({ overflow, height }) =>
@@ -10203,7 +10206,7 @@ async function runHomeMotionRegressionCheck() {
       const hover = await firstCard.evaluate((card) => {
         const media = card.querySelector(".project-card__media");
         const image = media.querySelector("img");
-        const caption = card.querySelector("figcaption");
+        const caption = card.querySelector("figcaption, .blk-projects__name");
         const mediaRect = media.getBoundingClientRect();
         const imageRect = image.getBoundingClientRect();
         const captionRect = caption.getBoundingClientRect();
@@ -10274,9 +10277,17 @@ async function runSharedMediaHoverPortalChecks() {
       async (page) => {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, `/${locale}/`);
-        const allPortals = page.locator("#dich-vu .service-portal, #nang-luc .service-portal");
-        assert((await allPortals.count()) === 6, `Expected six shared media portals at ${locale}`);
-        for (let index = 0; index < 6; index += 1) {
+        // Only linked portals zoom on hover; a portal without a link keeps its image still (owner 2026-11-22).
+        const stillPortal = page.locator("#nang-luc .service-portal").first();
+        await stillPortal.scrollIntoViewIfNeeded();
+        await stillPortal.hover();
+        await page.waitForTimeout(650);
+        const stillScale = await stillPortal.locator("img").evaluate((image) => new DOMMatrixReadOnly(getComputedStyle(image).transform).a);
+        assert(Math.abs(stillScale - 1) < 0.001, `Portal without a link must not zoom at ${locale}: ${stillScale}`);
+        await page.mouse.move(0, 0);
+        const allPortals = page.locator("#dich-vu .service-portal");
+        assert((await allPortals.count()) === 3, `Expected three shared media portals at ${locale}`);
+        for (let index = 0; index < 3; index += 1) {
           const sharedPortal = allPortals.nth(index);
           const sharedImage = sharedPortal.locator(".media-hover-zoom");
           await sharedPortal.scrollIntoViewIfNeeded();

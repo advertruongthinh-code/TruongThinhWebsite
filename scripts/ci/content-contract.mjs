@@ -1,12 +1,12 @@
 // Real-content checks (docs/specs/content-independent-tests.md R2): node scripts/ci/content-contract.mjs
-// Advertising and the home rail reuse the existing validator; HTML and CSS are checked here. Image variants are
+// Advertising, hero slides and the home project strip reuse their validators; HTML and CSS are checked here. Image variants are
 // guarded by scripts/site/build-image-variants.mjs --check, in the same fast suite.
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
 import { fileImageCheck } from "../site/content-files.mjs";
-import { validateProjectReel } from "../site/project-reel.mjs";
+import { validateHomeProjects } from "../site/home-projects.mjs";
 import { LINE_END_PUNCT, duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 
@@ -50,6 +50,25 @@ function ownImageReuse(siteRoot, kind, pages, label) {
   return errors;
 }
 
+// One photo, one page (owner 2026-11-16): a photo in a hand-written page may not appear in another hand-written page.
+// Link cards (an <img> inside <a href>) point at the page that owns the photo, so they are exempt; so are logos (SVG or supplier-logos/) and placeholders.
+function pageImageReuse(siteRoot, files) {
+  const errors = [];
+  const owner = new Map();
+  for (const file of files) {
+    const page = path.relative(siteRoot, file);
+    const text = readFileSync(file, "utf8").replace(/<a\b[^>]*\shref=[^>]*>[\s\S]*?<\/a>/g, "");
+    for (const tag of new Set(text.match(/<img\b[^>]*>/g) ?? [])) {
+      const src = attribute(tag, "src");
+      if (!src?.startsWith("/assets/content/") || src.endsWith(".svg") || src.includes("/supplier-logos/") || path.basename(src).startsWith("placeholder")) continue;
+      const stem = imageStem(src);
+      if (!owner.has(stem)) owner.set(stem, page);
+      else if (owner.get(stem) !== page) errors.push(`${page}: ${src}: photo also used on ${owner.get(stem)} (one photo, one page)`);
+    }
+  }
+  return errors;
+}
+
 // Returns errors as "<file>: <image path>: <rule>", without stopping at the first one.
 export async function checkSiteContent(siteRoot) {
   const { default: sharp } = await import("sharp");
@@ -74,7 +93,7 @@ export async function checkSiteContent(siteRoot) {
       for (const line of [vi, en]) if (LINE_END_PUNCT.test(line)) errors.push(`${at(file)}: title line "${line}" must not end with , . or ;`);
     }
     // A heading split into styled parts, or a statement split by <br>: each part is a line, same rule.
-    for (const [block, name, inner] of text.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/g)) {
+    for (const [block, name, inner] of text.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1\s*>/g)) {
       const parts = [...inner.matchAll(/data-en="([^"]*)"[^>]*>([^<]*)</g)];
       if (!(name.startsWith("h") ? parts.length > 1 : inner.includes("<br"))) continue;
       for (const [, en, vi] of parts) for (const line of [en, vi.trim()]) if (LINE_END_PUNCT.test(line)) errors.push(`${at(file)}: title line "${line}" must not end with , . or ;`);
@@ -97,13 +116,21 @@ export async function checkSiteContent(siteRoot) {
     }
   }
 
+  errors.push(...pageImageReuse(siteRoot, filesUnder(siteRoot, ".html").filter((file) => !file.startsWith(path.join(siteRoot, "assets") + path.sep))));
+  // Block containers must close exactly: a stray </div> or </section> closes the page container early and every block after it
+  // loses its motion (owner 2026-11-22: the CTA vanished after an extra </div> in the supplier logos).
+  for (const file of filesUnder(siteRoot, ".html").filter((f) => !f.startsWith(path.join(siteRoot, "assets") + path.sep))) {
+    const html = readFileSync(file, "utf8").replace(/<!--[\s\S]*?-->/g, "").replace(/<(script|style|template|noscript)\b[\s\S]*?<\/\1>/g, "");
+    for (const tag of ["div", "section", "main", "article", "ul"]) {
+      const open = (html.match(new RegExp(`<${tag}\\b`, "g")) ?? []).length;
+      const close = (html.match(new RegExp(`</${tag}>`, "g")) ?? []).length;
+      if (open !== close) errors.push(`${path.relative(siteRoot, file)}: ${open} <${tag}> but ${close} </${tag}>`);
+    }
+  }
+
   const heroFile = path.join(siteRoot, "content/hero-slides.json");
   if (existsSync(heroFile)) {
     await validateHeroSlides(JSON.parse(readFileSync(heroFile, "utf8")), fileImageCheck(siteRoot)).catch((error) => errors.push(error.message));
-  }
-  const reelFile = path.join(siteRoot, "content/project-reel.json");
-  if (existsSync(reelFile)) {
-    await validateProjectReel(JSON.parse(readFileSync(reelFile, "utf8")), siteRoot).catch((error) => errors.push(error.message));
   }
   // Project and News pages built from blocks (layout-library R4): blocks, VI/EN text, images, linked ids.
   const pages = {};
@@ -118,6 +145,8 @@ export async function checkSiteContent(siteRoot) {
     for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
   }
   errors.push(...ownImageReuse(siteRoot, "news", pages.news, "News"), ...ownImageReuse(siteRoot, "projects", pages.projects, "Project"));
+  const homeProjectsFile = path.join(siteRoot, "content/home-projects.json");
+  if (existsSync(homeProjectsFile)) errors.push(...validateHomeProjects(JSON.parse(readFileSync(homeProjectsFile, "utf8")), ctx.projects));
   // Site menu featured items: project ids and Advertising group slugs must exist.
   const menuFile = path.join(siteRoot, "content/menu.json");
   if (existsSync(menuFile)) {

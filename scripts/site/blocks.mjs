@@ -74,15 +74,44 @@ const figure = (media, className) => `<figure class="${className}">${image(media
 
 // Strip and News blocks without ids pick their items at build (layout-library R1 "tự lấy"), so the CMS author places the block only.
 // project-slider: the other projects of the page's sector, in projects.json order (projects R3).
-// news-cards: 3 other posts, the page's group first, newest first (news R3).
+// news-cards: the 3 most related other posts (news R3, owner 2026-11-22): same group first, then
+// the closest VI text (TF-IDF cosine), then newest. The group is the editor's own relevance call, so text only ranks inside it.
 const NEWS_CARD_COUNT = 3;
 const autoProjectIds = (ctx, page) => [...ctx.projects.values()].filter((project) => project.sector === page.sector && project.id !== page.id).map((project) => project.id);
-const autoNewsIds = (ctx, page) => {
+// Syllables plus syllable pairs, since a Vietnamese word is often two syllables ("tủ bếp"). The title counts 3 times.
+const newsTokens = (post) => {
+  const text = [post.title?.vi, post.title?.vi, post.title?.vi, post.description?.vi, ...(post.blocks ?? []).flatMap((block) => [block.text?.vi, block.title?.vi])];
+  return text.filter((part) => typeof part === "string").flatMap((part) => {
+    const words = part.normalize("NFC").toLowerCase().match(/\p{L}+/gu) ?? [];
+    return [...words, ...words.slice(1).map((word, index) => `${words[index]} ${word}`)];
+  });
+};
+// Unit TF-IDF vector per post, built once per News list.
+const newsVectors = new WeakMap();
+const vectorsOf = (news) => {
+  if (newsVectors.has(news)) return newsVectors.get(news);
+  const counts = new Map([...news.values()].map((post) => [post.id, Map.groupBy(newsTokens(post), (token) => token)]));
+  const df = new Map();
+  for (const tokens of counts.values()) for (const token of tokens.keys()) df.set(token, (df.get(token) ?? 0) + 1);
+  const vectors = new Map([...counts].map(([id, tokens]) => {
+    const vector = new Map([...tokens].map(([token, list]) => [token, list.length * Math.log(news.size / df.get(token))]));
+    const length = Math.hypot(...vector.values()) || 1;
+    return [id, new Map([...vector].map(([token, weight]) => [token, weight / length]))];
+  }));
+  newsVectors.set(news, vectors);
+  return vectors;
+};
+export const autoNewsIds = (ctx, page) => {
+  const vectors = vectorsOf(ctx.news);
+  const own = vectors.get(page.id) ?? new Map();
+  const score = (post) => [...own].reduce((sum, [token, weight]) => sum + weight * (vectors.get(post.id).get(token) ?? 0), 0);
+  // Rounded so float noise never outranks the date tie-break.
   return [...ctx.news.values()]
     .filter((post) => post.id !== page.id)
-    .toSorted((left, right) => Number(right.group === page.group) - Number(left.group === page.group) || right.published.localeCompare(left.published) || left.id.localeCompare(right.id))
+    .map((post) => ({ post, score: Math.round(score(post) * 1e6) }))
+    .toSorted((left, right) => Number(right.post.group === page.group) - Number(left.post.group === page.group) || right.score - left.score || right.post.published.localeCompare(left.post.published) || left.post.id.localeCompare(right.post.id))
     .slice(0, NEWS_CARD_COUNT)
-    .map((post) => post.id);
+    .map(({ post }) => post.id);
 };
 
 // Each block: required fields by type and the HTML builder. ctx holds the project and News lists so blocks can look them up.
@@ -199,7 +228,8 @@ const BLOCKS = {
     ids: "projects",
     // Cards staggered high and low like the home rail (ProjectReel); click opens the project page.
     render: (block, ctx, page) => {
-      const variants = ["high", "low"];
+      // Full class names so the design-system class check finds them.
+      const variants = ["project-card--high", "project-card--low"];
       // On a project page the strip lists the other projects, so it gets Espacio's centred italic "Other projects" heading.
       const onProjectPage = ctx.projects.has(page.id);
       return [
@@ -211,7 +241,7 @@ const BLOCKS = {
           const project = ctx.projects.get(id);
           const cover = project.cover;
           return [
-            `    <a class="project-card project-card--${variants[index % 2]} blk-projects__card" href="/vi/projects/${project.slugVi}/" data-en-href="/en/projects/${project.slugEn}/">`,
+            `    <a class="project-card ${variants[index % 2]} blk-projects__card" href="/vi/projects/${project.slugVi}/" data-en-href="/en/projects/${project.slugEn}/">`,
             `      <span class="project-card__media">${image(cover)}</span>`,
             `      ${localized("span", project.title, ' class="blk-projects__name"')}`,
             "    </a>",

@@ -26,7 +26,7 @@ Một theme sáng; website không có dark theme.
 - **Text:** `ink` cho chữ chính, `muted` cho metadata, label phụ, filter chưa chọn. `line` cho đường phân cách nhẹ.
 - **Accent:** `orange` cho focus ring và điểm nhấn hành động; `orange-accent` chỉ cho hover hoặc chữ từ 24px
   (tương phản 3.6:1); `blue` cho nền `::selection` và indicator route.
-- **Media:** `media-loading-surface` là nền chờ ảnh; `media-label-overlay` (0.5) phủ ảnh portal; `media-shade-card` là lớp
+- **Media:** `media-loading-surface` là nền chờ ảnh; `media-label-overlay` (0.3, như Espacio) phủ ảnh portal; `media-shade-card` là lớp
   tối học Pinterest dưới tên card masonry, chỉ hiện khi chuột thật hover; nút gợi ý chưa
   active dùng lớp tối 0.5 riêng; bốn token `media-control-*`, `control-disabled-*` là trạng thái control viewer Advertising.
 - **CTA:** `cta-black` chỉ dùng cho floating CTA.
@@ -108,7 +108,7 @@ và preview dựng từ chính CSS website.
 | Nhóm | Component |
 | --- | --- |
 | Shell | [Header](components/Header/README.md), [Brand lockup](components/BrandLockup/README.md), [Full menu](components/FullMenu/README.md), [Footer](components/Footer/README.md), [Floating CTA](components/FloatingCta/README.md) |
-| Trang | [Hero](components/Hero/README.md), [Portal](components/Portal/README.md), [Project reel](components/ProjectReel/README.md), [Gallery ngang](components/Gallery/README.md), [Khối trang con](components/DetailBlocks/README.md), [Khối công trình và News](components/Blocks/README.md), [Danh sách News](components/NewsList/README.md), [Quy trình](components/Process/README.md), [Dòng thời gian About](components/AboutTimeline/README.md), [Marquee](components/Marquee/README.md), [Banner CTA](components/BannerCta/README.md), [Vệt sáng](components/LoadSweep/README.md), [Trang 404](components/NotFound/README.md) |
+| Trang | [Hero](components/Hero/README.md), [Portal](components/Portal/README.md), [Gallery ngang](components/Gallery/README.md), [Khối trang con](components/DetailBlocks/README.md), [Khối công trình và News](components/Blocks/README.md), [Danh sách News](components/NewsList/README.md), [Quy trình](components/Process/README.md), [Dòng thời gian About](components/AboutTimeline/README.md), [Marquee](components/Marquee/README.md), [Banner CTA](components/BannerCta/README.md), [Vệt sáng](components/LoadSweep/README.md), [Trang 404](components/NotFound/README.md) |
 | Advertising | [Filter](components/Filter/README.md), [Media card](components/MediaCard/README.md), [Masonry](components/Masonry/README.md), [Skeleton](components/Skeleton/README.md), [Kính](components/Glass/README.md), [Primary](components/Primary/README.md), [Suggestion](components/Suggestion/README.md), [Viewer](components/Viewer/README.md), [Thanh tìm kiếm](components/SearchBar/README.md) |
 
 ## Do's and Don'ts

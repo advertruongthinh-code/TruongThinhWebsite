@@ -73,7 +73,7 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | ID | Spec sở hữu | Source chính | Spec con |
 | --- | --- | --- | --- |
 | shell | `site-shell.md` | header, menu, footer, locale, chuyển trang; `style.css`, `motion.js`, `assets/brand/` | `scroll-feel.md`, `phone-header-scroll.md`, `logo-route-crossfade.md`, `first-load-parity.md`, `hero-typography.md` |
-| home | `page-home.md` | `src/site/index.html`, logo khách, rail công trình | |
+| home | `page-home.md` | `src/site/index.html`, logo khách, dải công trình | |
 | detail-pages | `detail-pages.md` | residential, commercial, about; `detail.css`, `detail.js` | |
 | masonry | `masonry.md` | phần chung mọi masonry: `masonry/host.mjs`, `masonry/mount-budget.mjs` | `advertising-masonry.md`, `advertising-detail.md`, `projects.md` (phần riêng từng trang) |
 | adv-masonry | `advertising-masonry.md` | `advertising-products/index.html`, catalog, layout, random, media contract | `media-card.md`, `media-seo.md`, `loading-glass-and-page-entry.md` |
@@ -81,7 +81,7 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | adv-detail | `advertising-detail.md` | `masonry/suggestion-slideshow.mjs`; trang card `p/<id>`: primary, related, suggestion | `primary-video-player.md`, `advertising-cta-center-parallax.md` (R9, R10: CTA cuối related, card vòng primary) |
 | adv-viewer | `advertising-viewer-touch-zoom.md` | `masonry/detail-viewer.mjs` | |
 | adv-taxonomy | `advertising-taxonomy.md` | `taxonomy.mjs`: cụm, sản phẩm, tag, trang index | |
-| adv-search | `advertising-search.md` | `src/search/`, `src/site/search/`, `scripts/search/`: tìm kiếm theo nghĩa (planned) | |
+| adv-search | `advertising-search.md` | `src/search/`, `src/site/search/`, `scripts/search/`: tìm kiếm theo nghĩa (planned) | `search-bar.md` |
 | glass | `glass-surface.md` | `masonry/glass-surface.mjs` | |
 | media | `media-delivery.md` | biến thể ảnh, `media-lib/responsive-image.mjs`, `head-inline.js`, `build-image-variants.mjs` | |
 | progressive | `progressive-loading.md` | `sw.js`, `media-lib/colors.mjs` | |
@@ -91,7 +91,9 @@ file của spec sở hữu; spec sở hữu link tới spec con trong bảng R h
 | content-tests | `content-independent-tests.md` | `content-contract.mjs` | |
 | design-system | `design-system.md` | `scripts/docs/build-*`, `capture-*`, `stage-*` | |
 | docs | `docs-system.md` | `check-docs.mjs`, PR template, `docs.yml` | |
-| cms | `cms.md` | `src/worker/`, `src/db/migrations/`, `wrangler.toml` (dormant) | |
+| cms | `cms.md` | contract CMS (planned); `src/worker/`, `src/db/migrations/`, `wrangler.toml` dormant | |
+| cms-content | `cms-content.md` | nội dung CMS: kiểu nội dung, media, card, layout, menu, soạn chữ (planned) | |
+| cms-data | `cms-data.md` | dữ liệu CMS: bảng D1, bản chụp, redirect slug, biến thể media, đường dựng CI, bảng lệnh (planned) | |
 | cms-editor | `cms-editor.md` | `src/admin/`, `scripts/cms/`: editor placeholder, overlay, thư viện media (planned, slice 1 local) | |
 | seo | `seo.md` | SEO cho người, Google và AI (planned, tạm dừng) | |
 
@@ -213,6 +215,7 @@ các check trong `scripts/docs/agents-rules.mjs`; file nóng chung với PR mở
 | secret text | File text có chuỗi dạng token (OpenAI, AWS, GitHub, Cloudflare, Notion, Slack, khối `PRIVATE KEY`); báo vị trí, không in giá trị |
 | design line | PR đổi `src/site/`, `src/search/`, `src/worker/`, `src/admin/`, `src/db/` mà không có dòng `Design: <link spec hoặc trang Notion owner duyệt>` hoặc `Mức 0: <lý do>` |
 | one pr per card | Một PR đang mở khác có cùng card trong dòng `Card:` |
+| owner lock | Branch bỏ hoặc sửa một câu trong `docs/specs/` có nhãn owner kèm ngày, hoặc xóa assert trong `tests/` mà không thêm assert nào cùng file (so cả câu, bỏ khoảng trắng đầu cuối; câu chỉ dời chỗ không tính), và không có dòng `Owner đổi: <link tin nhắn owner>`. Owner tự gõ "ok" cho câu cũ và câu mới thì thread mới thêm dòng (owner 2026-11-22) |
 | card claim | Có secret `NOTION_TOKEN`: card không ở `In progress`/`Done` hoặc cột `Agent` trống. Thiếu secret hoặc Notion lỗi: chỉ cảnh báo |
 
 ## Ranh giới

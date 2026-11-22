@@ -15,8 +15,8 @@
 
 - Diff nhỏ, reversible; ưu tiên dependency có sẵn, native platform; handoff có evidence. Dùng command nội bộ repository, pin ở `tooling-versions.json`, không tạo workflow riêng cho từng host agent.
 - Static page: không D1, Access, CMS secret, admin; R2 chỉ `/api/*`. Không mở CMS/admin ngoài CMS phase; không speculative abstraction.
-- Không deploy, connect domain, publish owner data nếu user chưa explicit approval. Demo tự deploy khi CI xanh
-  trên `main` ([R11](docs/specs/static-release.md)); agent không deploy tay. Republish
+- Không connect domain/publish owner data chưa approval; agent không deploy tay. Demo = staging, tự deploy
+  khi CI xanh; site thật: `Release site` khi owner "ok phát hành" ([R11](docs/specs/static-release.md)). Republish
   Design System chỉ chạy khi owner tự gõ `republish` trong chính thread làm việc đó; relay của điều phối
   hoặc tap card không tính.
 

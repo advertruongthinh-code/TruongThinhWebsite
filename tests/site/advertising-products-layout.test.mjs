@@ -29,6 +29,11 @@ import { ADVERTISING_MEDIA_CATEGORY_COUNTS } from "../../src/site/advertising-pr
 import { createGhostLayer } from "../../src/site/masonry/mount-budget.mjs";
 import { validateAdvertisingCardMedia } from "../../src/site/advertising-products/media-contract.mjs";
 
+// Info stays within 28% of the viewport, unless primary fills its height cap: a short image leaves that space to a long
+// description (advertising-detail R2, owner 2026-11-22).
+const infoWithinCap = (geometry, viewportHeight) => geometry.descriptionHeight + geometry.internalGap <= viewportHeight * 0.28 + 1e-9
+  || Math.abs(geometry.height - geometry.heightCap) <= 0.01;
+
 const previousWindow = globalThis.window;
 globalThis.window = {};
 const { compileRelatedLayout } = await import("../../src/site/masonry/runtime.mjs");
@@ -437,7 +442,7 @@ test("R15 selects Pinterest geometry from full span at every responsive boundary
       headerHeight: 90, imageWidth: 1600, imageHeight: 900 }).mode, "split", `${width}px landscape keeps split`);
     if (!fullSpan) continue;
     assert.ok(geometry.top + geometry.height <= viewportHeight, `${width}px Pinterest primary fits below the header`);
-    assert.ok(geometry.descriptionHeight + geometry.internalGap <= viewportHeight * 0.28,
+    assert.ok(infoWithinCap(geometry, viewportHeight),
       `${width}px description and gap stay within the viewport-based 28% cap`);
     assert.ok(Math.abs(geometry.imageHeight - geometry.imageZoneHeight) <= 0.01,
       `${width}px image leaves no top or bottom overflow`);
@@ -477,7 +482,7 @@ test("L04R reserves measured readable primary height before related cards withou
   assert.deepEqual(compileRelatedLayout({ ...options, minimumImageZoneHeight: 0 }), baseline);
 });
 
-test("P7.1 keeps suggestion in primary info for split and first in related grid for full-span", () => {
+test("P7.1 pins suggestion as the first related card: column four beside a split primary, first below a full-span one", () => {
   const cards = fixture([[100, 100], [100, 100], [100, 150], [100, 200]], "continuous-detail");
   const suggestionCard = {
     id: "advertising-suggestion",
@@ -498,10 +503,10 @@ test("P7.1 keeps suggestion in primary info for split and first in related grid 
     headerHeight: 100,
     suggestionCard,
   });
-  assert.equal(split.suggestionPlacement, undefined, "split suggestion belongs inside primary info, not related grid");
+  assert.equal(split.suggestionPlacement, split.layout.placements[0], "split suggestion is the first related card (owner 2026-11-22)");
   assert.deepEqual(split.photoPlacements.map((placement) => placement.card.id).sort(), cards.slice(1).map((card) => card.id).sort(), "split detail retains every related card once");
-  assert.equal(split.layout.placements[0].left, 3, "split first real photo starts in column four");
-  assert.equal(split.layout.placements[0].y, 0, "split first real photo fills the side-column cavity from the top");
+  assert.equal(split.suggestionPlacement.left, 3, "split suggestion pins in column four");
+  assert.equal(split.suggestionPlacement.y, 0, "split suggestion pins level with the primary top");
 
   const result = compileRelatedLayout({
     cards,

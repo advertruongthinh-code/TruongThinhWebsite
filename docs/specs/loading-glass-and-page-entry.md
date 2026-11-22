@@ -73,7 +73,7 @@ chỉ crossfade media. Canvas của lưới card vẽ trên cả card (mỗi car
 không thể nằm dưới): lúc chờ và lúc lộ, pill chỉ số và nhãn vừa xem nằm dưới Flow.
 
 Trên điện thoại (cùng điều kiện `skeletonPhone` của [skeleton R1](advertising-skeleton.md)) không có khung: `revealCard` cho media hiện
-`opacity 0 → 1` trong `0.45s` (`GHOST_FADE_MS`, `GHOST_FADE_EASING`) trên lớp màu, xong gỡ lớp màu (`clearColorWait`), không gọi `playReveal`; bị gỡ giữa chừng thì hủy animation và hiện media ngay.
+`opacity 0 → 1` trong `0.6s` (`GHOST_FADE_MS`, `GHOST_FADE_EASING` = `--ease-card`, owner 2026-11-22 chọn crossfade) trên lớp màu, xong gỡ lớp màu (`clearColorWait`), không gọi `playReveal`; bị gỡ giữa chừng thì hủy animation và hiện media ngay.
 Card đến lượt hiện khi đang vuốt thì giữ lớp màu tới khi trang ngừng cuộn `120ms` (`PHONE_REVEAL_SCROLL_IDLE_MS`). Media chỉ đổi opacity, không đổi
 `transform`, nên hover zoom ([masonry R8](advertising-masonry.md#r8-card-và-ảnh-trong-card)) giữ nguyên sau đó.
 
@@ -121,7 +121,7 @@ không có skeleton. Morph sang viewer theo [detail R9](advertising-detail.md#r9
 
 Điện thoại (cảm ứng, mọi chiều xoay) chạy chuỗi riêng (owner 2026-11-12): không skeleton Flow, không kính mờ. Khung primary nhận
 `data-media-wait="colors"` (lớp màu 4 màu của ảnh, như card), ảnh và nền vùng dư ẩn; `decode()` xong thì ảnh và nền hiện `opacity 0 → 1`
-trong `0.45s` trên lớp màu rồi `settlePrimaryReveal` gỡ lớp màu và `aria-busy`. Giảm chuyển động: settle ngay. Bước 1 và 2 ở trên là chuỗi của PC.
+trong `0.6s` trên lớp màu rồi `settlePrimaryReveal` gỡ lớp màu và `aria-busy`. Giảm chuyển động: settle ngay. Bước 1 và 2 ở trên là chuỗi của PC.
 
 ```gherkin
 Given primary đang xem ảnh A, ảnh B đã có trong cache
@@ -139,7 +139,7 @@ Then Flow chỉ nằm trong hộp ảnh, vùng dư hai bên là zoom blur của 
 
 Given điện thoại mở detail, ảnh primary tải chậm
 When ảnh giải mã xong
-Then khung có lớp màu đổi qua 4 màu của ảnh, không skeleton Flow, rồi ảnh hiện trong 0.45s và lớp màu bị gỡ
+Then khung có lớp màu đổi qua 4 màu của ảnh, không skeleton Flow, rồi ảnh hiện trong 0.6s và lớp màu bị gỡ
 ```
 
 ### R5. Skeleton thay vòng xoay
@@ -225,7 +225,7 @@ dừng vuốt không dựng dồn), và một frame chỉ dựng một lần dù
 grid dưới mọi card. Vuốt trên một viewport mỗi `100ms`, hoặc nhảy xa quá hai viewport, thì chỉ gắn card tạm; hết vuốt thì
 dựng dần mỗi frame (`requestAnimationFrame`). Mọi lớp màu chung pha (`colorsPhase`, `animation-delay` âm theo giờ chung); trên điện thoại card tạm và card chờ dùng chung pha nên không nhảy màu.
 
-Card tạm lên card thật: ảnh đã có hiện dần trên lớp màu, opacity `0 → 1` trong `0.45s` `cubic-bezier(0.16, 1, 0.3, 1)`
+Card tạm lên card thật: ảnh đã có hiện dần trên lớp màu, opacity `0 → 1` trong `0.6s` `cubic-bezier(0.65, 0, 0.35, 1)`
 (cùng nhịp ảnh trang tĩnh), chỉ opacity, xong gỡ card tạm; ảnh chưa xong thì theo R1 và card tạm gỡ ở frame kế (card thật với nền media đục đã phủ kín nó); card tạm
 ngoài viewport gỡ không motion. Giảm chuyển động (R8): lớp màu đứng yên ở màu 1, ảnh có sẵn hiện thẳng.
 
@@ -233,7 +233,7 @@ ngoài viewport gỡ không motion. Giảm chuyển động (R8): lớp màu đ�
 Given masonry All trên phone, CPU chậm 4 lần, ảnh đã có trong cache
 When vuốt cực nhanh qua 20 viewport trong 1 giây rồi dừng
 Then mỗi frame viewport được card thật hoặc card tạm phủ, mỗi frame dựng vài card thật
-And card tạm lên card thật thì ảnh hiện dần trong 0.45s, card chỉ bị gỡ khi ra xa hơn hai viewport
+And card tạm lên card thật thì ảnh hiện dần trong 0.6s, card chỉ bị gỡ khi ra xa hơn hai viewport
 ```
 
 ## Giao diện và dữ liệu

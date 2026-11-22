@@ -416,7 +416,9 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
       `${label}: primary bottom ${actual.primary.bottom} exceeds viewport ${viewportBottom} despite fitting floors`);
   }
   if (expectedLayout === "pinterest") {
-    if (fitsInfoCap) assert(actual.info.height + actual.primaryGap <= actual.viewport.height * 0.28 + 1.5,
+    // Over 28% only when primary fills its cap: a short image leaves that room to a long description (owner 2026-11-22).
+    if (fitsInfoCap) assert(actual.info.height + actual.primaryGap <= actual.viewport.height * 0.28 + 1.5
+      || Math.abs(actual.primary.bottom - (viewportBottom - actual.primaryGap - requiredPeek)) <= 1.5,
       `${label}: description and gap exceed the viewport-based 28% cap despite fitting floors`);
     closeTo(actual.frame.height, actual.foreground.rect.height, `${label}: Pinterest image has vertical blur overflow`, 1.5);
   }
@@ -953,7 +955,8 @@ async function runP7PinterestContract(browser, locale) {
     assert(initial.primary.bottom <= initial.viewportHeight + 1.5, `${label}: primary extends below viewport`);
     // The long cluster label wraps at 32px so the info floor may exceed 28%; then info must not be taller than the floor.
     const infoCap = Math.max(initial.viewportHeight * 0.28, initial.infoMinimum + initial.gap + 1);
-    assert(initial.info.height + initial.gap <= infoCap + 1.5,
+    assert(initial.info.height + initial.gap <= infoCap + 1.5
+      || Math.abs(initial.primary.bottom - (initial.viewportHeight - initial.gap - 50)) <= 1.5,
       `${label}: description and gap exceed the viewport-based 28% cap`);
     closeTo(initial.hero.height + initial.gap + initial.info.height, initial.primary.height, `${label}: primary vertical allocation`, 2);
     assert(!["auto", "scroll"].includes(initial.infoOverflowY), `${label}: description retains inner scroll`);

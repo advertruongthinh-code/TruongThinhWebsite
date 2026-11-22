@@ -63,7 +63,7 @@
   --orange: #a34119;
   --orange-accent: #d85d2b;
   --media-loading-surface: #2b2c2b;
-  --media-label-overlay: rgba(0, 0, 0, 0.5);
+  --media-label-overlay: rgba(0, 0, 0, 0.3);
   /* Masonry card hover shade, copied from Pinterest pin cards (owner 2026-11-10): a flat rgba(17, 17, 17, 0.4) band over the top
      48px, then a linear fade to transparent at the bottom edge of the card. */
   --media-shade-card: linear-gradient(180deg, rgba(17, 17, 17, 0.4) 48px, rgba(17, 17, 17, 0) 100%);
@@ -169,7 +169,7 @@ body {
   color: var(--ink);
   font-family: "Plus Jakarta Sans", Arial, sans-serif;
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
   /* Site-wide orphan rule: inherited by every text block, so no paragraph ends on a lone word; headings that set balance keep it. */
@@ -239,11 +239,11 @@ a {
 }
 
 /* Keep the touch and drag rail usable without exposing a horizontal scrollbar. */
-:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters) {
+:where(.editorial-strip, .detail-process, .detail-gallery__track, .project-filters) {
   scrollbar-color: transparent transparent;
 }
 
-:where(.editorial-strip, .detail-process, .project-track, .detail-gallery__track, .project-filters)::-webkit-scrollbar:horizontal {
+:where(.editorial-strip, .detail-process, .detail-gallery__track, .project-filters)::-webkit-scrollbar:horizontal {
   height: 0;
 }
 
@@ -470,7 +470,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   justify-self: center;
   align-self: center;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -630,47 +630,63 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
   transform: translateX(0);
 }
 
-/* Back to top (owner 2026-11-13): phones on a page with a masonry layout, past the first screen, in the corner the floating CTA leaves;
-   the same black square as the CTA's icon-only form at 750px (35px plus 9px padding, 15px from the right). motion.js adds .show. */
+/* Back to top (owner 2026-11-13, unified 2026-11-22): phones only (no PC, owner 2026-11-22), on a page with a masonry layout, past the
+   first screen, in the bottom-right corner the floating CTA leaves; white 50px square with the search block's shadow (search-bar R5).
+   motion.js adds .show.
+   It stays at the right edge on every page and sits under the floating search block so its shadow never covers the bar (owner 2026-11-22). */
 .back-to-top {
-  display: none;
+  position: fixed;
+  z-index: 973;
+  right: 35px;
+  bottom: calc(35px + var(--search-bar-offset, 0px));
+  display: grid;
+  box-sizing: border-box;
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 12px 32px rgb(0 0 0 / 18%);
+  cursor: pointer;
+  transform: translateX(150%);
+  transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
+}
+
+.back-to-top.show {
+  transform: translateX(0);
+}
+
+.back-to-top svg {
+  width: 25px;
+  height: 25px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: square;
+}
+
+@media (max-width: 1200px) {
+  .back-to-top {
+    right: 25px;
+    bottom: calc(25px + var(--search-bar-offset, 0px));
+  }
 }
 
 @media (hover: none) and (pointer: coarse) {
   .back-to-top {
-    position: fixed;
-    z-index: 975;
-    right: 15px;
-    bottom: calc(25px + var(--search-bar-offset, 0px));
-    display: grid;
-    box-sizing: content-box;
-    width: 35px;
-    height: 35px;
-    padding: 9px;
-    place-items: center;
-    border: 2px solid #000;
-    background: #000;
-    color: #fff;
-    cursor: pointer;
-    transform: translateX(150%);
-    transition: transform 1s cubic-bezier(0.63, 0, 0.08, 1);
-  }
-
-  .back-to-top.show {
-    transform: translateX(0);
-  }
-
-  .back-to-top svg {
-    width: 25px;
-    height: 25px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.4;
-    stroke-linecap: square;
+    right: 16px;
   }
 }
 
-@media (hover: none) and (pointer: coarse) and (prefers-reduced-motion: reduce) {
+@media (hover: hover), (pointer: fine) {
+  .back-to-top {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .back-to-top {
     transition: none;
   }
@@ -744,7 +760,7 @@ html[lang="en"] .brand-lockup__subtitle[data-lang="en"] {
     170px minmax(0, 1fr) minmax(0, 1fr) 50px;
   align-items: center;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .menu-head::after {
@@ -870,7 +886,7 @@ html[lang="en"] .menu-language [data-language-option="en"]::after {
   gap: 10px;
   font-size: 0.85rem;
   line-height: 1.4;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -1050,7 +1066,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   overflow-wrap: anywhere;
   margin-bottom: 15px;
   font-size: 1.8rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -1107,7 +1123,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
   display: inline-block;
   color: inherit;
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: max(22.4px, 1.3em);
   text-transform: uppercase;
 }
@@ -1282,7 +1298,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 .hero p:where(.hero-title),
 .legacy-copy h2 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   word-spacing: var(--word-spacing-display);
 }
@@ -1299,13 +1315,18 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 }
 
 em {
+  font-weight: inherit;
+}
+
+/* Every hero title: the italic part is the em and is always bold, 600 = the heaviest of the 3 site weights (owner 2026-11-22). */
+.hero > .hero-content > :is(h1, p.hero-title):not(.hero-kicker) em {
+  font-style: italic;
   font-weight: 600;
 }
 
-/* Home: two lines bold 700, line 2 "Làm khác" additionally italic (owner 2026-10-24). */
-.hero[data-hero-intro] h1 > .hero-line-mask:first-child,
-.hero[data-hero-intro] h1 em {
-  font-weight: 700;
+/* Home hero: both lines bold, line 2 "Làm khác" also italic (owner 2026-11-22). */
+.hero[data-hero-intro] h1 {
+  font-weight: 600;
 }
 
 .hero-line-mask,
@@ -1460,7 +1481,7 @@ em {
   color: currentColor;
   cursor: pointer;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-align: center;
   text-transform: uppercase;
@@ -1532,8 +1553,7 @@ em {
   font-size: clamp(1rem, 1.4vw, 1.25rem);
 }
 
-.editorial-strip:focus-visible,
-.project-track:focus-visible {
+.editorial-strip:focus-visible {
   outline-width: 3px;
   outline-offset: -3px;
 }
@@ -1617,7 +1637,7 @@ em {
 .editorial-item h3 {
   margin: 0 0 0.75rem;
   font-size: clamp(1rem, 2vw, 1.25rem);
-  font-weight: 700;
+  font-weight: 600;
   hyphens: auto;
   letter-spacing: 0;
   line-height: 1.35;
@@ -1709,7 +1729,7 @@ em {
 
 .portal-copy strong {
   font-size: clamp(3.05rem, 4.167vw, 4rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 1.18;
   text-wrap: balance;
@@ -1721,7 +1741,7 @@ em {
 }
 
 .portal-title__strong {
-  font-weight: 700;
+  font-weight: 500;
 }
 
 .portal-title-mask,
@@ -1748,47 +1768,58 @@ em {
 .portal-copy small {
   margin-top: 0.5rem;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
-#nang-luc .portal-copy {
-  inset: 0;
+/* Home commitments (page-home R5): text sits bottom-left like the owner's reference; title is a small label,
+   the lead is the large line (shared portal mask reveal), the body fades in (shared portal subtitle reveal). */
+.commitment-copy {
+  inset: auto 0 0;
   display: block;
+  padding: min(1.75rem, 7.5cqw);
   transform: none;
+  text-align: left;
+  text-transform: none;
 }
 
-/* Capabilities use the same site-wide portal text token; copy stays short enough to fit one line (page-home R5). */
-#nang-luc .portal-copy .portal-title-mask {
-  font-size: var(--portal-title-size);
+.commitment-title {
+  margin: 0 0 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  line-height: 1.3;
+  text-transform: uppercase;
+}
+
+/* Two authored lines, never re-wrapped, so compounds such as "gia công" stay together (owner orphan rule). */
+.commitment-lead {
+  margin: 0 0 0.875rem;
+  font-size: min(2.25rem, 8.4cqw);
+  font-weight: 400;
+  line-height: 1.12;
   white-space: nowrap;
 }
 
-#nang-luc .portal-subtitle {
-  font-size: var(--portal-subtitle-size);
-  white-space: nowrap;
+.commitment-body {
+  max-width: 34ch;
+  margin: 0;
+  font-size: min(1rem, 4.8cqw);
+  font-weight: 400;
+  line-height: 1.5;
+  text-wrap: pretty;
 }
 
-#nang-luc .capability-title-anchor {
-  position: absolute;
-  top: 50%;
-  right: 0.75rem;
-  left: 0.75rem;
-  transform: translateY(-50%);
+/* Side by side, every body reserves five lines so titles and leads line up across cards (owner 2026-11-16). */
+@media (min-width: 579px) {
+  .commitment-body {
+    min-height: calc(1.5em * 5);
+  }
 }
 
-#nang-luc .portal-copy strong {
-  display: block;
-}
-
-#nang-luc .portal-copy small {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  left: 0;
-  display: flex;
-  justify-content: center;
-  margin-top: 1.1rem;
+/* The commitment body needs more contrast at the bottom than the shared 0.3 layer gives (every portal without a link). */
+.service-portal:has(.commitment-copy) .portal-shade {
+  background: linear-gradient(180deg, var(--media-label-overlay) 35%, rgba(0, 0, 0, 0.72));
 }
 
 .service-portals .service-portal:nth-child(1) {
@@ -1803,6 +1834,15 @@ em {
   --portal-subtitle-delay: 0.9s;
 }
 
+.service-portals .service-portal:nth-child(4) {
+  --portal-subtitle-delay: 1.2s;
+}
+
+/* Home commitments (page-home R5): four portals in one row. */
+.service-portals--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 .motion-enabled .service-portal .portal-subtitle {
   opacity: 0;
   transition: opacity var(--dur-base) ease-out var(--portal-subtitle-delay);
@@ -1813,8 +1853,8 @@ em {
   opacity: 1;
 }
 
-/* Three-tier portal (home, child page types): kicker, title always at the card center, tagline. */
-:is(#dich-vu, #loai-hinh) .portal-copy {
+/* Three-tier portal (home fields, the only linked portals): kicker, title always at the card center, tagline. */
+#dich-vu .portal-copy {
   --portal-title-half-line: calc(var(--portal-title-size) * 0.54);
   --portal-upper-gap: 0.85rem;
   --portal-lower-gap: 1.1rem;
@@ -1822,12 +1862,7 @@ em {
   transform: none;
 }
 
-/* Two-line title, no kicker (Commercial type, owner 2026-10-27): the tagline retreats by half of the two-line block. */
-#loai-hinh .portal-copy:has(.portal-line + .portal-line) {
-  --portal-title-half-line: calc(var(--portal-title-size) * 1.08);
-}
-
-:is(#dich-vu, #loai-hinh) .portal-copy strong {
+#dich-vu .portal-copy strong {
   position: absolute;
   inset: 0;
   font-size: var(--portal-title-size);
@@ -1839,8 +1874,8 @@ em {
   display: none;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__quiet,
-:is(#dich-vu, #loai-hinh) .portal-title__strong {
+#dich-vu .portal-title__quiet,
+#dich-vu .portal-title__strong {
   position: absolute;
   /* Fixed 8px like the tagline: "KHU LÀM VIỆC" still fits when the root text is 200% at 320px. */
   right: 8px;
@@ -1849,23 +1884,23 @@ em {
   white-space: nowrap;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__quiet {
+#dich-vu .portal-title__quiet {
   bottom: calc(50% + var(--portal-title-half-line) + var(--portal-upper-gap));
   font-size: var(--portal-kicker-size);
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
 }
 
-:is(#dich-vu, #loai-hinh) .portal-title__strong {
+#dich-vu .portal-title__strong {
   top: 50%;
   transform: translateY(-50%);
   font-size: var(--portal-title-size);
-  font-weight: 600;
+  font-weight: 500;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-copy small {
+#dich-vu .portal-copy small {
   position: absolute;
   top: calc(50% + var(--portal-title-half-line) + var(--portal-lower-gap));
   /* Fixed 8px: a long tagline (EN Commercial) still fits one line when the root text is 200% (page-home R5). */
@@ -1877,7 +1912,7 @@ em {
   letter-spacing: 0;
 }
 
-:is(#dich-vu, #loai-hinh) .portal-subtitle,
+#dich-vu .portal-subtitle,
 .legacy-link .portal-subtitle {
   position: relative;
   width: fit-content;
@@ -1938,7 +1973,7 @@ em {
   margin: 0;
   align-items: center;
   font-size: min(9.506vw, 6.25rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 1.08;
   text-transform: uppercase;
@@ -2056,7 +2091,7 @@ em {
   align-items: center;
   gap: 1.4rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2087,33 +2122,6 @@ em {
   transform: translateX(0);
 }
 
-.project-reel {
-  position: relative;
-  padding: 35px 35px 0;
-  overflow: hidden;
-  background: var(--white);
-}
-
-.project-track {
-  display: grid;
-  max-width: 1730px;
-  min-height: 650px;
-  margin: 0 auto;
-  grid-auto-columns: minmax(0, 1fr);
-  grid-auto-flow: column;
-  gap: clamp(1.5rem, 3.4vw, 4.1rem);
-}
-
-.motion-enabled .project-track {
-  translate: 60px 0;
-  transition: translate var(--dur-hover) var(--ease);
-  will-change: transform, translate;
-}
-
-.motion-enabled .project-track.is-inview {
-  translate: 0 0;
-}
-
 .project-card {
   min-width: 0;
   margin: 0;
@@ -2133,8 +2141,7 @@ em {
   transition: transform var(--dur-hover) ease-out;
 }
 
-.project-card--low,
-.project-card--mid {
+.project-card--low {
   padding-top: 180px;
 }
 
@@ -2146,7 +2153,7 @@ em {
   margin-top: 5px;
   padding-top: 0.75rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
   transition: opacity var(--dur-base) ease-out;
 }
@@ -2188,6 +2195,8 @@ em {
   min-height: 600px;
   padding-block: 30px;
   margin-right: auto;
+  /* Espacio space below the banner (scroll-feel R5); the closer is the last section of main (owner 2026-11-22). */
+  margin-bottom: 90px;
   margin-left: auto;
   /* clip, not hidden: the -100vmax click layer of .legacy-link does not create a hidden scroll area. */
   overflow: clip;
@@ -2218,11 +2227,6 @@ em {
 .legacy-shade {
   /* Owner 2026-10-26: 0.5 (previously 0.2). */
   background: rgba(0, 0, 0, 0.5);
-}
-
-/* Do not use `+ *`: a rule adjacent to a universal subject makes every Advertising card insertion into the grid restyle the whole page (decision phone-frame-budget). */
-.legacy-closer + section {
-  margin-top: 90px;
 }
 
 /* The whole block is clickable ("Giữ nghề", child page CTA); the label reuses the subtitle of the service portal.
@@ -2335,7 +2339,7 @@ em {
   padding-inline-end: 2.8rem;
   animation: marquee 25s linear infinite;
   font-size: clamp(1.5rem, 2.8vw, 3.2rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: -0.01em;
   text-transform: uppercase;
   word-spacing: var(--word-spacing-body);
@@ -2524,7 +2528,7 @@ em {
   gap: 1.5rem;
   border-bottom: 1px solid currentColor;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -2540,7 +2544,7 @@ em {
   min-width: 0;
   margin: 0;
   font-size: clamp(2.8rem, 4.5vw, 5.4rem);
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: calc(0.98em + 14px);
   overflow-wrap: anywhere;
@@ -2571,7 +2575,7 @@ em {
   column-gap: 0.65rem;
   /* From 1440px a text line is 36px tall (1.6rem x 1.4), equal to the social icon. */
   font-size: clamp(1.125rem, 1.8vw, 1.6rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   word-spacing: var(--word-spacing-body);
 }
@@ -2706,15 +2710,6 @@ em {
   .heritage-montage {
     padding-right: 25px;
     padding-left: 25px;
-  }
-
-  .project-reel {
-    padding-right: 25px;
-    padding-left: 25px;
-  }
-
-  .project-track {
-    gap: 25px;
   }
 
 }
@@ -2921,22 +2916,6 @@ em {
     margin-left: 10px;
   }
 
-  .project-reel {
-    padding-right: 0;
-    padding-left: 0;
-  }
-
-  .project-track {
-    display: flex;
-    height: 34rem;
-    min-height: 0;
-    padding: 0 25px 1rem;
-    gap: 1.25rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scroll-snap-type: x mandatory;
-  }
-
   .project-card {
     width: min(70vw, 24rem);
     flex: 0 0 auto;
@@ -3099,16 +3078,6 @@ em {
 
   .story-link svg {
     width: 7.5rem;
-  }
-
-  .project-reel {
-    padding-top: 20px;
-  }
-
-  .project-track {
-    height: 32rem;
-    padding-right: 20px;
-    padding-left: 20px;
   }
 
   .project-card {
@@ -3446,7 +3415,6 @@ html.motion-fallback .reveal,
 html.motion-fallback .heritage-line,
 html.motion-fallback .portal-line,
 html.motion-fallback .motion-line,
-html.motion-fallback .project-track,
 html.motion-fallback .heritage-image,
 html.motion-fallback .legacy-copy > p {
   opacity: 1 !important;
@@ -3468,10 +3436,13 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 @media (max-width: 960px) {
   .legacy-closer {
     min-height: 400px;
+    margin-bottom: 60px;
   }
+}
 
-  .legacy-closer + section {
-    margin-top: 60px;
+@media (max-width: 578px) {
+  .legacy-closer {
+    margin-bottom: 30px;
   }
 }
 
@@ -3481,8 +3452,26 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   }
 }
 
+/* Four commitments: two columns up to 1200px so the lead keeps a readable size, one on phone (page-home R5); after the shared portal breakpoints so it wins. */
+@media (max-width: 1200px) {
+  /* Two rows need their own height; the shared one-row 600px box let them spill over the next block (owner 2026-11-22). */
+  .service-portals--four {
+    height: auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-portals--four .service-portal {
+    height: 34rem;
+    min-height: 0;
+  }
+}
+
 @media (max-width: 578px) {
-  .legacy-closer + section {
-    margin-top: 30px;
+  .service-portals--four {
+    grid-template-columns: 1fr;
+  }
+
+  .service-portals--four .service-portal {
+    height: 400px;
   }
 }

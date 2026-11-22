@@ -18,20 +18,19 @@ hình ([nguồn cảm hứng](../../README.md#nguồn-tham-khảo)). Markup
   giải mã xong (khung chưa có `.is-media-settled`) thì ảnh ẩn và `hero-shade` ẩn ([Vệt sáng](../LoadSweep/README.md)). Header đổi tone theo nền qua `data-header-tone`.
 - Kicker ẩn từ 750px trở xuống (owner 2026-10-18).
 - Tiêu đề mọi trang in hoa toàn bộ (owner 2026-10-24).
-- Weight: kicker 700 cỡ 1rem. Tiêu đề có cặp đậm nhẹ thì mọi trang dùng chung nhẹ 500,
-  đậm 700, như Advertising; chữ nhấn của trang chủ, Residential, Commercial đậm 700 và nghiêng
-  (owner 2026-10-24).
+- Weight: kicker 600 cỡ 1rem. Tiêu đề mọi trang 500 (3 mức weight như Espacio, owner 2026-11-22); trang chủ cả hai dòng 600.
+  Phần nghiêng của title mọi hero luôn là `em`, nghiêng và đậm 600 (owner 2026-11-22), một rule chung ở `style.css`.
   Tracking display `tracking-display`.
 
 ## Theo trang
 
 | Trang | Nền | Tiêu đề | Kicker |
 | --- | --- | --- | --- |
-| Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, cả hai đậm 700, dòng 2 nghiêng; lớn hơn các trang khác một bậc | Có |
-| Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa nhẹ 500, đậm 700 nghiêng, line-height 1.4; Residential nhấn dòng 2, Commercial nhấn `em` | Có |
-| About | Ảnh đội ngũ, `hero-shade` | Dòng 1 weight 500, dòng 2 700 | Không (owner 2026-10-18) |
-| Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa nhẹ 500, đậm 700, line-height 1.4 | Có |
-| Trang công trình (`.project-hero`) | Ảnh công trình, `hero-shade` | `tagline` 1 đến 3 dòng, một chữ nghiêng 700; tiêu đề một dòng thì canh giữa, ba dòng thì dòng giữa canh giữa | Tên công trình (`h1`) chữ hoa 16px 600, phone vẫn hiện, canh giữa; nút "Thiết kế không gian của bạn" `.hero-cta` 16px 700 chữ hoa, cách tiêu đề 32px, kéo tới `#lien-he`, gạch chân 3px khi rê chuột (phone luôn có) |
+| Trang chủ | Slideshow ảnh full viewport, chữ trắng | Một cỡ cho hai dòng, cả hai 600, dòng 2 nghiêng; lớn hơn các trang khác một bậc | Có |
+| Residential, Commercial | Slideshow như trang chủ, `hero-shade` | Chữ hoa 500, phần nhấn `em` 600 nghiêng, line-height 1.4; Residential nhấn dòng 2, Commercial nhấn "tối ưu", "bền bỉ" | Có |
+| About | Ảnh đội ngũ, `hero-shade` | Hai dòng weight 500 | Không (owner 2026-10-18) |
+| Advertising | `paper`, chữ `ink`; rail và chip dưới title | Chữ hoa 500, chỉ "tầm mắt" (EN "sight") `em` 600 nghiêng, line-height 1.4; trang Công trình nhấn "cảm hứng" | Có |
+| Trang công trình (`.project-hero`) | Ảnh công trình, `hero-shade` | `tagline` 1 đến 3 dòng, một chữ nghiêng 600; tiêu đề một dòng thì canh giữa, ba dòng thì dòng giữa canh giữa | Tên công trình (`h1`) chữ hoa 16px 600, phone vẫn hiện, canh giữa; nút "Thiết kế không gian của bạn" `.hero-cta` 16px 700 chữ hoa, cách tiêu đề 32px, kéo tới `#lien-he`, gạch chân 3px khi rê chuột (phone luôn có) |
 
 Hero ảnh cao `100svh`; Advertising cao `100svh - 50px`. Ảnh đầu tải ngay với
 `fetchpriority="high"`; trang chủ, Residential, Commercial chọn ảnh đầu ngẫu nhiên mỗi lần tải và preload nó
@@ -51,7 +50,7 @@ Quy tắc đầy đủ ở [hero-typography R2](../../../docs/specs/hero-typogra
   3px) dù có hay không có hàng chip. Không hiện kicker, trừ trang công trình (kicker là tên công trình, như Espacio).
 - **Rail Advertising trên phone:** `.hero-browse` neo theo đáy hero, chừa sẵn
   một hàng chip, nên rail đứng một chỗ như trên PC.
-- **Kicker:** 16/22.4, 700 hoa; cách nét chữ title như nhau ở mọi hero,
+- **Kicker:** 16/22.4, 600 hoa; cách nét chữ title như nhau ở mọi hero,
   `clamp(1.5rem, 3.8vh, 2.2rem)` trừ `--hero-ink-drop`.
 - **Không JS:** về cỡ chung 12,5em, hai dòng sát hai mép khung.
 - Scroll cue chữ hoa 12.8/17.92, cách đáy hero 45px (`> 1200`), 30px

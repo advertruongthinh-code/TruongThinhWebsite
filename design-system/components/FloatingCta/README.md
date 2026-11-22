@@ -20,8 +20,9 @@ Nút liên hệ Zalo nổi ở góc phải dưới mọi trang. Markup `a.floati
 
 ## Nút về đầu trang
 
-- `button.back-to-top`, cùng ô vuông với CTA ở `<= 750px` (35px, đệm 9px, viền 2px đen, nền đen), cách phải 15px, dưới 25px; icon mũi tên lên 25px nét 2.4, không chữ, nhãn `aria-label`.
-- Chỉ điện thoại (`(hover: none) and (pointer: coarse)`), trang có masonry, khi đã qua màn đầu: đúng lúc CTA trượt ra, nên hai nút không cùng hiện. Trượt vào từ phải như CTA.
+- `button.back-to-top`, chỉ trên điện thoại, PC không có (owner 2026-11-22): ô 50px nền `paper`, viền 1px `ink`, bóng như khối [thanh tìm kiếm](../SearchBar/README.md), icon mũi tên lên 25px nét 2.4, không chữ, nhãn `aria-label`. Cách phải 16px. Nằm dưới khối tìm kiếm nổi nên bóng không phủ lên thanh.
+- Trang có masonry, khi đã qua màn đầu: đúng lúc CTA trượt ra, nên hai nút không cùng hiện. Trượt vào từ phải như CTA. Có cả trên PC.
+- Trang có thanh tìm kiếm nổi trên điện thoại ([search-bar R5](../../../docs/specs/search-bar.md#r5-nút-về-đầu-trang-phone-và-chuyển-động)): hàng riêng cách mép trên khối 10px, vẫn sát mép phải màn; bàn phím mở thì ẩn. Thanh dừng ở khe CTA thì ẩn ở mọi thiết bị.
 - Bấm thì cuộn mượt về đầu trang; reduced motion nhảy thẳng, không trượt.
 
 Preview hiện trạng thái `show`.

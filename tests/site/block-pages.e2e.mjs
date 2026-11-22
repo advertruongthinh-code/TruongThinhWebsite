@@ -50,7 +50,11 @@ try {
         // Only consider blocks built from data: html already has overflow-x hidden, and the floating button sliding in from the right edge creates no scrollbar;
         // the old blocks of the Residential and Commercial pages belong to the detail-pages test. A block that slides in from the right
         // ([data-motion-left]) starts 60px out until it scrolls into view; #noi-dung clips it (project-hero-motion test checks the page width).
-        overflow: [...document.querySelectorAll("main .blk, main .blk *")].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1 && !element.closest("[data-gallery-track], .blk-projects__track, [data-motion-left]"))
+        // A child of a block-level scroll rail (overflow-x not visible, e.g. the News filter row on phone) scrolls inside the rail;
+        // the rail itself is still measured.
+        overflow: [...document.querySelectorAll("main .blk, main .blk *")].filter((element) => element.getBoundingClientRect().right > document.documentElement.clientWidth + 1
+          && !element.closest("[data-gallery-track], .blk-projects__track, [data-motion-left]")
+          && !(function inRail(node) { return Boolean(node?.closest(".blk")) && (getComputedStyle(node).overflowX !== "visible" || inRail(node.parentElement)); })(element.parentElement))
           .slice(0, 3).map((element) => `${element.tagName}.${[...element.classList].join(".")}`).join(", "),
         switchTo: [...document.querySelectorAll("[data-language-option]")].map((anchor) => new URL(anchor.href).pathname),
         // Projects page: the advertising masonry runtime has mounted (a type with no projects yet has an empty grid).

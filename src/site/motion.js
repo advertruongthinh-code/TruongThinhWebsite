@@ -730,8 +730,8 @@
       if (pageState) pageState.floatingCtaShown = nextCtaShown;
       floatingCta?.classList.toggle("show", nextCtaShown);
     }
-    // Back to top (owner 2026-11-13): phones, on a page with a masonry layout, once the first screen is passed. It takes the corner the floating
-    // CTA leaves at that point (masonry browse hides the CTA altogether).
+    // Back to top (owner 2026-11-13; phones only, owner 2026-11-22): on a page with a masonry layout, once the first screen is passed.
+    // It takes the corner the floating CTA leaves at that point (masonry browse hides the CTA altogether).
     const topShown = phoneQuery.matches && scrollY > window.innerHeight && Boolean(document.querySelector("[data-masonry-item]"));
     if (backToTop && topShown !== backToTop.classList.contains("show")) {
       backToTop.classList.toggle("show", topShown);
@@ -763,8 +763,13 @@
         headerFollowHeight = height;
         headerFollowStale = false;
       }
+      // Browser URL bar first (owner 2026-11-22, phone-header-scroll R7): scrolling down moves the header only once the bar
+      // is fully hidden, scrolling up only once it is fully shown; while the bar slides, Chrome pushes scrollY back, so hold.
+      const delta = settledY - lastScrollY;
+      const bar = urlBarState();
+      const held = bar && (delta > 0 ? bar !== "hidden" : delta < 0 && bar !== "shown");
       headerOffset = Math.min(
-        Math.max(0, Math.min(headerOffset + settledY - lastScrollY, headerFollowHeight)),
+        held ? headerOffset : Math.max(0, Math.min(headerOffset + delta, headerFollowHeight)),
         settledY,
       );
       if (headerOffset) header.style.transform = `translateY(${-headerOffset}px)`;
@@ -784,14 +789,29 @@
         directionStartY = scrollY;
         lastDirection = direction;
       }
+      // Scrolling up no longer reveals the header (owner 2026-11-22); it shows again outside the middle zone or by mouse at the top edge.
       if (isMiddle && direction === "down" && scrollY - directionStartY > 150) {
         header.classList.add("is-hidden");
-      } else if (isMiddle && direction === "up" && directionStartY - scrollY > 150) {
-        header.classList.remove("is-hidden");
       }
     }
     lastScrollY = settledY;
     ticking = false;
+  };
+
+  // Dynamic URL bar state from the visual viewport: "shown" at 100svh, "hidden" at 100lvh, "moving" between; null when the
+  // browser has no dynamic bar or the page is pinch-zoomed.
+  const urlBarProbe = document.createElement("div");
+  urlBarProbe.setAttribute("aria-hidden", "true");
+  urlBarProbe.style.cssText =
+    "position:fixed;top:0;left:0;width:100lvh;height:100svh;visibility:hidden;pointer-events:none;contain:strict";
+  document.body.append(urlBarProbe);
+  const urlBarState = () => {
+    const visible = window.visualViewport;
+    if (!visible || visible.scale !== 1) return null;
+    const { width: large, height: small } = urlBarProbe.getBoundingClientRect();
+    if (large - small < 1) return null;
+    if (visible.height <= small + 1) return "shown";
+    return visible.height >= large - 1 ? "hidden" : "moving";
   };
 
   const requestHeaderUpdate = () => {
@@ -1523,7 +1543,6 @@
         card,
         target: card.querySelector(".portal-subtitle"),
       }));
-      const projectTrack = state.container.querySelector(".project-track");
       const heroWords = selectAll(".hero-word");
       const heroLabels = selectAll("[data-hero-label]");
       const heroShade = state.hero?.querySelector(".hero-shade");
@@ -1602,7 +1621,6 @@
         portalSubtitles.forEach(({ card }) =>
           card.classList.add("is-subtitle-inview"),
         );
-        projectTrack?.classList.add("is-inview");
         if (heroWords.length) gsap.set(heroWords, { opacity: 1 });
       } else {
         if (revealItems.length) gsap.set(revealItems, { opacity: 0, y: 60 });
@@ -1639,7 +1657,7 @@
             });
           }
         }),
-        onceInView(watch([...heritageImages, projectTrack]), (target) => target.classList.add("is-inview")),
+        onceInView(watch(heritageImages), (target) => target.classList.add("is-inview")),
         onceInView(watch(portalTitles.map(({ target }) => target)), (target) => {
           const portal = portalTitles.find((item) => item.target === target);
           revealLines(portal.lines.length ? portal.lines : portal.card.querySelectorAll(".portal-copy strong"), {
@@ -1916,7 +1934,7 @@
     if (heroShuffle?.tagName === "SCRIPT") {
       heroShuffle.replaceWith(Object.assign(document.createElement("script"), { textContent: heroShuffle.textContent }));
     }
-    const projectTrack = container.querySelector(".project-track, .blk-projects__track");
+    const projectTrack = container.querySelector(".blk-projects__track");
     if (heroMedia) {
       heroMedia.setAttribute("data-scroll", "");
       heroMedia.setAttribute("data-scroll-speed", "-2");

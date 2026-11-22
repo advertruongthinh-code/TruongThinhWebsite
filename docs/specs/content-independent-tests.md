@@ -30,7 +30,7 @@ Mỗi assertion thuộc đúng một loại:
 | Bất biến | Hành vi đúng với mọi nội dung hợp lệ: không chồng lấn, giữ thứ tự, không card lấp chỗ, không tràn khung, số card bằng độ dài manifest | Tính từ chính dữ liệu lúc chạy |
 | Golden | Kết quả chính xác từng pixel hoặc hash của thuật toán | Fixture cố định trong `tests/fixtures/` (R3) |
 
-Assertion trên nội dung thật (`media-manifest.mjs`, `photo-tags.mjs`, `project-reel.json`, HTML trang) không chứa
+Assertion trên nội dung thật (`media-manifest.mjs`, `photo-tags.mjs`, `home-projects.json`, HTML trang) không chứa
 literal phụ thuộc nội dung: số card, số file ảnh, hash tọa độ, số card liên quan, id card hay đường dẫn ảnh cụ thể.
 Giá trị đó tính từ dữ liệu, hoặc test chuyển sang fixture.
 
@@ -44,7 +44,7 @@ Then không test nào đỏ và PR không sửa file nào trong tests/
 
 `scripts/ci/content-contract.mjs` là entrypoint duy nhất kiểm nội dung thật, chạy trong bộ `fast` và bằng
 `pnpm qa:content`. Advertising và rail trang chủ dùng lại validator đang có (`media-contract.mjs` chạy khi import
-catalog, `validateProjectReel`); biến thể ảnh do `build-image-variants.mjs --check` cùng bộ `fast` kiểm theo
+catalog, `validateHomeProjects`); biến thể ảnh do `build-image-variants.mjs --check` cùng bộ `fast` kiểm theo
 [chuẩn file ảnh](media-delivery.md#r5-chuẩn-file-ảnh). Script kiểm thêm trên HTML và CSS của `src/site/`:
 
 1. Mọi ảnh `/assets/content/` được tham chiếu tồn tại; `<img>` WebP khai `width`, `height` bằng pixel thật.
@@ -61,6 +61,8 @@ catalog, `validateProjectReel`); biến thể ảnh do `build-image-variants.mjs
    trang cùng loại khác, trang, file data hay CSS nào trong `src/site/` (trừ `assets/`) dùng lại ảnh đó, so theo tên gốc
    nên biến thể và định dạng khác cũng tính; ảnh tạm `placeholder-*` được miễn
    ([tạo media AI](../operations/agent-rule-ad-images.md#tạo-ảnh); ảnh công trình: owner 2026-11-13).
+8. Mỗi ảnh chụp chỉ xuất hiện trên một trang viết tay (`src/site/**/*.html`, trừ `assets/`), so theo tên gốc như luật 7;
+   card liên kết (`<img>` nằm trong `<a href>`) trỏ về trang sở hữu ảnh, logo SVG và `placeholder-*` được miễn (owner 2026-11-16).
 
 Lỗi nêu file, id và luật bị vi phạm, không dừng ở lỗi đầu tiên.
 

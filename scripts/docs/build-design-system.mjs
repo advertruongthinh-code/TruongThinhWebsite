@@ -4,13 +4,11 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync,
 import { basename, dirname, join } from 'node:path';
 import { expandHero } from '../site/hero-slides.mjs';
 import { readHeroSources } from '../site/content-files.mjs';
-import { renderProjectReel } from '../site/project-reel.mjs';
 import { renderBlocks } from '../site/blocks.mjs';
 import { renderNewsListPage } from '../site/block-pages.mjs';
 import { MENU_PAGES, readPageSource } from '../site/sync-site-menu.mjs';
 import { COPY as SEARCH_COPY, barMarkup } from '../../src/site/search/bar.mjs';
 // The Zalo link has one source, the floating CTA partial.
-const ZALO_HREF = readFileSync('src/site/partials/floating-cta.html', 'utf8').match(/href="([^"]+)"/)[1];
 
 const OUT = 'design-system';
 // Source pages keep menu markers; the preview reads them with the menu rendered, as the build does.
@@ -41,14 +39,15 @@ const COMPONENTS = [
   { name: 'FloatingCta', group: 'Shell', height: 120, file: 'src/site/index.html', start: /<a\s+class="floating-cta"/,
     frames: [{ cls: 'show', height: 120 }] },
   { name: 'Hero', group: 'Page', height: 720, file: 'src/site/index.html', start: /<section\s+class="hero"/ },
-  { name: 'ProjectReel', group: 'Page', height: 560, file: 'src/site/index.html', start: /<section\s+class="project-reel/ },
   { name: 'BannerCta', group: 'Page', height: 600, file: 'src/site/index.html', start: /<section class="legacy-closer/ },
   // also: add other blocks, from the same file or [file, regex].
-  { name: 'Portal', group: 'Page', height: 720, file: 'src/site/residential/index.html', start: /<section\s+class="portal-stage/ },
-  { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/residential/index.html', start: /<section\s+class="capability-marquee/,
+  // Linked field portal (home) above the card every portal without a link reuses (owner 2026-11-22).
+  { name: 'Portal', group: 'Page', height: 1400, file: 'src/site/index.html', start: /<section\s+class="portal-stage section-gap"\s+id="dich-vu"/,
+    also: [['src/site/residential/index.html', /<section\s+class="portal-stage section-gap"\s+id="loai-hinh"/]] },
+  { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/about/index.html', start: /<section\s+class="capability-marquee section-gap"/,
     also: [['src/site/index.html', /<section\s+class="capability-marquee capability-marquee--clients/]] },
   { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
-    also: [/<section\s+class="detail-heading/, /<section\s+class="detail-duo/] },
+    also: [/<section\s+class="detail-heading/, ['src/site/about/index.html', /<section\s+class="detail-duo/]] },
   // Project and News blocks (layout-library R1): rendered from the fixed blocks-preview.json, independent of site content.
   // The project hero is viewport-tall; the preview pins it to 720px so it does not follow the card height.
   { name: 'Blocks', group: 'Page', height: 4800, file: BLOCKS_PREVIEW, start: /"blocks"/, endStyle: '.project-hero { height: 720px; min-height: 0; }',
@@ -69,18 +68,18 @@ const COMPONENTS = [
   ...[['Gallery', 1100, 0, 960, 'Page'], ['Filter', 240, 40], ['MediaCard', 580, 35, 480], ['Masonry', 900, 35, 480], ['Skeleton', 900, 200, 480],
     ['Primary', 760, 40], ['Glass', 760, 40], ['Suggestion', 400, 35, 480], ['Viewer', 900, 0]]
     .map(([name, height, pad, size, group = 'Advertising']) => ({ name, group, height, pad, size, file: `scripts/docs/captures/${name}.html`, capture: true })),
-  // Search bar (advertising-search R7): its own CSS is injected by the page, not in style.css; the preview inlines it. Floating above, docked below.
+  // Search bar (search-bar R1): its own CSS is injected by the page, not in style.css; the preview inlines it. Floating above, docked below.
   { name: 'SearchBar', group: 'Advertising', height: 240, file: 'src/site/search/bar.mjs', start: /export const barMarkup/,
     before: () => `<style>${readFileSync('src/site/search/search.css', 'utf8')}</style>`,
     markup: '<div style="position: relative; height: 110px; transform: translateZ(0);"><div class="search-host">'
-      + barMarkup(SEARCH_COPY.vi, ZALO_HREF)
+      + barMarkup(SEARCH_COPY.vi)
       + '</div></div>\n<div class="detail-cta" data-masonry-grid-cta style="display: block; padding: 24px 35px;"><div class="detail-cta__copy"><div data-search-dock>'
-      + barMarkup(SEARCH_COPY.vi, ZALO_HREF, true) + '</div></div></div>' },
+      + barMarkup(SEARCH_COPY.vi, 'cta').replace('class="search-bar', 'class="search-bar is-docked') + '</div></div></div>' },
   // The sweep shows until the image settles; the preview has no head script, so the frame and button stay in the waiting state.
   // src uses single quotes so localizeImages skips it: the frame still matches the /assets/content/ selector but the image never shows.
   { name: 'LoadSweep', group: 'Page', height: 520, file: 'src/site/style.css', start: /The content image frame waits with a light streak/, htmlClass: 'media-gate',
     markup: '<div style="display: grid; gap: 20px; width: 316px; margin: 20px 35px;">\n'
-      + '<figure class="detail-media" style="margin: 0;"><img src=\'/assets/content/shared/materials.webp\' width="1536" height="1024" alt=""></figure>\n'
+      + '<figure class="detail-media" style="margin: 0;"><img src=\'/assets/content/shared/materials-black-hdf-20261117.webp\' width="1536" height="1024" alt=""></figure>\n'
       + '<div class="detail-view__suggestion-links">\n'
       + '<button type="button" class="detail-view__suggestion-link" aria-pressed="false"><span class="detail-view__suggestion-label"><span>Chữ nổi Mica</span></span></button>\n'
       + '<button type="button" class="detail-view__suggestion-link" aria-pressed="false"><span class="detail-view__suggestion-label"><span>Logo và chữ nổi tòa nhà</span></span></button>\n'
@@ -136,12 +135,10 @@ addEventListener("load", () => requestAnimationFrame(() => {
   return frame(`<div data-ds-frame>\n${body.trim()}\n</div>`, { height: c.height });
 }
 
-// The project card rail is generated at build time from content/project-reel.json (page-home R8); the preview inserts it as built, and the build already validated it.
 const hero = readHeroSources('src/site');
-const projectReelCards = renderProjectReel(JSON.parse(readFileSync('src/site/content/project-reel.json', 'utf8')));
 
 for (const c of COMPONENTS) {
-  const html = expandHero(readSource(c.file), hero.data, hero.orderScript).replace('<!-- project-reel-cards -->', () => projectReelCards);
+  const html = expandHero(readSource(c.file), hero.data, hero.orderScript);
   if (c.capture) {
     const markup = localizeImages(fromCapture(c, html), c.size);
     // Captures keep fixed px of the 1440 viewport (capture-design-system.mjs); width=1440 makes claude.ai render at that size and scale down, without cropping edges.

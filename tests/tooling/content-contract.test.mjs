@@ -73,3 +73,15 @@ test("a News image is reported when another page or another article uses it", as
   const [twice] = reuse(await checkSiteContent(await withNews("", [article("one", IMAGE), article("two", IMAGE)])));
   assert.match(twice, /news\.json:two: .*sample\.webp: News image also used by News one/);
 });
+
+test("a photo on two hand-written pages is reported, a link card pointing at its page is not", async () => {
+  const root = await site(VALID_IMG);
+  mkdirSync(path.join(root, "about"));
+  const reuse = (errors) => errors.filter((error) => /one photo, one page/.test(error));
+  writeFileSync(path.join(root, "about/index.html"), `<a href="/">${VALID_IMG}</a>`);
+  assert.deepEqual(reuse(await checkSiteContent(root)), []);
+  writeFileSync(path.join(root, "about/index.html"), VALID_IMG);
+  const errors = reuse(await checkSiteContent(root));
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /sample\.webp: photo also used on/);
+});

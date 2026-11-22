@@ -543,7 +543,7 @@ export function compileRelatedLayout({
       minimumDescriptionHeight: typeof measureDescriptionMinimumHeight === "function" ? measureDescriptionMinimumHeight(basePrimary.descriptionWidth, basePrimary.mode, basePrimary) : 0 })
     : basePrimary;
   const { gap } = primary;
-  const hasSuggestion = suggestionCard?.kind === "suggestion" && primary.span === columns;
+  const hasSuggestion = suggestionCard?.kind === "suggestion";
   const singlePhotoBesidePrimary = !hasSuggestion && related.length === 1 && primary.span < columns;
   const initialColumnBottoms = Array.from({ length: columns }, (_, index) => index < primary.span ? primary.height : 0);
   const solverCategory = categoryOrder[0];
@@ -1641,12 +1641,24 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
     };
     // Card removed mid-slide (virtualization): drop every lane so no translate is left behind.
     figure.advertisingSettleStrip = settleLanes;
-    // Card slideshow (R4, owner 2026-11-13): the schedule steps the card to its next media, loaded or not, always moving forward, so
-    // the first media comes in from the right after the last.
+    // Card slideshow (R4): the schedule steps the card to its next media, always moving forward, so the first media comes in from the
+    // right after the last. The next image loads during the dwell and the schedule waits for it (advertisingNextReady): stepping onto a file still
+    // loading put the card back on its wait layer, so the photo seemed to vanish (owner 2026-11-22). A video steps at once (its file
+    // loads only once active, under its poster).
     if (hasCarousel) {
       figure.dataset.masonrySlides = "";
+      const nextIndex = () => (activeIndex + 1) % items.length;
+      figure.advertisingPreloadNext = () => figure.advertisingNextReady();
+      // Ready once the next image's own (hidden) layer holds the loaded file; making the layer asks the queue for it.
+      figure.advertisingNextReady = () => {
+        const index = nextIndex();
+        if (items[index].kind !== "image") return true;
+        const layer = layerFor(index);
+        requestMedia(index);
+        return isReady(layer);
+      };
       figure.advertisingAdvance = () => {
-        const next = (activeIndex + 1) % items.length;
+        const next = nextIndex();
         if (lanes.length) selectMedia(next);
         else slideTo(next, 0, PUSH_TIMING, true);
       };
@@ -1771,6 +1783,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const gridCta = container.querySelector("[data-masonry-grid-cta]");
   const gridCtaHeading = gridCta?.querySelector("h2");
   const gridCtaCopy = gridCta?.querySelector(".detail-cta__copy");
+  // With the search slot the CTA anchors the heading-and-bar cluster at the optical centre instead of the last baseline (search-bar R4).
+  const gridCtaSlotNode = gridCtaCopy?.querySelector("[data-search-dock]");
+  // The search bar lives on the root grid only (search-bar R8): elsewhere the slots are off and the CTA keeps its plain layout.
+  const ctaSlot = () => (gridCtaSlotNode && !container.hasAttribute("data-search-off") ? gridCtaSlotNode : null);
+  const gridCtaLabel = gridCtaCopy?.querySelector(".legacy-link .portal-subtitle");
   const siteFooter = container.querySelector("footer.site-footer");
   const gridSection = grid.closest(".masonry-section");
   const gridSectionStyleTarget = gridSection instanceof HTMLElement ? gridSection : null;
@@ -2012,11 +2029,17 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!batch.length) return;
     getComputedStyle(batch[0].media).opacity;
     const fading = new Map();
-    for (const { node, media } of batch) {
+    const onScreen = (node) => {
+      const rect = node.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < innerHeight;
+    };
+    for (const { node, media, waited } of batch) {
       media.style.removeProperty("transition");
       // The real card replaces the temp card: the image fades in from the temp card's dominant color; with reduced motion it shows directly.
       // A card built at its target during a slide (masonry-live-layout R7) fades its media in the same way, even when the file was cached.
-      if ((node.masonryGhost || node.masonryEnter) && !reduced) {
+      // An on-screen card that waited under its color layer without a reveal of its own (held layer, or a skeleton dropped before the reveal)
+      // fades in over that layer too: shown at once, the photo replaced the breathing colors with no motion (owner 2026-11-22).
+      if ((node.masonryGhost || node.masonryEnter || (waited && onScreen(node))) && !reduced) {
         const fades = fading.get(node) || [];
         fades.push(media.animate([{ opacity: 0 }, { opacity: 1 }], { duration: GHOST_FADE_MS, easing: GHOST_FADE_EASING }).finished);
         fading.set(node, fades);
@@ -2040,7 +2063,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     mediaLayers(node).forEach((media) => {
       media.style.setProperty("transition", "none", "important");
       media.classList.add("is-masonry-media-ready");
-      mediaToShow.push({ node, media });
+      mediaToShow.push({ node, media, waited: node.dataset.mediaWait === "colors" });
     });
     if (!queued && mediaToShow.length) queueMicrotask(flushShownMedia);
   };
@@ -2305,11 +2328,32 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // Measure the revealed state: remove the line's current reveal offset, then place it at 0.1em like detail.js.
     const reveal = line ? new DOMMatrixReadOnly(getComputedStyle(line).transform).m42
       + 0.1 * Number.parseFloat(getComputedStyle(gridCtaHeading).fontSize) : 0;
-    const copyRect = gridCtaCopy.getBoundingClientRect();
+    let copyRect = gridCtaCopy.getBoundingClientRect();
     const baseline = ctaBaselineProbe.getBoundingClientRect().top - copyRect.top - reveal;
     ctaBaselineProbe.remove();
-    return { baseline, below: copyRect.height - baseline };
+    const gridCtaSlot = ctaSlot();
+    if (!gridCtaSlot) return { baseline, below: copyRect.height - baseline };
+    // Equal optical space around the bar: heading baseline to bar top = bar bottom to the link's capitals (about 0.3em below its box top).
+    let slotRect = gridCtaSlot.getBoundingClientRect();
+    // The label sits inside the link's 44px tap box; its capitals start about 0.3em below the label's top.
+    const capOffset = gridCtaLabel ? gridCtaLabel.getBoundingClientRect().top - gridCtaLabel.closest("a").getBoundingClientRect().top
+      + 0.3 * Number.parseFloat(getComputedStyle(gridCtaLabel).fontSize) : 0;
+    gridCta.style.setProperty("--masonry-cta-link-gap", `${slotRect.top - copyRect.top - baseline - capOffset}px`);
+    copyRect = gridCtaCopy.getBoundingClientRect();
+    slotRect = gridCtaSlot.getBoundingClientRect();
+    // "baseline" is the anchor: the centre between the heading's top and the bar's bottom.
+    const anchor = (gridCtaHeading.getBoundingClientRect().top + slotRect.bottom) / 2 - copyRect.top;
+    return { baseline: anchor, below: copyRect.height - anchor };
   };
+  // Distance from the batch bottom (the footer's top at the scroll limit) up to the anchor. Search slot: the optical centre of the room
+  // between header and footer, 5% of that room above its middle; otherwise the viewport's middle.
+  // At the scroll limit the header is collapsed: 10px padding top and bottom, its row, a 1px border (style.css .site-header.is-collapsed).
+  // Phones reach the end scrolling down, which slides the header away (phone-header-scroll R2): the room starts at the screen's top.
+  const followHeader = matchMedia("(hover: none) and (pointer: coarse) and (max-width: 750px), (hover: none) and (pointer: coarse) and (max-height: 750px)");
+  const ctaHeaderHeight = () => (ctaSlot() && !followHeader.matches
+    ? 21 + (Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")) || 0) : 0);
+  const ctaAnchorGap = (viewportHeight, footerHeight, headerHeight) => (ctaSlot()
+    ? 0.55 * (viewportHeight - headerHeight - footerHeight) : viewportHeight / 2 - footerHeight);
   // Shrink the heading just enough that the space below the last baseline is sufficient, no smaller than 1.3rem.
   const fitGridCtaHeading = (room) => {
     gridCtaHeading.style.removeProperty("font-size");
@@ -2835,9 +2879,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const container = sharedFlowContainer(frame);
     return container ? sharedFlowLayer(container) : null;
   };
-  // PC: create the main grid's layer while the page is still covered, so the WebGL context and shader compile do not drop frames
-  // when the first cards start waiting (owner PC 2026-11-12: 1% low 42 vs 83 on main in the first 3s).
-  if (grid && !skeletonPhone() && !skeletonMotionPreference.matches) sharedFlowLayer(grid);
+  // Create a container's layer ahead of its first frame, so the WebGL context and shader compile do not stall a scroll frame.
+  // PC main grid: while the page is still covered (owner PC 2026-11-12: 1% low 42 vs 83 on main in the first 3s).
+  // CTA batch (every device): at idle after load; creating it when the batch neared the screen held the main thread 211ms in Brave 1.100
+  // (owner 2026-11-21: stutter on reaching the batch).
+  if (!skeletonMotionPreference.matches) {
+    if (grid && !skeletonPhone()) sharedFlowLayer(grid);
+    const loaded = document.readyState === "complete" ? Promise.resolve()
+      : new Promise((resolve) => addEventListener("load", resolve, { once: true, signal: controller.signal }));
+    if (ctaSkeleton) loaded.then(nextIdle).then(() => !controller.signal.aborted && !skeletonDocumentParked && sharedFlowLayer(ctaSkeleton));
+  }
   const mountSkeletonRenderer = (frame) => {
     if (skeletonDocumentParked || skeletonFlowByFrame.has(frame)) return;
     const assignment = skeletonAssignmentByFrame.get(frame);
@@ -3253,6 +3304,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     }
     cardSkeletons.set(node, { frame, colors: phone, revealing: false, animations: [] });
   };
+  // The media shows now without a reveal: the color layer stays under the fade and goes when it ends (flushShownMedia).
+  const showOverColors = (node) => {
+    const entry = cardSkeletons.get(node);
+    if (entry) entry.colors = false;
+    dropCardSkeleton(node);
+    showMedia(node);
+  };
   const dropCardSkeleton = (node) => {
     removeGhost(node);
     const entry = cardSkeletons.get(node);
@@ -3292,8 +3350,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const layer = mediaLayers(node).find((media) => !media.hidden);
     const failed = layer instanceof HTMLImageElement && !layer.naturalWidth;
     if (failed || reduced || !visibleMediaCards.has(id)) {
-      dropCardSkeleton(node);
-      if (!failed) showMedia(node);
+      if (failed) dropCardSkeleton(node);
+      else showOverColors(node);
       return;
     }
     if (!entry) {
@@ -3310,8 +3368,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         return;
       }
       if (!visibleMediaCards.has(id)) {
-        dropCardSkeleton(node);
-        showMedia(node);
+        showOverColors(node);
         return;
       }
       const layers = mediaLayers(node);
@@ -3404,8 +3461,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     let corner = null;
     if (box?.width) {
       const size = { width: Math.max(before.width, after.width), height: Math.max(before.height, after.height) };
-      // Pinned items as on related cards: the primary, then the pinned suggestion below it (detail R5).
-      const pin = suggestionNode?.parentElement === relatedGrid && !suggestionNode.hidden && suggestionNode.getBoundingClientRect();
+      // Pinned items as on related cards: the primary, then the pinned suggestion card (detail R5).
+      const pin = suggestionNode && !suggestionNode.hidden && suggestionNode.getBoundingClientRect();
       const pinned = [{ x: 0, y: 0, width: box.width, height: box.height },
         ...(pin?.width ? [{ x: pin.left - box.left, y: pin.top - box.top, width: pin.width, height: pin.height }] : [])];
       const to = { x: after.left - box.left, y: after.top - box.top };
@@ -3452,8 +3509,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // Read before any write: reading after writing a variable forces the browser to recompute style mid-task (A04s 60-140ms per build).
     const viewportHeight = getLayoutViewportHeight();
     const footerHeight = siteFooter?.offsetHeight || 0;
-    const room = viewportHeight / 2 - footerHeight - gap;
-    const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}`;
+    const headerHeight = ctaHeaderHeight();
+    const room = ctaAnchorGap(viewportHeight, footerHeight, headerHeight) - gap;
+    const copyKey = `${room}:${gridCtaCopy?.clientWidth}:${document.documentElement.lang}:${Boolean(ctaSlot())}`;
     if (gridCtaHeading && gridCtaCopy && copyKey !== ctaCopyKey) {
       ctaCopyKey = copyKey;
       ctaCopyMetrics = fitGridCtaHeading(room);
@@ -3464,11 +3522,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       // CSS sets the copy by dynamic viewport, so the address bar never rebuilds the batch.
       gridCta.style.setProperty("--masonry-cta-footer-height", `${footerHeight}px`);
       gridCta.style.setProperty("--masonry-cta-copy-below", `${ctaCopyMetrics.below}px`);
+      if (ctaSlot()) gridCta.style.setProperty("--masonry-cta-anchor", `calc(0.55 * (100dvh - ${headerHeight + footerHeight}px))`);
+      else gridCta.style.removeProperty("--masonry-cta-anchor");
       // The settled mark (it turns on the copy's transition) waits until the batch build has computed style with these values; a frame
       // between the fit task and the build task would otherwise animate the copy into place.
       ctaSettlePending = true;
     }
-    return { viewportHeight, footerHeight };
+    return { viewportHeight, footerHeight, headerHeight };
   };
   // `split` (first load only): build the frames into the hidden batch in this task, then reveal it, place the Kính and start Flow in a task after
   // the next frame, so the batch's style and layout do not land in the build task (A04s: the 52ms first-load build, PR 5 device run 2).
@@ -3495,13 +3555,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       setStyleVar(gridCta, "--masonry-gap", `${gap}px`);
       gridCta?.style.removeProperty("visibility");
     }
-    const { viewportHeight, footerHeight } = fitCtaCopy(gap);
+    const { viewportHeight, footerHeight, headerHeight } = fitCtaCopy(gap);
     lastCtaViewportHeight = viewportHeight;
     // The batch top is set directly on the CTA cluster (the only place that uses it), in both yards: an inherited variable changed on the canvas
     // or on .masonry-section recomputes style for every card under it (A04s-class CPU: about 20ms per build).
     setStyleVar(gridCta, "--masonry-cta-top", `${ctaTop}px`);
     // The last baseline sits D above the batch bottom; if the window is too short, the button keeps a gap from it.
-    const baselineGap = Math.max(viewportHeight / 2 - footerHeight, gap + ctaCopyMetrics.below);
+    const baselineGap = Math.max(ctaAnchorGap(viewportHeight, footerHeight, headerHeight), gap + ctaCopyMetrics.below);
     const tailHeight = Math.max(Math.ceil(hostGeometry.cardWidth * 0.25) + 1,
       viewportHeight - gap - footerHeight, Math.ceil(baselineGap + ctaCopyMetrics.baseline));
     const nextCtaGeometryHash = `${detailHost ? "detail" : "grid"}:${hostGeometry.coordinateHash}:${tailHeight.toFixed(3)}`;
@@ -3887,6 +3947,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;
     const leftSearch = search;
     apply();
+    syncSearchOff();
     if (leftSearch && !search) window.dispatchEvent(new CustomEvent("masonry:search-left", { detail: { reason } }));
     const origins = animate ? cachedCoordinates(visualOrigins) : undefined;
     cancelMotion();
@@ -3899,6 +3960,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     measure({ animate, origins, sameWidth: true });
   };
   // A filter change (rail click, Back to another category) also leaves search mode.
+  // Search bar only on the root grid (search-bar R8): off on a filter page while not searching, and on any card.
+  const syncSearchOff = () => {
+    if (!gridCtaSlotNode) return;
+    container.toggleAttribute("data-search-off", Boolean(activePhotoId) || (filter !== "all" && !search));
+  };
   const setActiveFilter = (nextFilter, options) => {
     cancelLayoutWait();
     if (nextFilter === filter && !search) return;
@@ -4268,7 +4334,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     photoPlacements.forEach(({ card: { id } }) => relatedHost.rendered.has(id) && ensureRelatedPhoto(id));
     if (keepSuggestion) ensureSuggestionCard();
     // Not placed in the related grid yet (primary phase of direct-entry) so it stays hidden until the solver places it.
-    else if (suggestionNode) suggestionNode.hidden = suggestionId || suggestionNode.parentElement === relatedGrid ? true : suggestionSlots.length === 0;
+    else if (suggestionNode) suggestionNode.hidden = true;
     for (const [id, node] of relatedHost.rendered) {
       if (!keep.has(id)) continue;
       node.hidden = motion && !normalKeep.has(id);
@@ -4285,7 +4351,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       x: suggestionPosition.x, y: suggestionPosition.y,
       width: suggestionPlacement.pixelWidth, height: suggestionPlacement.pixelHeight,
     } : null;
-    // Pinned items: primary, then the pinned suggestion below it; cards go around both, not sliding underneath (owner 2026-11-07).
+    // Pinned items: primary, then the pinned suggestion card; cards go around both, not sliding underneath (owner 2026-11-07).
     const pinned = [{ x: 0, y: 0, width: relatedLayout.primary.width, height: relatedLayout.primary.height },
       ...(suggestionBox ? [suggestionBox] : [])];
     const planDetour = (id, node, origin, destination) => {
@@ -4302,7 +4368,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       const destination = relatedHost.positions.get(id);
       if (!destination || node.hidden) continue;
       // A new card enters from the top of the column: below the primary, or below the suggestion in its column.
-      const columnHead = suggestionBox && destination.x < suggestionBox.x + suggestionBox.width
+      const columnHead = suggestionBox && destination.x >= suggestionBox.x - 1 && destination.x < suggestionBox.x + suggestionBox.width
         ? suggestionBox.y + suggestionBox.height + relatedLayout.primary.gap
         : destination.x < relatedLayout.primary.width ? relatedLayout.primary.height + relatedLayout.primary.gap : 0;
       let origin = motion ? origins?.get(id) || { x: destination.x, y: columnHead } : destination;
@@ -4371,32 +4437,16 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     cancelRelatedMotion();
     const { outer, interCardGap } = masonrySpacing(viewportWidth);
     const columns = columnsForWidth(viewportWidth);
-    const suggestionInRelated = columns <= 3;
     const gridWidth = viewportWidth - (2 * outer);
     const suggestionWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
     photoView.style.setProperty("--gutter", `${outer}px`);
     // The header on detail is always collapsed: 10px top and bottom padding and a 1px border (advertising-detail R10).
     const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")) + 21;
     const viewStyle = getComputedStyle(photoView);
-    const suggestionParent = suggestionInRelated ? relatedGrid : photoInfo;
-    if (suggestionNode && suggestionParent && suggestionNode.parentElement !== suggestionParent) {
-      const focused = suggestionNode.contains(document.activeElement) ? document.activeElement : null;
-      suggestionNode.removeAttribute("role");
-      suggestionNode.removeAttribute("aria-posinset");
-      suggestionNode.removeAttribute("aria-setsize");
-      suggestionNode.style.removeProperty("left");
-      suggestionNode.style.removeProperty("top");
-      suggestionNode.style.removeProperty("transform");
-      suggestionNode.style.removeProperty("position");
-      suggestionNode.style.removeProperty("width");
-      suggestionNode.style.removeProperty("height");
-      suggestionParent.append(suggestionNode);
-      focused?.focus({ preventScroll: true });
-    }
-    photoView.dataset.detailLayout = suggestionInRelated ? "pinterest" : "split";
+    photoView.dataset.detailLayout = columns <= 3 ? "pinterest" : "split";
     let suggestionHeight = 0;
-    // In the related grid, the suggestion is a related card: the primary phase leaves it to the solver phase.
-    const relatedSuggestion = suggestionInRelated && directEntryPhase !== "primary";
+    // The suggestion is the first related card: the primary phase leaves it to the solver phase.
+    const relatedSuggestion = directEntryPhase !== "primary";
     if (suggestionSlots.length && suggestionNode) {
       suggestionNode.hidden = false;
       suggestionNode.style.width = `${suggestionWidth}px`;
@@ -4508,13 +4558,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     relatedHost.pixelHeight = height;
     if (directEntryPhase === "related" || directEntryPhase === "warm") {
       // Measured but not placed: keep it out of every frame painted before the mount task.
-      if (suggestionInRelated && suggestionNode) suggestionNode.hidden = true;
+      if (suggestionNode) suggestionNode.hidden = true;
       return;
     }
     if (directEntryPhase === "primary") {
       // Hidden, not placed: the mount task animates them from the origin position.
       relatedHost.rendered.forEach((node) => { node.hidden = true; });
-      if (suggestionNode?.parentElement === relatedGrid) suggestionNode.hidden = true;
+      if (suggestionNode) suggestionNode.hidden = true;
       return;
     }
     renderCtaSkeleton({ slide: Boolean(origins) && !reduced });
@@ -5324,6 +5374,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const generation = ++detailRenderGeneration;
     cancelMotion();
     activePhotoId = record.id;
+    syncSearchOff();
     // Changing tag within the same photo keeps the batch frames so they slide or go around the primary (CTA R9, R10); changing photo rebuilds.
     if (previousPhotoId !== record.id || !ctaInDetail()) {
       clearCtaSkeleton();
@@ -5490,6 +5541,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     gridHost.rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));
     activePhotoId = null;
     activePrimaryMediaId = null;
+    syncSearchOff();
     closePrimaryStrip();
     photoVideo?.pause();
     clearRelatedCards();
@@ -5955,11 +6007,13 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // - Video: every counted card standing on a video plays it, one start per frame (three starts in one frame made an 82ms Commit on PC,
   //   owner 2026-10-25); reduced motion plays only the card under the mouse.
   // - Slideshow (owner 2026-11-13): a counted card with several media stands 4s on an image, plays a video to its end, then steps to its next
-  //   media (wrapping), loaded or not; the first step of a card comes at a random 2-6s so cards never step together, and at most one card
+  //   media (wrapping), an image only once loaded (it loads during the dwell); the first step of a card comes at a random 2-6s so cards never step together, and at most one card
   //   steps per frame. The mouse on a card holds it; leaving, a press or a swipe restarts its 4s. Reduced motion has no slideshow.
   let playingVideos = [];
   let videoScheduleFrame = 0;
   const SLIDE_DWELL_MS = 4000;
+  // A step waiting for its next image retries this often.
+  const SLIDE_RETRY_MS = 500;
   // Card -> time its next step is due; a card leaves the map when it stops counting, so it starts on a new random phase when it returns.
   const slideDue = new Map();
   // Cards whose video has ended and that wait for their step; their video stays out of the play list until the card moves on.
@@ -5997,15 +6051,23 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         endedCards.delete(figure);
         return;
       }
-      if (!slideDue.has(figure)) slideDue.set(figure, now + SLIDE_DWELL_MS * (0.5 + Math.random()));
-      else if (slideDue.get(figure) === Infinity) slideDue.set(figure, now + SLIDE_DWELL_MS);
+      if (!slideDue.has(figure)) {
+        slideDue.set(figure, now + SLIDE_DWELL_MS * (0.5 + Math.random()));
+        figure.advertisingPreloadNext?.();
+      } else if (slideDue.get(figure) === Infinity) slideDue.set(figure, now + SLIDE_DWELL_MS);
       if (stepped || (figure.advertisingActiveVideo?.() && !endedCards.has(figure)) || slideDue.get(figure) > now) return;
+      // The next image is still loading: the card stays on its media and tries again shortly.
+      if (!figure.advertisingNextReady()) {
+        slideDue.set(figure, now + SLIDE_RETRY_MS);
+        return;
+      }
       stepped = true;
       autoStepping = figure;
       figure.advertisingAdvance();
       autoStepping = null;
       endedCards.delete(figure);
       slideDue.set(figure, now + PUSH_TIMING.duration + SLIDE_DWELL_MS);
+      figure.advertisingPreloadNext?.();
     });
     const next = counted.flatMap((figure) => {
       const video = figure.advertisingActiveVideo?.();

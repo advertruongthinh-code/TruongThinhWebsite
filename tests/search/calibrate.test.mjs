@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { buildInputs, fitAnchors, quantile, rng, summarize } from "../../scripts/search/calibrate.mjs";
+import { accepts, buildInputs, fitAnchors, quantile, rng, summarize } from "../../scripts/search/calibrate.mjs";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { DIMS } from "../../src/search/embed-input.mjs";
 import { decodeIndex, encodeIndex, unit } from "../../src/search/index-format.mjs";
@@ -12,6 +12,8 @@ test("fixture has the R11 query mix and every reference resolves to cards", asyn
   const count = (type) => fixture.filter((q) => q.type === type).length;
   assert.deepEqual(["keyword", "chat", "typo", "mixed", "en"].map(count), [40, 15, 15, 10, 15]);
   assert.equal(new Set(fixture.map((q) => q.id)).size, fixture.length);
+  // Customers search with one image at most (owner 2026-11-21), so the fixture only measures that.
+  assert.ok(fixture.every((q) => (q.images?.length ?? 0) <= 1));
   const queries = await buildInputs(fixture, buildAdvertisingArtifact(), async () => "QUJD");
   for (const q of queries) {
     assert.equal(q.inputs.length, (q.text ? 1 : 0) + (q.images?.length ?? 0), q.id);
@@ -40,4 +42,12 @@ test("summarize gates on every type and overall P@5", () => {
   const r = (type, hit, p5) => ({ type, hit, p5 });
   assert.equal(summarize([r("a", true, 1), r("b", true, 0.8)]).pass, true);
   assert.equal(summarize([r("a", true, 1), r("b", false, 1)]).pass, false);
+});
+
+test("a passing fit replaces the config only when its P@5 is not below the current one", () => {
+  const run = (p5, pass = true) => ({ p5, pass });
+  assert.equal(accepts(run(0.868), run(0.858)), false);
+  assert.equal(accepts(run(0.858), run(0.868)), true);
+  assert.equal(accepts(run(0.85), run(0.85)), true);
+  assert.equal(accepts(run(0.5), run(0.9, false)), false);
 });

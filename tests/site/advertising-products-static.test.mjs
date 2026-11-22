@@ -7,6 +7,11 @@ import { ADVERTISING_CATEGORIES, ADVERTISING_PAGES, buildAdvertisingArtifact } f
 import { MASONRY_LAYOUT_VERSION, columnsForWidth, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
 import { bandKey } from "../../src/site/masonry/replay.mjs";
 
+// Info stays within 28% of the viewport, unless primary fills its height cap: a short image leaves that space to a long
+// description (advertising-detail R2, owner 2026-11-22).
+const infoWithinCap = (geometry, viewportHeight) => geometry.descriptionHeight + geometry.internalGap <= viewportHeight * 0.28 + 1e-9
+  || Math.abs(geometry.height - geometry.heightCap) <= 0.01;
+
 const read = (path) => readFile(new URL(`../../${path}`, import.meta.url), "utf8");
 const [runtime, index, css, siteCss, prepare, sharedScripts] = await Promise.all([
   read("src/site/masonry/runtime.mjs"),
@@ -104,8 +109,6 @@ assert.match(css, /detail-view__info\s*\{[^}]*overflow:\s*(?:clip|hidden);[^}]*o
   "info itself never scrolls or traps vertical scroll; only the description scrolls");
 assert.match(css, /\.detail-view__description-scroll\s*\{[^}]*overflow-y:\s*auto;[^}]*scrollbar-width:\s*none;/s,
   "description scrolls behind its own scrollbar instead of the native one");
-assert.match(runtime, /primary\.span\s*===\s*(?:primary\.columns|layout\.columns|relatedLayout\.layout\.columns|columns)[\s\S]*?["']pinterest["']/,
-  "Pinterest mode derives from primary span equalling total columns");
 for (const token of ["data-fade-start", "data-fade-end", "setPointerCapture", "lostpointercapture"]) {
   assert.match(runtime, new RegExp(token), `description scroll hints runtime is missing ${token}`);
 }
@@ -141,7 +144,7 @@ assert.match(index, /data-detail-info[^>]*aria-label="Thông tin ảnh sản ph�
 assert.match(photoInfoMarkup, /data-detail-description[\s\S]*?data-detail-cta/, "CTA remains in primary information after the description pager");
 assert.doesNotMatch(index + runtime, /data-detail-tag-reset|masonrySuggestionSlot|measureSuggestionHeight/, "standalone reset and legacy suggestion slot are absent");
 assert.match(runtime, /suggestionPlacement/, "R15 exposes the synthetic suggestion placement in the related grid");
-assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.5\);/, "portal keeps the owner 0.5 overlay token");
+assert.match(siteCss, /--media-label-overlay:\s*rgba\(0, 0, 0, 0\.3\);/, "portal keeps the Espacio 0.3 overlay token");
 assert.match(siteCss, /\.portal-shade \{[\s\S]*?background: var\(--media-label-overlay\);/, "homepage portal uses the shared inactive overlay");
 // Owner 2026-10-26: the suggestion button uses an always-visible 0.5 dark layer, not the portal token.
 assert.match(css, /\.detail-view__suggestion-link::after \{[^}]*background: rgb\(0 0 0 \/ 0\.5\);[^}]*opacity: 1;/, "inactive suggestion always shows the 0.5 overlay");
@@ -340,7 +343,7 @@ const tabletSpan3 = compileRelatedLayout({
 });
 assert.ok(tabletSpan3.primary.height <= 1180, "full-span Pinterest group stays within one dynamic viewport");
 assert.equal(tabletSpan3.primary.mode, "pinterest", "span3 switches to Pinterest layout when it fills all three columns");
-assert.ok(tabletSpan3.primary.descriptionHeight + tabletSpan3.primary.internalGap <= 1180 * 0.28,
+assert.ok(infoWithinCap(tabletSpan3.primary, 1180),
   "Pinterest description and gap stay within the viewport-based 28% cap");
 assert.ok(Math.abs(tabletSpan3.primary.imageHeight - tabletSpan3.primary.imageZoneHeight) <= 0.1,
   "Pinterest image has no top or bottom overflow");

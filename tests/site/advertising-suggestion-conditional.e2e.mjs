@@ -23,13 +23,20 @@ try {
       inInfo: Boolean(suggestion?.closest('[data-detail-info]')),
       inRelated: Boolean(suggestion?.closest('[data-detail-related-grid]')),
       pressed: suggestion?.querySelector('[aria-pressed="true"]')?.dataset.masonrySuggestionTag,
-      firstRelated: document.querySelector('[data-detail-related-grid]')?.firstElementChild?.hasAttribute('data-masonry-related-card'),
+      firstRelated: suggestion === document.querySelector('[data-detail-related-grid]')?.firstElementChild,
+      // Four columns: the pinned card sits in column 4, level with the primary top (owner 2026-11-22).
+      besidePrimary: (() => {
+        const primary = document.querySelector('[data-detail-primary]').getBoundingClientRect();
+        const box = suggestion.getBoundingClientRect();
+        return box.left > primary.right && Math.abs(box.top - primary.top) <= 1;
+      })(),
     };
   });
   assert.equal(first.count, 1, "split layout duplicates suggestion UI");
-  assert.equal(first.inInfo, true, "split layout must keep suggestion within primary info");
-  assert.equal(first.inRelated, false, "split layout must not place suggestion in related grid");
-  assert.equal(first.firstRelated, true, "split related grid must start with a real photo card");
+  assert.equal(first.inInfo, false, "four-column layout must keep suggestion out of primary info");
+  assert.equal(first.inRelated, true, "four-column layout must place suggestion in related grid");
+  assert.equal(first.firstRelated, true, "four-column related grid must start with suggestion UI");
+  assert.equal(first.besidePrimary, true, "four-column suggestion must pin in column 4 level with primary top");
   assert.equal(first.pressed, "format-square", "split layout lost the active tag");
   await page.locator('[data-masonry-suggestion-tag="format-square"]').focus();
 
@@ -62,14 +69,14 @@ try {
     const suggestion = document.querySelector('[data-detail-suggestion]');
     return {
       sameNode: suggestion === window.__originalSuggestion,
-      inInfo: Boolean(suggestion?.closest('[data-detail-info]')),
+      inRelated: Boolean(suggestion?.closest('[data-detail-related-grid]')),
       pressed: suggestion?.querySelector('[aria-pressed="true"]')?.dataset.masonrySuggestionTag,
       focused: document.activeElement?.dataset.masonrySuggestionTag,
       overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     };
   });
   assert.equal(restored.sameNode, true, "resize back cloned the suggestion UI");
-  assert.equal(restored.inInfo, true, "resize back failed to restore split suggestion placement");
+  assert.equal(restored.inRelated, true, "resize back moved suggestion out of related grid");
   assert.equal(restored.pressed, "format-square", "resize back lost the active tag");
   assert.equal(restored.focused, "format-square", "resize back lost focus within suggestion UI");
   assert(restored.overflow <= 1, `suggestion resize caused ${restored.overflow}px horizontal overflow`);
@@ -102,7 +109,7 @@ try {
   assert.equal(retainedFocus.tag, focusedTag, "focused suggestion lost keyboard focus when virtualized offscreen");
   assert.equal(retainedFocus.hidden, false, "focused suggestion was hidden while keyboard focus remained inside it");
   assert.deepEqual(errors, [], "suggestion mode switch logged browser errors");
-  console.log("[advertising-suggestion-conditional] split/full-span reparent and active-state checks passed");
+  console.log("[advertising-suggestion-conditional] pinned-card placement and active-state checks passed");
 } finally {
   await browser.close();
 }

@@ -8,6 +8,7 @@ import { newsListPages } from "../../scripts/site/block-pages.mjs";
 import { loadBlockContent } from "../../scripts/site/content-files.mjs";
 import { projectListPages } from "../../scripts/site/project-list.mjs";
 import { legacyRedirects } from "../../scripts/site/redirects.mjs";
+import { PUBLIC_ORIGIN } from "../../scripts/site/lib.mjs";
 
 test("static hosting gets the same localized HTML as the preview server", async () => {
   // 22 fixed routes (EN mobile-retail becomes a cluster page) plus two locales of each cluster page, product, card, project, News article, the News list page, and each moved path (legacyRedirects).
@@ -20,6 +21,17 @@ test("static hosting gets the same localized HTML as the preview server", async 
     assert.equal(deployed, localeHtml(original, locale), route);
     assert.match(deployed, new RegExp(`<html[^>]*lang="${locale}"`), route);
   }
+});
+
+test("production serves the canonical host, staging its subdomain, and no workers.dev URL is public", async () => {
+  const config = await readFile(new URL("../../wrangler.static.toml", import.meta.url), "utf8");
+  const domains = [...config.matchAll(/^\[\[(env\.production\.)?routes\]\]\npattern = "([^"]+)"\ncustom_domain = true$/gm)]
+    .map((match) => `${match[1] ? "production" : "staging"} ${match[2]}`);
+  const host = new URL(PUBLIC_ORIGIN).host;
+  assert.deepEqual(domains, [`staging staging.${host}`, `production ${host}`]);
+  assert.equal(config.match(/^workers_dev = false$/gm)?.length, 2, "workers.dev off for staging and production");
+  assert.equal(config.match(/^preview_urls = false$/gm)?.length, 2, "preview URLs off for staging and production");
+  assert.doesNotMatch(config, /^workers_dev = true$/m);
 });
 
 test("demo and preview serve the localized 404 page for unknown paths", async () => {

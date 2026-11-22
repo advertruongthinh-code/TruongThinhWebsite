@@ -39,7 +39,7 @@
   padding-left: 0.5rem;
   margin: 0 0 clamp(1.5rem, 3.8vh, 2.2rem);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -58,7 +58,7 @@
   padding-left: 0.5rem;
   margin: 0 0 clamp(1.5rem, 3.8vh, 2.2rem);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
 }
 
@@ -77,19 +77,14 @@
 }
 
 .detail-title__strong {
-  font-weight: 700;
+  font-weight: 500;
 }
 
-/* Project hero (projects R3, owner 2026-11-14, measured on Espacio project pages): the italic part of the tagline is bold italic like the
-   other hero accents; the CTA is 16px bold capitals, centred 32px under the title, underlined on hero hover (always on phone). On phone the
+/* Project hero (projects R3, owner 2026-11-14, measured on Espacio project pages): the italic part of the tagline follows the shared
+   hero em rule in style.css; the CTA is 16px bold capitals, centred 32px under the title, underlined on hero hover (always on phone). On phone the
    project name stays above the tagline (exception to the hidden kicker, owner 2026-11-14). */
 .project-hero .hero-kicker {
   text-transform: uppercase;
-}
-
-.project-hero .hero-title em {
-  font-style: italic;
-  font-weight: 700;
 }
 
 .project-hero .hero-content:has(> .hero-title > :only-child) > .hero-kicker {
@@ -103,7 +98,7 @@
   margin: 32px auto 0;
   color: inherit;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-decoration: none;
   text-transform: uppercase;
@@ -115,25 +110,9 @@
   }
 }
 
-/* Commercial hero: regular text weight 500 light like other page hero titles, accent text (em) bold 700 italic (owner 2026-10-24). */
+/* Commercial hero: regular text weight 500 like other page hero titles; the em accent rule is shared in style.css. */
 .commercial-hero h1 :is(.detail-title__quiet, .detail-title__strong) {
   font-weight: 500;
-}
-
-.commercial-hero h1 em {
-  font-style: italic;
-  font-weight: 700;
-}
-
-/* Residential hero: the accent line "năng lượng sống" is bold 700 and italic (owner 2026-10-24). */
-.residential-hero h1 .detail-title__strong {
-  font-style: italic;
-}
-
-/* Advertising hero: the accent line "luôn trong tầm mắt" is bold 700 and italic (owner 2026-11-08).
-   Cluster and product pages change the tagline into <p id="page-title"> so select by id, not by h1. */
-.detail-index-hero #page-title .detail-title__strong {
-  font-style: italic;
 }
 
 .detail-intro,
@@ -143,16 +122,17 @@
 .detail-heading,
 .detail-process,
 .detail-duo,
+.detail-places,
 .masonry-section,
 .detail-cta {
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
 }
 
 .detail-heading h2,
 .masonry-section h1 {
   margin: 0;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   word-spacing: var(--word-spacing-display);
 }
@@ -322,7 +302,7 @@
 .detail-eyebrow {
   margin: 0;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   text-wrap: balance;
@@ -426,7 +406,7 @@
 .detail-lead__title {
   margin: 0;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.1;
 }
 
@@ -503,7 +483,7 @@
   margin-top: 10px;
   color: var(--ink);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -558,14 +538,14 @@
 .process-step > span {
   color: var(--muted);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .process-step h3 {
   margin: auto 0 1rem;
-  /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1370px max frame. */
+  /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1500px max frame. */
   font-size: clamp(1.25rem, 2.9vw - 0.5rem, 2.2rem);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   word-spacing: 0.08em;
 }
@@ -686,7 +666,7 @@
 .detail-cta__copy p {
   margin: 0 0 1rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1em;
 }
 
@@ -694,7 +674,7 @@
   margin: 0;
   font-size: var(--cta-title-size);
   text-wrap: balance;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: var(--tracking-display);
   line-height: 0.98;
   word-spacing: var(--word-spacing-display);
@@ -708,7 +688,7 @@
   align-items: center;
   margin-top: 2rem;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -737,7 +717,7 @@
   padding-left: 0.5rem;
   margin: 0;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -774,7 +754,7 @@
   color: var(--muted);
   cursor: pointer;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
   transition: color var(--dur-base) ease-out, text-decoration-color var(--dur-base) ease-out;
@@ -852,7 +832,7 @@
 .detail-index-hero .rail-chip sup {
   font-size: 0.8125rem;
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   margin-left: 0.25em;
   vertical-align: 0.45em;
@@ -1187,7 +1167,7 @@
 
 .about-timeline {
   position: relative;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
   padding: 6rem 0 2rem;
 }
@@ -1233,7 +1213,7 @@
   margin: 0;
   /* Floor lets the tied last two words share a line in the 768px column (hero-typography R7). */
   font-size: clamp(2rem, 4.5vw, 5.4rem);
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   line-height: 0.95;
   word-spacing: var(--word-spacing-display);
@@ -1250,12 +1230,12 @@
 }
 
 .about-timeline__copy strong {
-  font-weight: 700;
+  font-weight: inherit;
 }
 
 .about-chapter-lead {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 20rem;
   padding: 3.5rem 0;
   margin-inline: auto;
@@ -1276,7 +1256,7 @@
 
 .about-process-note {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 15rem;
   padding-top: 2rem;
   margin-inline: auto;
@@ -1296,7 +1276,7 @@
 
 .about-commitments {
   display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   min-height: 25rem;
   margin-inline: auto;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1319,7 +1299,7 @@
 .about-commitment > span {
   color: var(--muted);
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .about-commitment h3 {
@@ -1327,7 +1307,7 @@
   max-width: 16ch;
   margin: auto 0 1rem;
   font-size: clamp(2rem, 3vw, 3.7rem);
-  font-weight: 600;
+  font-weight: 400;
   letter-spacing: var(--tracking-display);
   line-height: 1;
   word-spacing: 0.1em;
@@ -1594,7 +1574,7 @@ body.is-masonry-browse .masonry-grid {
   color: inherit;
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
+  font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
@@ -1674,7 +1654,7 @@ body.is-masonry-browse .masonry-grid {
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
   text-shadow: var(--text-shadow-d);
   pointer-events: none;
@@ -1962,7 +1942,7 @@ body.is-masonry-browse .masonry-grid {
    colors, 2s each. The runtime sets data-media-wait="colors" and --wait-1..4 (the file's colors) and --wait-phase (shared by every layer, so a temp card turning into a card keeps
    its color). Two pseudo layers under the content (z-index -1 inside an isolated stacking context): the top one fades colors 2 and 4 in and out (an opacity animation of its own, so it
    can run on the compositor; its color is a separate step animation that only changes while the layer is transparent), the base one switches color in steps while the top one covers
-   it, so every visible change is a 2s fade. Seen: 1, 2, 3, 4, then 1 again. */
+   it, so every visible change is a 2s fade. Seen: 1, 2, 3, 4, then 1 again. While the page scrolls the layers stand still on the color they show (data-colors-still below). */
 [data-media-wait="colors"] {
   isolation: isolate;
 }
@@ -2003,6 +1983,21 @@ body.is-masonry-browse .masonry-grid {
 @keyframes media-colors-shift {
   0% { background-color: var(--wait-2); }
   50% { background-color: var(--wait-4); }
+}
+
+/* While the page scrolls the layers stand still on the color they show: the base color mixed with the top one at the top layer's opacity
+   (mount-budget.mjs sets the pair and --wait-mix). Mixing in sRGB is what the opacity blend gives. */
+:root[data-colors-still] [data-media-wait="colors"]::before {
+  animation: none;
+}
+
+:root[data-colors-still="12"] [data-media-wait="colors"]::before { background-color: color-mix(in srgb, var(--wait-2) var(--wait-mix), var(--wait-1)); }
+:root[data-colors-still="32"] [data-media-wait="colors"]::before { background-color: color-mix(in srgb, var(--wait-2) var(--wait-mix), var(--wait-3)); }
+:root[data-colors-still="34"] [data-media-wait="colors"]::before { background-color: color-mix(in srgb, var(--wait-4) var(--wait-mix), var(--wait-3)); }
+:root[data-colors-still="14"] [data-media-wait="colors"]::before { background-color: color-mix(in srgb, var(--wait-4) var(--wait-mix), var(--wait-1)); }
+
+:root[data-colors-still] [data-media-wait="colors"]::after {
+  display: none;
 }
 
 /* The card's media box paints its dominant color inline; it must not cover the layers while the image fades in over them. A card video shows its poster at once,
@@ -2553,7 +2548,7 @@ body.is-masonry-browse .site-footer {
 .video-player__time {
   margin: 0 0 0 20px;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
   line-height: 1.5rem;
   white-space: nowrap;
@@ -3018,7 +3013,7 @@ body.is-masonry-browse .site-footer {
   background: transparent;
   color: var(--ink);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.2;
   text-transform: uppercase;
   text-decoration: none;
@@ -3070,7 +3065,7 @@ body.is-masonry-browse .site-footer {
   max-width: none;
   margin: 1rem 0 0;
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.35;
   letter-spacing: normal;
 }
@@ -3089,15 +3084,6 @@ body.is-masonry-browse .site-footer {
   width: 100%;
   pointer-events: auto;
   touch-action: pan-y;
-}
-
-[data-detail-layout="split"] .detail-view__info .detail-view__suggestion {
-  position: relative;
-  flex: 0 0 auto;
-  width: 100%;
-  height: auto;
-  margin-top: auto;
-  overflow: visible;
 }
 
 .detail-view__suggestion-link {
@@ -3194,7 +3180,7 @@ body.is-masonry-browse .site-footer {
   place-items: center;
   color: var(--white);
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.5;
   text-align: center;
   text-wrap: balance;
@@ -3419,7 +3405,8 @@ body.is-masonry-browse .site-footer {
 .detail-cta[data-masonry-grid-cta] .detail-cta__copy {
   z-index: 2;
   width: min(78rem, 100%);
-  margin-bottom: calc(max(50dvh - var(--masonry-cta-footer-height, 0px),
+  /* --masonry-cta-anchor: with the search slot the anchor is the heading-and-bar cluster's centre at the optical centre (search-bar R4). */
+  margin-bottom: calc(max(var(--masonry-cta-anchor, 50dvh - var(--masonry-cta-footer-height, 0px)),
     var(--masonry-gap) + var(--masonry-cta-copy-below, 0px)) - var(--masonry-cta-copy-below, 0px));
 }
 
@@ -3444,7 +3431,7 @@ body.is-masonry-browse .site-footer {
    is laid out. The search page moves its bar in here; the slot stays empty without JavaScript. It sits the same gap under the
    heading as the Projects CTA link (owner 2026-11-18). */
 .detail-cta[data-masonry-grid-cta] [data-search-dock] {
-  min-height: 48px;
+  min-height: 50px;
   margin-top: var(--masonry-gap);
 }
 
@@ -3464,6 +3451,12 @@ body.is-masonry-browse .site-footer {
   display: flex;
   width: max-content;
   margin: var(--masonry-gap) auto 0;
+}
+
+/* Under the search slot the link starts as far below the bar as the heading's baseline sits above it; the runtime measures it
+   (search-bar R4). */
+[data-barba-namespace]:not([data-search-off]) .detail-cta[data-masonry-grid-cta] [data-search-dock] ~ .legacy-link {
+  margin-top: var(--masonry-cta-link-gap, var(--masonry-gap));
 }
 
 @media (max-width: 750px) {
@@ -3905,16 +3898,21 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 }
 
+/* Off the root grid (filter pages, cards) there is no search bar and no slot (search-bar R8). */
+[data-search-off] :is(.hero-search, [data-search-dock]) {
+  display: none;
+}
+
 /* Search top slot (advertising-search R7): the bar takes the rail's place and the rail and chips move one step down, into the room
    the scroll cue left. The slot is as tall as the docked bar, so the hero does not move when the bar arrives. */
 .detail-index-hero .hero-search {
   width: min(calc(100% - 2 * var(--gutter)), 62.5rem);
-  min-height: 48px;
+  min-height: 50px;
   justify-self: center;
 }
 
 @media (min-width: 1025px) {
-  .detail-index-hero:has(.hero-search) .hero-search {
+  [data-barba-namespace]:not([data-search-off]) .detail-index-hero:has(.hero-search) .hero-search {
     position: absolute;
     bottom: calc(15vh + 3.5rem);
     left: 50%;
@@ -3922,11 +3920,11 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
     transform: translateX(-50%);
   }
 
-  .detail-index-hero:has(.hero-search) .project-filters {
+  [data-barba-namespace]:not([data-search-off]) .detail-index-hero:has(.hero-search) .project-filters {
     bottom: 15vh;
   }
 
-  .detail-index-hero:has(.hero-search) .rail-chips {
+  [data-barba-namespace]:not([data-search-off]) .detail-index-hero:has(.hero-search) .rail-chips {
     bottom: calc(15vh - 3.25rem);
   }
 }
@@ -3948,7 +3946,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 /* Project and News page blocks (layout-library R1, scripts/site/blocks.mjs). Learns the layout of Espacio's /en/projects/ child pages,
    following the site's text, color and spacing; same width frame as the detail blocks. */
 .blk {
-  width: min(calc(100% - 2 * var(--gutter)), 1370px);
+  width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
 }
 
@@ -4106,7 +4104,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 60px 0 0;
   padding-inline: var(--gutter);
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   letter-spacing: 0;
   text-wrap: pretty;
@@ -4152,7 +4150,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   max-width: 20ch;
   margin: 0;
   font-size: clamp(2.5rem, 6vw, 5.5rem);
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: var(--tracking-display);
   text-wrap: balance;
@@ -4163,7 +4161,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0;
   max-width: 22ch;
   font-size: clamp(2.25rem, 4.45vw, 4rem);
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.1;
   text-wrap: balance;
 }
@@ -4307,13 +4305,13 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-bottom: 1.5rem;
   color: var(--muted);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .blk-facts__label {
   margin: 0 0 0.5rem;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -4352,7 +4350,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   color: var(--white);
   background: var(--ink);
   font-size: 0.875rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-decoration: none;
   text-transform: uppercase;
@@ -4370,7 +4368,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   gap: 1.5rem;
   color: var(--ink);
   font-size: 0.9375rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.04em;
   text-decoration: none;
   text-transform: uppercase;
@@ -4411,7 +4409,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   display: block;
   padding-top: 0.75rem;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
 }
 
@@ -4420,7 +4418,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0 0 var(--section-gap, 90px);
   padding-top: 50px;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
   text-align: center;
 }
@@ -4506,7 +4504,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .blk-news-pager a {
   color: var(--ink);
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-decoration: none;
   text-transform: uppercase;
@@ -4582,7 +4580,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-block: 0.83em;
   color: #2f2f2f;
   font-size: 1.3rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
 }
 
@@ -4674,12 +4672,6 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 }
 
-/* Projects page hero tagline: only the accent text (em) bold 700 italic, the rest 500 like line one (owner 2026-11-08). */
-.projects-title__accent em {
-  font-style: italic;
-  font-weight: 700;
-}
-
 /* Projects page type with no project yet (projects R2): the "đang cập nhật" line; build and detail.js toggle hidden by the filter. */
 .projects-empty {
   margin: 0;
@@ -4690,7 +4682,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 /* News teasers (home strip news R4, "Other news" news R3) following espaciohomedesign.com (layout-bloque-noticias, measured 2026-11-11 and
    2026-11-14 from 384 to 1920): content capped at 1500px and centred; 3 columns 70px apart, 50px from 1200px, 2 columns from 960px, 30px from
-   750px, 1 column from 578px; each item a cover column (1fr : 1.5fr, 1fr : 2fr up to 960px) and text 20px apart; the cover keeps at least 5:6 and stretches when
+   750px, 1 column from 578px; each item a cover column (golden ratio 1fr : 1.618fr) and text 20px apart; the cover keeps at least 1 : 1.618 and stretches when
    the text is taller. Group 16px bold capitals 15px from the top, title 19.2px regular with 19.2px above and below, "Read more" 12.8px
    semibold. Hover: cover zooms 1.2 in 0.6s, the group gets the 3px underline, "Read more" fades in (0.6s in, 0.3s out). */
 .home-news__grid {
@@ -4704,7 +4696,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 .home-news__item {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  /* Golden ratio (owner 2026-11-22): cover : text = 1 : 1.618 and the cover is 1 : 1.618 portrait. */
+  grid-template-columns: 1fr 1.618fr;
   column-gap: 20px;
   color: #222;
   text-decoration: none;
@@ -4718,7 +4711,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__media::before {
   content: "";
   display: block;
-  padding-top: 120%;
+  padding-top: 161.8%;
 }
 
 .home-news__media img {
@@ -4746,7 +4739,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin-top: 15px;
   color: #2f2f2f;
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
@@ -4754,7 +4747,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__title {
   margin-block: 1.2rem;
   font-size: 1.2rem;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
 }
 
@@ -4786,7 +4779,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 
   .home-news__item {
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1.618fr;
   }
 }
 
@@ -4870,7 +4863,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0;
   color: inherit;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 [data-barba-namespace="project"] .blk-facts__label {
@@ -4883,7 +4876,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 [data-barba-namespace="project"] .blk-facts__text {
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 @media (max-width: 980px) {
@@ -4946,7 +4939,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   margin: 0 0 35px;
   font-size: clamp(2.5rem, 4.45vw, 4rem);
   font-style: italic;
-  font-weight: 300;
+  font-weight: 400;
   line-height: 1.4;
   text-align: center;
 }
@@ -4971,5 +4964,293 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
   [data-barba-namespace="project"] .blk-projects .project-card--low {
     padding-top: 120px;
+  }
+}
+
+/* Places block on the Commercial page (detail-pages 9a): Espacio kitchens "showrooms" list. Index line, 300px photo, uppercase name
+   with the shared hover underline, short text; the whole card is the link, the photo zooms on hover. Columns 3 / 2 (<=960) / 1 (<=578). */
+.detail-places {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 60px 35px;
+}
+
+.detail-place {
+  position: relative;
+  margin: 0;
+}
+
+.detail-place__link {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+}
+
+
+.detail-place__media {
+  position: relative;
+  overflow: hidden;
+  height: 300px;
+  background: var(--media-loading-surface);
+}
+
+.detail-place__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-place__name {
+  position: relative;
+  display: inline-block;
+  margin: 1em 0 5px;
+  font-size: 1.8rem;
+  /* Same weight as the menu group titles, 500 like Espacio mid headings (owner 2026-11-22); the address stays regular. */
+  font-weight: 500;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.detail-place__name::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: right center;
+  background: currentColor;
+  transition: transform var(--dur-base) var(--ease-underline);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .detail-place:hover .detail-place__name::after {
+    transform: scaleX(1);
+    transform-origin: left center;
+  }
+}
+
+.detail-place:focus-within .detail-place__name::after {
+  transform: scaleX(1);
+  transform-origin: left center;
+}
+
+.detail-place__text {
+  margin: 16px 0;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Phone numbers stay tappable above the card link. */
+.detail-place__text a {
+  position: relative;
+  z-index: 2;
+  color: inherit;
+}
+
+@media (max-width: 1200px) {
+  .detail-places {
+    column-gap: 25px;
+  }
+}
+
+@media (max-width: 960px) {
+  .detail-places {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 578px) {
+  .detail-places {
+    grid-template-columns: 1fr;
+    column-gap: 15px;
+  }
+}
+
+/* Supplier logos under the materials note (detail-pages 7a): one full-width looping row like the home client logos, no frames,
+   grouped only by order (wood panels, aluminium, cabinet hardware, kitchen appliances, then machines). Each logo carries an em
+   box sized for equal visual weight (area, not width) and the row centres them on one axis. Two copies of the list run side by
+   side; the second is aria-hidden. A phone held upright, reduced motion and print show the first list as static centred rows
+   (owner 2026-11-22). */
+.supplier-marquee {
+  display: flex;
+  width: 100vw;
+  margin: clamp(2.5rem, 5vw, 4.5rem) 0 0 calc(50% - 50vw);
+  overflow: hidden;
+}
+
+.supplier-logos {
+  --logo-gap: clamp(3rem, 5vw, 5.5rem);
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--logo-gap);
+  margin: 0;
+  /* one gap after the last logo so the join between the two copies is evenly spaced */
+  padding: 0 var(--logo-gap) 0 0;
+  font-size: clamp(0.85rem, 1.1vw, 1.1rem);
+  list-style: none;
+  animation: marquee 40s linear infinite;
+}
+
+.supplier-logos li {
+  display: flex;
+  flex: none;
+}
+
+.supplier-logo {
+  display: block;
+  max-width: none;
+  object-fit: contain;
+}
+
+.motion-paused .supplier-logos {
+  animation-play-state: paused;
+}
+
+@media (max-width: 750px) and (orientation: portrait), (prefers-reduced-motion: reduce), print {
+  .supplier-marquee {
+    width: auto;
+    margin-left: 0;
+  }
+
+  .supplier-logos {
+    flex: 1;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.25rem 1.75rem;
+    padding: 0;
+    animation: none;
+  }
+
+  .supplier-logos[aria-hidden="true"] {
+    display: none;
+  }
+}
+
+/* Project strips on Home, Residential and Commercial: every frame the same size, four whole cards across a PC so no card is cut
+   at the edge, every second card dropped like Espacio's home slider (180px, 120px from 1200px down, phone included); the rail
+   still scrolls for more (owner 2026-11-22). */
+:is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card {
+  width: auto;
+  padding-top: 0;
+}
+
+:is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card:nth-child(even) {
+  padding-top: 180px;
+}
+
+@media (max-width: 1200px) {
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects .project-card:nth-child(even) {
+    padding-top: 120px;
+  }
+}
+
+@media (min-width: 981px) {
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"]) .blk-projects__track {
+    --strip-gap: clamp(1.5rem, 3vw, 3rem);
+    grid-auto-columns: calc((100% - 3 * var(--strip-gap)) / 4);
+    gap: var(--strip-gap);
+  }
+}
+
+/* Espacio type scale and frame (owner 2026-11-22, measured on espaciohomedesign.com at 1920, 1440, 1100, 900, 700 and 384).
+   Espacio sets section titles in silka-regular, body in silka-regular, card names and banner titles in silka-medium and small
+   labels in silka-semibold; mapped to Plus Jakarta Sans 400, 400, 500 and 600. Section titles 64px, 56px from 1200px, 48px from
+   960px, 40px from 750px, line height 1.4; body 24px, 20.8px from 960px; content frame 1500px with 35 / 25 / 15px gutters.
+   Hero blocks and masonry pages keep their own type and frame. */
+:root {
+  --espacio-title: 64px;
+  --espacio-body: 24px;
+  --espacio-banner: 64px;
+}
+
+@media (max-width: 1200px) {
+  :root {
+    --espacio-title: 56px;
+  }
+}
+
+@media (max-width: 960px) {
+  :root {
+    --espacio-title: 48px;
+    --espacio-body: 20.8px;
+  }
+}
+
+@media (max-width: 750px) {
+  :root {
+    --espacio-title: 40px;
+    --espacio-banner: 48px;
+  }
+
+  :is([data-barba-namespace="home"], [data-barba-namespace="residential"], [data-barba-namespace="commercial"], [data-barba-namespace="about"], [data-barba-namespace="project"], [data-barba-namespace="news"]) main > :not(.hero) {
+    --gutter: 15px;
+  }
+}
+
+.detail-heading h2,
+.detail-lead__title,
+.detail-gallery > h2,
+.blk-title h2,
+[data-barba-namespace="project"] .blk-title h2,
+.blk-contact__title,
+.blk-projects__title {
+  font-size: var(--espacio-title);
+  font-weight: 400;
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+.detail-lead__copy,
+.detail-note p,
+.detail-intro__copy,
+.about-chapter-lead p:last-child,
+.blk-paragraph p,
+.blk-quote p {
+  font-size: var(--espacio-body);
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+.detail-cta:not([data-masonry-grid-cta]) {
+  --cta-title-size: var(--espacio-banner);
+}
+
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy h2 {
+  font-weight: 500;
+  letter-spacing: normal;
+  line-height: 1.4;
+}
+
+.detail-eyebrow,
+.detail-cta__copy p,
+.commitment-title {
+  font-weight: 600;
+}
+
+/* Espacio body column: 600px wide against the right edge, first line indented 100px (50px on phone). */
+.detail-lead__copy,
+.detail-note p {
+  max-width: 37.5rem;
+  text-indent: 100px;
+}
+
+@media (max-width: 750px) {
+  .detail-lead__copy,
+  .detail-note p {
+    text-indent: 50px;
+  }
+}
+
+@media (max-width: 750px) {
+  .service-portals,
+  .editorial-strip,
+  .heritage-montage {
+    padding-right: 15px;
+    padding-left: 15px;
   }
 }

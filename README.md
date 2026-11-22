@@ -54,14 +54,15 @@ Worker contract dormant đến CMS phase. Browser matrix và evidence contract �
 ## Deployment
 
 GitHub là source of truth. Pull request chạy static và browser smoke gate.
-Demo tĩnh chạy trên Cloudflare Workers static assets: workflow `Deploy demo`
-tự chạy `pnpm deploy:demo` khi CI xanh trên `main` theo
+Bản tĩnh chạy trên Cloudflare Workers static assets: workflow `Deploy demo`
+tự chạy `pnpm deploy:demo` lên bản thử `staging.truongthinhads.vn` khi CI xanh trên `main`;
+`truongthinhads.vn` chỉ cập nhật khi owner chạy workflow `Release site`, theo
 [các bước phát hành](docs/specs/static-release.md#r11-phát-hành-demo-cloudflare).
 CMS chưa activate. Trạng thái phát hành thực tế xem [trang Notion Trạng thái website](https://app.notion.com/p/41f332849a0e81db8b39eeb226e20824); lịch sử thay đổi
 đọc trong PR và `git log`.
 Wrangler cho CMS Worker chỉ được cài và activate
 khi owner mở CMS phase theo
-[điều kiện mở CMS](docs/specs/cms.md#điều-kiện-mở-cms-phase).
+[điều kiện mở CMS](docs/specs/cms.md#gate-còn-mở).
 
 ## Cây thư mục và trạng thái
 

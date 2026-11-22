@@ -105,8 +105,8 @@ các container này. Ảnh ngoài bảng (cặp ảnh `.detail-duo`, cụm porta
 | Trang | Container | Item | Nhãn |
 | --- | --- | --- | --- |
 | Trang chủ | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
-| Trang chủ | `.project-track` | `.project-card` | Rail công trình |
-| Trang chủ | `.client-logo-marquee__group` (bản không `aria-hidden`) | `.client-logo-slot` | Logo khách hàng |
+| Trang chủ | `.blk-projects__track` | `.blk-projects__card` | Dải công trình |
+| Trang chủ | `.client-logo-marquee__group` (bản không `aria-hidden`; markup ở `partials/client-logos.html`) | `.client-logo-slot` | Logo khách hàng |
 | Nhà ở, Kinh doanh | `.hero-slides` | `.hero-slide` | Ảnh hero (xáo, chỉ thêm, xóa) |
 | Nhà ở, Kinh doanh | `.detail-gallery__slides` | `.detail-gallery__item` | Gallery công trình |
 | Giới thiệu | `.about-timeline` | `.about-timeline__item` | Dòng thời gian |
@@ -131,7 +131,7 @@ And kéo figure mới lên đầu thì thứ tự trong bản nháp đổi theo
 `build-admin.mjs` quét `.site-output/assets/content/**` (`.webp`, `.svg`, `.png`, `.jpg`), bỏ biến thể cỡ (`-240`,
 `-480`, `-960`, `-1600`, `-2048`), ghi `.site-output/admin/media-index.json`: `src`, `width`, `height` (đọc bằng
 `sharp`), `folder`, `thumb` (bản `-240.webp` nếu có), alt VI/EN khi tìm được trong catalog Advertising,
-`project-reel.json` hoặc thẻ `img` của bốn trang. Bấm "Đổi ảnh" (hoặc "Thêm mục") bật chế độ chọn: panel Media hiện dải
+cover công trình hoặc thẻ `img` của bốn trang. Bấm "Đổi ảnh" (hoặc "Thêm mục") bật chế độ chọn: panel Media hiện dải
 "Bấm một ảnh bên dưới để đặt vào chỗ đang chọn"; bấm ảnh là ghi ảnh, cỡ và alt có sẵn vào nháp, tải lại preview. Áp ảnh
 bỏ `<source>`, `srcset`, `sizes` (ảnh mới chưa có biến thể), ghi `data-src` nếu ảnh lazy, không thì `src`. Tải ảnh từ
 máy chưa có: thư viện chỉ gồm media thật đang dùng trên demo (owner 2026-10-31).
@@ -180,7 +180,7 @@ Then card trên preview đổi ảnh, bản nháp ghi mediaItems mới, cover m�
 ```
 
 ### R8. Bản nháp, lưu và xuất
-
+Bị thay: lưu và lệnh theo [CMS R3 tới R5](cms.md#r5-lệnh-admin-có-kiểu); phần dưới giữ làm tham khảo tới slice editor.
 Sửa đổi ghi vào nháp `{ page, base, anchors, text: { key: { vi, en } }, image: { key: { src, width, height, altVi, altEn
 } }, list: { listKey: [id] }, clone: { idMới: idGốc }, cards }`. Bản đang sửa là nháp trên máy nếu có, không thì bản đã
 lưu (`GET /api/admin/content/<page>` lúc mở editor, cache `tt-cms-saved:<page>` cho bản xem trước); `base` là
@@ -203,7 +203,7 @@ Then thanh trên ghi "Đã lưu", /vi/residential/ và /en/residential/ hiện h
 
 ### R9. Chạy local và CI
 
-`pnpm cms:dev` ([CMS R1](cms.md#r1-cấu-hình-worker-dormant)) chạy `prepare:site` rồi `node scripts/cms/build-admin.mjs`:
+`pnpm cms:dev` ([CMS code dormant](cms.md#code-dormant-hiện-có)) chạy `prepare:site` rồi `node scripts/cms/build-admin.mjs`:
 chép `src/admin/` và Dockview (`vendor/`), ghi 10 bản xem trước, `pages.json`, `media-index.json` vào
 `.site-output/admin/`, rồi Worker local mở `http://127.0.0.1:8788/admin/`. `pnpm dev` và demo không dựng admin vì
 `prepare:site` xóa output: route public không đổi. Bộ `fast` chạy `tests/admin/cms-core.test.mjs` (Playwright
@@ -218,10 +218,10 @@ Then 200; GET /vi/ không có cms-core.js
 ```
 
 ### R10. Worker áp nội dung đã lưu
-
+Bị thay: [CMS R1](cms.md#r1-ranh-giới-public-và-admin) bỏ Worker SSR và `page_edits`; phần dưới chỉ mô tả code dormant.
 `0005_page_edits.sql`: bảng `page_edits` (`page` là `home`, `residential`, `commercial`, `about` hoặc `advertising`;
 `edits_json`, `anchors_json`, `updated_at`, `updated_by`); áp migration trước khi deploy Worker đọc bảng. `GET
-/api/admin/content/<page>` (admin, [CMS R5](cms.md#r5-xác-thực-admin)) trả `{ edits, stale, updatedAt, updatedBy }`.
+/api/admin/content/<page>` (admin, [CMS code dormant](cms.md#code-dormant-hiện-có)) trả `{ edits, stale, updatedAt, updatedBy }`.
 `PUT` (body tối đa 512 KB, nháp 256 KB UTF-8) kiểm nháp bằng `validateEdits` của `src/worker/content.mjs` (khóa đúng
 mẫu, chữ đủ VI/EN và không có mã HTML dạng `&amp;`, ảnh chỉ trong `/assets/content/`, sản phẩm card có trong taxonomy,
 ảnh bìa thuộc media), ghi có điều kiện theo `baseUpdatedAt` (khác thì 409 kèm người, giờ lưu), ghi `audit_log`
@@ -231,7 +231,7 @@ khác dấu nguồn, hoặc mục mới còn ô trống; card phải có trang t
 
 Phục vụ bốn trang `/vi|en/`: dòng `page_edits` có sửa đổi thì Worker parse HTML nguồn bằng `linkedom`, chạy `stamp`,
 `apply` của `cms-core.js`, bỏ sửa đổi có dấu không khớp nguồn hiện tại (khóa lệch, GET trả trong `stale`), xóa thuộc
-tính `data-cms-*` của editor, rồi pipeline locale và SEO của [CMS R3](cms.md#r3-render-trang-locale-và-nội-dung-d1) chạy
+tính `data-cms-*` của editor, rồi pipeline locale và SEO của [CMS code dormant](cms.md#code-dormant-hiện-có) chạy
 tiếp. Chỗ editor đã sửa thắng field CMS cũ (bỏ `data-cms` ở đó; title, description thay SEO trong `pages`); title ghi
 bằng HTMLRewriter (có thoát, linkedom thì không). Hero đã sửa thì bỏ script preload ở `<head>` và đánh lại `data-slide`.
 Bản render giữ trong isolate theo `updated_at` và ETag nguồn, module nạp lười. Trang dưới `/vi|en/advertising-products/`
@@ -253,7 +253,7 @@ Then trang hiện h1 theo nguồn mới, không áp nhầm; API trả khóa h1 t
 | File | `src/admin/cms-core.js` | `TTCms`: `LISTS`, `stamp`, `apply`, `setText`, `mirror`, `patchCatalog`, `readDraft`, `readSaved`; boot bản xem trước (R3, R4, R7, R8); Worker nạp cùng file (R10) |
 | File | `src/worker/content.mjs`, `src/db/migrations/0005_page_edits.sql` | kiểm nháp, dấu chỗ gốc, render linkedom, script vá catalog; bảng `page_edits` (R10) |
 | File | `src/admin/overlay.js`, `overlay.css` | chọn, sửa tại chỗ trong iframe (R3) |
-| File | `src/admin/forms.html`, `admin.js`, `admin.css` | form CRUD cũ ([CMS R8](cms.md#r8-giao-diện-admin)) |
+| File | `src/admin/forms.html`, `admin.js`, `admin.css` | form CRUD cũ ([CMS code dormant](cms.md#code-dormant-hiện-có)) |
 | Script | `scripts/cms/build-admin.mjs` | dựng `.site-output/admin/` (R5, R9) |
 | Data | `.site-output/admin/pages.json`, `media-index.json` (`variants`), `preview/<locale>/<page>.html`, `advertising.html` | cây trang (R1), thư viện (R5, R6), bản xem trước (R3, R7) |
 | DOM hook | `data-cms-key`, `data-cms-list`, `data-cms-item`, `data-cms-empty`, iframe `data-cms-preview` | khóa placeholder, danh sách, ô trống |
@@ -279,7 +279,7 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tín
 ## Gate còn mở
 
 - Khóa tự sinh theo thứ tự nguồn: sửa HTML nguồn trước một chỗ làm lệch khóa; dấu chỗ gốc bỏ sửa đổi lệch thay vì áp
-  nhầm, nhưng nó mất trên web tới khi làm lại. Bền hơn cần `data-cms` cố định ([CMS](cms.md#điều-kiện-mở-cms-phase)).
+  nhầm, nhưng nó mất trên web tới khi làm lại. Bền hơn cần `data-cms` cố định ([CMS R3](cms-content.md#r1-kiểu-nội-dung-và-file-chiếu)).
 - Motion trong bản xem trước giữ nguyên (owner 2026-10-31): nháp áp lúc parse, sửa chữ tại chỗ dùng revert/rebuild.
 - Hero đã sửa mất preload ảnh đầu (LCP chậm hơn); sinh lại preload cần ảnh mới có đủ biến thể.
 - linkedom tốn 6 đến 21 ms mỗi lần render (Node 22, 2026-11-01), Workers Free giới hạn 10 ms CPU: chốt gói, đo CPU Worker

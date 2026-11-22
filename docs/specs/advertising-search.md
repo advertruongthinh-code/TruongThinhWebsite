@@ -13,17 +13,17 @@ tests:
   - tests/search/calibrate.test.mjs
   - tests/site/advertising-search.e2e.mjs
 notion: https://app.notion.com/p/419332849a0e8118ba24ffb730cdecf5
-updated: 2026-11-18
+updated: 2026-11-22
 ---
 
 # Tìm kiếm theo nghĩa cho sản phẩm quảng cáo
 
 ## Mục đích
 
-Khách trên trang Sản phẩm quảng cáo (VI, EN, mọi trang cụm và sản phẩm) tìm trong toàn bộ card bằng chữ và 1 đến 5 ảnh,
+Khách trên trang Sản phẩm quảng cáo (VI, EN, mọi trang cụm và sản phẩm) tìm trong toàn bộ card bằng chữ và 1 ảnh (owner 2026-11-21),
 kể cả khi gõ không dấu, gõ sai hay quên bật bộ gõ. Kết quả hiện trên lưới masonry chính, xếp theo điểm. Site không lưu câu
 tìm hay ảnh, trừ ảnh của link chia sẻ. Lưới thuộc [masonry R6](masonry-live-layout.md#r6-chế-độ-tìm-kiếm); spec này chỉ gọi
-API của lưới. Tìm trong CMS và tính vector lúc CMS lưu card thuộc [CMS](cms.md), ghi ở Gate còn mở.
+API của lưới. Bản đầu CMS không tính vector lúc lưu; `pnpm search:index` ở mỗi lần dựng là nơi duy nhất tính vector, chỉ từ nội dung `published` ([CMS R9](cms-content.md#r9-tìm-kiếm-ngữ-nghĩa)). Tìm bản ghi nháp trong CMS để sau bản đầu ([CMS](cms.md#bối-cảnh-và-phương-án)).
 
 ## Bản đồ module
 
@@ -42,7 +42,7 @@ Thứ tự làm: tìm bằng chữ (index, keywords, worker, rank, bar), rồi t
 
 ### R1. Chỉ mục vector lúc deploy
 
-Workflow `Deploy demo` chạy `pnpm search:index` sau `prepare:site`, trước deploy. Script gọi Workers AI REST, model
+Workflow `Deploy demo` (cả staging và bản thật) chạy `pnpm search:index` sau `prepare:site`, trước deploy. Script gọi Workers AI REST, model
 `@cf/google/embeddinggemma-2`, 256 chiều. Mỗi card có một vector chữ: tiêu đề, mô tả, alt mọi media, tên sản phẩm, tag (không lấy tên cụm),
 chữ VI và EN trong một input theo mẫu `title: ... | text: ...`. Mỗi media một vector: ảnh thu bằng `sharp` về cạnh dài 768 px
 kèm alt của media; video lấy poster kèm alt. Mọi vector chuẩn hóa L2 rồi lượng tử int8 kèm hệ số `s` của từng vector, ghi
@@ -85,7 +85,7 @@ Then K lần lượt là 0,85, 1, 0,6 và 0,6
 ### R3. Endpoint tìm kiếm
 
 `POST /api/search` nhận JSON `{ text?, images? }`. Trình duyệt cắt `text` còn 300 ký tự trước khi gửi; mỗi ảnh là JPEG base64
-cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 5 ảnh; body quá 2,2 MB trả 413. Worker đổi câu (tiền tố
+cạnh dài tối đa 768 px, tối đa 300 KB, tối đa 1 ảnh; body quá 450 KB trả 413. Worker đổi câu (tiền tố
 `task: search result | query:`) và ảnh thành vector bằng `env.AI.run` đồng bộ: chữ qua `input` (qua `messages` P@5 tụt 0,86
 xuống 0,66), mọi ảnh một lần qua `messages`, có cả hai thì gọi song song; chuẩn hóa L2, so cosine với chỉ mục (đọc qua binding `ASSETS`, giải mã một lần mỗi isolate). Mỗi điểm được chuẩn hóa về 0 đến 1 theo cặp mốc của
 đúng loại truy vấn và loại đích (chữ-chữ, chữ-ảnh, ảnh-chữ, ảnh-ảnh), kẹp trong 0 đến 1, rồi `sMedia` là trung bình 2 media
@@ -148,7 +148,7 @@ Then lưới có card khớp cả hai ảnh trước, rồi card hai nhóm xen k
 Gửi tìm thì gọi `setPending(true)`. Câu chữ: trình duyệt tính K ngay. Worker trả trong 0,8 giây thì `setResults` theo R5.
 Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ `keywordMin` (0,6) thì `setResults` các card đó xếp theo K; điểm vector về muộn mà khách chưa cuộn, chạm hay bấm phím từ lúc đó thì `setResults` luôn kết quả R5 (cùng câu ra cùng lưới dù mạng nhanh hay chậm, rà soát 2026-11-18); khách đã thao tác thì `offerResults`. Không card nào có K từ `keywordMin` mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
 vector về hoặc tới 3 giây, rồi theo R9. Có ảnh: chờ tới 3 giây, quá thì báo "Tìm bằng ảnh đang chậm" kèm nút thử lại.
-Hết hạn mức hoặc mất mạng: chữ chạy bằng K, khay ảnh báo tạm nghỉ, không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
+Hết hạn mức hoặc mất mạng: chữ chạy bằng K, thanh báo tạm nghỉ ([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)), không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
 đang tìm thì huỷ request cũ (`AbortController`), lần mới nhất thắng; bỏ bớt ảnh sau khi có kết quả thì tự tìm lại sau 0,4
 giây. Bấm tìm khi chưa có chữ và ảnh thì chỉ đưa con trỏ vào ô chữ.
 
@@ -162,43 +162,26 @@ And khách đã cuộn thì nút "Có thêm kết quả gợi ý" hiện, bấm 
 
 ### R7. Thanh tìm kiếm
 
-Theo thiết kế owner duyệt ([bản thử, biến thể 1 Đường kẻ](https://claude.ai/artifact/9zKp1Fdq1t7VYSsvLtGSUi)). Một thanh dài nổi ở đáy màn hình. Bên phải ô chữ: nút xoá chữ (chỉ hiện khi đã
-gõ), vạch ngăn, nút tìm bằng ảnh, nút kính lúp. Ảnh vào bằng nút, kéo thả (lớp phủ "Thả ảnh vào đây để tìm") hoặc dán; khay ảnh có thumbnail, nút bỏ từng ảnh và "n/5 ảnh". Thanh có ba chỗ
-(owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` thế chỗ hàng nhóm dưới tiêu đề hero, hàng nhóm và chip lùi xuống một bậc (chỗ cũ của "Cuộn xuống", trang có lưới masonry bỏ chữ
-này); thanh ở đây khi cả khe hiện dưới hàng header. Giữa trang: nổi trong lớp cố định ở đáy màn hình. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA, cách tiêu đề bằng `--masonry-gap`
-như link CTA trang Công trình; thanh vào khe khi khe lên tới mép trên thanh nổi, nên thanh như `sticky` của bản thử: trượt theo trang, dừng ở khe rồi mới giãn (cuộn mượt dịch trang bằng
-`transform` nên không dùng `sticky` thật). Ở hai khe thanh rộng tới 1000px, hàng cao 44px, chữ 16px; khe đầu trang giữ khung như thanh nổi (owner 2026-11-18), khe CTA viền tan thành đường kẻ,
-nền trong suốt (owner 2026-11-17) và nút "Trao đổi ý tưởng" mở ra ở cuối đường kẻ (điện thoại: "Trao đổi"). Mỗi lần đổi chỗ là một morph 1 giây
-`--ease-card` cả hai chiều (owner 2026-11-18: 0,7 giây nhanh quá): thanh dựng dáng cũ ở chỗ mới rồi đổi class, và trượt từ chỗ cũ tới chỗ mới (xa hơn một màn hình thì chỉ morph); ô chữ,
-khay ảnh vẫn dùng được. Hai vạch dọc (trước nút ảnh và trước "Trao đổi ý tưởng") cùng cao 26px. Khoảng cách hai đầu theo mắt: mép trái tới chữ 21px, đầu cán kính lúp tới mép phải 18px. Thanh
-gắn xong thì ẩn link "Trao đổi ý tưởng" cũ của CTA; không có JavaScript thì link cũ vẫn hiện. Enter tìm, Esc bỏ tìm; khi đang tìm, nút xoá chữ cũng bỏ tìm. Đang gõ thì Home, End, PageUp, PageDown, mũi tên, Space chỉ di con trỏ, không cuộn trang. Không có dòng trạng thái trên màn
-hình (owner 2026-11-17): số kết quả chỉ báo qua vùng `aria-live` ẩn. Giảm chuyển động thì đổi trạng thái ngay. Chữ trên thanh, thông báo và đồng nghĩa có bản EN.
-
-```gherkin
-Given trang /vi/advertising-products/ ở 384px
-When khách cuộn tới CTA cuối lưới
-Then thanh dừng dưới tiêu đề CTA, nút "Trao đổi" hiện ở cuối đường kẻ, ô chữ vẫn gõ được
-And không có cuộn ngang ở 384, 768, 1024, 1280, 1440, 1920px
-```
+Giao diện, chỗ đứng, chuyển động và audit của thanh theo spec con [Thanh tìm kiếm](search-bar.md) (owner duyệt mock 2026-11-22): một khối trắng ở khe đầu trang,
+nổi ở đáy và khe CTA; hàng chip lọc trong kết quả khi nổi; một ảnh; chữ gợi ý; link CTA dưới thanh ở tâm thị giác.
 
 ### R8. Ảnh khách đưa vào
 
-Tối đa 5 ảnh; thả hơn 5 thì lấy 5 ảnh đầu và báo "Tối đa 5 ảnh". Ảnh trùng (cùng nội dung sau khi thu nhỏ) bị bỏ. PNG trong
+Mỗi lần tìm 1 ảnh (owner 2026-11-21). Thả hoặc dán nhiều ảnh thì lấy ảnh đầu; đưa ảnh mới thì thay ảnh đang có. PNG trong
 suốt và GIF (khung đầu) được vẽ trên nền trắng; HEIC chỉ đọc được trên Safari. Trình duyệt không đọc được thì báo "Chưa đọc
-được ảnh này, thử JPG hoặc PNG". File trên 25 MB, SVG, PDF bị từ chối kèm lý do; video báo "Chỉ tìm bằng ảnh". Các thông báo này là một dòng ngắn trong khay ảnh, bên
-trong thanh, tự tắt sau 4 giây; khay khi thanh dừng treo ngay dưới đường kẻ để khe giữ chiều cao.
+được ảnh này, thử JPG hoặc PNG". File trên 25 MB, SVG, PDF bị từ chối kèm lý do; video báo "Chỉ tìm bằng ảnh". Các thông báo này trượt vào chỗ chữ trong ô, tự tắt sau 4 giây
+([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)).
 
 ```gherkin
-Given khay đã có 4 ảnh
+Given thanh đã có 1 ảnh
 When khách thả thêm 3 ảnh
-Then khay có 5 ảnh và thông báo "Tối đa 5 ảnh"
+Then thanh chỉ còn ảnh đầu trong 3 ảnh vừa thả và tìm lại theo ảnh đó
 ```
 
 ### R9. Không có kết quả
 
 Không card nào đạt ngưỡng: lưới đang ở chế độ tìm (đã `setResults`, chưa nhận `masonry:search-left`) thì gọi `clearResults()`; sự kiện `masonry:search-left` của nó có `reason: "clear"` nên
-bị bỏ qua, ô chữ và khay ảnh giữ nguyên. Lưới đang duyệt thì không gọi gì. Thanh hiện một dòng chữ nhỏ màu xám "Chưa thấy mẫu phù hợp" ở chỗ thông báo của khay (thanh dừng: ngay dưới đường
-kẻ), tự tắt sau 4 giây (owner 2026-11-18; không nút Zalo, lời mời hỏi giá hay link Công trình); khách liên hệ qua "Trao đổi ý tưởng" ở CTA. Câu phủ định không được hiểu (giới hạn của model).
+bị bỏ qua, ô chữ và khay ảnh giữ nguyên. Lưới đang duyệt thì không gọi gì. Thanh hiện "Chưa thấy mẫu phù hợp" ở chỗ chữ trong ô ([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)), tự tắt sau 4 giây (owner 2026-11-18; không nút Zalo, lời mời hỏi giá hay link Công trình); khách liên hệ qua "Trao đổi ý tưởng" ở CTA. Câu phủ định không được hiểu (giới hạn của model).
 
 ```gherkin
 Given khách gõ "xqzw vbnk" và không card nào đạt ngưỡng
@@ -216,8 +199,8 @@ breadcrumb, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. T
 trên chip là số kết quả; các mục còn lại trượt về chỗ mới, mục hiện lại thì hiện dần (owner 2026-11-18). Bấm một nhóm hoặc chip thì lưới chỉ còn kết quả thuộc mục đó, câu tìm giữ nguyên, URL
 và lịch sử duyệt không đổi; bấm "Tất cả" thì về đủ kết quả.
 
-Chưa có nút "Sao chép link": khung trạng thái chứa nút này đã bị bỏ (owner 2026-11-17); chỗ đặt nút chờ owner. Khi có nút, nó chép link trang kèm `#q=`. Có ảnh thì `POST /api/search/share` gửi các ảnh đã
-thu nhỏ (body quá 2,2 MB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
+Chưa có nút "Sao chép link": khung trạng thái chứa nút này đã bị bỏ (owner 2026-11-17); chỗ đặt nút chờ owner. Khi có nút, nó chép link trang kèm `#q=`. Có ảnh thì `POST /api/search/share` gửi ảnh đã
+thu nhỏ (body quá 450 KB trả 413); Worker chỉ nhận JPEG (bắt đầu bằng `FF D8 FF`), cạnh dài tối đa 768 px, tối đa 300 KB mỗi ảnh, lưu R2 dưới mã
 12 ký tự base62 từ `crypto.getRandomValues`; link thành `#q=<chữ>&anh=<mã>.<số ảnh>`. `GET /api/search/share/<mã>/<n>` trả
 ảnh với `Content-Type: image/jpeg`, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'`,
 `Cache-Control: private`. R2 không lưu chữ, IP hay người tìm; luật vòng đời bucket xoá ảnh sau 30 ngày (Cloudflare xoá trong
@@ -236,7 +219,8 @@ And sau 31 ngày mở lại thì chỉ tìm theo chữ, kèm thông báo ảnh �
 `pnpm search:calibrate` chạy `tests/search/fixtures/queries.json` trên chỉ mục thật: câu từ Keyword Planner, 15 câu trò
 chuyện, 15 câu gõ sai và Telex, VNI, 10 bộ trộn input không liên quan, câu EN. Script ghi cặp mốc của 4 loại truy vấn-đích
 và ngưỡng vào `src/search/score-config.json`; trọng số và ngưỡng chỉ đổi qua file này. Cổng: card đúng trong 5 card đầu từ
-80% câu mỗi loại; P@5 chung không dưới 0,8. Câu nhắm video chưa vào cổng khi catalog chưa có video.
+80% câu mỗi loại; P@5 chung không dưới 0,8 và không thấp hơn config đang chạy (2026-11-21: config mới đạt cổng
+nhưng kém config cũ thì không ghi). Câu nhắm video chưa vào cổng khi catalog chưa có video.
 
 ```gherkin
 Given chỉ mục thật và bộ câu thử
@@ -261,7 +245,7 @@ Then báo cáo nêu tỉ lệ top 5 theo từng loại câu và mọi loại t�
 
 ## UI
 
-Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar](../../design-system/components/SearchBar/README.md).
+Thanh và CTA theo mock owner duyệt 2026-11-22 (link ở R7), audit theo [Thanh tìm kiếm R6](search-bar.md#r6-audit-so-với-mock); component [SearchBar](../../design-system/components/SearchBar/README.md).
 
 ## Kiểm tra
 
@@ -271,8 +255,8 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 | R2 | `node --test tests/search/keywords.test.mjs` |
 | R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
-| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: khe đầu trang, nổi, khe CTA (vị trí, chữ 16px) ở 1440 và 384px, khung ở khe đầu trang và đường kẻ ở khe CTA, phím di con trỏ không cuộn trang, không cuộn ngang ở 6 bề rộng, dòng "Chưa thấy mẫu phù hợp", `#q=` và `#tim=`, đổi ngôn ngữ, Esc, rail lọc trong kết quả, chuyển trang mềm |
-| R8, R4 (ảnh ở trình duyệt), R6 (ảnh chậm) | `node tests/site/advertising-search.e2e.mjs`: tối đa 5 ảnh, không còn khối EXIF trong body, SVG và video bị từ chối, dán ảnh, bỏ ảnh thì tìm lại, chờ 3 giây rồi Thử lại |
+| R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: khe đầu trang, nổi, khe CTA (vị trí, chữ 16px) ở 1440 và 384px, cùng một khối ở ba chỗ, bề rộng 560 và 760px, hàng chip lọc trong kết quả, khoảng trống CTA bằng nhau, link CTA dưới thanh, chữ gợi ý đổi, phím di con trỏ không cuộn trang, không cuộn ngang ở 6 bề rộng, dòng "Chưa thấy mẫu phù hợp", `#q=` và `#tim=`, đổi ngôn ngữ, Esc, rail lọc trong kết quả, chuyển trang mềm |
+| R8, R4 (ảnh ở trình duyệt), R6 (ảnh chậm) | `node tests/site/advertising-search.e2e.mjs`: 1 ảnh (ảnh mới thay ảnh cũ, thumbnail ở chỗ nút ảnh, thanh không cao thêm), không còn khối EXIF trong body, SVG và video bị từ chối, dán ảnh, bỏ ảnh thì tìm lại, chờ 3 giây rồi Thử lại |
 | R10 (ảnh) | chưa có test (P8) |
 | R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |
 
@@ -283,10 +267,9 @@ Thanh và CTA theo bản thử đã duyệt (link ở R7); component [SearchBar]
 - Binding rate limit trên gói Free: tài liệu Cloudflare chưa nói rõ; kiểm bằng deploy thử trước khi code R4.
 - Bật R2 có thể đòi thẻ thanh toán dù nằm trong gói miễn phí (suy luận); kiểm trước khi làm R10, báo owner nếu cần.
 - File Keyword Planner cho `synonyms.json` và bộ câu thử: owner gửi; không có thì agent viết, owner duyệt.
-- Tìm trong CMS (thấy cả card nháp, sau Cloudflare Access) và tính vector khi CMS lưu card: thread CMS, sau slice CMS đầu.
+- Tính vector lúc CMS lưu card và tìm bản ghi nháp trong CMS (sau Cloudflare Access): sau bản đầu CMS (owner 2026-11-22).
 - Video thật: đo lại poster kèm alt và đưa câu video vào cổng R11 khi catalog có card video.
-- Thông báo về ảnh của R6, R8 (đang chậm kèm thử lại, tạm nghỉ, tối đa 5 ảnh, file không dùng được): P7 đặt thành một dòng
-  ngắn trong khay ảnh, bên trong thanh, không phải khung trên thanh; chờ owner xem trên demo.
+- Audit ([Thanh tìm kiếm R6](search-bar.md#r6-audit-so-với-mock)) chạy sau khi code; owner xem trang so sánh trước khi merge.
 
 ## Chú thích thuật ngữ
 

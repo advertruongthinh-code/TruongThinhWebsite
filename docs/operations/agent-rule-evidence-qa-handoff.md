@@ -24,7 +24,8 @@ Playwright là evidence layer chính (Chrome DevTools MCP chỉ để debug, kh�
 Chỉ chạy sau khi owner explicit activate CMS phase và live spec tương ứng được
 duyệt. Ngoại lệ duy nhất: `pnpm deploy:demo` và `pnpm demo:wrangler` theo
 [phát hành demo Cloudflare](../specs/static-release.md#r11-phát-hành-demo-cloudflare);
-agent chỉ chạy `--dry-run`; deploy thật do workflow `Deploy demo` chạy khi CI xanh trên `main`.
+agent chỉ chạy `--dry-run`; demo (staging) do workflow `Deploy demo` deploy khi CI xanh trên `main`, bản thật
+do workflow `Release site` khi owner nói "ok phát hành".
 
 ## Chấm ảnh Advertising
 

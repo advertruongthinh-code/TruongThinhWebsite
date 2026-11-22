@@ -50,28 +50,30 @@ Then html có lang="en", title "Commercial spaces — Trường Thịnh", hero p
 
 ### R2. Residential và Commercial: section và nội dung
 
-`main#noi-dung` có một `h1`, mười hai khối theo bảng (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
+`main#noi-dung` có một `h1`, mười hai khối theo bảng, riêng khối 12 (dải công trình) đứng trước khối 10: `.detail-cta#tu-van` luôn là khối cuối của `main`, ngay trên footer (owner 2026-11-22) (VI; EN ở `data-en`; Tone là `data-header-tone`), sau `main` là
 footer ([shell R10](site-shell.md#r10-floating-cta-và-footer)); không có lời mời `.site-invitation` vì `.detail-cta` đã mời (owner chọn 2026-10-11). Ảnh hero `fetchpriority="high"`, ảnh khác lazy; copy hero do owner duyệt.
 
 | # | Khối | Residential | Commercial | Tone |
 | --- | --- | --- | --- | --- |
-| 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "CAFE · NHÀ HÀNG · SHOWROOM · VĂN PHÒNG", "Thiết kế tối ưu / Vận hành bền bỉ" (bố cục chữ theo [chữ hero](hero-typography.md)) | inverse |
+| 1 | `.hero#top` | Kicker "NHÀ PHỐ · CĂN HỘ · HOMESTAY", `h1` "Nơi tái tạo / năng lượng sống" | "SHOWROOM · CỬA HÀNG · CAFE · NHÀ HÀNG · VĂN PHÒNG · KHU LÀM VIỆC" (đủ sáu cụm như tiêu đề ba portal, owner 2026-11-22), "Thiết kế tối ưu / Vận hành bền bỉ" (bố cục chữ theo [chữ hero](hero-typography.md)) | inverse |
 | 2 | `.detail-lead#tong-quan` | `h2` "Không gian để *sống.*" nét mảnh canh trái, đoạn mở cột phải thụt dòng đầu (như Espacio "Interior design") | `h2` "Không gian để *kinh doanh.*", cùng bố cục (như Espacio "Kitchens") | ink |
 | 3 | `figure.detail-media` | Ảnh `residential-detail` | Ảnh `commercial-active` | ink |
 | 4 | `.detail-note` | `h2.sr-only` "Một ngôi nhà được kiểm chứng mỗi ngày", một đoạn ngắn cùng kiểu đoạn mở | "Bằng chứng trong vận hành", một đoạn ngắn | ink |
 | 5 | `.detail-gallery#cong-trinh` | `h2` "Một ngôi nhà, nhiều *lớp.*", 42 `figure` (tính từ HTML), sáu chuỗi công trình (R7) | "Không gian *đang vận hành.*", 17 `figure` (tính từ HTML): ảnh lẻ và chuỗi "Văn phòng chia sẻ" (R7) | ink |
 | 6 | `.detail-heading#quy-trinh` | Eyebrow "MỘT NHỊP XUYÊN SUỐT", `h2` "Từ nếp sống / đến ngôi nhà hoàn thiện" | Cùng eyebrow, `h2` "Tối ưu từ bản vẽ / bền bỉ sau ngày mở cửa" | ink |
 | 7 | `.editorial-strip` | Năm bước một hàng: Khảo sát, Tư vấn, Sản xuất, Lắp đặt và bàn giao, Hậu mãi (R8) | Cùng năm bước, mô tả riêng | ink |
-| 8 | `.detail-duo` | `h2.sr-only` "Vật liệu và tay nghề", hai ảnh | Như Residential | ink |
-| 9 | `.portal-stage#loai-hinh` | Ba portal: Nhà phố, Căn hộ, Homestay | Không kicker, tiêu đề hai dòng: Showroom / Cửa hàng, Cafe / Nhà hàng, Văn phòng / Khu làm việc ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
+| 7a | `.detail-heading#vat-lieu` + `.detail-note` | Eyebrow "VẬT LIỆU VÀ PHỤ KIỆN", `h2` "Vật liệu và phụ kiện / *đi cùng chúng tôi*", một đoạn về nhà cung cấp ván và phụ kiện, dưới đoạn là `.supplier-marquee`: một hàng `.supplier-logos` không khung chạy vòng tràn ngang màn hình như logo khách hàng trang chủ (hai bản danh sách, bản sau `aria-hidden`; điện thoại dọc, giảm chuyển động và in thì đứng yên, xếp dòng canh giữa), nhóm chỉ bằng thứ tự trong hàng (ván gỗ: An Cường, Ba Thanh, KES; tấm alu: Triều Chen; phụ kiện tủ: Häfele, Blum, Eurogold, Gerari; thiết bị bếp: KAFF, Dmestik), mỗi logo có hộp em theo diện tích để nặng thị giác bằng nhau, canh giữa một trục (owner 2026-11-22) | Eyebrow "VẬT LIỆU", `h2` "Vật liệu chịu được / *nhịp kinh doanh*", một đoạn về vật liệu theo cường độ sử dụng, rồi cùng hàng `.supplier-logos` thêm Mimaki, Graphtec ở cuối | ink |
+| 8 | (bỏ) | Khối hai ảnh `.detail-duo` bỏ vì layout Espacio không có (owner 2026-11-22) | Như Residential | |
+| 9 | `.portal-stage#loai-hinh` | Ba card cam kết (không link, owner 2026-11-22): Nhà phố, Căn hộ, Homestay | Ba card cam kết: Showroom · Cửa hàng, Cafe · Nhà hàng, Văn phòng · Khu làm việc ([trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ)) | ink |
+| 9a | `.portal-stage#hang-muc` (R) | Ba card hạng mục cùng kiểu card cam kết trang chủ (nhãn, lead hai dòng, đoạn mô tả, ảnh dọc): Tủ bếp, Tủ áo, Hoàn thiện (owner 2026-11-17) | Không có: khối "Ghé chúng tôi" (`.detail-heading#ghe-tham` + `.detail-places`, thẻ như showroom Espacio) chuyển lên trang chủ, ngay sau dải công trình (owner 2026-11-22) | ink |
 | 10 | `.detail-cta#tu-van` | "CÓ MỘT NGÔI NHÀ? / Mời chúng tôi đến xem", nút "Gọi Zalo tư vấn" | "CÓ MẶT BẰNG? / Đặt lịch khảo sát" | inverse |
-| 11 | `.capability-marquee` | Loại hình, năng lực nhà ở | Loại hình, năng lực kinh doanh | ink |
-| 12 | `.blk-projects` | Dải công trình nhà ở như Espacio `/en/interior-design`, sinh từ `content/projects.json` ([projects R1](projects.md#r1-dải-công-trình-trên-trang-nhà-ở-và-kinh-doanh)) | Dải công trình kinh doanh như `/en/kitchens` | ink |
+| 11 | (bỏ) | Dải chữ `.capability-marquee` bỏ khỏi Nhà ở và Kinh doanh (owner 2026-11-22) | Như Residential | |
+| 12 | `.blk-projects` | Mọi khung ảnh cùng cỡ, card chẵn hạ thấp so le như slider trang chủ Espacio (180px, 120px từ 1200px trở xuống), bốn card trọn trên PC (owner 2026-11-22). Dải công trình nhà ở như Espacio `/en/interior-design`, sinh từ `content/projects.json` ([projects R1](projects.md#r1-dải-công-trình-trên-trang-nhà-ở-và-kinh-doanh)) | Dải công trình kinh doanh như `/en/kitchens` | ink |
 
 ```gherkin
 Given output đã build
 When mở /vi/residential/ và /vi/commercial/
-Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gallery lần lượt có bốn mươi mốt và mười bảy figure
+Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, gallery lần lượt có bốn mươi mốt và mười bảy figure
 ```
 
 ### R3. About: section và nội dung
@@ -82,7 +84,7 @@ Then mỗi trang có một h1 và mười hai khối theo thứ tự bảng, gal
 | --- | --- | --- | --- |
 | 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / Vững niềm tin" | inverse |
 | 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
-| 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "Hơn 20 năm trước", "Hôm nay" (R9) | ink |
+| 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "2006", "Hôm nay" (R9) | ink |
 | 6–10 | `#cach-lam`, chapter lead, ảnh `design-sketch`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng"; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
 | 11 | `.detail-duo` | `h2.sr-only` "Vật liệu và cách làm", ảnh `about-materials-samples-20261117`, `cnc-operator-b` | ink |
 | 12–15 | `#cam-ket`, chapter lead, ảnh `about-workshop-edgebander-20261117`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
@@ -155,18 +157,16 @@ Then tiêu đề gallery trượt lên lại bằng chữ EN, section khác khô
 ### R7. Gallery ngang
 
 `section.detail-gallery[data-gallery]` theo khối "The balance within the spaces" của Espacio interior-design (owner
-duyệt 2026-10-17). `h2` riêng một hàng, canh giữa, weight 300, chữ thường kiểu câu, phần cuối trong `<i>` (`data-en`
+duyệt 2026-10-17). `h2` riêng một hàng, canh giữa, weight 400, chữ thường kiểu câu, phần cuối trong `<i>` (`data-en`
 ở `span` và `i`, R4), cỡ `clamp(2.5rem, 4.45vw, 4rem)` (64px ở 1440px), vẫn tách dòng (R6). Dưới là track
 `[data-gallery-track]`: `region` focus được, `aria-label` trung tính, không ghi số ảnh; không nút prev/next. Track bắt buộc:
 thiếu thì `mount` ném lỗi. Mọi ảnh cao bằng nhau `min(50vw, 45rem)` (tới 750px `75vw`), rộng theo `width`, `height` của ảnh
 nên không crop và khung đúng tỷ lệ trước khi tải. Khối `gallery-carousel` trang công trình có ít ảnh không phủ hết track (Giếng trời: ba ảnh dọc ở 1920px) thì cả hàng cao lên tới khi ảnh cuối chạm mép phải track (owner chọn 2026-11-14): build ghi tổng tỷ lệ ảnh `--gallery-ratio` và số khe `--gallery-gaps` lên section, CSS lấy chiều cao lớn hơn giữa mức thường và mức phủ kín. `figure.detail-gallery__item` (trong `.detail-gallery__slides`) gồm khung
-`.detail-gallery__media` (vệt sáng chờ ảnh) và `figcaption` dưới ảnh 10px: label 0.8rem, 700, hoa, màu `ink`, không nới figure và rộng tối đa bằng track nhìn thấy (`100vw` trừ hai `--gutter`), nên ảnh ngang rộng hơn track vẫn xuống dòng chữ ở cỡ chữ 200%.
+`.detail-gallery__media` (vệt sáng chờ ảnh) và `figcaption` dưới ảnh 10px: label 0.8rem, 600, hoa, màu `ink`, không nới figure và rộng tối đa bằng track nhìn thấy (`100vw` trừ hai `--gutter`), nên ảnh ngang rộng hơn track vẫn xuống dòng chữ ở cỡ chữ 200%.
 Kéo, vuốt như gallery Espacio (đo Espacio): gallery cách viewport một màn hình thì `detail.js` tải Swiper
 14.2.0 (loader chung carousel Advertising) với tham số Espacio: `slidesPerView: "auto"`, `speed` 500 (reduced motion 0),
 `spaceBetween` 20 (dưới 600px 10; `.detail-gallery__item` đặt `transition: none` để giảm chuyển động không làm Swiper đo margin cũ), `grabCursor`, `edgeSwipeDetection`, `watchOverflow`, `mousewheel.forceToAxis`, resistance
-0.85, không freeMode (thả tay hút về ảnh). Track thành container thụt `--gutter`, ảnh tràn mép, section cắt; mũi tên trái/phải
-trên region chuyển ảnh. `[data-gallery-pagination]` (`aria-hidden`, dưới caption 18px): chấm tròn 8px cách 8px, chấm thường đen
-20%, active `ink`, bấm chấm tới ảnh, chấm theo kéo; dưới 600px chấm động. Hover ảnh không zoom, chỉ con trỏ grab (kéo: grabbing).
+0.85, không freeMode (thả tay hút về ảnh). Track thành container thụt `--gutter`, ảnh tràn mép, section cắt; mũi tên trái/phải trên region chuyển ảnh. `[data-gallery-pagination]` (`aria-hidden`, dưới caption 18px): chấm tròn 8px cách 8px, chấm thường đen 20%, active `ink`, bấm chấm tới ảnh, chấm theo kéo; dưới 600px chấm động. Hover ảnh không zoom, chỉ con trỏ grab (kéo: grabbing).
 Ảnh `draggable=false`, chặn `dragstart`; hàng chấm nằm trong track như Espacio và cả track nhận kéo (`touchEventsTarget: "container"`), nên kéo bắt đầu ở khe dưới caption hay hàng chấm là kéo carousel, không bôi đen caption (chữ vẫn chọn được). Chưa có Swiper (không JS, tải lỗi): track cuộn native, khe 20px (tới 750px 10px),
 snap `start` proximity, ẩn thanh cuộn ([shell R9](site-shell.md#r9-scrollbar)). Residential: sáu chuỗi công trình theo thứ tự nhà
 ống, nhà giếng trời 2 tầng, nhà giếng trời 1 tầng, căn hộ hai phòng ngủ Thủ Đức, homestay bên rạch, nhà phố ba tầng; mỗi chuỗi mở bằng ảnh toàn cảnh (homestay:
@@ -185,7 +185,7 @@ Dải `.editorial-strip.detail-process-editorial` là `region` focus được, g
 `article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3` cân dòng,
 đoạn; năm bước luôn cùng một hàng (owner): năm cột, mỗi bước ảnh trên, chữ và chữ số dưới; tới 980px thành rail vuốt ngang (scroll snap), tới 680px chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
 đầu tràn mép. `.portal-stage`: ba
-`article.service-portal` không link, không hover zoom, chữ theo [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ);
+`article.service-portal` không link, là card cam kết của [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ) (owner 2026-11-22: portal không link luôn dùng card này), ảnh không zoom khi hover (owner 2026-11-22);
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.
 
 ```gherkin
@@ -199,7 +199,7 @@ Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít n
 `.about-timeline`: `h2.sr-only`, hai mốc có đoạn kể; đường dọc ở 54% bề rộng, tới 980px 47%, tới 680px sát trái.
 `.detail-process`: năm `article.process-step` hiện lần lượt (`data-motion-up`, trễ 0; 0,15; 0,3; 0,45; 0,6s); năm cột cùng một hàng,
 tới 980px thành rail vuốt ngang. Chapter lead và `.about-process-note` hai cột 1:2, tới 980px một cột. `.about-commitments`: ba
-cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc thời gian trung tính, chưa có bảo hành tới khi owner xác nhận fact.
+cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc đầu là năm 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chưa có bảo hành tới khi owner xác nhận fact.
 
 ```gherkin
 Given /vi/about/ ở 390px
@@ -212,7 +212,7 @@ Then mỗi khối một cột, chữ không bị cắt, document không tràn ng
 `.detail-cta#tu-van`: ảnh phủ khung có lớp tối 50%, eyebrow, `h2` hai dòng, nút mở `https://zalo.me/0949131050` ở tab mới (EN
 "Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Rule CTA chung cho CTA này, khối
 "Giữ nghề" ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) và CTA Advertising: tiêu đề
-canh giữa ở mọi bề rộng, weight 600, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`; CTA Advertising giữ cỡ riêng,
+canh giữa ở mọi bề rộng, weight 500, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`; CTA Advertising giữ cỡ riêng,
 [R3](advertising-cta-center-parallax.md#r3-tiêu-đề-luôn-lớn-hơn-nút)); eyebrow (nếu có) ở trên, nút ở
 dưới. Ở `.detail-cta#tu-van` nét chữ nhìn thấy của tiêu đề (đỉnh chữ hoa tới chân chữ dòng cuối, không tính dấu) nằm đúng tâm
 khối theo chiều dọc, lệch tối đa 2px: copy là grid `1fr auto 1fr`, eyebrow và nút ở hai hàng 1fr bằng nhau, cả cụm dời
@@ -264,7 +264,7 @@ Component [Hero](../../design-system/components/Hero/README.md), [Gallery](../..
 [Footer](../../design-system/components/Footer/README.md). Motion [text](../../design-system/motion.md#text),
 [hover](../../design-system/motion.md#hover), [parallax](../../design-system/motion.md#smooth-scroll-và-parallax); `detail.css` đọc thời lượng, đường cong từ [token motion](../../design-system/motion.md#token-motion). Copy và
 ảnh: [hero ba route](../../design-system/content.md#hero-ba-route-dịch-vụ), [mạch nội dung](../../design-system/content.md#mạch-nội-dung-theo-route),
-[crop](../../design-system/content.md#crop-và-con-người). Màu, chữ, layout: [Design System](../../design-system/README.md).
+[crop](../../design-system/content.md#crop-và-con-người). Màu, chữ, layout: [Design System](../../design-system/README.md); ngoài hero và trang masonry, chữ và khung theo Espacio (owner 2026-11-22): tiêu đề mục 400, 64 / 56 / 48 / 40px (1200, 960, 750), đoạn 400, 24 / 20.8px, thẻ tên 500, nhãn 600, tiêu đề CTA 500 64 / 48px, line-height 1.4, khung 1500px, lề 35 / 25 / 15px.
 
 ## Kiểm tra
 

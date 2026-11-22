@@ -10,7 +10,7 @@
 6. Kẹt chờ owner, thiết bị, PR khác: `Blocked`, `Next action` ghi chờ gì và ai gỡ. `In progress` và `Blocked` luôn có `Agent` và `Next action`.
 7. Mọi PR ghi dòng `Card: <link card>` trong mô tả hoặc commit message; `qa-docs` fail khi thiếu ([docs-system R4](../specs/docs-system.md#r4-đổi-code-là-đổi-spec)).
 8. Không vào được Notion: ghi `Card: chờ tạo` cùng tên, status, bước kế tiếp trong mô tả PR; gate cho qua, điều phối backfill. Không giả lập update.
-9. Mỗi đêm workflow `card-report` liệt kê PR merge trong 24 giờ thiếu link card; điều phối đọc mỗi sáng, sửa card lệch và báo owner một dòng nếu có.
+9. Mỗi đêm workflow `card-report` liệt kê PR merge trong 24 giờ thiếu link card, và PR có dòng `Owner đổi:` (đổi quyết định owner hoặc xóa assert) để điều phối đối chiếu với lời owner; điều phối đọc mỗi sáng, sửa card lệch và báo owner một dòng nếu có.
 10. Tạo card, đổi status, gộp card trùng, đổi tên không cần hỏi lại; card bị gộp chuyển `Done` với dòng "Đã gộp vào ...", không xóa.
 11. Trước mỗi lần ghi: `search`, `fetch` (schema), rồi `create/update`; không đoán database, schema, parent. Card mới gắn `Project` = Truong Thinh Website; không gửi status `Approved`.
 12. Card không chép spec, state, evidence hay log; chỉ link.

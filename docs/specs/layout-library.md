@@ -64,7 +64,7 @@ của Claude, owner duyệt từng dòng `[CẦN LÀM RÕ: owner đánh dấu gi
 | `gallery-carousel` | `layout-galeria` | Tới 12 ảnh hoặc video, chú thích | Bộ ảnh công trình | Giữ |
 | `facts-grid` | `layout-bloque-facts` 2, 3, 4 cột | Ô đánh số: nhãn, mô tả | Thông tin công trình, quy trình 6 bước | Giữ |
 | `banner-links` | `layout-bloque-banners` 1, 2, 3 cột | Ảnh, tiêu đề, link | Dẫn sang ba mảng dịch vụ | Giữ |
-| `news-cards` | `layout-bloque-noticias` | 3 bài News tự lấy theo nhóm khi không ghi `newsIds` (`autoNewsIds`) | Cuối bài News; trang chủ dùng dải News riêng theo Espacio ([news R4](news.md#r4-news-trên-các-trang-khác)) | Giữ |
+| `news-cards` | `layout-bloque-noticias` | 3 bài News tự lấy theo nhóm rồi mức liên quan khi không ghi `newsIds` (`autoNewsIds`, [news R3](news.md#r3-trang-bài)) | Cuối bài News; trang chủ dùng dải News riêng theo Espacio ([news R4](news.md#r4-news-trên-các-trang-khác)) | Giữ |
 | `project-slider` | `layout-slider-proyectos` | Tất cả công trình cùng mảng, tự lấy khi không ghi `projectIds` (`autoProjectIds`) | Residential, Commercial, cuối trang công trình | Giữ |
 | `cta-arrow` | `layout-ctas` | Một dòng chữ, link, mũi tên | Xem toàn bộ công trình, xem tất cả News | Giữ |
 | `quote` | `layout-quote` | Trích dẫn, người nói | Bài News | Giữ |
@@ -84,7 +84,9 @@ Then báo lỗi tên khối và không sinh trang đó
 ### R2. Mẫu trang
 
 Mỗi mẫu là chuỗi khối mặc định cùng danh sách khối được thêm. Admin thêm, bớt, đổi thứ tự khối trong danh sách cho phép
-của mẫu; khối bắt buộc không bỏ được.
+của mẫu; khối bắt buộc không bỏ được. Riêng Bài News và Chi tiết công trình khóa chuỗi theo số media
+([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)): người soạn chọn một layout trong bảng
+[News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình), không thêm, bớt hay đổi thứ tự khối.
 
 | Mẫu | Theo Espacio | Bắt buộc | Chuỗi mặc định (rút gọn) |
 | --- | --- | --- | --- |
@@ -154,6 +156,40 @@ nối AI agent đọc cùng ghi chú này để gợi ý chuỗi khối.
 Given AI agent soạn một bài News
 When hỏi danh mục khối
 Then nhận đúng các khối được phép cho mẫu Bài News kèm ghi chú
+```
+
+### R7. Khung ảnh cố định từng khối
+
+Mỗi chỗ đặt ảnh là một khung cố định: bề rộng theo cột, người soạn chọn một tỷ lệ trong danh sách của chỗ đó rồi kéo và
+phóng ảnh đều hai chiều bên trong khung (khung là vùng crop); ảnh luôn phủ kín, không méo, không vùng dư; ảnh nhỏ hơn
+khung vẫn phóng to được, CMS chỉ cảnh báo khi có thể mờ (owner 2026-11-15). Danh sách tỷ lệ lấy từ tỷ lệ Espacio dùng ít
+nhất hai lần ở chỗ đó; rộng khung đo trên 48 trang công trình và 26 bài News ngày 2026-11-15 ở sáu bề rộng (px).
+
+| Khối, chỗ ảnh | Tỷ lệ được chọn | 384 | 768 | 1024 | 1280 | 1440 | 1920 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `hero-project` | phủ màn hình, nguồn 3:2, điểm giữ | 461 × 1013 | 922 × 1013 | 1229 × 1080 | 1536 × 1080 | 1728 × 1080 | 2304 × 1080 |
+| `image-single` rộng | 3:2, 4:3, 16:9, 1:1 | 354 | 718 | 974 | 1210 | 1370 | 1500 |
+| `image-single` 2/3 | 3:2, 4:3, 1:1 | 354 | 507 | 676 | 845 | 950 | 1128 |
+| `image-text` | 2:3, 3:4 | 354 | 384 | 313 | 392 | 445 | 488 |
+| `image-pair` bằng nhau | 2:3, 3:4, 3:2; hai ảnh cùng tỷ lệ | 384 | 372 | 495 | 623 | 703 | 733 |
+| `image-pair` lớn trái, phải | lớn 3:2, 2:3, 4:5; nhỏ 2:3, 3:4, 1:1 | 384, 230 | 372, 223 | 495, 297 | 623, 374 | 703, 422 | 733, 440 |
+| `gallery-carousel` | cao cố định; mỗi ảnh 2:3, 3:2, 3:4, 1:1 | cao 288 | 384 | 512 | 640 | 720 | 960 |
+| `video-single` | 16:9 | 354 | 718 | 974 | 1210 | 1370 | 1500 |
+| `project-slider` thẻ | từ ảnh bìa, điểm giữ | 200 × 300 | 200 × 300 | 300 × 400 | 300 × 420 | 300 × 420 | 300 × 420 |
+
+Khối phủ (`hero-project`, thẻ `project-slider`, `news-cards`, `banner-links`) đổi tỷ lệ theo thiết bị nên chỉ chọn điểm
+giữ. Card masonry: người soạn chọn khung card trước trong 8 tỷ lệ 3:2, 2:3, 1:1, 4:3, 3:4, 4:5, 16:9, 2:1 (owner
+2026-11-15; [media-card R1](media-card.md)), mọi media của card khớp khung đó theo cùng cách kéo, phóng.
+
+Vùng an toàn (owner 2026-11-15): khung crop đánh dấu phần có thể bị cắt trên site. Khối phủ tô mờ phần nằm ngoài khung
+ở từng bề rộng trong sáu mốc; card masonry tô mờ 5% đáy khung (mức cắt tối đa để khép lưới,
+[masonry R5](advertising-masonry.md#r5-hình-học-masonry)). Chi tiết quan trọng đặt trong vùng không tô.
+
+```gherkin
+Given người soạn đặt một ảnh 1200 × 1200 vào image-text và chọn 3:4
+When mở khung crop
+Then khung giữ 3:4, ảnh phủ kín khung, kéo và phóng đều hai chiều, không có thanh trống hay ảnh méo
+And card masonry hiện dải mờ 5% ở đáy khung
 ```
 
 ## Giao diện và dữ liệu

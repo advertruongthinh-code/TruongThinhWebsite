@@ -34,14 +34,14 @@ Trang Nhà ở và Kinh doanh đang có thêm cuối trang một dải công tr�
 (`cta-arrow`) như Espacio `/en/interior-design` và `/en/kitchens` (owner chọn 2026-11-07, xem ảnh chụp trong thread): PC là
 hàng ảnh dọc so le cao thấp, tên công trình dưới ảnh; phone là dải trượt ngang. Nhà ở theo hình 1 (chữ đậm), Kinh doanh
 theo hình 2 (chữ mảnh). Phần còn lại của hai trang giữ layout hiện tại. Dải tự lấy tất cả công trình cùng mảng, theo thứ tự
-trong dữ liệu (owner 2026-11-08); bấm ảnh mở trang chi tiết (R3). Dòng mũi tên "Xem các công trình nhà ở" (hoặc kinh doanh) dẫn tới trang lọc cùng mảng (R2).
+trong dữ liệu (owner 2026-11-08); bấm ảnh mở trang chi tiết (R3). Dòng mũi tên "Xem các công trình nhà ở" (hoặc kinh doanh) dẫn tới trang lọc cùng mảng (R2). Dải và dòng mũi tên đứng ngay trước CTA `.detail-cta#tu-van`, CTA là khối cuối trang (owner 2026-11-22).
 Nội dung nằm sẵn trong khối dữ liệu CMS sửa được ([layout-library](layout-library.md)); media thiếu tạo bằng ChatGPT qua Codex CLI (owner 2026-11-07)
 theo [Tạo ảnh](../operations/agent-rule-ad-images.md#tạo-ảnh) (owner 2026-10-26).
 
 ```gherkin
 Given dữ liệu có 5 công trình mảng nhà ở
 When lần dựng xong
-Then cuối trang Nhà ở hiện đủ 5 công trình đó trong dải, bấm một ảnh mở trang chi tiết công trình đó
+Then ngay trên CTA cuối trang Nhà ở hiện đủ 5 công trình đó trong dải, bấm một ảnh mở trang chi tiết công trình đó
 ```
 
 ### R2. Trang toàn bộ công trình
@@ -114,7 +114,7 @@ Then trang chỉ ghi loại công trình và khu vực, không có tên khách
 
 Given mảng nhà ở có 9 công trình
 When mở trang chi tiết một công trình nhà ở
-Then cuối trang có dải 8 công trình nhà ở còn lại và dòng "Xem toàn bộ công trình"
+Then trên khối CTA cuối trang có dải 8 công trình nhà ở còn lại và dòng "Xem toàn bộ công trình"
 ```
 
 ### R4. Ảnh và video công trình
@@ -125,26 +125,34 @@ chụp và AI hiệu chỉnh, AI tạo; dấu nguồn chỉ hiện trong admin. 
 [card nhiều media](media-card.md) (mọi media cùng tỷ lệ cover, alt VI/EN riêng, không trùng) và SEO như
 [SEO media](media-seo.md): HTML đọc được khi không chạy JavaScript, JSON-LD, ảnh vào image sitemap.
 
-Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, sau này CMS
-dùng để gợi ý layout theo số ảnh. Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
+Số ảnh và bố cục (owner 2026-11-08): bảng dưới là cơ sở để tạo ảnh và chọn layout cho trang công trình, CMS khóa
+layout theo số ảnh ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)). Rút từ 47 trang con `/en/projects/` của Espacio (số ảnh ít nhất 4, trung vị 9). Ảnh đầu
 luôn là hero ngang 3:2; mỗi khối ảnh đứng sau một đoạn văn, không hai khối ảnh liền nhau; mọi chuỗi kết thúc bằng
-`contact-quick`, `cta-arrow`. Công trình mẫu dùng 6 ảnh; hai nhà phố Indochine,
+`cta-arrow`, `contact-quick`. Công trình mẫu dùng 6 ảnh; hai nhà phố Indochine,
 Japandi dùng 12 ảnh, nhiều cận đồ gỗ tấm (owner 2026-11-09). Ảnh chưa duyệt dùng ảnh giữ chỗ `placeholder-ngang`,
 `placeholder-doc` (owner 2026-11-09: dựng trang trước, thay ảnh khi owner Lấy).
 
-| Số ảnh | Chuỗi khối ([layout-library](layout-library.md)) |
-| --- | --- |
-| 4-5 | `hero-project`, `section-title`, `paragraph`, `facts-grid`, `image-single`, `paragraph`, `image-single`, `paragraph`, `image-pair` |
-| 6-7 | `hero-project`, `section-title`, `paragraph`, `gallery-carousel` (3), `facts-grid`, `paragraph`, `image-single`, `paragraph`, `image-single` |
-| 8-9 | như 6-7, `gallery-carousel` 5 ảnh, thêm `paragraph`, `image-pair` |
-| 10-12 | như 8-9, thêm `paragraph`, `image-single` |
-| 13+ | `gallery-carousel` (5), `facts-grid`, hai cặp `paragraph`, `image-pair`, `gallery-carousel` thứ hai (3-4), `paragraph`, `image-single` |
+Mỗi dòng là một layout khóa của CMS (owner duyệt cùng plan CMS). Mọi chuỗi mở bằng `hero-project` [1], `section-title`,
+`paragraph`; bảng ghi phần giữa, gồm hai đoạn cuối (đoạn xưởng, câu kết). Số trong ngoặc vuông là số media khối nhận;
+khối nhận 0 media thì bỏ cùng đoạn văn ngay trước nó.
+
+| `layout` | Số media | Phần giữa của chuỗi ([layout-library](layout-library.md)) | Media dư vào |
+| --- | --- | --- | --- |
+| `project-4-5` | 4-5 | `facts-grid`, `paragraph`, `image-single` rộng [1], `paragraph`, `image-single` 2/3 trái [0-1], `paragraph`, `image-pair` bằng nhau [2], `paragraph`, `paragraph` | theo chuỗi |
+| `project-6-7-a` | 6-7 | `gallery-carousel` [3-4], `facts-grid`, `image-text` [1], `paragraph`, `image-single` rộng [1], `paragraph`, `paragraph` | theo chuỗi |
+| `project-6-7-b` | 6-7 | `facts-grid`, `image-text` [1], `paragraph`, `image-single` 2/3 trái [1], `paragraph`, `gallery-carousel` [3-4], `paragraph` | theo chuỗi |
+| `project-8-9` | 8-9 | như `project-6-7-a`, thêm `paragraph`, `image-pair` bằng nhau [2] trước hai đoạn cuối | theo chuỗi |
+| `project-10-12` | 10-12 | như `project-8-9` nhưng `gallery-carousel` [4-5], thêm `paragraph`, `image-single` 2/3 trái [1], `paragraph`, `image-single` rộng [0-1] trước hai đoạn cuối | `image-single` cuối, rồi carousel |
+| `project-13` | 13-23 | `gallery-carousel` [5], `facts-grid`, `paragraph`, `image-pair` bằng nhau [2], `paragraph`, `image-pair` trái lớn [2], `paragraph`, `gallery-carousel` [2-12], `paragraph`, `image-single` rộng [1], `paragraph`, `paragraph` | carousel cuối |
+
+Sáu trang có trước CMS mà chuỗi khác bảng (`can-ho-go-soi`, `nha-gieng-troi`, `van-phong-lam-viec-chung`, `tiem-banh-ngot`,
+`homestay-nha-go-ven-song`, `nha-pho-japandi-san-truoc`) giữ chuỗi riêng dạng `legacy`.
 
 18 trang mẫu (owner chọn "Dàn lại thân bài + motion" 2026-11-14) xếp theo bảng trên, thêm `image-text` (ảnh dọc cạnh đoạn văn
 như Espacio `-layout-parrafo -layout-right`). Trang 6 ảnh xen kẽ theo thứ tự chữ cái: trang chẵn `gallery-carousel`, `facts-grid`,
 `image-text`, `paragraph`, `image-single` rộng; trang lẻ `facts-grid`, `image-text`, `paragraph`, `image-single` 2/3 trái,
 `gallery-carousel` cuối. Hai nhà phố thêm `image-pair` và hai `image-single`; Japandi dùng 10 ảnh thật (owner duyệt), ảnh tủ giày dọc thành `image-text`, chữ khớp ảnh (tường vuông, chỉ đồ gỗ bo). Homestay nhà gỗ ven sông dùng 8 ảnh thật 16:9 bộ E (owner 2026-11-15, chưa phóng to): hero cắt giữa thành 3:2, card dùng 16:9 nguyên khung, thêm một cặp `paragraph`, `image-pair` (bàn ăn, bếp) so với hàng 6-7. Tiệm bánh ngọt dùng 7 ảnh thật (owner duyệt bộ v11 2026-11-15, 3 ngang 4 dọc): hero ngang, `gallery-carousel` 3 ảnh dọc, `image-text` ảnh dọc, hai cặp `paragraph`, `image-single` (rộng, 2/3 trái); card và cover dùng ảnh dọc. Bốn trang
-có ảnh riêng giữ chuỗi riêng theo ảnh. Mọi trang kết thúc bằng đoạn xưởng, câu kết, `contact-quick`, `project-slider`, `cta-arrow`.
+có ảnh riêng giữ chuỗi riêng theo ảnh. Mọi trang kết thúc bằng đoạn xưởng, câu kết, `project-slider`, `cta-arrow`, `contact-quick`: khối CTA Zalo luôn cuối, ngay trên footer (owner 2026-11-22), `content-contract` chặn dữ liệu sai thứ tự.
 
 ```gherkin
 Given bản nháp công trình mới có ảnh AI tạo chưa qua gate

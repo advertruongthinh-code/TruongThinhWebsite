@@ -12,6 +12,7 @@ source:
   - src/site/404.html
   - wrangler.static.toml
   - .github/workflows/deploy-demo.yml
+  - .github/workflows/release.yml
 tests:
   - tests/site/static-locales.test.mjs
   - tests/site/advertising-products-detail-routes.test.mjs
@@ -23,7 +24,7 @@ tests:
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
-updated: 2026-11-16
+updated: 2026-11-22
 ---
 
 # Phát hành tĩnh
@@ -39,7 +40,7 @@ spec này giữ build, preview, cache header, CI và deploy demo. CMS Worker n�
 ### R1. Build `.site-output/` từ `src/site/`
 
 `pnpm prepare:site` (`scripts/site/prepare-static-assets.mjs`, cũng chạy đầu `pnpm dev` và `pnpm deploy:demo`) dừng
-nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2; rail công trình, [trang chủ R8](page-home.md#r8-rail-công-trình)), xóa `.site-output/`, chép
+nếu source hoặc output ra ngoài project. Thứ tự: đồng bộ brand lockup, preflight (R2; dải công trình, [trang chủ R8](page-home.md#r8-dải-công-trình)), xóa `.site-output/`, chép
 `src/site/` rồi chèn card rail vào `index.html`, vendor (R4), xóa asset không public (R3), artifact (R2),
 trang tương thích (R7), minify JS app (esbuild: `motion.js`, `detail.js`, `advertising-products/*.mjs`; giữ dòng đầu `//# allFunctionsCalledOnLoad`;
 -53 KB brotli, 8 card đầu nhanh hơn khoảng 0,3 s), `modulepreload` runtime, artifact và mọi module runtime import tĩnh vào trang Advertising (đọc từ câu `import`, không viết tay; gộp ba đợt mạng, 8 card đầu nhanh hơn khoảng 0,2 s), xử lý HTML (R5, R6), 22 route locale (R5). Menu và navbar không nằm trong source: `readPageSource` (`sync-site-menu.mjs`) dựng chúng từ `content/menu.json` khi build vào đầu ra ([Shell R4](site-shell.md#r4-full-menu)). Khung chung (header, menu, footer...) cũng không nằm trong trang nguồn: `renderShell` chèn từ `src/site/partials/` ([Shell R1](site-shell.md#r1-markup-chung-và-thứ-tự-lớp)); thư mục `partials/` không lên đầu ra (R3). Bước đầu `sync-brand-lockup.mjs` ghi vào source:
@@ -73,7 +74,7 @@ And .site-output/ của lần build trước vẫn còn nguyên
 
 `scripts/site/non-public-source-assets.mjs` liệt kê 23 path trong `src/site/`
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
-manifest, photo tags, `content/client-logos.json`, `content/project-reel.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
+manifest, photo tags, `content/client-logos.json`, `content/home-projects.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
 process cũ. Build xóa chúng khỏi output. WebP không còn tham chiếu thì xóa khỏi repo.
 
 ```gherkin
@@ -186,7 +187,7 @@ And /vi/ vẫn trả Cache-Control max-age=0, must-revalidate
 Workflow `CI` (`.github/workflows/ci.yml`, mọi pull request và push vào `main`) chạy các bộ test theo phần website
 song song rồi gom thành check `static-release`; cách chọn bộ, danh sách bộ và lệnh `pnpm qa:suite` thuộc
 [bộ test CI](ci-test-suites.md).
-CI, Docs, Automerge và Deploy demo chạy trên runner `ubuntu-latest` của GitHub; repo public nên không tốn phút Actions và không phụ thuộc PC owner. Mỗi job runner trắng: CI tải Chromium bằng `playwright install` (system deps chỉ cài khi trình duyệt không mở được, [R11](ci-test-suites.md#r11-timeout)), cache pnpm qua `setup-node`. Mọi action ghim theo commit SHA (comment ghi tag), dependabot đề xuất cập nhật. Workflow không dùng `pull_request_target`, Automerge bỏ qua `workflow_run` từ fork, Deploy demo chỉ chạy từ `main`, nên PR từ fork không chạm secret Cloudflare; Settings > Actions > General đặt "Require approval for all external contributors". `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge; gặp 405 "Required status check ... is expected" (check vừa re-run xanh, ruleset chưa ghi nhận) thì thử lại backoff 10s, 20s, 40s; merge xong tự xóa branch của PR (merge bằng `GITHUB_TOKEN` không kích hoạt xóa tự động của repo). Ruleset của repo bắt buộc `static-release` và `qa-docs` xanh trước khi merge vào `main` theo tên check (admin bypass được khi khẩn cấp; đổi tên hoặc thêm check bắt buộc thì sửa ruleset cùng lúc, nếu không PR chờ mãi check cũ); không bật auto-merge gốc của GitHub trên PR, vì Automerge vẫn merge khi thread đã dừng. PR và push chỉ chạy bộ `fast`, đủ bộ chạy mỗi đêm; PR draft có check tên `static-release-draft` ([bộ test CI R4](ci-test-suites.md#r4-chạy-song-song-và-độc-lập)). Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để job `deploy-demo` của `ci.yml` (chờ bộ `fast`; gọi `deploy-demo.yml` bằng `workflow_call`, không dùng `workflow_run` vì lượt CI dispatch bằng `GITHUB_TOKEN` không kích hoạt nó) chạy tiếp.
+CI, Docs, Automerge và Deploy demo chạy trên runner `ubuntu-latest` của GitHub; repo public nên không tốn phút Actions và không phụ thuộc PC owner. Mỗi job runner trắng: CI tải Chromium bằng `playwright install` (system deps chỉ cài khi trình duyệt không mở được, [R11](ci-test-suites.md#r11-timeout)), cache pnpm qua `setup-node`. Mọi action ghim theo commit SHA (comment ghi tag), dependabot đề xuất cập nhật. Workflow không dùng `pull_request_target`, Automerge bỏ qua `workflow_run` từ fork, Deploy demo và Release site chỉ chạy từ `main`, nên PR từ fork không chạm secret Cloudflare; Settings > Actions > General đặt "Require approval for all external contributors". `pnpm qa:release-regressions` chạy tay ([danh sách](../../tests/README.md#gate-regression-trước-release)). Workflow `Automerge` (`.github/workflows/automerge.yml`) tự merge PR khi `static-release` và `qa-docs` xanh trên head hiện tại, không cần agent; PR draft hoặc nhãn `hold` không merge; gặp 405 "Required status check ... is expected" (check vừa re-run xanh, ruleset chưa ghi nhận) thì thử lại backoff 10s, 20s, 40s; merge xong tự xóa branch của PR (merge bằng `GITHUB_TOKEN` không kích hoạt xóa tự động của repo). Ruleset của repo bắt buộc `static-release` và `qa-docs` xanh trước khi merge vào `main` theo tên check (admin bypass được khi khẩn cấp; đổi tên hoặc thêm check bắt buộc thì sửa ruleset cùng lúc, nếu không PR chờ mãi check cũ); không bật auto-merge gốc của GitHub trên PR, vì Automerge vẫn merge khi thread đã dừng. PR và push chỉ chạy bộ `fast`, đủ bộ chạy mỗi đêm; PR draft có check tên `static-release-draft` ([bộ test CI R4](ci-test-suites.md#r4-chạy-song-song-và-độc-lập)). Merge bằng `GITHUB_TOKEN` không kích hoạt CI push nên workflow dispatch `ci.yml` trên `main` để job `deploy-demo` của `ci.yml` (chờ bộ `fast`; gọi `deploy-demo.yml` bằng `workflow_call`, không dùng `workflow_run` vì lượt CI dispatch bằng `GITHUB_TOKEN` không kích hoạt nó) chạy tiếp.
 ```gherkin
 Given pull request đổi src/site/
 When workflow CI chạy
@@ -196,20 +197,20 @@ And không bước nào gọi Wrangler hoặc deploy
 
 ### R11. Phát hành demo Cloudflare
 
-`wrangler.static.toml`: Worker `truong-thinh-demo` có asset và script chỉ cho `/api/*`, `workers_dev`, `[assets] directory = ".site-output"`,
+`wrangler.static.toml` có hai Worker cùng asset, script chỉ cho `/api/*`, `[assets] directory = ".site-output"`,
 `not_found_handling = "404-page"`, `main` và binding theo [spec tìm kiếm](advertising-search.md#giao-diện-và-dữ-liệu). Path không có file trả 404 kèm `404.html` gần nhất:
 `/en/*` dùng `en/404.html`, path khác dùng `404.html` bản VI; build dựng hai file từ `src/site/404.html` qua `localeHtml`.
-`pnpm deploy:demo` build, dựng chỉ mục tìm kiếm (`pnpm search:index`, [R1](advertising-search.md#r1-chỉ-mục-vector-lúc-deploy)) rồi `pnpm demo:wrangler deploy --config wrangler.static.toml`; `demo:wrangler` gọi
-`wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`)
-chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)), dùng secret `CLOUDFLARE_API_TOKEN`,
-`CLOUDFLARE_ACCOUNT_ID` (không nằm trong repo hay chat); log Actions ghi commit và Worker version ID. Merge vào `main` là đồng ý deploy: agent không deploy tay, chỉ `--dry-run`; owner deploy tay được bằng `wrangler login` qua task VS Code `Demo: Deploy Cloudflare (main)` (chỉ chạy trên `main` sạch). Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml` hoặc dashboard.
-Demo: <https://truong-thinh-demo.truong-thinh-project-tooling.workers.dev/vi/>. Trang chính sách quyền riêng tư cho app Pinterest đã gỡ (owner 2026-11-14: không còn dùng Pinterest API).
+Hai bản (owner 2026-11-22): "demo" là bản thử `truong-thinh-staging` ở <https://staging.truongthinhads.vn/vi/> (cấu hình gốc); bản thật `truong-thinh-demo` (`[env.production]`, giữ tên cũ để apex và bộ đếm rate limit không đổi) ở <https://truongthinhads.vn/vi/>. Cả hai `workers_dev = false`, `preview_urls = false`; binding `ai`, `ratelimits` khai lại trong env (env không kế thừa), rate limit tách namespace (staging 7303/7304, thật 7301/7302).
+`pnpm deploy:demo` build, dựng chỉ mục tìm kiếm (`pnpm search:index`, [R1](advertising-search.md#r1-chỉ-mục-vector-lúc-deploy)) rồi `pnpm demo:wrangler deploy --config wrangler.static.toml` lên staging; `pnpm release:site` làm y vậy với `--env production`. `demo:wrangler` gọi `wrangler@4.124.0` qua `pnpm dlx`, không vào lockfile. Workflow `Deploy demo` (`.github/workflows/deploy-demo.yml`, input `target`)
+chạy `pnpm deploy:demo` từ đúng commit khi bộ `fast` của CI xanh trên `main` ([R5 bộ test CI](ci-test-suites.md#r5-check-tổng-giữ-tên-static-release)); workflow `Release site` (`.github/workflows/release.yml`, chạy tay `workflow_dispatch`, chỉ từ `main`) gọi nó với `target: production` để chạy `pnpm release:site`. Hàng đợi `concurrency` tách theo target. Secret `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` không nằm trong repo hay chat; log Actions ghi commit và Worker version ID. Merge vào `main` là đồng ý deploy staging; bản thật chỉ phát hành khi owner nói "ok phát hành" (agent dispatch `Release site` hoặc owner bấm Run workflow). Agent không deploy tay, chỉ `--dry-run`; owner deploy tay staging được bằng `wrangler login` qua task VS Code `Demo: Deploy Cloudflare (main)` (chỉ chạy trên `main` sạch). Rollback: `pnpm demo:wrangler rollback --config wrangler.static.toml [--env production]` hoặc dashboard.
+Tên miền đăng ký ở Sapo, nameserver trỏ về Cloudflare (`brad`, `linda.ns.cloudflare.com`, owner 2026-11-22); zone `truongthinhads.vn` gói Free cùng tài khoản. `[[routes]]` `custom_domain = true` gắn apex vào bản thật, trùng host của `PUBLIC_ORIGIN` (`scripts/site/lib.mjs`) mà canonical, hreflang, sitemap, `og:url` dùng, và `staging.` vào bản thử. Cấu hình zone nằm ở dashboard, ngoài repo: Redirect Rule `www to truongthinhads.vn` trả 301 `*://www.truongthinhads.vn/*` về `https://truongthinhads.vn/${2}` giữ query (bản ghi `www` là A `192.0.2.0` proxied), Always Use HTTPS bật, domain không nhận mail (MX null, SPF `-all`, DMARC reject); Cloudflare Access khóa `staging.truongthinhads.vn` bằng đăng nhập email owner, Response Header Transform Rule gắn `X-Robots-Tag: noindex` cho host đó. Trang chính sách quyền riêng tư cho app Pinterest đã gỡ (owner 2026-11-14: không còn dùng Pinterest API).
 
 ```gherkin
 Given một push vào main và bộ fast của CI xanh
 When workflow Deploy demo chạy
-Then .site-output/ của đúng commit đó được build lại và upload lên Worker truong-thinh-demo
-And CI đỏ, PR hoặc push từ fork không deploy
+Then .site-output/ của đúng commit đó lên Worker truong-thinh-staging, truongthinhads.vn không đổi; CI đỏ, PR hoặc fork không deploy
+And workflow Release site chạy tay từ main đưa đúng commit đó lên truongthinhads.vn; staging chưa đăng nhập không xem được, có X-Robots-Tag noindex
+And request www.truongthinhads.vn hoặc http:// trả 301 về https://truongthinhads.vn cùng path, query; không còn URL workers.dev public
 ```
 
 ### R12. Ranh giới với CMS dormant
@@ -218,12 +219,13 @@ And CI đỏ, PR hoặc push từ fork không deploy
 binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
-`/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
-theo [điều kiện mở CMS](cms.md#điều-kiện-mở-cms-phase).
+`/vi/` và redirect `projects-products` chỉ có ở Worker CMS dormant, không chuyển sang static assets (owner 2026-11-22: giữ
+trang gốc như hiện tại). Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
+theo [điều kiện mở CMS](cms.md#gate-còn-mở).
 
 ```gherkin
 Given phase tĩnh
-When chạy bất kỳ script nào trong package.json trừ deploy:demo và demo:wrangler
+When chạy bất kỳ script nào trong package.json trừ deploy:demo, release:site và demo:wrangler
 Then không lệnh nào khởi động Wrangler hoặc đọc wrangler.toml
 And .site-output/ không chứa file từ src/worker/, src/admin/ hoặc src/db/
 ```
@@ -244,7 +246,7 @@ Then job fail và liệt kê file biến thể còn thiếu
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| Command | `pnpm prepare:site`, `pnpm dev`, `pnpm deploy:demo`, `pnpm demo:wrangler` | Build, preview, deploy và rollback demo |
+| Command | `pnpm prepare:site`, `pnpm dev`, `pnpm deploy:demo`, `pnpm release:site`, `pnpm demo:wrangler` | Build, preview, deploy staging, phát hành bản thật, rollback |
 | Data | `nonPublicSourceAssets`, `catalog-artifact.mjs` | Path không public (R3) từ `non-public-source-assets.mjs`; artifact build sinh trong output, runtime Advertising import |
 | Hàm public | `ROUTES`, `localeHtml(html, locale)`; `projectRoot`, `siteRoot`, `PUBLIC_ORIGIN`, `IMAGE_SRC`, `escapeHtml`, `readJson`, `walk`, `validateImage(image, root, where)` | Hai nhóm: `ROUTES`, `localeHtml` export từ `serve-static-parity.mjs` (build, preview, test dùng chung); phần còn lại là helper chung của `scripts/site/` ở `lib.mjs`, chỉ import built-in Node (job Docs import được khi chưa cài `node_modules`), `sharp` nạp lúc gọi `validateImage`; script mới dùng lại, không chép lại |
 | Input | `ADVERTISING_CATEGORIES`, `ADVERTISING_LEGACY_CATEGORIES`, `buildAdvertisingArtifact` | Từ `src/site/advertising-products/catalog.mjs`, spec masonry sở hữu |
@@ -269,7 +271,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | R8 | `node scripts/tooling/serve-static-parity.mjs --self-test` |
 | R9 | chưa có test; kiểm tay `curl -I` trên demo sau deploy |
 | R10 | [bộ test CI](ci-test-suites.md#kiểm-tra); `tests/tooling/ci-suites.test.mjs` |
-| R11 | workflow `Deploy demo`; `pnpm deploy:demo --dry-run`; trang 404: `tests/site/static-locales.test.mjs`, `tests/site/not-found-routes.e2e.mjs` |
+| R11 | workflow `Deploy demo`, `Release site`; `pnpm deploy:demo --dry-run`; host và workers.dev: trang 404: `tests/site/static-locales.test.mjs`, `tests/site/not-found-routes.e2e.mjs` |
 | R12 | `pnpm qa:worker:security`; test R7 kiểm sáu slug trong route Worker |
 | R13 | `build-image-variants.mjs --check` trong CI; `pnpm qa:client-assets` |
 
@@ -281,8 +283,8 @@ phát hành, không chặn, WebKit desktop là sàn; Feral Flow chỉ là tham k
 - LCP residential mobile đóng (owner 2026-11-15: motion giữ đúng contract, không cắt để đạt LCP): demo 2026-11-14 VI median
   3,01 s, p90 3,22 s; EN 5,14 s là ngoại lệ đã chấp nhận, do chữ title phone phóng sau lần vẽ đầu và hiện cuối reveal.
 - Output còn HTML chưa qua locale ở `/`, `/residential/`, `/commercial/`, `/advertising-products/`, `/about/`; preview
-  trả 404 cho `/`, demo có thể phục vụ chúng (suy luận từ cấu hình, chưa đo). [CẦN LÀM RÕ: `/` của demo chuyển về
-  `/vi/`, trả 404 hay giữ?]
+  trả 404 cho `/`, site trả 200 cho `/` và `/residential/` (đo 2026-11-22). Owner 2026-11-22: giữ như hiện tại, không
+  redirect về `/vi/`.
 
 ## Chú thích thuật ngữ
 

@@ -22,7 +22,7 @@ Năm plugin skill (agent-skills, caveman, ponytail, impeccable, i-have-adhd) cà
 từ commit trong `tooling-versions.json`. Ponytail bắt buộc `ultra`; skill caveman
 chỉ chạy khi user gọi; `i-have-adhd` tự gọi.
 
-Wrangler không được cài trong static phase; chỉ `pnpm deploy:demo` gọi bản
+Wrangler không được cài trong static phase; chỉ `pnpm deploy:demo` và `pnpm release:site` gọi bản
 pin qua `pnpm dlx` theo [phát hành demo](../specs/static-release.md#r11-phát-hành-demo-cloudflare).
 `src/worker/` và `wrangler.toml` chỉ là dormant CMS source; việc mở lại cần owner gate.
 
@@ -188,8 +188,7 @@ Patch cũng mặc định `serviceWorkers: "block"`: Service Worker chặn `page
 ## Stack AI và media
 
 Owner chốt 2026-10-18. Công cụ tạo ảnh, video, nhạc và rule dùng nằm ở
-[Tạo và chấm media AI](agent-rule-ad-images.md#công-cụ). AI agent (gồm AI agent của
-[CMS](../specs/cms.md)) theo thứ tự fallback: Claude chính chủ, ChatGPT chính chủ, Claude
+[Tạo và chấm media AI](agent-rule-ad-images.md#công-cụ). AI agent theo thứ tự fallback (CMS không có AI agent, [CMS](../specs/cms.md) mục "Bối cảnh và phương án"): Claude chính chủ, ChatGPT chính chủ, Claude
 trên kie.ai, ChatGPT trên kie.ai. Không ghi API key vào file trong repo, log, prompt hay
 Library; chỗ lưu key theo [API key](#api-key).
 

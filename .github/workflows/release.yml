@@ -1,0 +1,17 @@
+name: Release site
+
+# Manual production deploy of truongthinhads.vn from main, run only after the owner says "ok phát hành"
+# (docs/specs/static-release.md R11). Staging deploys itself through ci.yml.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/deploy-demo.yml
+    with:
+      target: production
+    secrets: inherit

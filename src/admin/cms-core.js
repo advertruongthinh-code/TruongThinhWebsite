@@ -6,7 +6,7 @@
   const LISTS = {
     home: [
       [".hero-slides", ".hero-slide", "Ảnh hero", true],
-      [".project-track", ".project-card", "Rail công trình"],
+      [".blk-projects__track", ".blk-projects__card", "Dải công trình"],
       [".client-logo-marquee__group:not([aria-hidden])", ".client-logo-slot", "Logo khách hàng"],
     ],
     residential: [
