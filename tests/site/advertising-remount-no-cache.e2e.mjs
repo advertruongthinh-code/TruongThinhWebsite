@@ -40,7 +40,8 @@ try {
     new MutationObserver((records) => records.forEach(({ removedNodes }) => removedNodes.forEach((node) => {
       // A card only moved within the DOM is still connected; do not count it.
       if (node.dataset?.masonryCard === undefined || node.isConnected) return;
-      window.__pendingRemoved += [...node.querySelectorAll("img")].filter((image) => !image.complete).length;
+      // A file of the shared media queue is never cancelled (owner 2026-11-12, runtime releaseMediaCard): the queue keeps it for the cache.
+      window.__pendingRemoved += [...node.querySelectorAll("img")].filter((image) => !image.complete && !image.dataset.queueSrc).length;
     }))).observe(document, { childList: true, subtree: true });
   });
   await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });

@@ -116,14 +116,14 @@ try {
     await context.close();
   }
 
-  // Phone: when the image arrives it fades in over 450ms, then the layer is removed and the image stays opaque; nothing is left waiting.
+  // Phone: when the image arrives it crossfades in over 600ms (progressive-loading R9, owner 2026-11-22), then the layer is removed and the image stays opaque; nothing is left waiting.
   {
     const { context, page } = await open(phone);
     await page.addInitScript(() => {
       window.__fades = new Map();
       const tick = () => {
         for (const image of document.querySelectorAll("[data-project-grid] [data-masonry-card] img")) {
-          const fade = image.getAnimations().find((animation) => animation.effect.getTiming().duration === 450);
+          const fade = image.getAnimations().find((animation) => animation.effect.getTiming().duration === 600);
           if (!fade) continue;
           const card = image.closest("[data-masonry-card]");
           const keyframes = fade.effect.getKeyframes();
@@ -139,9 +139,9 @@ try {
     await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 14000, null, { timeout: 30_000 });
     const fades = await page.evaluate(() => [...window.__fades.values()]);
-    assert.ok(fades.length, "phone: some card image fades in over 450ms when it arrives");
-    assert.deepEqual(fades.filter(({ easing, from, to, layer, filter }) => easing !== "cubic-bezier(0.16, 1, 0.3, 1)" || from !== "0" || to !== "1"
-      || layer !== "colors" || filter), [], "phone: the fade is opacity 0 to 1 on the expo-out curve, over the color layer, unfiltered");
+    assert.ok(fades.length, "phone: some card image fades in over 600ms when it arrives");
+    assert.deepEqual(fades.filter(({ easing, from, to, layer, filter }) => easing !== "cubic-bezier(0.65, 0, 0.35, 1)" || from !== "0" || to !== "1"
+      || layer !== "colors" || filter), [], "phone: the fade is opacity 0 to 1 on the --ease-card curve, over the color layer, unfiltered");
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
       .filter((card) => card.querySelector("img")?.naturalWidth > 0)
       .filter((card) => card.hasAttribute("data-media-wait") || getComputedStyle(card.querySelector("img")).opacity !== "1"

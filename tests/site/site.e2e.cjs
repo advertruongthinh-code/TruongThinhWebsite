@@ -6114,6 +6114,11 @@ async function runAdvertisingGridFocusedChecks() {
               mediaWidth: media?.getBoundingClientRect().width ?? 0,
               mediaHeight: media?.getBoundingClientRect().height ?? 0,
               images: media?.querySelectorAll("img").length ?? 0,
+              // A card with several media also holds the next one of its slideshow (media-card, ab177877); never two of the same.
+              duplicateImages: media ? (() => {
+                const images = [...media.querySelectorAll("img")];
+                return images.length - new Set(images.map((image) => image.dataset.masonryMediaItem ?? image.currentSrc)).size;
+              })() : 0,
               backplates: media?.querySelectorAll(".masonry-card__backplate").length ?? 0,
               fitMode: media?.getAttribute("data-media-fit"),
             };
@@ -6171,7 +6176,7 @@ async function runAdvertisingGridFocusedChecks() {
             Math.abs(tile.mediaWidth - expected.pixelWidth) <= 0.05 && Math.abs(tile.mediaHeight - expected.mediaPixelHeight) <= 0.05 &&
             Math.abs(tile.mediaWidth / (tile.mediaHeight + (expected.mediaBleed ?? 0)) - expected.card.media.width / expected.card.media.height) <= 0.01 &&
             Math.abs(tile.height - tile.mediaHeight) <= 0.05 &&
-            tile.images === 1 && tile.backplates === 0 && tile.fitMode === null &&
+            tile.images >= 1 && tile.duplicateImages === 0 && tile.backplates === 0 && tile.fitMode === null &&
             Math.abs(tile.visualLeft - tile.left) <= 0.05 && Math.abs(tile.visualTop - tile.top) <= 0.05);
         });
         assert(!drifted, `${width}px runtime geometry drifted from the replayed cache layout: ${JSON.stringify({ tile: drifted, expected: drifted && expectedById.get(drifted.id) && (({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }) => ({ x, y, pixelWidth, pixelHeight, mediaPixelHeight, mediaBleed }))(expectedById.get(drifted.id)) })}`);
@@ -6190,7 +6195,9 @@ async function runAdvertisingGridFocusedChecks() {
           const grid = document.querySelector("[data-project-grid]");
           const tiles = [...grid.querySelectorAll(".masonry-card")];
           const key = tiles.map((tile) => `${tile.dataset.masonryCard}:${tile.style.left}:${tile.style.top}`).join();
-          const settled = !grid.getAnimations({ subtree: true }).length &&
+          // The media-colors placeholder of a card whose image has not arrived loops forever (media-delivery); only finite motion counts.
+          const settled = !grid.getAnimations({ subtree: true })
+            .filter((animation) => animation.effect?.getComputedTiming().iterations !== Infinity).length &&
             tiles.every((tile) => getComputedStyle(tile).transform === "none" && getComputedStyle(tile).opacity === "1") &&
             key === window.__ttGridKey;
           window.__ttGridKey = key;
