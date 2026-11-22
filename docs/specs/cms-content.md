@@ -129,8 +129,8 @@ và [công trình R4](projects.md#r4-ảnh-và-video-công-trình): mỗi dòng 
 bằng mức thấp nhất của dòng; dòng cao hơn khóa và admin ghi cần thêm mấy media. Mỗi dòng là một chuỗi khối cố định, mỗi
 khối có số media tối thiểu, tối đa; chỗ hai bảng còn ghi "hoặc", "tùy chọn", "hai tới bốn" được plan chốt thành một
 chuỗi, owner duyệt cùng plan. Sức chứa của dòng phải đủ mức cao nhất của dòng; dòng cuối (News 17+, công trình 13+) dồn
-media dư vào `media-carousel` cuối. Dưới mức thấp nhất (News dưới 2, công trình dưới 4 media) bài chỉ lưu được `draft`,
-lệnh `save` để đăng trả 400. Người soạn chọn layout đã mở rồi điền chữ và media; không thêm, bớt hay đổi thứ tự khối. Thêm layout hay khối mới là việc code qua PR. Field `template` cũ bỏ. Motion cố định theo layout và khối, CMS không có trường chỉnh
+media dư vào `media-carousel` cuối. Dưới mức thấp nhất (News dưới 2, công trình dưới 4 media) bài lưu thành `draft`;
+bài đã `published` mà lưu xuống dưới mức thì trả 400 ([CMS R5](cms.md#r5-lệnh-admin-có-kiểu)). Người soạn chọn layout đã mở rồi điền chữ và media; không thêm, bớt hay đổi thứ tự khối. Thêm layout hay khối mới là việc code qua PR. Field `template` cũ bỏ. Motion cố định theo layout và khối, CMS không có trường chỉnh
 motion (owner 2026-11-15).
 
 ```gherkin

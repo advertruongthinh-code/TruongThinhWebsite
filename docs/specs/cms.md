@@ -105,7 +105,7 @@ API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`
 | Lệnh | Kết quả | Lỗi |
 | --- | --- | --- |
 | `create` | Bản ghi `draft` | 400 dữ liệu sai, 409 id hoặc slug trùng |
-| `save` | Phiên bản mới; đủ trường thì `published` và xếp lần dựng | 400, 409 version lệch |
+| `save` | Phiên bản mới; đủ trường (kể cả số media tối thiểu) thì `published` và xếp lần dựng, chưa đủ thì giữ `draft` | 400 khi bản ghi đã `published` mà bản lưu chưa đủ, 409 version lệch |
 | `trash`, `restore` | Đổi trạng thái R3 | 404, 409 khi slug đã bị bài khác dùng lúc khôi phục |
 | `purge` | Xóa hẳn từ thùng rác hoặc thẳng (chỉ owner) | 403, 404 |
 | `upload-media`, `update-media` | Bản ghi media theo [nội dung CMS R3](cms-content.md#r3-media) | 400 loại hoặc cỡ sai, 413 quá cỡ |
@@ -133,10 +133,11 @@ Lần lưu `published` ghi một dòng chờ dựng trong D1; Cron Trigger mỗi
 chỉ quyền Actions trên repo này, nằm ở secret. Workflow lấy bản chụp qua `GET /api/admin/snapshot` bằng service token,
 chạy validator dùng chung và bộ kiểm phát hành hiện có, rồi deploy. Từ khi CMS mở, mọi lần dựng kể cả merge code vào
 `main` đều lấy bản chụp mới nhất; file chiếu trong repo chỉ là bản seed và fixture, nên merge code không ghi đè nội dung
-CMS. Lỗi bước nào thì không deploy, site giữ bản cũ, admin hiện lý do bằng lời thường. Admin đọc trạng thái run qua API
+CMS; endpoint bản chụp không trả lời thì lần dựng lỗi, không dùng file trong repo. Lỗi bước nào thì không deploy, site giữ bản cũ, admin hiện lý do bằng lời thường. Admin đọc trạng thái run qua API
 GitHub bằng cùng token: chờ, đang dựng, đã lên, lỗi.
 
-Owner quay về deployment trước bằng lệnh `rollback`; D1 không đổi theo, nên rollback dừng tự đăng tới khi owner bấm
+Owner quay về deployment trước bằng lệnh `rollback`: admin Worker gọi workflow rollback trong GitHub Actions bằng cùng
+token, workflow dùng token deploy Cloudflare sẵn có của `Deploy demo`; admin Worker không giữ token deploy. D1 không đổi theo, nên rollback dừng tự đăng tới khi owner bấm
 "tiếp tục đăng" (lưu vẫn ghi D1, không dựng). Key biến thể media public không đổi theo nội dung (có hash) và được giữ
 khi còn deployment nào trong 10 bản gần nhất trỏ tới (suy luận về số bản Workers giữ, kiểm ở slice Publishing).
 Hẹn giờ đăng để sau bản đầu (owner 2026-11-15).
