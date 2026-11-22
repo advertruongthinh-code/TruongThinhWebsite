@@ -179,7 +179,7 @@ Lần dựng nội dung dựng trên commit đang chạy trên site ([dữ liệ
 Token GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret; admin cảnh báo owner 14 ngày trước khi token hết
 hạn. Job deploy lấy bản chụp qua `GET /api/admin/snapshot` bằng service token, chạy validator dùng chung và bộ kiểm phát
 hành hiện có, rồi deploy. Hiện tại `Deploy demo` chỉ đưa lên bản thử staging; site thật chỉ cập nhật qua `Release site` khi owner nói
-"ok phát hành" (owner 2026-11-22, [phát hành tĩnh](static-release.md)); slice Publishing chốt lần lưu CMS lên site thật thế nào. Mục tiêu: lên site trong 10 phút sau lần lưu cuối, cộng thời
+"ok phát hành" (owner 2026-11-22, [phát hành tĩnh](static-release.md)); lần lưu CMS vì vậy lên staging ngay, staging là bản thử cho mọi thao tác thêm, sửa, xóa trên CMS; người dùng thấy ổn thì dùng chức năng "Phát hành" trong CMS để đưa đúng bản staging đang hiện lên site thật, chạy bằng code cố định, không qua agent (owner 2026-11-22; phần 2 làm nút này, tới đó site thật dựng từ repo). CMS chỉ có một bộ dữ liệu, staging không có D1 hay R2 riêng. Mục tiêu: lên staging trong 10 phút sau lần lưu cuối, cộng thời
 gian job biến thể nếu có media mới (suy luận theo thời gian `Deploy demo` hiện tại, đo ở slice Publishing).
 
 Từ khi CMS mở, mọi lần dựng kể cả merge code vào `main` đều lấy bản chụp mới nhất; file chiếu trong repo là seed và
@@ -188,7 +188,7 @@ chụp không trả lời thì lần dựng lỗi, không dùng file trong repo.
 lý do và nút "dựng lại"; lần lưu kế tiếp cũng dựng lại. Admin đọc trạng thái run qua API GitHub bằng cùng token: chờ,
 đang dựng, đã lên, lỗi.
 
-Owner quay về deployment trước bằng lệnh `rollback` (nút trong admin vì owner không chạy lệnh shell; lệnh
+Owner quay staging về deployment trước bằng lệnh `rollback` (phần 1 chỉ staging, site thật theo phần 2; nút trong admin vì owner không chạy lệnh shell; lệnh
 `pnpm demo:wrangler rollback` ở [phát hành tĩnh](static-release.md) là đường dự phòng): admin Worker gọi workflow rollback
 mới (plan viết), workflow chỉ nhận id một trong 10 deployment gần nhất và dùng token deploy Cloudflare sẵn có của `Deploy
 demo`; admin Worker không giữ token deploy. D1 không đổi theo, nên rollback đặt cờ tạm dừng trong D1; trong lúc dừng,

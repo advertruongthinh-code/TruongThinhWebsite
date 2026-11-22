@@ -152,17 +152,17 @@ And không file nào còn thẻ vị trí của bản gốc
 ### R6. Đường dựng trong CI
 
 `ci.yml` có input `content`: lần dựng nội dung không chạy bộ test code, dùng nhóm concurrency riêng `ci-content`, mang
-tên run `CMS content build`, và dựng trên commit của bản đang chạy trên site (đọc
-`build-info.json`; commit phải là 40 ký tự hex và nằm trên `main`), không lấy `main` mới nhất. Biến repo
-`CMS_SNAPSHOT_URL` có giá trị thì mọi lần dựng lấy bản chụp; lấy không được thì lần dựng lỗi. Trước deploy chạy
+tên run `CMS content build`, chỉ deploy lên staging, và dựng trên commit của bản đang chạy trên staging (đọc
+`build-info.json` bằng service token vì staging nằm sau Access; commit phải là 40 ký tự hex và nằm trên `main`), không lấy `main` mới nhất. Biến repo
+`CMS_SNAPSHOT_URL` có giá trị thì mọi lần dựng staging lấy bản chụp; lấy không được thì lần dựng lỗi. Đích `production` của `Deploy demo` không lấy bản chụp và không ghi dấu cho tới khi phần 2 thêm chức năng "Phát hành" ([CMS R6](cms.md#r6-xuất-bản-và-rollback)). Trước deploy chạy
 `pnpm qa:content`, build, `pnpm qa:static`. Bản đang chạy có cùng `commit` và `snapshotId` thì bỏ qua deploy. Sau mỗi
-lần deploy, job ghi dấu `deploys/<khóa>.json` (version id, commit, `snapshotId`, thời điểm) vào bucket public; admin đọc
+lần deploy staging, job ghi dấu `deploys/<khóa>.json` (version id, commit, `snapshotId`, thời điểm) vào bucket public; admin đọc
 10 dấu gần nhất để hiện trạng thái và cho rollback. Workflow rollback hủy lần deploy đang chạy để chạy ngay. Token deploy
 của CI nằm trong environment GitHub `cloudflare-deploy` chỉ nhánh `main` dùng được, không có quyền D1; migration áp
 bằng tay ở gate. Lần dispatch dựng lỗi thì Cron của admin Worker gọi lại mỗi 5 phút.
 
 ```gherkin
-Given site đang chạy commit X và main đã có commit Y chưa deploy xong
+Given staging đang chạy commit X và main đã có commit Y chưa deploy xong
 When một lần lưu nội dung gọi lần dựng
 Then lần dựng đó dùng code của commit X với nội dung mới
 ```
