@@ -261,7 +261,7 @@ Then mọi bộ được chọn vì harness nằm trong shared
 | Script | `scripts/ci/suites.mjs` | `--select`: nhận file đổi hoặc sự kiện CI, in JSON id bộ cho matrix. `<id>`: build, mở preview port trống, chạy lệnh của bộ (ghi thời gian, R10), dọn server; exit khác 0 khi có lệnh đỏ |
 | Lệnh | `pnpm qa:suite` | Gọi script trên, dùng chung cho local và CI |
 | Helper | `tests/site/harness.mjs` | `BASE_URL`, `VIEWPORTS`, mở trình duyệt và trang, chờ frame và transition cho test ESM (R12) |
-| Check | `static-release` | Check tổng mà Automerge đọc |
+| Check | `static-release` | Check tổng mà Automerge đọc; lượt đêm thêm job `nightly-card`: đỏ thì mở hoặc cập nhật card Notion, xanh thì đóng ([Notion rule 16](../operations/notion.md#rule), `tests/tooling/nightly-card.test.mjs`) |
 
 ## Kiểm tra
 

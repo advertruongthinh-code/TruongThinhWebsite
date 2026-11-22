@@ -17,6 +17,7 @@
 13. `LOC` là source/test viết tay thêm, sửa, xóa; trừ generated, vendor, lockfile, formatting-only, Markdown.
 14. `Thứ tự Up next` là thứ tự owner yêu cầu; rank không chứng minh việc xong hay chưa, đối chiếu spec/evidence trước khi làm card cũ.
 15. `object_not_found` không đủ kết luận card đã xóa; timestamp cũ không là verification hiện tại.
+16. Lượt CI đêm đỏ (owner 2026-11-22: đỏ từ 2026-11-14 mà không ai thấy): job `nightly-card` (`scripts/ci/nightly-card.mjs`, secret `NOTION_TOKEN`) tạo card "Nightly CI đỏ" (Up next, P1) hoặc thêm vào card đang mở một dòng ngày, các bộ đỏ, link run; lượt xanh thêm "xanh lại" và chuyển `Done`, `Evidence` là link run. Điều phối giao thread sửa khi thấy card.
 
 ## Sổ việc trên card
 
