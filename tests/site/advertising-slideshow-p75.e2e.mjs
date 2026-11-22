@@ -6,7 +6,8 @@ const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1567, height: 910 } });
   await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "networkidle" });
-  const button = page.locator('[data-masonry-suggestion-tag="use-sampling"]');
+  // Suggestion tags are product pages now (taxonomy R5); this is the sampling one of kiosk-posm-07.
+  const button = page.locator('[data-masonry-suggestion-tag="displays-booths/sampling-booths-reception-counters"]');
   await button.waitFor();
   await button.scrollIntoViewIfNeeded();
   const image = button.locator('[data-masonry-suggestion-image-layer="current"]');
