@@ -52,6 +52,7 @@
         "pnpm qa:client-assets",
         "node scripts/tooling/serve-static-parity.mjs --self-test",
         "node --test tests/site/*.test.mjs",
+        "node --test tests/cms/*.test.mjs",
         "pnpm exec playwright test tests/site/cross-browser.smoke.spec.cjs --project=chromium",
         "TT_E2E_STATIC_ONLY=1 node tests/site/site.e2e.cjs",
         "node --test tests/admin/*.test.mjs",
