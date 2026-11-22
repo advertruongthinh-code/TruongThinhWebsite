@@ -186,6 +186,37 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     });
     return button;
   };
+  // A mouse cannot swipe: dragging the row or turning the wheel over it scrolls the chips sideways (owner 2026-11-23). Touch keeps the
+  // native swipe. A drag does not count as a click on the chip under the pointer.
+  const chipRow = () => chips.querySelector(".search-bar__chiprow");
+  let drag = null;
+  chips.addEventListener("pointerdown", (event) => {
+    const row = chipRow();
+    if (event.pointerType !== "mouse" || event.button !== 0 || !row?.contains(event.target)) return;
+    drag = { x: event.clientX, left: row.scrollLeft, moved: false };
+  }, { signal });
+  window.addEventListener("pointermove", (event) => {
+    const row = chipRow();
+    if (!drag || !row) return;
+    const dx = event.clientX - drag.x;
+    if (Math.abs(dx) > 4) drag.moved = true;
+    if (drag.moved) row.scrollLeft = drag.left - dx;
+  }, { signal });
+  window.addEventListener("pointerup", () => {
+    if (drag?.moved) chips.addEventListener("click", (event) => { event.preventDefault(); event.stopPropagation(); }, { capture: true, once: true });
+    drag = null;
+  }, { signal });
+  chips.addEventListener("wheel", (event) => {
+    const row = chipRow();
+    if (!row || row.scrollWidth <= row.clientWidth + 1) return;
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    const end = row.scrollWidth - row.clientWidth - 1;
+    // At either end the wheel goes back to the page.
+    if ((delta < 0 && row.scrollLeft <= 0) || (delta > 0 && row.scrollLeft >= end)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    row.scrollLeft += delta;
+  }, { passive: false, signal });
   const rowObserver = new ResizeObserver(([entry]) => {
     const row = entry.target;
     more.hidden = true;
@@ -194,11 +225,16 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   });
   signal?.addEventListener("abort", () => rowObserver.disconnect(), { once: true });
   let chipsQueued = false;
+  // The group picked on the hero sets which products the row offers; picking one of them keeps the whole row (owner 2026-11-23), so
+  // the scope is read only while no product is picked.
+  let scope = container;
   function syncChips() {
     chipsQueued = false;
-    const cluster = [...container.querySelectorAll("[data-masonry-filter][aria-current=\"true\"]")].find((node) => node.dataset.masonryFilter !== "all");
-    const scope = cluster ? container.querySelector(`[data-masonry-chips="${cluster.dataset.masonryFilter}"]`) : container;
-    const products = client.active ? [...(scope ?? container).querySelectorAll("[data-masonry-product]")].filter((node) => !node.hasAttribute("data-search-empty")) : [];
+    if (!container.querySelector("[data-masonry-product][aria-current=\"true\"]")) {
+      const cluster = [...container.querySelectorAll("[data-masonry-filter][aria-current=\"true\"]")].find((node) => node.dataset.masonryFilter !== "all");
+      scope = (cluster && container.querySelector(`[data-masonry-chips="${cluster.dataset.masonryFilter}"]`)) || container;
+    }
+    const products = client.active ? [...scope.querySelectorAll("[data-masonry-product]")].filter((node) => !node.hasAttribute("data-search-empty")) : [];
     products.sort((a, b) => countOf(b) - countOf(a)); // stable: equal counts keep the rail order
     const row = Object.assign(document.createElement("div"), { className: "search-bar__chiprow" });
     row.append(...products.map(chipFor));

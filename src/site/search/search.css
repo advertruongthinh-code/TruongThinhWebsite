@@ -49,6 +49,11 @@ body.is-detail .search-host {
   left: 0;
 }
 
+/* Into the top slot the block stretches out from a square (search-bar R7): its content stays inside the border meanwhile. */
+.search-bar.is-stretching .search-bar__shell {
+  overflow: clip;
+}
+
 /* A new place takes its look at once: no transition may smooth it (search-bar R7). */
 .search-bar.is-moving .search-bar__shell {
   transition: none;
@@ -160,6 +165,7 @@ body.is-detail .search-host {
   border-bottom: 1px solid var(--search-hair);
   scrollbar-width: none;
   white-space: nowrap;
+  user-select: none;
 }
 
 .search-bar__chiprow::-webkit-scrollbar {
