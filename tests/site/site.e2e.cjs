@@ -10277,9 +10277,17 @@ async function runSharedMediaHoverPortalChecks() {
       async (page) => {
         const diagnostics = monitorPage(page);
         await gotoRoute(page, `/${locale}/`);
-        const allPortals = page.locator("#dich-vu .service-portal, #nang-luc .service-portal");
-        assert((await allPortals.count()) === 7, `Expected seven shared media portals at ${locale}`);
-        for (let index = 0; index < 7; index += 1) {
+        // Only linked portals zoom on hover; a portal without a link keeps its image still (owner 2026-11-22).
+        const stillPortal = page.locator("#nang-luc .service-portal").first();
+        await stillPortal.scrollIntoViewIfNeeded();
+        await stillPortal.hover();
+        await page.waitForTimeout(650);
+        const stillScale = await stillPortal.locator("img").evaluate((image) => new DOMMatrixReadOnly(getComputedStyle(image).transform).a);
+        assert(Math.abs(stillScale - 1) < 0.001, `Portal without a link must not zoom at ${locale}: ${stillScale}`);
+        await page.mouse.move(0, 0);
+        const allPortals = page.locator("#dich-vu .service-portal");
+        assert((await allPortals.count()) === 3, `Expected three shared media portals at ${locale}`);
+        for (let index = 0; index < 3; index += 1) {
           const sharedPortal = allPortals.nth(index);
           const sharedImage = sharedPortal.locator(".media-hover-zoom");
           await sharedPortal.scrollIntoViewIfNeeded();
