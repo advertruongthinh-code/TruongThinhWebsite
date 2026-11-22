@@ -180,7 +180,7 @@ Then card trên preview đổi ảnh, bản nháp ghi mediaItems mới, cover m�
 ```
 
 ### R8. Bản nháp, lưu và xuất
-
+Bị thay: lưu và lệnh theo [CMS R3 tới R5](cms.md#r5-lệnh-admin-có-kiểu); phần dưới giữ làm tham khảo tới slice editor.
 Sửa đổi ghi vào nháp `{ page, base, anchors, text: { key: { vi, en } }, image: { key: { src, width, height, altVi, altEn
 } }, list: { listKey: [id] }, clone: { idMới: idGốc }, cards }`. Bản đang sửa là nháp trên máy nếu có, không thì bản đã
 lưu (`GET /api/admin/content/<page>` lúc mở editor, cache `tt-cms-saved:<page>` cho bản xem trước); `base` là
@@ -218,7 +218,7 @@ Then 200; GET /vi/ không có cms-core.js
 ```
 
 ### R10. Worker áp nội dung đã lưu
-
+Bị thay: [CMS R1](cms.md#r1-ranh-giới-public-và-admin) bỏ Worker SSR và `page_edits`; phần dưới chỉ mô tả code dormant.
 `0005_page_edits.sql`: bảng `page_edits` (`page` là `home`, `residential`, `commercial`, `about` hoặc `advertising`;
 `edits_json`, `anchors_json`, `updated_at`, `updated_by`); áp migration trước khi deploy Worker đọc bảng. `GET
 /api/admin/content/<page>` (admin, [CMS code dormant](cms.md#code-dormant-hiện-có)) trả `{ edits, stale, updatedAt, updatedBy }`.

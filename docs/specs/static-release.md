@@ -218,7 +218,8 @@ And CI đỏ, PR hoặc push từ fork không deploy
 binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
-`/vi/`, sitemap, redirect `projects-products` chỉ có ở Worker CMS, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
+`/vi/`, sitemap, redirect `projects-products` hiện chỉ có ở Worker CMS dormant; CMS R1 bỏ Worker khỏi route public nên
+slice Public projection chuyển chúng sang static assets, nên bản tĩnh chỉ lên demo; phát hành chính thức chờ xong CMS. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
 theo [điều kiện mở CMS](cms.md#gate-còn-mở).
 
 ```gherkin

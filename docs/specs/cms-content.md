@@ -116,18 +116,21 @@ And danh sách chọn chỉ có 6 media của trang đó
 
 ### R5. Layout khóa theo số media
 
-Khối trang công trình và News gọi chung theo media (owner 2026-11-15): `image-single` thành `media-single` (gộp
+Khối trang công trình và News sẽ gọi chung theo media (owner 2026-11-15): `image-single` thành `media-single` (gộp
 `video-single`), `image-pair` thành `media-pair`, `image-text` thành `media-text`, `gallery-carousel` thành
 `media-carousel`; mỗi chỗ nhận ảnh hoặc video, khung theo [layout-library R7](layout-library.md#r7-khung-ảnh-cố-định-từng-khối)
-(video cần poster cùng khung). Đổi tên là việc code của plan, dữ liệu cũ đổi theo trong cùng PR.
+(video cần poster cùng khung). Tới PR đổi tên, tên contract vẫn là `image-*` như layout-library và News; dữ liệu cũ đổi
+theo trong cùng PR đó. `media-single` giữ bốn tỷ lệ của `image-single` cho ảnh, video chỉ nhận 16:9.
 
 `layoutKey` của một khối là một id trong danh mục [layout-library R1](layout-library.md#r1-danh-mục-khối); id ngoài danh
 mục bị từ chối ở R1. Khối chưa có renderer (`statement`, `location-list`, băng logo, banner CTA) hiện khóa tới khi PR
 thêm renderer. Layout Bài News và Chi tiết công trình khóa cứng theo số media, theo bảng [News R3](news.md#r3-trang-bài)
 và [công trình R4](projects.md#r4-ảnh-và-video-công-trình): mỗi dòng là một layout, mở khi bài có số media lớn hơn hoặc
-bằng mức thấp nhất của dòng; dòng cao hơn khóa và admin ghi cần thêm mấy media. Người soạn chọn layout đã mở rồi điền chữ
-và media; không thêm, bớt hay đổi thứ tự khối. Media vượt sức chứa khối đơn dồn vào `media-carousel` trong giới hạn của
-dòng. Thêm layout hay khối mới là việc code qua PR. Field `template` cũ bỏ. Motion cố định theo layout và khối, CMS không có trường chỉnh
+bằng mức thấp nhất của dòng; dòng cao hơn khóa và admin ghi cần thêm mấy media. Mỗi dòng là một chuỗi khối cố định, mỗi
+khối có số media tối thiểu, tối đa; chỗ hai bảng còn ghi "hoặc", "tùy chọn", "hai tới bốn" được plan chốt thành một
+chuỗi, owner duyệt cùng plan. Sức chứa của dòng phải đủ mức cao nhất của dòng; dòng cuối (News 17+, công trình 13+) dồn
+media dư vào `media-carousel` cuối. Dưới mức thấp nhất (News dưới 2, công trình dưới 4 media) bài chỉ lưu được `draft`,
+lệnh `save` để đăng trả 400. Người soạn chọn layout đã mở rồi điền chữ và media; không thêm, bớt hay đổi thứ tự khối. Thêm layout hay khối mới là việc code qua PR. Field `template` cũ bỏ. Motion cố định theo layout và khối, CMS không có trường chỉnh
 motion (owner 2026-11-15).
 
 ```gherkin
@@ -191,7 +194,8 @@ Then trả 400, dữ liệu chữ không đổi
 
 ### R9. Tìm kiếm ngữ nghĩa và hỗ trợ nhập
 
-Owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/artifact/6zTDE4jQfcjrbP3tax9kXx), mục "Khi CMS thêm, sửa, xóa
+Phần này không thuộc gate Contract: thread tìm kiếm chốt model và cách tính vector trong spec tìm kiếm; dưới đây là
+hướng owner duyệt 2026-11-15 ([hướng tìm kiếm](https://claude.ai/artifact/6zTDE4jQfcjrbP3tax9kXx), mục "Khi CMS thêm, sửa, xóa
 media"; thread tìm kiếm sở hữu phần tìm). Lúc lưu, CMS gọi Worker Cloudflare tính vector bằng Workers AI
 `@cf/google/embeddinggemma-2`, không chạy trên máy người soạn: mỗi media một vector (ảnh cộng alt; video lấy frame 1 giây
 một frame cộng poster), mỗi card một vector chữ (tên, mô tả, sản phẩm, cụm, tag). Nháp chỉ người dùng CMS tìm được. Đổi

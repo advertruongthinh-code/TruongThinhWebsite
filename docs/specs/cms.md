@@ -49,10 +49,14 @@ Hai vai trò, không có vai trò admin riêng: admin là owner (owner 2026-11-2
 | Quay site về bản dựng trước | Có | Không |
 | Xem nhật ký thao tác | Có | Chỉ thao tác của mình |
 
-Worker cho qua khi JWT Access hợp lệ và email có tài khoản đang mở trong D1; thiếu một trong hai thì 403. Ít nhất một
+Worker cho qua khi JWT Access hợp lệ và email có tài khoản đang mở trong D1; thiếu một trong hai thì 403. Riêng
+`GET /api/admin/snapshot` nằm sau chính sách Service Auth riêng: chỉ nhận service token của workflow dựng, chỉ đọc,
+không qua bảng tài khoản. Ít nhất một
 owner luôn còn mở: lệnh khóa hay hạ vai trò owner cuối cùng trả 409. Danh sách email của chính sách Access phải khớp bảng
 tài khoản, vì Access tính seat ở lần đăng nhập đầu và chặn người mới khi hết seat. Trang tài khoản tự thêm, gỡ email
-trong chính sách Access qua API Cloudflare bằng token chỉ có quyền Access, nằm ở secret (owner 2026-11-15).
+trong chính sách Access qua API Cloudflare (owner 2026-11-15): token chỉ có quyền Access, nằm ở secret, Worker chỉ sửa
+đúng chính sách của app admin (id trong secret). Gọi API Access trước, thành công mới ghi D1; API lỗi thì trả 502, không
+đổi gì; nhật ký ghi cả hai bước.
 
 ```gherkin
 Given nhân viên đã đăng nhập
@@ -64,12 +68,14 @@ Then trả 403, không dòng nào đổi, nhật ký ghi lần bị từ chối
 
 | Trạng thái | Trên site | Ai đặt |
 | --- | --- | --- |
-| `draft` | Không | Tạo mới chưa đủ trường bắt buộc; lưu nháp tự động |
+| `draft` | Không | Tạo mới chưa đủ trường bắt buộc |
 | `published` | Có, từ lần dựng sau | Lưu khi đủ trường bắt buộc (owner 2026-11-15: lưu là lên web, không bước duyệt) |
 | `trashed` | Không | Lệnh xóa của owner hoặc nhân viên; owner chọn xóa thẳng thì bản ghi mất luôn (owner 2026-11-15) |
 
-Thùng rác giữ bản ghi và mọi phiên bản 30 ngày, khôi phục về đúng trạng thái trước khi xóa; quá 30 ngày hoặc owner xóa
-hẳn thì mất. URL của bài trong thùng rác rơi về trang 404 tĩnh: public không có Worker nên không trả 410 (suy luận, thay
+Lưu nháp tự động chỉ ghi vào bản đang sửa riêng của người soạn, không đổi bản đang lên web và không tạo phiên bản; chỉ
+lệnh `save` tạo phiên bản. Thùng rác giữ bản ghi và mọi phiên bản 30 ngày, khôi phục về đúng trạng thái trước khi xóa; quá 30 ngày hoặc owner xóa
+hẳn thì mất. Xóa hẳn cần gõ lại tên bản ghi để xác nhận; nhật ký giữ phiên bản cuối 1 năm; bản gốc media
+của bản ghi chờ hết 30 ngày orphan (R3 nội dung CMS) rồi mới dọn. URL của bài trong thùng rác rơi về trang 404 tĩnh: public không có Worker nên không trả 410 (suy luận, thay
 mục 14 ý định 2026-10-12). Xóa nội dung đang được nội dung khác trỏ tới (menu, `project-reel`, `news-cards`) thì lần dựng
 bỏ tham chiếu đó và admin báo chỗ bị ảnh hưởng.
 
@@ -93,7 +99,7 @@ Then nhân viên nhận 409 kèm bản version 5, bài vẫn là bản của own
 
 ### R5. Lệnh admin có kiểu
 
-API admin chỉ có các lệnh dưới; mỗi lệnh validate bằng module dùng chung ở
+API admin chỉ có các lệnh ghi dưới và các lệnh đọc `list`, `get`, `media-list`, `audit-log`, `build-status`, `snapshot`; mỗi lệnh validate bằng module dùng chung ở
 [nội dung CMS R1](cms-content.md#r1-kiểu-nội-dung-và-file-chiếu), kiểm quyền theo R2, ghi nhật ký theo R4.
 
 | Lệnh | Kết quả | Lỗi |
@@ -106,23 +112,33 @@ API admin chỉ có các lệnh dưới; mỗi lệnh validate bằng module dù
 | `account-add`, `account-update` | Theo R2 (chỉ owner) | 403, 409 owner cuối |
 | `rollback` | Quay site về deployment trước (chỉ owner) | 403 |
 
-Request ghi chỉ nhận `application/json` (upload là `multipart/form-data`) và `Origin` bằng origin admin; không dùng
-CSRF token riêng (suy luận: Access chặn request không có JWT, `Origin` chặn form từ site khác; kiểm cookie Access ở slice
-Storage). Lỗi D1 hay R2 trả 503 cho admin, không chạm site public.
+Request ghi chỉ nhận `application/json` (upload là `multipart/form-data`, 415 nếu khác); mọi request không phải GET
+thiếu `Origin` hay `Origin` khác origin admin trả 403; GET không bao giờ đổi dữ liệu. Không dùng CSRF token riêng (suy
+luận: Access chặn request không có JWT, `Origin` chặn form từ site khác, kể cả multipart không preflight). Email chỉ lấy
+từ JWT đã kiểm chữ ký, `aud`, `iss`, `exp`; không đọc header `Cf-Access-Authenticated-User-Email`. Lỗi D1 hay R2 trả 503 cho admin, không chạm site public.
 [CẦN LÀM RÕ: rate limit bằng luật Cloudflare hay đếm trong Worker; agent kiểm hạn mức gói free ở slice Storage.]
 
 ```gherkin
 Given admin đã xác thực
-When POST lệnh save với Content-Type text/plain hoặc Origin của site khác
-Then trả 403 hoặc 415, không phiên bản nào được tạo
+When POST lệnh save với Origin của site khác
+Then trả 403, không phiên bản nào được tạo
+When POST lệnh save đúng Origin nhưng Content-Type text/plain
+Then trả 415, không phiên bản nào được tạo
 ```
 
 ### R6. Xuất bản và rollback
 
-Lần lưu `published` xếp một lần dựng; các lần lưu trong 2 phút gom thành một. Lần dựng chạy workflow `Deploy demo`
-(GitHub Actions), lấy bản chụp từ admin bằng service token Access, chạy validator dùng chung và bộ kiểm phát hành hiện có, rồi
-deploy. Lỗi bước nào thì không deploy, site giữ bản cũ, admin hiện lý do bằng lời thường. Admin hiện trạng thái: chờ, đang
-dựng, đã lên, lỗi. Owner quay về deployment trước bằng lệnh `rollback`; nội dung trong D1 không đổi theo.
+Lần lưu `published` ghi một dòng chờ dựng trong D1; Cron Trigger mỗi phút của admin Worker gọi `workflow_dispatch` của
+`Deploy demo` khi dòng chờ cũ nhất đã quá 2 phút, nên các lần lưu trong 2 phút gom thành một. Token GitHub fine-grained
+chỉ quyền Actions trên repo này, nằm ở secret. Workflow lấy bản chụp qua `GET /api/admin/snapshot` bằng service token,
+chạy validator dùng chung và bộ kiểm phát hành hiện có, rồi deploy. Từ khi CMS mở, mọi lần dựng kể cả merge code vào
+`main` đều lấy bản chụp mới nhất; file chiếu trong repo chỉ là bản seed và fixture, nên merge code không ghi đè nội dung
+CMS. Lỗi bước nào thì không deploy, site giữ bản cũ, admin hiện lý do bằng lời thường. Admin đọc trạng thái run qua API
+GitHub bằng cùng token: chờ, đang dựng, đã lên, lỗi.
+
+Owner quay về deployment trước bằng lệnh `rollback`; D1 không đổi theo, nên rollback dừng tự đăng tới khi owner bấm
+"tiếp tục đăng" (lưu vẫn ghi D1, không dựng). Key biến thể media public không đổi theo nội dung (có hash) và được giữ
+khi còn deployment nào trong 10 bản gần nhất trỏ tới (suy luận về số bản Workers giữ, kiểm ở slice Publishing).
 Hẹn giờ đăng để sau bản đầu (owner 2026-11-15).
 
 ```gherkin
@@ -158,8 +174,8 @@ And test so HTML preview và HTML build của cùng dữ liệu trả kết qu�
 | --- | --- | --- |
 | Data | `src/site/content/*.json` | File chiếu ([nội dung CMS](cms-content.md)); build tĩnh đọc như hiện tại |
 | Binding | `DB` (D1, `apac`), `MEDIA_ORIGINALS`, `MEDIA_PUBLIC` (R2) | Chỉ ở admin Worker; khai ở slice Storage |
-| Secret | `CMS_BOOTSTRAP_OWNER`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, service token | R2, R6; không ghi trong repo |
-| Header | `Cf-Access-Jwt-Assertion`, `Cf-Access-Authenticated-User-Email`, `Origin` | Đầu vào R2, R5 |
+| Secret | `CMS_BOOTSTRAP_OWNER`, `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, token Access API, id chính sách Access, service token, token GitHub Actions | R2, R6; không ghi trong repo |
+| Header | `Cf-Access-Jwt-Assertion`, `Origin` | Đầu vào R2, R5 |
 | Endpoint | `/api/admin/<lệnh>` | R5; không có API public |
 
 ## UI
@@ -198,7 +214,11 @@ Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret,
 Hai gate thêm trước CMS (owner 2026-11-15): làm lại layout trang chuẩn theo Espacio
 (xong, PR #978) và motion hero Espacio (xong, PR #966); chi tiết ở [nội dung CMS](cms-content.md#gate-còn-mở).
 
-Thứ tự slice, mỗi slice owner duyệt gate: Contract (spec này; gate: owner duyệt spec và các mục `[CẦN LÀM RÕ]`),
+Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: rate limit, cỡ upload, thang video ở Storage; khóa slot `page-copy` ở editor.
+Plan chi tiết phải có: bảng D1, định dạng bản chụp, nơi lưu redirect 301 khi đổi slug, tắt preview URL của hostname
+`workers.dev`, chuỗi khối cố định từng dòng layout ([nội dung CMS R5](cms-content.md#r5-layout-khóa-theo-số-media)).
+
+Thứ tự slice, mỗi slice owner duyệt gate: Contract (spec này; gate: owner duyệt spec),
 Storage (migration `0001` mới, bucket, export; gate: migration có snapshot, khôi phục thử, đường lùi), Publishing
 (lệnh R5, dựng R6; gate: test contract, security, integration), Public projection (file chiếu; gate: bản dựng từ
 bản chụp giống bản dựng từ repo, diễn tập rollback). Editor nối API theo [cms-editor](cms-editor.md) sau Publishing.
