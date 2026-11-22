@@ -143,11 +143,14 @@ body.is-detail .search-host {
 
 /* Chip row (search-bar R2): products with results; again on the chip in use returns to all results. */
 .search-bar__chips {
+  display: flex;
   min-height: 0;
   overflow: hidden;
 }
 
 .search-bar__chiprow {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 18px;
@@ -202,7 +205,31 @@ body.is-detail .search-host {
   vertical-align: 0.5em;
 }
 
-.search-bar.is-docked .search-bar__chips {
+/* Pinned at the row's right end while any chip is cut off (owner 2026-11-23). */
+.search-bar__more {
+  padding: 0 14px 0 4px;
+  border-bottom: 1px solid var(--search-hair);
+  color: var(--ink);
+}
+
+/* Every product with results, above the bar, most cards first. */
+.search-bar__all {
+  position: absolute;
+  right: -1px;
+  bottom: calc(100% + 8px);
+  left: -1px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  max-height: min(50vh, 320px);
+  padding: 14px;
+  overflow-y: auto;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  box-shadow: var(--search-shadow);
+}
+
+.search-bar.is-docked :is(.search-bar__chips, .search-bar__all) {
   visibility: hidden;
 }
 
