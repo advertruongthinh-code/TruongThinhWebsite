@@ -138,12 +138,12 @@ khối nhận 0 media thì bỏ cùng đoạn văn ngay trước nó.
 
 | `layout` | Số media | Phần giữa của chuỗi ([layout-library](layout-library.md)) | Media dư vào |
 | --- | --- | --- | --- |
-| `project-4-5` | 4-5 | `facts-grid`, `paragraph`, `image-single` rộng [1], `paragraph`, `image-single` 2/3 trái [0-1], `paragraph`, `image-pair` bằng nhau [2], `paragraph`, `paragraph` | theo chuỗi |
-| `project-6-7-a` | 6-7 | `gallery-carousel` [3-4], `facts-grid`, `image-text` [1], `paragraph`, `image-single` rộng [1], `paragraph`, `paragraph` | theo chuỗi |
-| `project-6-7-b` | 6-7 | `facts-grid`, `image-text` [1], `paragraph`, `image-single` 2/3 trái [1], `paragraph`, `gallery-carousel` [3-4], `paragraph` | theo chuỗi |
-| `project-8-9` | 8-9 | như `project-6-7-a`, thêm `paragraph`, `image-pair` bằng nhau [2] trước hai đoạn cuối | theo chuỗi |
-| `project-10-12` | 10-12 | như `project-8-9` nhưng `gallery-carousel` [4-5], thêm `paragraph`, `image-single` 2/3 trái [1], `paragraph`, `image-single` rộng [0-1] trước hai đoạn cuối | `image-single` cuối, rồi carousel |
-| `project-13` | 13-23 | `gallery-carousel` [5], `facts-grid`, `paragraph`, `image-pair` bằng nhau [2], `paragraph`, `image-pair` trái lớn [2], `paragraph`, `gallery-carousel` [2-12], `paragraph`, `image-single` rộng [1], `paragraph`, `paragraph` | carousel cuối |
+| `project-4-5` | 4-5 | `facts-grid`, `paragraph`, `media-single` rộng [1], `paragraph`, `media-single` 2/3 trái [0-1], `paragraph`, `media-pair` bằng nhau [2], `paragraph`, `paragraph` | theo chuỗi |
+| `project-6-7-a` | 6-7 | `media-carousel` [3-4], `facts-grid`, `media-text` [1], `paragraph`, `media-single` rộng [1], `paragraph`, `paragraph` | theo chuỗi |
+| `project-6-7-b` | 6-7 | `facts-grid`, `media-text` [1], `paragraph`, `media-single` 2/3 trái [1], `paragraph`, `media-carousel` [3-4], `paragraph` | theo chuỗi |
+| `project-8-9` | 8-9 | như `project-6-7-a`, thêm `paragraph`, `media-pair` bằng nhau [2] trước hai đoạn cuối | theo chuỗi |
+| `project-10-12` | 10-12 | như `project-8-9` nhưng `media-carousel` [4-5], thêm `paragraph`, `media-single` 2/3 trái [1], `paragraph`, `media-single` rộng [0-1] trước hai đoạn cuối | `media-single` cuối, rồi carousel |
+| `project-13` | 13-23 | `media-carousel` [5], `facts-grid`, `paragraph`, `media-pair` bằng nhau [2], `paragraph`, `media-pair` trái lớn [2], `paragraph`, `media-carousel` [2-12], `paragraph`, `media-single` rộng [1], `paragraph`, `paragraph` | carousel cuối |
 
 Sáu trang có trước CMS mà chuỗi khác bảng (`can-ho-go-soi`, `nha-gieng-troi`, `van-phong-lam-viec-chung`, `tiem-banh-ngot`,
 `homestay-nha-go-ven-song`, `nha-pho-japandi-san-truoc`) giữ chuỗi riêng dạng `legacy`.

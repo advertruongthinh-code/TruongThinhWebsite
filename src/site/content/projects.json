@@ -84,7 +84,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/can-ho-loi-vao.webp",
@@ -172,7 +172,7 @@
       },
       {
         "id": "bedroom",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/can-ho-phong-ngu.webp",
@@ -192,7 +192,7 @@
       },
       {
         "id": "detail",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/can-ho-chi-tiet.webp",
@@ -334,7 +334,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/gieng3-loi-vao.webp",
@@ -415,7 +415,7 @@
       },
       {
         "id": "bedroom",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/gieng3-phong-ngu.webp",
@@ -435,7 +435,7 @@
       },
       {
         "id": "altar",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "left-large",
         "images": [
           {
@@ -647,7 +647,7 @@
       },
       {
         "id": "meeting",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/shared-office-meeting-room.webp",
@@ -667,7 +667,7 @@
       },
       {
         "id": "pantry",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/shared-office-pantry.webp",
@@ -687,7 +687,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/shared-office-phone-booth.webp",
@@ -829,7 +829,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/tiem-banh-ngot-shot-3.webp",
@@ -902,7 +902,7 @@
       },
       {
         "id": "seat",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/tiem-banh-ngot-shot-7.webp",
           "width": 1122,
@@ -925,7 +925,7 @@
       },
       {
         "id": "counter",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/tiem-banh-ngot-shot-2.webp",
@@ -945,7 +945,7 @@
       },
       {
         "id": "cakes",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/tiem-banh-ngot-shot-6.webp",
@@ -1087,7 +1087,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -1160,7 +1160,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -1183,7 +1183,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -1378,7 +1378,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-5.webp",
           "width": 2048,
@@ -1401,7 +1401,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/can-ho-2pn-be-am-shot-6.webp",
@@ -1421,7 +1421,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/can-ho-2pn-be-am-shot-2.webp",
@@ -1577,7 +1577,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/can-ho-studio-gap-shot-2.webp",
@@ -1650,7 +1650,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/can-ho-studio-gap-shot-5.webp",
           "width": 2048,
@@ -1673,7 +1673,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/can-ho-studio-gap-shot-6.webp",
@@ -1868,7 +1868,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -1891,7 +1891,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -1911,7 +1911,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2067,7 +2067,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2140,7 +2140,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -2163,7 +2163,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2358,7 +2358,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -2381,7 +2381,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2401,7 +2401,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2557,7 +2557,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/homestay-nha-go-ven-song-hien-gach-tau.webp",
@@ -2638,7 +2638,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/projects/homestay-nha-go-ven-song-phong-ngu-cua-so-tron.webp",
@@ -2658,7 +2658,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/homestay-nha-go-ven-song-tu-ao-go.webp",
@@ -2678,7 +2678,7 @@
       },
       {
         "id": "image-3",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -2882,7 +2882,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -2905,7 +2905,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -2925,7 +2925,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3081,7 +3081,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3154,7 +3154,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -3177,7 +3177,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3372,7 +3372,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -3395,7 +3395,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3415,7 +3415,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3571,7 +3571,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3644,7 +3644,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -3667,7 +3667,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3862,7 +3862,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/placeholder-doc.webp",
           "width": 2048,
@@ -3885,7 +3885,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -3905,7 +3905,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/placeholder-ngang.webp",
@@ -4061,7 +4061,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/nha-pho-indochine-shot-2-r7.webp",
@@ -4141,7 +4141,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/nha-pho-indochine-shot-7.webp",
           "width": 2048,
@@ -4164,7 +4164,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/nha-pho-indochine-shot-8.webp",
@@ -4184,7 +4184,7 @@
       },
       {
         "id": "image-3",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -4213,7 +4213,7 @@
       },
       {
         "id": "image-4",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/nha-pho-indochine-shot-11.webp",
@@ -4233,7 +4233,7 @@
       },
       {
         "id": "image-5",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/nha-pho-indochine-shot-12.webp",
@@ -4382,7 +4382,7 @@
       },
       {
         "id": "gallery-main",
-        "type": "gallery-carousel",
+        "type": "media-carousel",
         "images": [
           {
             "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-3.webp",
@@ -4463,7 +4463,7 @@
       },
       {
         "id": "image-1",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-2.webp",
@@ -4475,7 +4475,7 @@
       },
       {
         "id": "image-2",
-        "type": "image-text",
+        "type": "media-text",
         "image": {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-8.webp",
           "width": 2048,
@@ -4498,7 +4498,7 @@
       },
       {
         "id": "image-3",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -4527,7 +4527,7 @@
       },
       {
         "id": "image-4",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-11.webp",
@@ -4547,7 +4547,7 @@
       },
       {
         "id": "image-5",
-        "type": "image-single",
+        "type": "media-single",
         "position": "left-2-3",
         "image": {
           "src": "/assets/content/projects/nha-pho-japandi-san-truoc-shot-12.webp",

@@ -59,7 +59,7 @@ test("reports every error, not just the first", async () => {
 });
 
 test("a News image is reported when another page or another article uses it", async () => {
-  const article = (id, src) => ({ id, blocks: [{ id: "a", type: "image-single", image: { src } }] });
+  const article = (id, src) => ({ id, blocks: [{ id: "a", type: "media-single", image: { src } }] });
   const withNews = async (html, news) => {
     const root = await site(html);
     mkdirSync(path.join(root, "content"));

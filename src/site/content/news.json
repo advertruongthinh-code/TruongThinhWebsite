@@ -31,7 +31,7 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/shared/news-chon-tu-bep-a-20261113.webp",
@@ -51,7 +51,7 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -80,7 +80,7 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/shared/news-chon-tu-bep-d-20261113.webp",
@@ -146,7 +146,7 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/shared/news-mo-quan-ca-phe-a-20261113.webp",
@@ -166,7 +166,7 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -195,7 +195,7 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/shared/news-mo-quan-ca-phe-d-20261113.webp",
@@ -261,7 +261,7 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/shared/news-nha-pho-giu-mat-a-20261113.webp",
@@ -281,7 +281,7 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -310,7 +310,7 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/shared/news-nha-pho-giu-mat-d-20261113.webp",
@@ -376,7 +376,7 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/shared/news-bien-hieu-mat-tien-a-20261113.webp",
@@ -396,7 +396,7 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -425,7 +425,7 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/shared/news-bien-hieu-mat-tien-d-20261113-v2.webp",
@@ -491,7 +491,7 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/shared/news-tu-ao-am-tuong-a-20261113.webp",
@@ -511,7 +511,7 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -540,7 +540,7 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/shared/news-tu-ao-am-tuong-d-20261113.webp",
@@ -606,7 +606,7 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/shared/news-quay-ke-cua-hang-a-20261113.webp",
@@ -626,7 +626,7 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -655,7 +655,7 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/shared/news-quay-ke-cua-hang-d-20261113.webp",
@@ -721,7 +721,7 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/shared/news-man-hinh-led-san-khau-a-20261113.webp",
@@ -741,7 +741,7 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -770,7 +770,7 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/shared/news-man-hinh-led-san-khau-d-20261113.webp",
@@ -836,7 +836,7 @@
       },
       {
         "id": "image-a",
-        "type": "image-single",
+        "type": "media-single",
         "position": "wide",
         "image": {
           "src": "/assets/content/shared/news-bo-goc-noi-that-a-20261113.webp",
@@ -856,7 +856,7 @@
       },
       {
         "id": "image-bc",
-        "type": "image-pair",
+        "type": "media-pair",
         "layout": "equal",
         "images": [
           {
@@ -885,7 +885,7 @@
       },
       {
         "id": "image-d",
-        "type": "image-single",
+        "type": "media-single",
         "position": "right-2-3",
         "image": {
           "src": "/assets/content/shared/news-bo-goc-noi-that-d-20261113.webp",

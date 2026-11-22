@@ -94,10 +94,10 @@ hay không đều được. Media dư chia theo cột cuối.
 
 | `layout` | Số media | Bài Espacio | Chuỗi khối ([layout-library](layout-library.md)) | Media dư vào |
 | --- | --- | --- | --- | --- |
-| `news-2-5` | 2-5 | 7 | `paragraph`, `image-single` rộng [1], `paragraph`, `image-pair` bằng nhau [0 hoặc 2], `paragraph`, `image-single` 2/3 phải [0-1], `paragraph`, `image-single` 2/3 trái [0-1] | theo chuỗi |
-| `news-6-11` | 6-11 | 10 | `paragraph`, `image-single` rộng [1], `paragraph`, `image-pair` bằng nhau [2], `quote`, `paragraph`, `image-single` 2/3 phải [1], `paragraph`, `gallery-carousel` [2-5], `paragraph`, `image-pair` trái lớn [0 hoặc 2] | cặp cuối, rồi carousel |
-| `news-12-16` | 12-16 | 7 | như `news-6-11` nhưng `gallery-carousel` [5-8], `image-pair` trái lớn [2], thêm `paragraph`, `image-pair` phải lớn [0 hoặc 2] | cặp cuối, rồi carousel |
-| `news-17` | 17-30 | 2 | `paragraph`, `image-single` rộng [1], `paragraph`, `image-pair` bằng nhau [2], `quote`, `paragraph`, `gallery-carousel` [8-10], `paragraph`, `image-pair` trái lớn [2], `paragraph`, `image-single` 2/3 phải [1], `paragraph`, `image-pair` phải lớn [0 hoặc 2], `paragraph`, `gallery-carousel` [2-12] | cặp cuối, carousel đầu, carousel cuối |
+| `news-2-5` | 2-5 | 7 | `paragraph`, `media-single` rộng [1], `paragraph`, `media-pair` bằng nhau [0 hoặc 2], `paragraph`, `media-single` 2/3 phải [0-1], `paragraph`, `media-single` 2/3 trái [0-1] | theo chuỗi |
+| `news-6-11` | 6-11 | 10 | `paragraph`, `media-single` rộng [1], `paragraph`, `media-pair` bằng nhau [2], `quote`, `paragraph`, `media-single` 2/3 phải [1], `paragraph`, `media-carousel` [2-5], `paragraph`, `media-pair` trái lớn [0 hoặc 2] | cặp cuối, rồi carousel |
+| `news-12-16` | 12-16 | 7 | như `news-6-11` nhưng `media-carousel` [5-8], `media-pair` trái lớn [2], thêm `paragraph`, `media-pair` phải lớn [0 hoặc 2] | cặp cuối, rồi carousel |
+| `news-17` | 17-30 | 2 | `paragraph`, `media-single` rộng [1], `paragraph`, `media-pair` bằng nhau [2], `quote`, `paragraph`, `media-carousel` [8-10], `paragraph`, `media-pair` trái lớn [2], `paragraph`, `media-single` 2/3 phải [1], `paragraph`, `media-pair` phải lớn [0 hoặc 2], `paragraph`, `media-carousel` [2-12] | cặp cuối, carousel đầu, carousel cuối |
 
 Bài có trước CMS mà chuỗi khác bảng (`nha-pho-giu-mat`) giữ chuỗi riêng dạng `legacy`.
 
