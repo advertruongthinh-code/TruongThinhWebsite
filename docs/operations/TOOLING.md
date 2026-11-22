@@ -22,7 +22,7 @@ Năm plugin skill (agent-skills, caveman, ponytail, impeccable, i-have-adhd) cà
 từ commit trong `tooling-versions.json`. Ponytail bắt buộc `ultra`; skill caveman
 chỉ chạy khi user gọi; `i-have-adhd` tự gọi.
 
-Wrangler không được cài trong static phase; chỉ `pnpm deploy:demo` gọi bản
+Wrangler không được cài trong static phase; chỉ `pnpm deploy:demo` và `pnpm release:site` gọi bản
 pin qua `pnpm dlx` theo [phát hành demo](../specs/static-release.md#r11-phát-hành-demo-cloudflare).
 `src/worker/` và `wrangler.toml` chỉ là dormant CMS source; việc mở lại cần owner gate.
 
