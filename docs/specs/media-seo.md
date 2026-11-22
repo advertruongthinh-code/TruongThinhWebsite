@@ -55,8 +55,10 @@ Then có h1 tên card, đoạn mô tả và năm phần tử media đúng thứ 
 
 Mỗi media có `altVi`, `altEn` riêng, mô tả đúng thứ trong media đó (góc chụp, chi tiết, bối cảnh), không lặp lại
 giữa các media trong cùng card, không nhồi từ khóa. Validator (`media-contract.mjs`) từ chối card có hai media trùng
-alt cùng ngôn ngữ. File media mới đặt tên ngắn có nghĩa theo sản phẩm, ví dụ `chu-noi-inox-mat-tien-2.webp`; file đang
-có giữ tên vì tên file chỉ là gợi ý rất nhẹ với Google. VI và EN dùng chung một file, không dịch tên file. Alt ảnh bìa không lặp tên card: tên card là từ khóa ngách, alt tả ảnh (`altVi`, `altEn` trong `PHOTO_METADATA_BY_RECORD_ID`, viết từ ảnh, owner duyệt 2026-11-15); tên tiếng Anh card cũng là cụm riêng từng card.
+alt cùng ngôn ngữ. Tên file là tiếng Việt không dấu, từ khóa chính đứng đầu, 3-6 từ, không tên tỉnh, không ngày, ví dụ
+`menu-nhua-chong-nuoc-quan-an.webp`; mọi biến thể (`-240`, `-480`, `-960`, avif, jxl) theo cùng tên (owner 2026-11-22,
+đổi quy tắc giữ tên cũ). Ảnh Design System còn dùng giữ tên cũ tới khi owner "ok design system". VI và EN dùng chung một
+file, không dịch tên file. Alt là một câu thường 6-14 từ, không tả điều hiển nhiên; ảnh hero, trang trí giữ alt rỗng. Alt ảnh bìa không lặp tên card: tên card là từ khóa ngách, alt tả ảnh (`altVi`, `altEn` trong `PHOTO_METADATA_BY_RECORD_ID`, viết từ ảnh, owner duyệt 2026-11-15); tên tiếng Anh card cũng là cụm riêng từng card.
 
 ```gherkin
 Given một card có hai media cùng altVi
@@ -101,6 +103,20 @@ When đọc canonical, og:image, JSON-LD và sitemap của mọi trang R1
 Then mọi URL tuyệt đối bắt đầu bằng https://truongthinhads.vn/
 ```
 
+### R7. Mô tả card dạng rich text
+
+`descriptionVi`, `descriptionEn` là chuỗi thường có `\n` (không HTML, không markdown, không tab): đoạn mở 1-3 câu có từ
+khóa chính ở câu đầu, một dòng trống, 3-4 dòng bắt đầu `• Nhãn: nội dung`, một dòng trống, một câu kết. 70-130 từ VI,
+không tiêu đề nhỏ, không emoji, không giá, không tên khách, không tả lại điều ảnh đã cho thấy; EN viết lại cho người đọc
+tiếng Anh (owner 2026-11-22). Detail hiện mỗi dòng một hàng, dòng bullet thụt một tab và treo đầu dòng (chữ dòng sau
+thẳng với chữ sau `•`). Meta description và JSON-LD lấy đoạn mở.
+
+```gherkin
+Given mô tả có đoạn mở, ba dòng "• " và câu kết
+When detail mở card
+Then đoạn mở, khối bullet thụt lề treo và câu kết cách nhau một khoảng, meta description chỉ có đoạn mở
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
@@ -112,7 +128,7 @@ Then mọi URL tuyệt đối bắt đầu bằng https://truongthinhads.vn/
 
 ## UI
 
-Không đổi giao diện: trang R1 hiện detail đã có ([detail](advertising-detail.md), MediaCard trong
+R7 đổi cách hiện mô tả trong detail (`detail.css`, hàng bullet treo đầu dòng; duyệt trên [trang audit ảnh](https://claude.ai/artifact/8wmgqikLuSKi7PscyF88qF)). Còn lại không đổi giao diện: trang R1 hiện detail đã có ([detail](advertising-detail.md), MediaCard trong
 [Design System](../../design-system/README.md)).
 
 ## Kiểm tra
@@ -124,6 +140,7 @@ Không đổi giao diện: trang R1 hiện detail đã có ([detail](advertising
 | R2, R4 | `media-seo.test.mjs` (HTML thô, JSON-LD); Rich Results Test trên demo sau khi deploy |
 | R3 | `site-media-card-contract.test.mjs` (alt trùng) |
 | R5 | `media-seo.test.mjs` (sitemap) |
+| R7 | `media-seo.test.mjs` (dạng mô tả, meta lấy đoạn mở) |
 
 ## Gate còn mở
 
