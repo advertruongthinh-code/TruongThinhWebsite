@@ -1,0 +1,46 @@
+// Admin API dispatch (docs/specs/cms.md R1, R2, R4; CMS plan Q7, Q9). Every non-GET refusal writes one audit row.
+import { hasAllowedOrigin, requireActor } from "./auth.mjs";
+import { auditStatement, HttpError, json } from "./http.mjs";
+import buildStatus from "./commands/build-status.mjs";
+import snapshot from "./commands/snapshot.mjs";
+
+// { method, owner?, service?, upload?, run(request, env, ctx, actor, url) }; later tasks add commands here.
+export const COMMANDS = {
+  "build-status": buildStatus,
+  snapshot,
+};
+
+export async function route(request, env, ctx) {
+  const url = new URL(request.url);
+  if (!url.pathname.startsWith("/api/admin/")) return env.ASSETS.fetch(request);
+  const command = url.pathname.slice("/api/admin/".length);
+  const handler = Object.hasOwn(COMMANDS, command) ? COMMANDS[command] : undefined;
+  if (!handler) return json({ error: "Not Found" }, 404);
+  try {
+    const actor = await requireActor(request, env, url);
+    if (!actor) return json({ error: "Forbidden" }, 403); // no audit row: there is no email to record
+    if (Boolean(actor.service) !== Boolean(handler.service)) return json({ error: "Forbidden" }, 403);
+    if (request.method !== handler.method) return json({ error: "Method Not Allowed" }, 405);
+    const refuse = async (status, result) => {
+      if (handler.method !== "GET") await auditStatement(env, actor, command, null, null, result).run();
+      return json({ error: result }, status);
+    };
+    if (handler.method !== "GET") {
+      if (!hasAllowedOrigin(request, url)) return refuse(403, "403 origin");
+      if (!handler.upload && !(request.headers.get("Content-Type") ?? "").startsWith("application/json")) return refuse(415, "415");
+      if (!(await env.ADMIN_WRITE_LIMIT.limit({ key: actor.email })).success) return refuse(429, "429");
+      if (handler.upload && !(await env.ADMIN_UPLOAD_LIMIT.limit({ key: actor.email })).success) return refuse(429, "429");
+    }
+    if (handler.owner && actor.role !== "owner") return refuse(403, "403 role");
+    try {
+      return await handler.run(request, env, ctx, actor, url);
+    } catch (error) {
+      if (!(error instanceof HttpError)) throw error;
+      if (handler.method !== "GET") await auditStatement(env, actor, command, error.target?.type ?? null, error.target?.id ?? null, `${error.status} ${error.body.error ?? ""}`.trim()).run();
+      return json(error.body, error.status);
+    }
+  } catch (error) {
+    console.error(command, error);
+    return json({ error: "storage unavailable" }, 503);
+  }
+}

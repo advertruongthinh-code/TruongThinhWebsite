@@ -215,11 +215,11 @@ And request www.truongthinhads.vn hoặc http:// trả 301 về https://truongth
 
 ### R12. Ranh giới với CMS dormant
 
-`wrangler.toml` (Worker `truong-thinh-website`, `main = "src/worker/index.js"`,
-binding `ASSETS`) dormant, không script nào trong `package.json` dùng. Build chỉ
+`wrangler.toml` là admin Worker `truong-thinh-admin` của CMS (`main = "src/worker/index.js"`, chỉ chạy Worker cho
+`/api/*`), chưa deploy, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
-`pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
-`/vi/` và redirect `projects-products` chỉ có ở Worker CMS dormant, không chuyển sang static assets (owner 2026-11-22: giữ
+`pnpm qa:worker` (import Worker trong Node, D1 giả). Redirect `/` sang
+`/vi/` và redirect `projects-products` của Worker CMS cũ đã bỏ cùng Worker đó, không chuyển sang static assets (owner 2026-11-22: giữ
 trang gốc như hiện tại). Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
 theo [điều kiện mở CMS](cms.md#gate-còn-mở).
 
@@ -272,7 +272,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | R9 | chưa có test; kiểm tay `curl -I` trên demo sau deploy |
 | R10 | [bộ test CI](ci-test-suites.md#kiểm-tra); `tests/tooling/ci-suites.test.mjs` |
 | R11 | workflow `Deploy demo`, `Release site`; `pnpm deploy:demo --dry-run`; host và workers.dev: trang 404: `tests/site/static-locales.test.mjs`, `tests/site/not-found-routes.e2e.mjs` |
-| R12 | `pnpm qa:worker:security`; test R7 kiểm sáu slug trong route Worker |
+| R12 | `pnpm qa:worker` |
 | R13 | `build-image-variants.mjs --check` trong CI; `pnpm qa:client-assets` |
 
 ## Gate còn mở
