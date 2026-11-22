@@ -11,23 +11,23 @@
     }
   },
   "groupTextWeight": 0.3,
-  "threshold": 0.59,
+  "threshold": 0.76,
   "anchors": {
     "text-text": [
-      0.548,
-      0.806
+      0.528,
+      0.782
     ],
     "text-image": [
-      0.566,
-      0.792
+      0.578,
+      0.783
     ],
     "image-text": [
-      0.544,
-      0.774
+      0.538,
+      0.73
     ],
     "image-image": [
-      0.632,
-      0.86
+      0.634,
+      0.843
     ]
   },
   "keywordMin": 0.6,
