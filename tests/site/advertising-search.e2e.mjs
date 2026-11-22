@@ -563,7 +563,9 @@ for (const viewport of [WIDE, PHONE]) {
       const between = await state();
       assert.equal(between.place, "link");
       assert.equal(between.running, 0, "no timed animation under the finger");
-      assert(between.top > home.top - viewport.height * 0.12, "the bar has started down toward its floating place");
+      // The slot moved up by the scroll; the bar sits lower than that, part way down to its floating place.
+      assert(between.top > home.top - viewport.height * 0.12 + 5, "the bar has started down toward its floating place");
+      assert(between.width < home.width - 1 || viewport.width < 751, "the width is on its way from the slot's to the floating one");
       // Back to the top: in the slot again.
       await to(0);
       await page.waitForTimeout(400);

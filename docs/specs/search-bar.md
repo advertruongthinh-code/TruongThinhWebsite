@@ -102,31 +102,47 @@ CSS. Hai ngoại lệ ở R1 không tính là lệch. Kết quả là một tran
 
 ### R7. Vào khe theo quãng cuộn
 
-Owner chọn 2026-11-22 (thay cú bay 1 giây): thanh vào và rời khe theo đúng quãng cuộn, cả PC lẫn phone. Không có animation tự chạy: cuộn dừng là thanh đứng yên
-giữa đường, cuộn ngược là thanh đi ngược lại. Gọi `p` là độ "đã vào khe", 0 là dáng nổi, 1 là dáng ở khe; bề rộng đi từ bề rộng nổi (560 hoặc 760px) tới bề rộng
-khe, bóng mờ dần theo `1 - p`, hàng chip (nếu có kết quả) gập lại theo `p`.
+Owner chọn 2026-11-22 (thay cú bay 1 giây): thanh vào và rời khe theo đúng quãng cuộn, cả PC lẫn phone. Không có chuyển động tự chạy: cuộn dừng là thanh
+đứng yên giữa đường, cuộn ngược là thanh đi ngược lại. Trên đường đi, bề rộng đổi dần từ bề rộng nổi (560px, 760px khi có kết quả) sang bề rộng khe, bóng mờ
+dần, hàng chip (nếu có) gập dần; tới khe là đúng dáng ở khe của R1.
 
-- **Khe đầu trang.** Ở đầu trang (cuộn 0) thanh nằm trong khe. Cuộn xuống quãng `H = min(50% chiều cao màn hình, vị trí khe lúc đầu trang - chiều cao header)`
-  thì `p` đi từ 1 về 0 và thanh trượt từ khe xuống chỗ nổi: vị trí là điểm giữa khe (đang trôi lên theo trang) và chỗ nổi, theo tỷ lệ `p`. Hết `H` thì thanh nổi.
-  `H` chọn để thanh về tới khe trước khi khe chui dưới header.
-- **Khe CTA.** Thanh nổi tới khi hàng chữ của khe chạm hàng chữ của thanh nổi, rồi nằm trong khe và trôi theo trang như `sticky`; trong khe, `p` đi từ 0 tới 1
-  trong một phần tư chiều cao màn hình cuộn tiếp (ngắn hơn nếu trang hết sớm hơn), nên tới giới hạn cuộn thanh luôn ở dáng khe đủ. Lúc còn hàng chip, hàng chip
-  nhô lên trên khe, khe không đổi cao.
-- Phone đang gõ (bàn phím mở): thanh đứng yên tới khi blur. Nút về đầu trang chỉ hiện khi thanh nổi hẳn (`p = 0`).
+- **Khe đầu trang.** Ở đầu trang thanh nằm trong khe. Cuộn xuống thì thanh rời khe, đi dần xuống chỗ nổi ở đáy màn hình; tới nơi sau nửa chiều cao màn hình
+  cuộn (ngắn hơn nếu khe sắp chui dưới header, để thanh luôn về khe trước khi khe bị che). Cuộn lên thì ngược lại.
+- **Khe CTA.** Thanh nổi tới khi khe chạm thanh, rồi nằm trong khe và trôi lên theo trang; trong một phần tư chiều cao màn hình cuộn tiếp, thanh mở dần ra
+  bằng khe (ngắn hơn nếu trang hết sớm hơn), nên ở cuối trang thanh luôn đúng dáng khe. Lúc còn hàng chip, hàng chip nhô lên trên khe, khe không đổi cao.
+- **Nhảy cuộn** (Home, End, tải lại giữa trang, Back): thanh đứng ngay ở chỗ và dáng của vị trí mới, không chạy hiệu ứng.
+- **Phone đang gõ** (bàn phím mở): thanh đứng yên tới khi thôi gõ; đang ở giữa đường từ khe đầu trang thì về chỗ nổi trước. Nút về đầu trang chỉ hiện khi
+  thanh nổi hẳn.
 
 ```gherkin
-Given trang gốc ở 1440px, cuộn 0, thanh trong khe đầu trang
+Given trang gốc ở 1440px, đầu trang, thanh trong khe đầu trang
 When cuộn xuống 100px rồi dừng
-Then thanh đứng yên giữa khe và chỗ nổi, rộng giữa 1000 và 560px; cuộn lên lại 0 thì thanh về khe
+Then thanh đứng yên giữa khe và chỗ nổi, rộng giữa 1000 và 560px; cuộn lên lại đầu trang thì thanh về khe
+
+Given thanh đang nổi giữa lưới ở 390px
+When cuộn xuống tới khi khe CTA chạm thanh rồi cuộn tiếp tới cuối trang
+Then thanh nằm trong khe trôi lên theo trang, mở dần ra, ở cuối trang rộng bằng khe và không còn bóng
 ```
 
 ### R8. Chỉ trang gốc có thanh
 
-Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/vi/advertising-products/`, `/en/advertising-products/`); trang Công trình và mọi trang
-con (trang nhóm, trang sản phẩm, trang chi tiết card) không có. Build gắn `data-search-off` lên container của trang con; khe đầu trang và khe CTA ẩn, hero và CTA
-giữ bố cục không có thanh (link "Trao đổi ý tưởng" cách tiêu đề `--masonry-gap`). Trên trang gốc, khi không đang tìm mà bấm nhóm hoặc chip (URL sang trang con),
-hoặc mở chi tiết một card, runtime gắn `data-search-off`: thanh đang nổi trượt xuống khỏi màn hình (450ms `--ease-card`) rồi ẩn, thanh đang ở khe mất cùng khe. Về
-"Tất cả" hoặc đóng card thì thanh hiện lại theo R7. Đang tìm mà bấm chip trong kết quả thì thanh vẫn ở (như R2).
+Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/vi/advertising-products/`, `/en/advertising-products/`). Trang Công trình và mọi trang
+con (trang nhóm, trang sản phẩm, trang chi tiết card) không có thanh, không có khe; hero và CTA giữ bố cục như trước khi có thanh (link "Trao đổi ý tưởng" cách
+tiêu đề một khoảng lưới). Muốn tìm thì về trang gốc.
+
+- Trên trang gốc, đang không tìm mà bấm một nhóm hoặc chip ở hero (sang trang con), hoặc mở chi tiết một card: thanh đang nổi trượt xuống khỏi màn hình
+  (450ms `--ease-card`, giảm chuyển động thì tắt ngay) rồi ẩn; thanh đang ở khe mất cùng khe.
+- Đang tìm: bấm chip trong kết quả thì thanh vẫn ở (R2). Bấm một nhóm ở hero là rời tìm (như nay) nên thanh ẩn như trên.
+- Về "Tất cả" hoặc đóng card: thanh hiện lại ngay ở chỗ đúng theo R7.
+
+```gherkin
+Given trang gốc ở 1440px, chưa tìm
+When bấm nhóm "Bảng hiệu"
+Then URL sang trang nhóm, không còn thanh và khe; bấm "Tất cả" thì thanh hiện lại trong khe đầu trang
+```
+
+Ghi chú kỹ thuật: build gắn `data-search-off` lên container của trang con và trang card; runtime masonry bật, tắt thuộc tính này khi đổi nhóm, mở hoặc đóng card;
+`dock.mjs` tính độ vào khe mỗi frame cuộn và chỉ đọc vị trí hai khe.
 
 ## Kiểm tra
 
