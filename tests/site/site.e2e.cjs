@@ -2923,12 +2923,15 @@ async function runEspacioRouteLogoTimingChecks() {
           ordinaryTrace.slice(Math.max(0, destinationIndex - 2), destinationIndex + 18),
         )}`,
       );
-      // logo-route-crossfade R1, R2: going to Residential (photo hero) the mark turns CMYK only once the veil fully covers, then back to white.
+      // logo-route-crossfade R1, R2 (Espacio timing since d874df82): the mark turns CMYK at the click, before the veil covers,
+      // then back to white for the Residential photo hero.
+      const clickIndex = ordinaryTrace.findIndex((sample) => sample.transitioning);
       assert(
-        ordinaryTrace.every((sample) => !sample.transitioning || !sample.brandColor || sample.veil >= 0.99) &&
+        clickIndex >= 0 &&
+          ordinaryTrace.slice(clickIndex).some((sample) => sample.brandColor && sample.veil < 0.99) &&
           !ordinaryTrace.at(-1)?.brandColor,
-        `Residential route showed the CMYK mark outside the full veil: ${JSON.stringify(
-          ordinaryTrace.filter((sample) => sample.brandColor && sample.veil < 0.99).slice(0, 4),
+        `Residential route did not flip the mark to CMYK at the click and back to white: ${JSON.stringify(
+          ordinaryTrace.slice(Math.max(0, clickIndex - 2), clickIndex + 6).concat(ordinaryTrace.slice(-2)),
         )}`,
       );
 
@@ -3187,12 +3190,16 @@ async function runEspacioScrollCueChecks() {
               : Number.NaN,
           };
         });
+        // Pages with a masonry grid drop the cue (owner 2026-11-18, advertising-taxonomy, search-bar).
+        if (route.includes("/advertising-products/")) {
+          assert(state.cueCount === 0, `Masonry page ${route} shows a scroll cue: ${JSON.stringify(state)}`);
+          assertDiagnostics(diagnostics);
+          return;
+        }
         const expectedLabel = route.startsWith("/en/")
           ? "SCROLL DOWN"
           : "CUỘN XUỐNG";
-        const expectedViewportBottom = route.includes("/advertising-products/")
-          ? 95
-          : 45;
+        const expectedViewportBottom = 45;
         assert(
           state.cueCount === 1 &&
             state.isButton &&
@@ -3205,26 +3212,6 @@ async function runEspacioScrollCueChecks() {
             Math.abs(state.wordSpacingRatio - 0.1) <= 0.01,
           `Scroll cue contract drifted on ${route}: ${JSON.stringify(state)}`,
         );
-        if (route === "/vi/advertising-products/") {
-          const pathname = new URL(page.url()).pathname;
-          await page.evaluate(() =>
-            document.querySelector("[data-scroll-cue]")?.click(),
-          );
-          await page.waitForFunction(
-            () => {
-              const hero = document.querySelector(".hero");
-              const target = hero?.nextElementSibling;
-              if (!(target instanceof HTMLElement)) return false;
-              return Math.abs(target.getBoundingClientRect().top) <= 120;
-            },
-            null,
-            { timeout: 5_000 },
-          );
-          assert(
-            new URL(page.url()).pathname === pathname,
-            "Scroll cue changed route instead of scrolling to the next section",
-          );
-        }
         assertDiagnostics(diagnostics);
       },
     );
@@ -3240,14 +3227,9 @@ async function runEspacioScrollCueChecks() {
     },
     async (page) => {
       await gotoRoute(page, "/vi/advertising-products/");
-      const bottom = await page.locator("[data-scroll-cue]").evaluate((cue) => {
-        const rect = cue.getBoundingClientRect();
-        return innerHeight - rect.bottom;
-      });
-      assert(
-        Math.abs(bottom - 110) <= 1,
-        `Mobile advertising scroll cue viewport offset is ${bottom}px; expected 110px`,
-      );
+      // Masonry pages drop the cue on every screen (owner 2026-11-18).
+      const count = await page.locator("[data-scroll-cue]").count();
+      assert(count === 0, `Mobile advertising page shows ${count} scroll cue(s); expected none`);
     },
   );
 
@@ -3417,8 +3399,9 @@ async function runEspacioTypographyChecks() {
             state.tinyText.length === 0,
             `${route} ${viewport.width}px has visible text below 12.5px: ${JSON.stringify(state.tinyText)}`,
           );
+          // Masonry pages have no scroll cue (owner 2026-11-18).
           assert(
-            state.roles.cue &&
+            route.includes("/advertising-products/") ? !state.roles.cue : state.roles.cue &&
               state.roles.cue.weight >= 600 &&
               state.roles.cue.capHeight >= 8 &&
               state.roles.cue.capHeight <= 11,
@@ -3454,8 +3437,9 @@ async function runEspacioTypographyChecks() {
           }
           // The process strip exists only on the detail page (detail-pages R8); the home page no longer has editorial.
           if (state.roles.editorial) {
+            // Body text weighs 400 (Espacio weight roles, owner 2026-11-22 audit, 89a120f8).
             assert(
-              state.roles.editorial.weight >= 500 &&
+              state.roles.editorial.weight === 400 &&
                 Math.abs(state.roles.editorial.size - 16) <= 0.01 &&
                 state.roles.editorial.capHeight >= 11 &&
                 state.roles.editorial.capHeight <= 13,
@@ -7817,12 +7801,13 @@ async function runCommercialHeroTextCheck() {
           const expected =
             locale === "vi"
               ? {
-                  kicker: "SHOP · F&B · SHOWROOM · VĂN PHÒNG",
+                  // Six clusters like the three portal titles (detail-pages R4 table, owner 2026-11-22).
+                  kicker: "SHOWROOM · CỬA HÀNG · CAFE · NHÀ HÀNG · VĂN PHÒNG · KHU LÀM VIỆC",
                   title: "Thiết kế tối ưu Vận hành bền bỉ",
                   lines: ["Thiết kế tối ưu", "Vận hành bền bỉ"],
                 }
               : {
-                  kicker: "SHOP · F&B · SHOWROOM · OFFICE",
+                  kicker: "SHOWROOM · SHOP · CAFE · RESTAURANT · OFFICE · WORKSPACE",
                   title: "Designed to perform Built to last",
                   lines: ["Designed to perform", "Built to last"],
                 };
@@ -8883,7 +8868,15 @@ async function runDelayedDetailFallbackChecks() {
       if (!(control instanceof HTMLElement)) throw new Error(`Missing filter: ${selector}`);
       control.click();
     }, `[data-masonry-filter="${category}"]`);
-    await page.waitForFunction(() => window.__ttDelayedDetailMasonryLayouts >= 1, null, { timeout: 3_000 });
+    // Wait for the filter to apply. A pass may start no slide at all: cards newly mounted by the virtual window are placed
+    // directly, so which cards slide depends on the random order; a second runtime would still add a second pass.
+    await page.waitForFunction((activeCategory) => {
+      const active = document.querySelector(`[data-masonry-filter="${activeCategory}"]`)?.getAttribute("aria-current") === "true";
+      const visible = [...document.querySelectorAll("[data-project-grid] [data-masonry-category]")].filter((tile) => !tile.hidden);
+      return active && visible.length > 0
+        && (activeCategory === "all" || visible.every((tile) => tile.dataset.masonryCategory === activeCategory));
+    }, category, { timeout: 3_000 });
+    await page.waitForTimeout(500);
     return page.evaluate((activeCategory) => {
       const tiles = [
         ...document.querySelectorAll(
@@ -8906,7 +8899,7 @@ async function runDelayedDetailFallbackChecks() {
   const assertFilter = (state, category, label) => {
     assert(
       state.active === "true" &&
-        state.masonryLayouts === 1 &&
+        state.masonryLayouts <= 1 &&
         state.unique &&
         state.total < 120 &&
         state.visible.length > 0 &&
