@@ -4713,7 +4713,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 /* News teasers (home strip news R4, "Other news" news R3) following espaciohomedesign.com (layout-bloque-noticias, measured 2026-11-11 and
    2026-11-14 from 384 to 1920): content capped at 1500px and centred; 3 columns 70px apart, 50px from 1200px, 2 columns from 960px, 30px from
-   750px, 1 column from 578px; each item a cover column (1fr : 1.5fr, 1fr : 2fr up to 960px) and text 20px apart; the cover keeps at least 5:6 and stretches when
+   750px, 1 column from 578px; each item a cover column (golden ratio 1fr : 1.618fr) and text 20px apart; the cover keeps at least 1 : 1.618 and stretches when
    the text is taller. Group 16px bold capitals 15px from the top, title 19.2px regular with 19.2px above and below, "Read more" 12.8px
    semibold. Hover: cover zooms 1.2 in 0.6s, the group gets the 3px underline, "Read more" fades in (0.6s in, 0.3s out). */
 .home-news__grid {
@@ -4727,7 +4727,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 .home-news__item {
   display: grid;
-  grid-template-columns: 1fr 1.5fr;
+  /* Golden ratio (owner 2026-11-22): cover : text = 1 : 1.618 and the cover is 1 : 1.618 portrait. */
+  grid-template-columns: 1fr 1.618fr;
   column-gap: 20px;
   color: #222;
   text-decoration: none;
@@ -4741,7 +4742,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__media::before {
   content: "";
   display: block;
-  padding-top: 120%;
+  padding-top: 161.8%;
 }
 
 .home-news__media img {
@@ -4809,7 +4810,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 
   .home-news__item {
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 1.618fr;
   }
 }
 
@@ -5036,8 +5037,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   display: inline-block;
   margin: 1em 0 5px;
   font-size: 1.8rem;
-  /* Espacio sets the card name in its medium cut and the address in regular (silka-medium / silka-regular, measured 2026-11-22). */
-  font-weight: 500;
+  /* Same weight as the menu group titles (owner 2026-11-22); the address stays regular. */
+  font-weight: 600;
   line-height: 1.4;
   text-transform: uppercase;
 }
