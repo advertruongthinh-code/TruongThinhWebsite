@@ -132,10 +132,21 @@ manifest thì đặt `ready`, và khi bản ghi `published` hết `pending` thì
 bản ghi media, thành `error` kèm lý do; lần lưu kế tiếp dùng key đó gọi lại job. Job upload từng biến thể ngay khi
 sinh xong, mỗi lần gọi tối đa 8 biến thể.
 
+Video upload là MP4 tối đa 95 MB qua cùng lệnh upload (Cloudflare gói Free từ chối thân request trên 100 MB), kèm
+`duration` và `posterId`: một media ảnh cùng tỷ lệ, lệch không quá 1%, không xóa được khi video còn. Video không cắt
+nên có đúng một biến thể: job chạy `build-video-ladder.mjs` ([tải video R1](video-delivery.md#r1-thang-chất-lượng-cho-mỗi-video)),
+bỏ metadata của bản gốc, ghi `v/<key>/master.m3u8`, `<bậc>.m3u8`, `<bậc>.mp4` rồi `manifest.json`. Mỗi video một lần gọi
+job; hạn `pending` của video là 90 phút. Trong phần 1 nội dung chưa trỏ được tới media video.
+
 ```gherkin
 Given bài published có một media vừa upload, biến thể còn pending
 When lần dựng chạy trước khi biến thể đủ
 Then bản chụp dùng phiên bản published trước của bài, bài khác vẫn lên bình thường
+
+Given một video MP4 quay dọc 1080 x 1920 vừa upload kèm poster cùng tỷ lệ
+When job biến thể chạy xong
+Then bucket public có master.m3u8 và các bậc 240, 480, 960 tính theo bề rộng hiển thị 1080
+And không file nào còn thẻ vị trí của bản gốc
 ```
 
 ### R6. Đường dựng trong CI
@@ -216,7 +227,7 @@ Publishing, Public projection như [CMS](cms.md#gate-còn-mở). Trong cả ph�
 chỉ bật dựng từ bản chụp để so khớp và diễn tập rollback rồi tắt lại. Phần 2 có plan riêng sau khi viết lại
 [spec editor](cms-editor.md): build đọc ảnh R2 và card Advertising từ file chiếu, EN không bắt buộc, logo khách hàng,
 `contact`, `page-copy`, kiểm tỷ lệ khung crop, editor; task cuối của phần 2 seed lại D1, đặt `cms_live` và bật hẳn.
-Video qua CMS: [CẦN LÀM RÕ: bản đầu chỉ upload ảnh hay cả video; owner quyết cùng plan.]
+Video upload có thang chất lượng trên R2 từ phần 1 (owner 2026-11-22); khối và card dùng video đó ở phần 2, cùng ảnh R2.
 
 ## Chú thích thuật ngữ
 

@@ -88,7 +88,9 @@ trang công trình và News nhận cả ảnh lẫn video, nên gọi chung là 
 
 Ảnh upload tối đa 25 MB; bản gốc giữ nguyên byte, EXIF và GPS bị bỏ ở mọi biến thể public. SVG logo mở ở phần 2.
 
-[CẦN LÀM RÕ: thang video sinh trong job biến thể hay trên PC lúc upload.]
+Video upload (owner 2026-11-22: bản đầu có video) là MP4 tối đa 95 MB và phải kèm poster. Thang chất lượng sinh trong
+job biến thể bằng script của [tải video R5](video-delivery.md#r5-dữ-liệu-và-script), không cần PC bật; mọi file public bỏ
+metadata vị trí của bản gốc ([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)).
 
 ```gherkin
 Given một card có hai ảnh cùng altVi
@@ -250,7 +252,7 @@ Admin theo [editor](cms-editor.md); trang public giữ UI của spec từng tran
 
 ## Gate còn mở
 
-Mục `[CẦN LÀM RÕ]` của R1 và R3; slice chủ ghi ở [CMS](cms.md#gate-còn-mở).
+Mục `[CẦN LÀM RÕ]` của R1; slice chủ ghi ở [CMS](cms.md#gate-còn-mở).
 
 ## Chú thích thuật ngữ
 

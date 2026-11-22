@@ -274,7 +274,7 @@ Code trên `main` theo decision cũ (SSR từ D1), chưa chạy trên demo. Slic
 
 Không activate Worker, nối Wrangler cho CMS, deploy, tạo hay đọc secret, nối domain khi owner chưa duyệt slice tương ứng.
 
-Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: thang video ở Storage; khóa slot `page-copy` ở editor.
+Mục `[CẦN LÀM RÕ]` còn lại có slice chủ: khóa slot `page-copy` ở editor. Video upload: [dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể).
 Plan chi tiết đã chốt bảng D1, bản chụp, redirect 301 khi đổi slug, preview URL, đường dựng và bảng lệnh ở
 [dữ liệu CMS](cms-data.md); chuỗi khối cố định ở [News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình).
 
