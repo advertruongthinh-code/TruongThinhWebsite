@@ -18,7 +18,7 @@ test("materialize overwrites client fields, keeps legacySrc and dedupes uses", a
   const id = page.cover.mediaId;
   const media = { ...ctx.mediaById.get(id), hash: "sha256:ab" };
   const mediaById = new Map([...ctx.mediaById, [id, media]]);
-  Object.assign(page.cover, { src: "https://evil.example/x.webp", width: 1, altVi: "x" });
+  Object.assign(page.cover, { src: "https://evil.example/x.webp", width: 1, height: 1, altVi: "x", altEn: "x" });
   const image = page.blocks.find((block) => block.image)?.image ?? page.blocks.find((block) => block.images).images[0];
   Object.assign(image, { mediaId: id, crop: [0, 0, 10, 10] });
   page.blocks.find((block) => block.images).images[0] = structuredClone(image);
@@ -26,7 +26,9 @@ test("materialize overwrites client fields, keeps legacySrc and dedupes uses", a
   const { data, uses } = await materialize("project", page, mediaById);
   assert.equal(data.cover.src, media.path);
   assert.equal(data.cover.width, media.width);
+  assert.equal(data.cover.height, media.height);
   assert.equal(data.cover.altVi, media.altVi);
+  assert.equal(data.cover.altEn, media.altEn);
   const key = await variantKey("sha256:ab", [0, 0, 10, 10]);
   assert.equal(data.blocks.find((block) => block.images).images[0].src, `/v/${key}/${id}.webp`);
   assert.deepEqual(data.card.media[0], legacy);
