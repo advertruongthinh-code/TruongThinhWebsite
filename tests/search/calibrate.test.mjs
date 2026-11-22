@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { test } from "node:test";
-import { buildInputs, fitAnchors, quantile, rng, summarize } from "../../scripts/search/calibrate.mjs";
+import { accepts, buildInputs, fitAnchors, quantile, rng, summarize } from "../../scripts/search/calibrate.mjs";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { DIMS } from "../../src/search/embed-input.mjs";
 import { decodeIndex, encodeIndex, unit } from "../../src/search/index-format.mjs";
@@ -42,4 +42,12 @@ test("summarize gates on every type and overall P@5", () => {
   const r = (type, hit, p5) => ({ type, hit, p5 });
   assert.equal(summarize([r("a", true, 1), r("b", true, 0.8)]).pass, true);
   assert.equal(summarize([r("a", true, 1), r("b", false, 1)]).pass, false);
+});
+
+test("a passing fit replaces the config only when its P@5 is not below the current one", () => {
+  const run = (p5, pass = true) => ({ p5, pass });
+  assert.equal(accepts(run(0.868), run(0.858)), false);
+  assert.equal(accepts(run(0.858), run(0.868)), true);
+  assert.equal(accepts(run(0.85), run(0.85)), true);
+  assert.equal(accepts(run(0.5), run(0.9, false)), false);
 });
