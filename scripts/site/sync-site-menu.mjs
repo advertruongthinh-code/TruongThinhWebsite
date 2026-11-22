@@ -5,6 +5,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { PROJECT_TYPES, SECTOR_LABEL, menuFeatured, pageHref, projectTypeHref } from "./block-pages.mjs";
+import { contentDirOf } from "./content-files.mjs";
 import { escapeHtml, siteRoot } from "./lib.mjs";
 import { renderShell } from "./shell.mjs";
 
@@ -101,7 +102,7 @@ export const renderMenuNav = ({ projects, productGroups }) => {
   ].join("\n");
 };
 
-const [menu, projects] = ["menu.json", "projects.json"].map((file) => JSON.parse(readFileSync(path.join(siteRoot, "content", file), "utf8")));
+const [menu, projects] = ["menu.json", "projects.json"].map((file) => JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), file), "utf8")));
 export const renderDesktopList = (indent) => [
   "<ul>",
   ...DESKTOP_LINKS.map(({ href, vi, en }) => `${indent}  <li><a href="${href}" data-vi="${escapeHtml(vi)}" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</a></li>`),
