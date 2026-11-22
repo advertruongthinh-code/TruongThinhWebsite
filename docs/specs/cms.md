@@ -171,11 +171,11 @@ Then trả 415, không phiên bản nào được tạo
 ### R6. Xuất bản và rollback
 
 Lần lưu `published` gọi `workflow_dispatch` của `ci.yml` trên `main` (`ci.yml` gọi `Deploy demo`, workflow này chỉ có
-`workflow_call`); gọi lỗi thì admin Worker thử lại 3 lần, vẫn lỗi thì admin hiện "site chậm hơn lần lưu cuối" (so thời điểm deploy cuối với lần lưu cuối) kèm nút
+`workflow_call`); gọi lỗi thì admin Worker thử lại 3 lần rồi gọi lại mỗi 5 phút, trong lúc đó admin hiện "site chậm hơn lần lưu cuối" (so thời điểm deploy cuối với lần lưu cuối) kèm nút
 "dựng lại". Không
 có hàng đợi riêng: nhóm `concurrency` của `ci.yml` và `Deploy demo` giữ một run chạy và một run chờ, run chờ mới thay run
 chờ cũ, và job deploy lấy bản chụp lúc bắt đầu, nên lưu dồn dập được gom (hành vi dự kiến, kiểm ở slice Publishing).
-Lần dựng nội dung chờ run code trên `main` xong và dựng trên commit đang chạy trên site ([dữ liệu CMS R6](cms-data.md#r6-đường-dựng-trong-ci)).
+Lần dựng nội dung dựng trên commit đang chạy trên site ([dữ liệu CMS R6](cms-data.md#r6-đường-dựng-trong-ci)).
 Token GitHub fine-grained chỉ quyền Actions trên repo này, nằm ở secret; admin cảnh báo owner 14 ngày trước khi token hết
 hạn. Job deploy lấy bản chụp qua `GET /api/admin/snapshot` bằng service token, chạy validator dùng chung và bộ kiểm phát
 hành hiện có, rồi deploy. Hiện tại `Deploy demo` đưa lên demo; khi domain chuyển sang `truongthinhads.vn` cùng workflow

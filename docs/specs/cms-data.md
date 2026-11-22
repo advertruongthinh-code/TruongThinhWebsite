@@ -37,7 +37,7 @@ Database `truong-thinh-cms` (vùng `apac`, binding `DB`), một migration `src/d
 | `accounts` | `email` (chữ thường) | `role` (`owner`, `staff`), `status` (`active`, `locked`), `created_at`, `created_by`, `updated_at`, `updated_by` |
 | `records` | `type`, `id` | `status` (`draft`, `published`, `trashed`), `prev_status`, `version`, `live_version`, `pending`, `position`, `name`, `slug_vi`, `slug_en`, `data` (JSON), `write_id`, `created_at`, `created_by`, `updated_at`, `updated_by`, `trashed_at` |
 | `versions` | `type`, `id`, `version` | `status`, `data`, `saved_at`, `saved_by` |
-| `variants` | `key` (32 ký tự hex) | `media_id`, `crop` (`x,y,w,h`), `status` (`pending`, `ready`, `error`), `run_id`, `created_at`, `settled_at` |
+| `variants` | `key` (32 ký tự hex) | `media_id`, `crop` (`x,y,w,h`), `status` (`pending`, `ready`, `error`), `error` (lý do: `timeout`, `size`), `run_id`, `created_at`, `settled_at` |
 | `record_media` | `type`, `id`, `media_id`, `variant_key` | Media và biến thể mà phiên bản mới nhất của bản ghi dùng |
 | `slug_history` | `type`, `locale`, `slug` | `id`, `changed_at` |
 | `audit_log` | `seq` | `at`, `email`, `command`, `type`, `id`, `result`, `detail` (JSON phiên bản cuối, chỉ lệnh `purge`) |
@@ -52,7 +52,9 @@ các bản ghi chưa vào thùng rác (index duy nhất một phần), nên khô
 `UPDATE ... WHERE version = ?`; mọi câu khác của cùng `batch` chỉ chạy khi câu đó đã ghi (so `write_id`).
 `live_version` là phiên bản `published` gần nhất có đủ biến thể; `pending` là số biến thể của phiên bản mới nhất chưa
 `ready`. `record_media` có một dòng cho mỗi cặp media và biến thể, dù bản ghi dùng cặp đó nhiều lần. File seed chỉ
-xóa `records`, `versions`, `record_media`, `slug_history`, và từ chối chạy khi `settings.cms_live = '1'`.
+xóa `records`, `versions`, `record_media`, `slug_history`; nó từ chối chạy khi `settings.cms_live = '1'`, và khi D1 có
+bản ghi không do seed tạo trừ khi người chạy ép. Bảng không đặt `CHECK` cho `type`; migration sau `0001` chỉ được thêm
+(bảng, cột, index) và PR của nó mở kèm nhãn `hold` tới khi đã áp bằng tay.
 
 ```gherkin
 Given bài news A đang published với slug_vi "a" và bài B trong thùng rác cũng có slug_vi "a"
@@ -127,7 +129,8 @@ cỡ và chất lượng với [tải ảnh R1](media-delivery.md#r1-biến-th�
 sau cùng (kích thước, danh sách file, màu, ngưỡng JXL); có manifest nghĩa là biến thể đủ. Workflow `cms-variants.yml`
 sinh biến thể; admin Worker có một Cron Trigger mỗi phút (việc hằng ngày chạy theo giờ UTC trong cùng trigger), thấy
 manifest thì đặt `ready`, và khi bản ghi `published` hết `pending` thì đặt `live_version` rồi gọi lần dựng. Biến thể `pending` quá 30 phút, hoặc manifest ghi kích thước gốc khác
-bản ghi media, thành `error`; lần lưu kế tiếp dùng key đó gọi lại job.
+bản ghi media, thành `error` kèm lý do; lần lưu kế tiếp dùng key đó gọi lại job. Job upload từng biến thể ngay khi
+sinh xong, mỗi lần gọi tối đa 8 biến thể.
 
 ```gherkin
 Given bài published có một media vừa upload, biến thể còn pending
@@ -137,13 +140,15 @@ Then bản chụp dùng phiên bản published trước của bài, bài khác v
 
 ### R6. Đường dựng trong CI
 
-`ci.yml` có input `content`: lần dựng nội dung không chạy bộ test code, dùng nhóm concurrency riêng `ci-content`, chờ
-mọi run code trên `main` xong rồi mới vào hàng deploy, và dựng trên commit của bản đang chạy trên site (đọc
+`ci.yml` có input `content`: lần dựng nội dung không chạy bộ test code, dùng nhóm concurrency riêng `ci-content`, mang
+tên run `CMS content build`, và dựng trên commit của bản đang chạy trên site (đọc
 `build-info.json`; commit phải là 40 ký tự hex và nằm trên `main`), không lấy `main` mới nhất. Biến repo
 `CMS_SNAPSHOT_URL` có giá trị thì mọi lần dựng lấy bản chụp; lấy không được thì lần dựng lỗi. Trước deploy chạy
 `pnpm qa:content`, build, `pnpm qa:static`. Bản đang chạy có cùng `commit` và `snapshotId` thì bỏ qua deploy. Sau mỗi
 lần deploy, job ghi dấu `deploys/<khóa>.json` (version id, commit, `snapshotId`, thời điểm) vào bucket public; admin đọc
-10 dấu gần nhất để hiện trạng thái và cho rollback. Token của CI không có quyền D1; migration áp bằng tay ở gate.
+10 dấu gần nhất để hiện trạng thái và cho rollback. Workflow rollback hủy lần deploy đang chạy để chạy ngay. Token deploy
+của CI nằm trong environment GitHub `cloudflare-deploy` chỉ nhánh `main` dùng được, không có quyền D1; migration áp
+bằng tay ở gate. Lần dispatch dựng lỗi thì Cron của admin Worker gọi lại mỗi 5 phút.
 
 ```gherkin
 Given site đang chạy commit X và main đã có commit Y chưa deploy xong
@@ -224,4 +229,4 @@ Video qua CMS: [CẦN LÀM RÕ: bản đầu chỉ upload ảnh hay cả video; 
 - **Khứ hồi**: đổi dữ liệu sang dạng khác rồi đổi ngược, kết quả phải bằng ban đầu.
 - **Cron Trigger**: lịch chạy định kỳ của một Worker.
 - **Kiểu đơn**: kiểu nội dung chỉ có một bản ghi `main`.
-- **Run code**: lần chạy CI do merge hoặc push, khác lần dựng nội dung do một lần lưu gây ra.
+- **Environment (GitHub)**: nhóm secret mà chỉ job chạy trên nhánh được phép mới đọc được.
