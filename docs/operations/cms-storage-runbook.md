@@ -74,12 +74,28 @@ Chạy trên PC sau lần export thật đầu tiên:
 
 | Bước | Lệnh | Thời gian | Kết quả |
 | --- | --- | --- | --- |
-| a | `pnpm demo:wrangler r2 object get truong-thinh-media-originals/backups/d1/<ngày>.sql --file .tmp/cms/restore.sql --remote`; kiểm cỡ file bằng `stat`, không in nội dung | | |
-| b | `pnpm demo:wrangler d1 create truong-thinh-cms-restore --location apac` | | |
-| c | `pnpm demo:wrangler d1 execute truong-thinh-cms-restore --remote --file .tmp/cms/restore.sql` | | |
-| d | Trên cả hai database: `SELECT COUNT(*)` từng bảng của `0001_cms.sql` và `SELECT SUM(LENGTH(data)) FROM records`, so từng số | | |
-| e | `pnpm demo:wrangler d1 delete truong-thinh-cms-restore`; xóa `.tmp/cms/restore.sql` | | |
-| f | `pnpm demo:wrangler d1 time-travel info truong-thinh-cms --config wrangler.toml` in được bookmark | | |
+| a | `pnpm demo:wrangler r2 object get truong-thinh-media-originals/backups/d1/<ngày>.sql --file .tmp/cms/restore.sql --remote`; kiểm cỡ file bằng `stat`, không in nội dung | 3,4 s | 2026-11-24: file `2026-11-23.sql` (export lúc 21:33 UTC), 3.757.688 byte |
+| b | `pnpm demo:wrangler d1 create truong-thinh-cms-restore --location apac` | 2,2 s | Tạo được, không thêm vào `wrangler.toml` |
+| c | `pnpm demo:wrangler d1 execute truong-thinh-cms-restore --remote --file .tmp/cms/restore.sql --yes` | 6,6 s | 2269 thay đổi, 9 bảng, cỡ sau nạp 4.116.480 byte |
+| d | Trên cả hai database: `SELECT COUNT(*)` từng bảng của `0001_cms.sql` và `SELECT SUM(LENGTH(data)) FROM records`, so từng số | 2,0 s mỗi bên | Khớp cả 9 số (bảng dưới) |
+| e | `pnpm demo:wrangler d1 delete truong-thinh-cms-restore --skip-confirmation`; xóa `.tmp/cms/restore.sql` | 2,7 s | Database đã xóa (`d1 list` không còn), file dump đã xóa |
+| f | `pnpm demo:wrangler d1 time-travel info truong-thinh-cms --config wrangler.toml` in được bookmark | 2,9 s | In được bookmark hiện tại |
+
+Kết quả 2026-11-24 (giờ Việt Nam), từ lúc tải dump tới khi database khôi phục truy vấn được khoảng 12 giây:
+
+| Số | `truong-thinh-cms` | `truong-thinh-cms-restore` |
+| --- | --- | --- |
+| `accounts` | 2 | 2 |
+| `records` | 828 | 828 |
+| `versions` | 839 | 839 |
+| `variants` | 1 | 1 |
+| `record_media` | 571 | 571 |
+| `slug_history` | 0 | 0 |
+| `audit_log` | 22 | 22 |
+| `settings` | 1 | 1 |
+| `SUM(LENGTH(data))` của `records` | 1.417.182 | 1.417.182 |
+
+Lần export đầu (18:00 UTC 2026-11-23) lỗi `401 10000 Authentication error` do giá trị secret `CF_ACCOUNT_ID`; token vẫn `active`. Nhập lại Account ID lấy từ URL dashboard thì export chạy. Lỗi xác thực lần sau: log ghi `token verify` và `account id is 32 hex` để biết secret nào sai.
 
 ### Bản sao tuần về PC
 
@@ -151,7 +167,7 @@ Không ghi giá trị. Hạn thật của token Cloudflare và token nhập tay:
 | Service token Access CMS (`tt-cms-ci`) | S4 bước 8 | 2027-11-23 | Zero Trust, Access, Service Auth |
 | Token R2 bucket public (`tt-r2-public-write`) | S4 bước 5 | Không hết hạn | R2, Manage API tokens |
 | Token CI Cloudflare "Edit Cloudflare Workers" (environment `cloudflare-deploy`) | S4 bước 5 | Không hết hạn | Cloudflare, API Tokens |
-| Token export D1 (`tt-d1-export`, secret Worker `D1_EXPORT_TOKEN`) | S5 | 1 năm sau ngày tạo (ghi ngày khi tạo) | `pnpm token:roll d1-export` |
+| Token export D1 (`tt-d1-export`, secret Worker `D1_EXPORT_TOKEN`) | S5 | 2027-11-23 | `pnpm token:roll d1-export` |
 | Token gốc (`tt-token-admin`, file trên PC) | Token tự động | 1 năm sau ngày tạo | Cloudflare, API Tokens, rồi `pnpm token:setup` |
 | Token R2 chỉ đọc bucket private (rclone `r2cms` trên PC) | S5 | | R2, Manage API tokens |
 | Token GitHub fine-grained (`tt-cms-dispatch`, secret Worker `GITHUB_ACTIONS_TOKEN`) | P4 | 1 năm sau ngày tạo (ghi ngày khi tạo) | GitHub, Developer settings, Fine-grained tokens |
