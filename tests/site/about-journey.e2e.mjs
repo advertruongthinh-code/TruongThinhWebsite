@@ -1,5 +1,6 @@
 // About journey (detail-pages R3, R9): eight milestones beside one sticky drawing per milestone. From 981px with motion each
-// drawing is scrubbed by scroll both ways: a white first frame, outlines drawn and colour painted on with brush passes.
+// milestone is a stage: when its year passes the line its drawing plays on its own from a white first frame to complete, and
+// scrolling back rewinds it, then the previous drawing shows complete; a drawing never stops halfway (owner 2026-11-24).
 // Below 981px each milestone shows its own complete drawing. The page ends with the client logos then the CTA.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/about-journey.e2e.mjs
 import assert from "node:assert/strict";
@@ -39,7 +40,8 @@ for (const locale of ["", "en/"]) {
         return { last: blocks.at(-1).className, before: blocks.at(-2).className,
           cta: document.querySelector("#tu-van a")?.dataset.cta, items: document.querySelectorAll(".about-journey__item").length,
           arts: document.querySelectorAll(".about-journey__art[data-journey-art]").length,
-          abf: /\bABF\b/.test(document.body.innerHTML) };
+          abf: /\bABF\b/.test(document.body.innerHTML),
+          sheetSize: /1220|2440/.test(document.querySelector(".about-journey").textContent) };
       });
       assert.match(order.last, /\bdetail-cta\b/);
       assert.match(order.before, /\bclient-logo-marquee\b/);
@@ -47,6 +49,7 @@ for (const locale of ["", "en/"]) {
       assert.equal(order.items, 8);
       assert.equal(order.arts, 8);
       assert.equal(order.abf, false);
+      assert.equal(order.sheetSize, false, "no sheet size written on the 2020 drawing (owner 2026-11-24)");
     } finally {
       await context.close();
       await browser.close();
@@ -54,30 +57,34 @@ for (const locale of ["", "en/"]) {
   });
 }
 
-test("1440: each drawing starts white, paints on with the scroll and retracts when scrolling back", async () => {
+test("1440: a drawing plays to the end on its own once its year passes, and rewinds when scrolling back", async () => {
   const browser = await launchBrowser();
   const { context, page } = await openPage(browser, VIEWPORTS.desktop);
   try {
     await page.goto(`${BASE_URL}/about/`, { waitUntil: "load" });
     await page.waitForFunction(() => document.querySelector(".about-journey")?.classList.contains("is-armed"), null, { timeout: 10_000 });
-    await logicalScroll(page, await yearAt(page, 2, 0.545));
-    await page.waitForTimeout(600);
+    await logicalScroll(page, await yearAt(page, 2, 0.7));
+    await page.waitForTimeout(2000);
+    assert.equal((await art(page, 2)).current, false, "the printer waits for its year");
+    await logicalScroll(page, await yearAt(page, 2, 0.5));
     const start = await art(page, 2);
-    assert.equal(start.current, true, "the printer drawing is shown once its year passes the line");
-    assert.equal(start.p, 0, "first frame is plain white");
-    assert.equal(start.painted, 0, "no colour before the outlines start");
-    await logicalScroll(page, await yearAt(page, 2, 0.3));
-    await page.waitForTimeout(600);
-    const mid = await art(page, 2);
-    assert(mid.p > 0.2 && mid.p < 1, `progress ${mid.p}`);
+    assert(start.current && start.p < 0.5, `the printer starts near white: ${start.p}`);
+    await page.waitForTimeout(2200);
+    const done = await art(page, 2);
+    assert.equal(done.p, 1, "with no more scrolling the drawing still finishes");
+    assert.equal(done.painted, 1, "its colour is painted");
     await logicalScroll(page, await yearAt(page, 3, 0.45));
-    await page.waitForTimeout(600);
+    await page.waitForTimeout(2200);
     assert.equal((await art(page, 3)).current, true);
     assert.equal((await art(page, 2)).p, 1, "a passed drawing is complete");
-    await logicalScroll(page, await yearAt(page, 2, 0.45));
-    await page.waitForTimeout(600);
+    await logicalScroll(page, await yearAt(page, 3, 0.7));
+    await page.waitForTimeout(250);
+    const rewinding = await art(page, 3);
+    assert(rewinding.current && rewinding.p > 0 && rewinding.p < 1, `scrolling back rewinds the shown drawing: ${rewinding.p}`);
+    await page.waitForTimeout(1500);
     const back = await art(page, 2);
-    assert(back.current && back.p < mid.p, "scrolling back retracts the drawing");
+    assert(back.current && back.p === 1, "then the previous drawing shows complete, not redrawn");
+    assert.equal((await art(page, 3)).p, 0);
   } finally {
     await context.close();
     await browser.close();
@@ -133,12 +140,16 @@ for (const width of [320, 390, 768]) {
           .filter((svg) => getComputedStyle(svg).display !== "none" && svg.getBoundingClientRect().height > 80);
         const clipped = [...journey.querySelectorAll(".about-journey__year, .about-journey__copy")]
           .filter((node) => node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1).length;
-        return { thumbs: thumbs.length, aside: getComputedStyle(journey.querySelector(".about-journey__aside")).display,
-          armed: journey.classList.contains("is-armed"), clipped,
+        const aside = journey.querySelector(".about-journey__aside");
+        // The thumbs <use> the stage drawings: those stay rendered and visible (unseen 1px box) so brush clips resolve.
+        const stage = [...aside.querySelectorAll("[data-journey-art]")].filter((svg) => getComputedStyle(svg).visibility !== "visible").length;
+        return { thumbs: thumbs.length, aside: { width: aside.getBoundingClientRect().width, opacity: getComputedStyle(aside).opacity,
+          display: getComputedStyle(aside).display }, stage, armed: journey.classList.contains("is-armed"), clipped,
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
       });
       assert.equal(state.thumbs, 8);
-      assert.equal(state.aside, "none");
+      assert(state.aside.width <= 1 && state.aside.opacity === "0" && state.aside.display !== "none", JSON.stringify(state.aside));
+      assert.equal(state.stage, 0, "no stage drawing is hidden from the thumbs");
       assert.equal(state.armed, false);
       assert.equal(state.clipped, 0);
       assert.equal(state.overflow, 0);
