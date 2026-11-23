@@ -1,0 +1,45 @@
+name: CMS check
+
+# Reads the paged admin snapshot with the CMS service token (cms-plan S4, Q12 CPU check: read CPU per call in Workers Logs).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - shell: bash
+        env:
+          CMS_ADMIN_ORIGIN: ${{ vars.CMS_ADMIN_ORIGIN }}
+          CMS_ACCESS_CLIENT_ID: ${{ secrets.CMS_ACCESS_CLIENT_ID }}
+          CMS_ACCESS_CLIENT_SECRET: ${{ secrets.CMS_ACCESS_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          get() {
+            curl -sS -o body.json -w "%{http_code} %{time_total}s %{size_download}B $1\n" -A "tt-cms-ci" \
+              -H "CF-Access-Client-Id: $CMS_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CMS_ACCESS_CLIENT_SECRET" \
+              "$CMS_ADMIN_ORIGIN/api/admin/snapshot?$1" | tee -a codes.txt
+          }
+          # Reads the paged snapshot three times: the index, every page of every type, the index again.
+          for round in 1 2 3; do
+            get ""
+            cp body.json index.json
+            jq -e '(.stamp | type == "string") and .pageSize > 0 and (.types | type == "object")' index.json > /dev/null
+            size=$(jq .pageSize index.json)
+            for type in $(jq -r '.types | keys[]' index.json); do
+              count=$(jq --arg t "$type" '.types[$t]' index.json)
+              for ((page = 0; page * size < count; page++)); do get "type=$type&page=$page"; done
+            done
+            get ""
+          done
+          test "$(grep -vc '^200 ' codes.txt)" = 0
+          # The service token must not open a path meant for people (S4 check).
+          human=$(curl -sS -o /dev/null -w "%{http_code}" -A "tt-cms-ci" \
+            -H "CF-Access-Client-Id: $CMS_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CMS_ACCESS_CLIENT_SECRET" \
+            "$CMS_ADMIN_ORIGIN/api/admin/build-status")
+          echo "build-status with service token: $human"
+          test "$human" = 403
