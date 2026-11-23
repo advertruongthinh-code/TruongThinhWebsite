@@ -6815,9 +6815,9 @@ body.is-masonry-browse .site-footer {
     translate: 0 100%;
   }
 
-  /* The row starts right of the button. */
+  /* The row keeps clear of the button on both sides, so it stays centered. */
   .thumb-dock {
-    padding-left: calc(2 * var(--dock-inset) + 36px);
+    padding-inline: calc(2 * var(--dock-inset) + 36px);
   }
 }
 
@@ -7177,9 +7177,9 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
       translate: 0 calc(-1 * (var(--dock-inset) + var(--dock-thumb)));
     }
 
-    /* Collapsed, the peeking thumbnails keep the bottom band: the bar stays just above them. */
+    /* Collapsed, the peeking thumbnails keep the bottom band: the bar stays just above them (the 16px of --dock-peek). */
     :root[data-thumbs-collapsed] .detail-view__hero-frame:has(> .thumb-dock:not([hidden])) :is(.video-player__bar, .detail-view__expand[data-detail-expand-video]) {
-      translate: 0 calc(-1 * var(--dock-peek, 16px));
+      translate: 0 -16px;
     }
   }
 

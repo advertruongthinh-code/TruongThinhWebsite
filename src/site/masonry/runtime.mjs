@@ -5215,8 +5215,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     document.querySelectorAll("[data-thumbs-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(!collapsed)));
   };
   document.addEventListener("click", (event) => {
-    if (event.target.closest?.("[data-thumbs-toggle]")) {
+    const toggle = event.target.closest?.("[data-thumbs-toggle]");
+    if (toggle) {
+      // The button hides with the strip: keyboard focus moves to the peeking strip, where Enter opens it again.
+      const keyboard = toggle.matches(":focus-visible");
       setThumbsCollapsed(true);
+      if (keyboard) toggle.parentElement.querySelector(".thumb-dock button")?.focus({ preventScroll: true });
       return;
     }
     if (!document.documentElement.hasAttribute("data-thumbs-collapsed") || !event.target.closest?.(".thumb-dock")) return;

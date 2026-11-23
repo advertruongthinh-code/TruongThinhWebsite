@@ -603,9 +603,9 @@ export function createDetailViewer({
   expandButton.addEventListener("click", open, { signal: controller.signal });
   // A touch screen opens the viewer with one tap on the primary photo (R7); touching the video plays or pauses, open with the expand button.
   heroFrame?.addEventListener("pointerdown", (event) => {
-    // Touching a button in the frame (back, change media) does not open the viewer.
+    // Touching a button in the frame (change media) or the floating strip, collapsed band included, does not open the viewer.
     heroTap = event.pointerType === "touch" && event.isPrimary && record?.media.kind !== "video"
-      && !event.target.closest("button") ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
+      && !event.target.closest("button, .thumb-dock") ? { id: event.pointerId, x: event.clientX, y: event.clientY } : null;
   }, { signal: controller.signal });
   heroFrame?.addEventListener("pointermove", (event) => {
     if (heroTap?.id === event.pointerId && Math.hypot(event.clientX - heroTap.x, event.clientY - heroTap.y) > TOUCH_SLOP) heroTap = null;

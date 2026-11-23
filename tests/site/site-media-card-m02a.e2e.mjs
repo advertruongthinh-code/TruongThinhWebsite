@@ -1431,6 +1431,13 @@ test("M02a collapsed strip peeks at the edge and a tap on the peek opens it", as
     const peek = await thumb.boundingBox();
     assert(Math.abs(peek.x + peek.width - frame.x - 16) <= 1, `16px of the thumbnails stay inside the frame: ${JSON.stringify({ peek, frame })}`);
     assert.equal(await toggle.isVisible(), false, "the collapse button hides while the strip is collapsed");
+    // The touch band just inside the thumbnails (off any thumbnail) opens the strip too, never the viewer.
+    await page.touchscreen.tap(frame.x + 24, peek.y + peek.height / 2);
+    await settleTransitions(page);
+    assert.equal(await page.locator("[data-detail-dialog]").evaluate((node) => node.open), false, "the band tap does not open the viewer");
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-thumbs-collapsed")), false, "the band tap opens the strip");
+    await toggle.tap();
+    await settleTransitions(page);
     await page.touchscreen.tap(frame.x + 8, peek.y + peek.height / 2);
     await settleTransitions(page);
     assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-thumbs-collapsed")), false, "the tap opens the strip");
