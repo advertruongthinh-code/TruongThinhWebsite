@@ -13,9 +13,11 @@ export default {
     if ((cursor && !/^\d{1,15}$/.test(cursor)) || (command && !/^[a-z-]{1,40}$/.test(command)) || asked.length > 254) throw new HttpError(400, { error: "query" });
     const before = cursor ? Number(cursor) : Number.MAX_SAFE_INTEGER;
     const email = actor.role === "owner" ? asked : actor.email;
+    // Fixed fragments only, values bound: an email filter keeps the audit_log_email (email, seq) index.
+    const filters = [["email = ?", email], ["command = ?", command]].filter(([, value]) => value);
     const { results } = await env.DB
-      .prepare("SELECT seq, at, email, command, type, id, result FROM audit_log WHERE seq < ? AND (? = '' OR email = ?) AND (? = '' OR command = ?) ORDER BY seq DESC LIMIT ?")
-      .bind(before, email, email, command, command, PAGE + 1)
+      .prepare(`SELECT seq, at, email, command, type, id, result FROM audit_log WHERE seq < ?${filters.map(([sql]) => ` AND ${sql}`).join("")} ORDER BY seq DESC LIMIT ?`)
+      .bind(before, ...filters.map(([, value]) => value), PAGE + 1)
       .all();
     const rows = results.slice(0, PAGE);
     return json({ items: rows, next: results.length > PAGE ? String(rows.at(-1).seq) : null });

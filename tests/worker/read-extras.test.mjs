@@ -1,6 +1,7 @@
 // retry-variant, context and the read fields of get, list, audit-log, build-status (CMS plan part 2 K11, E11).
 import assert from "node:assert/strict";
 import test from "node:test";
+import { isStagingBehind } from "../../src/worker/commands/build-status.mjs";
 import { COMMANDS } from "../../src/worker/router.mjs";
 import { seededEnv } from "./worker-env.mjs";
 
@@ -42,8 +43,9 @@ test("retry-variant: error goes back to pending and is dispatched; ready is 409,
   assert.deepEqual((await t.call("retry-variant", { key: key("a") })).body, { error: "not-error" });
   assert.equal((await t.call("retry-variant", { key: key("d") })).status, 404);
   assert.equal((await t.call("retry-variant", { key: "short" })).status, 400);
+  assert.equal((await t.call("retry-variant", null)).status, 400, "a null body is a 400 with an audit row, not a 503");
   assert.deepEqual(t.one("SELECT status FROM variants WHERE key = ?", key("a")), { status: "ready" });
-  assert.deepEqual(t.audits(), ["retry-variant ok", "retry-variant 409 not-error", "retry-variant 404 not-found", "retry-variant 400 shape"]);
+  assert.deepEqual(t.audits(), ["retry-variant ok", "retry-variant 409 not-error", "retry-variant 404 not-found", "retry-variant 400 shape", "retry-variant 400 shape"]);
 });
 
 test("list gives enMissing from the column, variantError, and who trashed a trashed record", async () => {
@@ -120,5 +122,17 @@ test("build-status lists held records and says when staging lags the last save o
   assert.equal((await t.call("reorder", { type: "client-logo", ids })).status, 200);
   const after = (await t.call("build-status")).body;
   assert.equal(after.lastSaveAt, t.one("SELECT value FROM settings WHERE key = 'last_save_at'").value);
-  assert.equal(after.stagingBehind, true);
+  assert.equal(after.stagingBehind, false, "a reorder just now still has 10 minutes to reach staging");
+  t.DB.sqlite.exec("UPDATE settings SET value = '2026-11-23T00:05:00.000Z' WHERE key = 'last_save_at'");
+  assert.equal((await t.call("build-status")).body.stagingBehind, true, "saved after the snapshot and not built since");
+});
+
+test("stagingBehind: a save after the snapshot counts once it is 10 minutes old, however close to the snapshot it was", () => {
+  const deployments = [{ snapshotAt: "2026-11-23T10:00:00.000Z" }];
+  const at = (time) => Date.parse(`2026-11-23T${time}Z`);
+  assert.equal(isStagingBehind("2026-11-23T10:05:00.000Z", deployments, at("10:14:00")), false);
+  assert.equal(isStagingBehind("2026-11-23T10:05:00.000Z", deployments, at("10:16:00")), true);
+  assert.equal(isStagingBehind("2026-11-23T09:59:00.000Z", deployments, at("12:00:00")), false);
+  assert.equal(isStagingBehind(null, deployments, at("12:00:00")), false);
+  assert.equal(isStagingBehind("2026-11-23T09:00:00.000Z", [], at("12:00:00")), true);
 });

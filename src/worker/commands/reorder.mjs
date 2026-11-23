@@ -5,7 +5,7 @@
 // half-applied order. Two reorders at once: the later one wins without 409, since the set of ids did not change.
 import { ID } from "../../cms/contract.mjs";
 import { ADVERTISING_PRODUCTS } from "../../site/advertising-products/taxonomy.mjs";
-import { dispatchBuild } from "../dispatch.mjs";
+import { cronStale, flushBuild, wantBuildStatement } from "../dispatch.mjs";
 import { auditStatement, HttpError, json, readJson } from "../http.mjs";
 import { contentRevStatement } from "../records.mjs";
 
@@ -37,16 +37,21 @@ export default {
     const same = `(SELECT COUNT(*) FROM records WHERE ${inScope}) = json_array_length(?1) AND NOT EXISTS (SELECT 1 FROM records WHERE ${inScope} AND id NOT IN (SELECT json_extract(value, '$.id') FROM json_each(?1)))`;
     const args = scoped ? [order, type, scope] : [order, type];
     const G = { sql: `EXISTS (SELECT 1 WHERE ${same.replaceAll("?1", "?").replaceAll("?2", "?").replaceAll("?3", "?")})`, args: scoped ? [type, scope, order, type, scope, order] : [type, order, type, order] };
-    const [update] = await env.DB.batch([
+    const batchResults = await env.DB.batch([
       env.DB.prepare(`UPDATE records SET position = (SELECT json_extract(value, '$.p') FROM json_each(?1) WHERE json_extract(value, '$.id') = records.id) WHERE ${inScope} AND id IN (SELECT json_extract(value, '$.id') FROM json_each(?1)) AND ${same}`)
         .bind(...args),
       contentRevStatement(env, G),
-      // build-status reads it: a new order of published records not yet on staging shows staging as behind.
-      ...(published ? [env.DB.prepare(`INSERT INTO settings (key, value) SELECT 'last_save_at', ? WHERE ${G.sql} ON CONFLICT (key) DO UPDATE SET value = excluded.value`).bind(now, ...G.args)] : []),
+      // Only an order of published records changes the site: a build is wanted (Cron sends it); last_save_at feeds stagingBehind.
+      ...(published ? [
+        env.DB.prepare(`INSERT INTO settings (key, value) SELECT 'last_save_at', ? WHERE ${G.sql} ON CONFLICT (key) DO UPDATE SET value = excluded.value`).bind(now, ...G.args),
+        wantBuildStatement(env, G),
+      ] : []),
       auditStatement(env, actor, "reorder", type, scoped ? scope : null, "ok", { detail: `${ids.length}`, guard: G }),
+      env.DB.prepare("SELECT value FROM settings WHERE key = 'cron_at'"),
     ]);
-    if (update.meta.changes !== ids.length) throw new HttpError(409, { error: "stale" }, { type, id: null });
-    if (published) ctx?.waitUntil?.(dispatchBuild(env));
+    if (batchResults[0].meta.changes !== ids.length) throw new HttpError(409, { error: "stale" }, { type, id: null });
+    // Dead Cron fallback, as in save.
+    if (published && cronStale(batchResults.at(-1).results[0]?.value)) ctx?.waitUntil?.(flushBuild(env, new Date()).catch((error) => console.error("flushBuild", String(error))));
     return json({});
   },
 };

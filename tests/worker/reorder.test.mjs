@@ -8,6 +8,7 @@ const positions = (t, type) => t.all("SELECT id, position FROM records WHERE typ
 
 test("reorder writes the new order in one batch, list follows it, version stays, build and audit follow", async () => {
   const t = seededEnv();
+  t.DB.sqlite.prepare("INSERT INTO settings VALUES ('cron_at', ?)").run(new Date().toISOString());
   const ids = idsOf(t, "project");
   const versions = t.all("SELECT id, version, updated_at FROM records WHERE type = 'project' ORDER BY id");
   const wanted = [ids[2], ids[0], ids[1], ...ids.slice(3)].reverse();
@@ -20,9 +21,25 @@ test("reorder writes the new order in one batch, list follows it, version stays,
   assert.deepEqual(t.audits(), ["reorder ok"]);
   assert.equal(t.one("SELECT value FROM settings WHERE key = 'content_rev'").value, "1");
   assert.ok(t.one("SELECT value FROM settings WHERE key = 'last_save_at'"));
-  await Promise.all(t.waits);
-  // No GitHub token in tests: the build dispatch ran and recorded its failure.
-  assert.ok(t.one("SELECT value FROM settings WHERE key = 'dispatch_error:ci.yml'"));
+  // The build is wanted for Cron, which is alive, so the command itself sent nothing.
+  assert.equal(t.one("SELECT value FROM settings WHERE key = 'build_wanted'").value, "1");
+  assert.equal(t.waits.length, 0);
+});
+
+test("a record trashed between the read and the batch makes the batch write nothing: 409 stale", async () => {
+  const t = seededEnv();
+  const ids = idsOf(t, "project");
+  const before = positions(t, "project");
+  const batch = t.DB.batch;
+  t.DB.batch = async (statements) => {
+    t.DB.sqlite.prepare("UPDATE records SET status = 'trashed', prev_status = 'published', trashed_at = 'x' WHERE type = 'project' AND id = ?").run(ids[0]);
+    return batch(statements);
+  };
+  const reply = await t.call("reorder", { type: "project", ids: [...ids].reverse() });
+  assert.equal(reply.status, 409);
+  assert.deepEqual(positions(t, "project"), before);
+  assert.deepEqual(t.audits(), ["reorder 409 stale"]);
+  for (const key of ["content_rev", "build_wanted", "last_save_at"]) assert.equal(t.one("SELECT value FROM settings WHERE key = ?", key), undefined, key);
 });
 
 test("a set that differs from the current one is 409 stale and writes nothing but the refusal row", async () => {
@@ -76,12 +93,12 @@ test("advertising cards are ordered within one product, in the positions that pr
   assert.equal((await t.call("reorder", { type: "advertising-card", scope, ids: wanted.slice(1) })).status, 409);
 });
 
-test("a reorder of drafts only does not dispatch a build", async () => {
+test("a reorder of drafts only wants no build and leaves last_save_at alone", async () => {
   const t = seededEnv();
   t.DB.sqlite.exec("UPDATE records SET status = 'draft' WHERE type = 'client-logo'");
   assert.equal((await t.call("reorder", { type: "client-logo", ids: idsOf(t, "client-logo").reverse() })).status, 200);
   await Promise.all(t.waits);
-  assert.equal(t.one("SELECT value FROM settings WHERE key = 'dispatch_error:ci.yml'"), undefined);
+  for (const key of ["build_wanted", "last_save_at", "dispatch_error:ci.yml"]) assert.equal(t.one("SELECT value FROM settings WHERE key = ?", key), undefined, key);
 });
 
 test("paused publishing: reorder still writes and never calls GitHub", async () => {

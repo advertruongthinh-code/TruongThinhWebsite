@@ -33,7 +33,7 @@ Thanh trên của editor luôn có một dải hai dòng ngắn, bấm vào thì
 | Staging | "Đã lên lúc <giờ>", "Đang dựng", "Đang chờ", "Lỗi: <lý do>", "Tạm dừng" | Run dựng gần nhất, dấu deployment mới nhất, `paused` |
 | Site chính | "Bản phát hành lúc <giờ>", thêm "· staging có thay đổi chưa phát hành" khi hai bên khác nhau | Dấu phát hành mới nhất so với dấu deployment mới nhất của staging |
 
-Staging "chậm hơn lần lưu cuối" (lần lưu `published` cuối mới hơn bản chụp của deployment đang chạy, quá 10 phút) thì
+Staging "chậm hơn lần lưu cuối" (lần lưu `published` cuối mới hơn bản chụp của deployment đang chạy và đã quá 10 phút chưa được dựng) thì
 dòng Staging ghi thêm điều đó. Panel Trạng thái hiện đủ: 5 run dựng gần nhất kèm link sang GitHub, lý do lỗi của lần
 dựng hỏng (id bản ghi và trường lỗi khi validator chặn), nút "Dựng lại" (lệnh `rebuild`), danh sách bản ghi đang bị giữ
 lại vì media chưa xong (`held`), link "Mở staging". Editor hỏi lại `build-status` mỗi 15 giây khi tab đang mở và
@@ -170,6 +170,7 @@ và tự mất khi hết nguyên nhân. Nhân viên chỉ thấy dòng đầu.
 | --- | --- |
 | Lần dựng gần nhất lỗi | "Lần đưa lên staging gần nhất bị lỗi. Xem lý do." (mở panel Trạng thái) |
 | `dispatchError` có giá trị | "CMS chưa gọi được lần dựng, đang tự thử lại mỗi 5 phút." |
+| `cronStale` (Cron không chạy quá 5 phút, [CMS R6](cms.md#r6-xuất-bản-và-rollback)) | "Cron của CMS không chạy từ <giờ>: lần lưu tự gọi dựng thay Cron. Kiểm tra Triggers của Worker." |
 | Token GitHub còn dưới 14 ngày | "Token GitHub hết hạn ngày <ngày>. Tạo token mới và nhập lại secret." |
 | File export D1 mới nhất quá 2 ngày | "Bản sao lưu gần nhất đã <n> ngày. Kiểm tra sao lưu." |
 | `accessDrift` không rỗng | "Danh sách đăng nhập lệch với bảng tài khoản: <n> email." (mở panel Tài khoản) |

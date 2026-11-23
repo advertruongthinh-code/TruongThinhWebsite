@@ -190,10 +190,10 @@ export async function fullErrors(type, data, ctx = {}) {
     const kind = pageKind(type);
     layout = layoutErrors(kind, data);
     // kindFieldErrors already appends every layout error as text; keep only the field errors and add the missing-level layout ones below.
-    // Mark errors are shape errors (shapeErrors reports them); drop their text copy too.
-    const reported = new Set([...layout.map(({ message }) => `${at}: ${message}`), ...blockMarksErrors(data, at).map(({ message }) => message)]);
+    // Mark errors are shape errors (shapeErrors reports them), so the mark check does not run again here.
+    const reported = new Set(layout.map(({ message }) => `${at}: ${message}`));
     messages = [
-      ...(await validateBlockPage(data, { checkImage: ctx.checkImage, projects, news: ctx.news ?? new Map(), en: "optional" })).filter((message) => !reported.has(message)),
+      ...(await validateBlockPage(data, { checkImage: ctx.checkImage, projects, news: ctx.news ?? new Map(), en: "optional", marks: false })).filter((message) => !reported.has(message)),
       ...kindFieldErrors(kind, data, at, { en: "optional" }).filter((message) => !reported.has(message)),
     ];
     // cms-content R4: a project card always has 2 or more media, so a page without a card is missing them too.
