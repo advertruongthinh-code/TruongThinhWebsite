@@ -504,7 +504,7 @@ const responsivePictures = (html) =>
 
 // A page that shows an R2 image opens the connection to the media origin first thing in <head> (cms-plan part 2 K4).
 const mediaPreconnect = (html) => (mediaOrigin && html.includes(`${mediaOrigin}/v/`)
-  ? html.replace(/<head\b[^>]*>/, (head) => `${head}\n    <link rel="preconnect" href="${mediaOrigin}" />`) : html);
+  ? html.replace(/<meta charset="[^"]*" \/>|<head\b[^>]*>/i, (first) => `${first}\n    <link rel="preconnect" href="${mediaOrigin}" />`) : html);
 
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;

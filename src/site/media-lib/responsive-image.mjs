@@ -2,6 +2,8 @@
 // Browsers that cannot decode JXL use the WebP of the same image, in sizes 240, 480, 960 (owner 2026-10-31: every browser can load them).
 const WIDTHS = { jxl: [240, 480, 960, 1600, 2048], webp: [240, 480, 960] };
 // A repo content WebP, or an R2 variant WebP on the media origin (cms-plan part 2 K4): both name their sizes "-<width>.<format>".
+// MEDIA_COLORS key: repo images by file name, an R2 image by its 32-character variant key (two crops of one media share a file name).
+export const mediaColorKey = (src) => /\/v\/([0-9a-f]{32})\//.exec(src ?? "")?.[1] ?? src?.split("/").pop().replace(/\.\w+$/, "");
 const isContent = (src) => /^(\/assets\/content\/.+|https:\/\/[a-z0-9.-]+\/v\/[0-9a-f]{32}\/[a-z0-9.-]+)\.webp$/.test(src || "");
 // Phone uses WebP only, capped at size 960, and never loads the 4K original (owner 2026-11-07): the A04s decodes WebP 480 in 17ms, JXL in 47ms.
 // Same media query as the build's phone <source> (prepare-static-assets.mjs) and the <head> script.

@@ -93,3 +93,56 @@ test("a missing manifest stops the build and names the key", { timeout: 60_000 }
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, new RegExp(`no manifest for key ${hero}`));
 });
+
+// Break tests (independent review 2026-11-23): the R2 branches outside the page build.
+test("client: responsive srcset and color key of an R2 image", async () => {
+  const { mediaColorKey, responsiveSrcset } = await import("../../src/site/media-lib/responsive-image.mjs");
+  const set = responsiveSrcset(COVER, 1536);
+  for (const width of [240, 480, 960]) assert.ok(set.includes(`${ORIGIN}/v/${KEY}/m-cover-${width}.jxl ${width}w`), set);
+  assert.ok(set.endsWith(`${ORIGIN}/v/${KEY}/m-cover.jxl 1536w`), set);
+  // Two crops of one media share the file name; their colors are keyed by variant key.
+  const other = "b2".repeat(16);
+  assert.equal(mediaColorKey(COVER), KEY);
+  assert.equal(mediaColorKey(`${ORIGIN}/v/${other}/m-cover.webp`), other);
+  assert.equal(mediaColorKey("/assets/content/projects/a-b.webp"), "a-b");
+});
+
+test("head-inline: R2 images count as content, a cross-origin JXL is not streamed (CORS waits for E21)", () => {
+  const inline = readFileSync(path.join(projectRoot, "src/site/head-inline.js"), "utf8");
+  const isContentSrc = new Function(`return ${inline.match(/const isContentSrc = (\(src\) => [^;]+);/)[1]}`)();
+  assert.equal(isContentSrc(COVER), true);
+  assert.equal(isContentSrc("/assets/content/a.webp"), true);
+  assert.equal(isContentSrc("https://other.test/a.webp"), false);
+  assert.match(inline, /if \(url\.origin !== location\.origin\) return false;/);
+});
+
+test("content contract: an R2 image reused across News posts is one photo by variant key", { timeout: 120_000 }, async () => {
+  const { checkSiteContent } = await import("../../scripts/ci/content-contract.mjs");
+  const dir = mkdtempSync(path.join(tmpdir(), "r2-contract-"));
+  cpSync(fixture, dir, { recursive: true });
+  const env = { TT_CONTENT_DIR: process.env.TT_CONTENT_DIR, CMS_MEDIA_ORIGIN: process.env.CMS_MEDIA_ORIGIN };
+  Object.assign(process.env, { TT_CONTENT_DIR: dir, CMS_MEDIA_ORIGIN: ORIGIN });
+  try {
+    const reuse = (errors) => errors.filter((error) => /News image also used by/.test(error));
+    assert.deepEqual(reuse(await checkSiteContent(path.join(projectRoot, "src/site"))), []);
+    const news = JSON.parse(readFileSync(path.join(dir, "news.json"), "utf8"));
+    news[1].cover = { ...news[0].cover };
+    writeFileSync(path.join(dir, "news.json"), JSON.stringify(news));
+    assert.equal(reuse(await checkSiteContent(path.join(projectRoot, "src/site"))).length, 1);
+  } finally {
+    for (const [name, value] of Object.entries(env)) if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("search index: an R2 image is fetched at 480 and a network error skips it", async () => {
+  const { mediaImage } = await import("../../scripts/search/build-index.mjs");
+  const asked = [];
+  const ok = async (url) => { asked.push(url); return new Response("x"); };
+  const readImage = async (input) => (Buffer.isBuffer(input) ? "fetched" : `disk:${input}`);
+  assert.equal(await mediaImage(COVER, 1536, { fetch: ok, readImage }), "fetched");
+  assert.equal(await mediaImage(COVER, 400, { fetch: ok, readImage }), "fetched");
+  assert.deepEqual(asked, [`${ORIGIN}/v/${KEY}/m-cover-480.webp`, COVER]);
+  assert.equal(await mediaImage(COVER, 1536, { fetch: async () => { throw new Error("offline"); }, readImage }), null);
+  assert.equal(await mediaImage("/assets/content/a.webp", 1536, { fetch: ok, readImage }), "disk:src/site/assets/content/a.webp");
+});

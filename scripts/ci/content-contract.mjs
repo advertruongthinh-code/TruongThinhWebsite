@@ -6,7 +6,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
 import { contentDirOf, fileImageCheck } from "../site/content-files.mjs";
-import { variantKeyOf } from "../site/media-src.mjs";
 import { validateHomeProjects } from "../site/home-projects.mjs";
 import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { LINE_END_PUNCT } from "../../src/cms/inline-marks.mjs";
@@ -14,7 +13,7 @@ import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 
 // Skip `$`: paths built in inline scripts (`${name}`) are not files.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
-// An R2 image of a projected snapshot (cms-plan part 2 K4): one variant key is one crop of one photo.
+// An R2 image of a projected snapshot (cms-plan part 2 K4): its URL stem is one crop of one photo, so imageStem works unchanged.
 const VARIANT_PATH = /https:\/\/[a-z0-9.-]+\/v\/[0-9a-f]{32}\/[a-z0-9.-]+/g;
 const imagesIn = (text) => new Set([...(text.match(CONTENT_PATH) ?? []), ...(text.match(VARIANT_PATH) ?? [])]);
 
@@ -27,7 +26,7 @@ function filesUnder(root, extension) {
 }
 
 // Images are compared by stem so -240/-960 variants and other formats count; assets/ is skipped (variant lists are not consumers).
-const imageStem = (src) => variantKeyOf(src) ?? src.replace(/\.(webp|avif|jxl|png|jpe?g)$/, "").replace(/-(240|480|960|1600|2048)$/, "");
+const imageStem = (src) => src.replace(/\.(webp|avif|jxl|png|jpe?g)$/, "").replace(/-(240|480|960|1600|2048)$/, "");
 // News and project images stay on their own pages (owner 2026-11-13: project photos only on project pages): an image of one
 // News article or project may appear in that page only (cover, card and blocks), and no other page, data file or style may
 // use it. Shared placeholders are exempt until the real photo lands.
