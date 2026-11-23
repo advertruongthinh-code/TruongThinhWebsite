@@ -609,5 +609,7 @@ for (const cluster of ADVERTISING_PAGES.filter(({ filter, cluster }) => filter =
     await writeFile(destination, localeHtml(embedVietnameseText(html, destination), locale), "utf8");
   }
 }
+// What this build is made of; a CMS content run reads it from staging to rebuild the same commit (docs/specs/cms-data.md R6).
+await writeFile(path.join(outputRoot, "build-info.json"), `${JSON.stringify({ commit: process.env.TT_BUILD_COMMIT || null, snapshotId: process.env.TT_SNAPSHOT_ID || null, snapshotAt: process.env.TT_SNAPSHOT_AT || null })}\n`, "utf8");
 
 console.log(`[prepare-site] copied src/site, generated ${ADVERTISING_LEGACY_CATEGORIES.length} advertising compatibility pages, ${ADVERTISING_PAGES.length * 2} cluster and product pages, ${ADVERTISING_CARDS.length * 2} card pages, and embedded bilingual runtime text`);
