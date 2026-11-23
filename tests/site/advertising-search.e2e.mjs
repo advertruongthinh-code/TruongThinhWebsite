@@ -41,7 +41,7 @@ const search = async (page, text) => {
   await page.press(".search-bar input", "Enter");
 };
 // A search glides the page to the grid top (search-bar R9), past the hero rail and with the header slid away: back to the top first,
-// once the 600ms glide has ended.
+// once the glide has ended.
 const backToTop = async (page) => {
   await page.waitForTimeout(800);
   await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll(0) || scrollTo({ top: 0, behavior: "instant" }));
@@ -743,22 +743,25 @@ test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all o
     }));
     assert.deepEqual(row.counts, [...row.counts].sort((a, b) => b - a), "most cards first");
     assert.equal(row.label, `Hiện tất cả (${row.counts.length})`);
-    // The panel's height a quarter into its morph, read with the transition held there so a slow runner cannot skip past it.
+    // The panel's height a quarter into its morph, read with the transition held there so a slow runner cannot skip past it. The
+    // morph keeps the masonry card rhythm, 0.4s ease (owner 2026-11-23).
     const quarterHeight = () => page.evaluate(() => {
       const node = document.querySelector(".search-bar__all");
       const morph = node.getAnimations().find((animation) => animation.transitionProperty === "grid-template-rows");
       if (!morph) return node.getBoundingClientRect().height;
+      const { duration, easing } = morph.effect.getTiming();
+      if (duration !== 400 || easing !== "ease") return `timing ${duration} ${easing}`;
       morph.pause();
-      morph.currentTime = 250;
+      morph.currentTime = 100;
       const height = node.getBoundingClientRect().height;
       morph.play();
       return height;
     });
     const panelHeight = () => page.evaluate(() => document.querySelector(".search-bar__all").getBoundingClientRect().height);
     await page.click(".search-bar__more");
-    // It morphs open (owner 2026-11-23): partway a quarter into the 1s morph, whole after it.
+    // It morphs open (owner 2026-11-23): partway a quarter into the morph, whole after it.
     const early = await quarterHeight();
-    await page.waitForTimeout(1200);
+    await page.waitForTimeout(600);
     const panel = await page.evaluate(() => {
       const node = document.querySelector(".search-bar__all");
       const box = node.getBoundingClientRect();
@@ -767,24 +770,30 @@ test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all o
       return {
         open: node.hasAttribute("data-open"),
         chips: node.querySelectorAll(".search-bar__chip").length,
-        joined: Math.abs(box.bottom - document.querySelector(".search-bar__chips").getBoundingClientRect().top) < 0.5 && Math.abs(box.left - shell.left) < 0.5 && Math.abs(box.right - shell.right) < 0.5,
+        // It takes the chip row's place (owner 2026-11-23: no chip twice): joined to the input row, over the whole chip row.
+        joined: Math.abs(box.bottom - document.querySelector(".search-bar__row").getBoundingClientRect().top) < 0.5 && box.top <= shell.top + 0.5 && Math.abs(box.left - shell.left) < 0.5 && Math.abs(box.right - shell.right) < 0.5,
+        rowHidden: [...document.querySelectorAll(".search-bar__chiprow .search-bar__chip")].every((chip) => {
+          const at = chip.getBoundingClientRect();
+          return !chip.contains(document.elementFromPoint(at.left + at.width / 2, at.top + at.height / 2));
+        }) && document.querySelector(".search-bar__chiprow").inert,
+        moreOnTop: more.contains(document.elementFromPoint(more.getBoundingClientRect().left + 22, more.getBoundingClientRect().top + 22)),
         expanded: more.getAttribute("aria-expanded"),
         label: more.getAttribute("aria-label"),
       };
     });
-    assert.deepEqual(panel, { open: true, chips: row.counts.length, joined: true, expanded: "true", label: "Thu gọn" });
+    assert.deepEqual(panel, { open: true, chips: row.counts.length, joined: true, rowHidden: true, moreOnTop: true, expanded: "true", label: "Thu gọn" });
     const full = await panelHeight();
-    assert(early > 2 && early < full - 20, `the panel grows (${early}px of ${full}px), not a jump`);
+    assert(typeof early === "number" && early > 2 && early < full - 20, `the panel grows (${early}px of ${full}px), not a jump`);
     await page.click(".search-bar__all .search-bar__chip:nth-child(2)");
     const closing = await quarterHeight();
-    assert(closing > 2 && closing < full, `the panel shrinks back (${closing}px of ${full}px)`);
-    await page.waitForTimeout(1200);
+    assert(typeof closing === "number" && closing > 2 && closing < full, `the panel shrinks back (${closing}px of ${full}px)`);
+    await page.waitForTimeout(600);
     const closed = await page.evaluate(() => {
       const node = document.querySelector(".search-bar__all");
       const more = document.querySelector(".search-bar__more");
-      return { visibility: getComputedStyle(node).visibility, inert: node.inert, expanded: more.getAttribute("aria-expanded"), label: more.getAttribute("aria-label") };
+      return { visibility: getComputedStyle(node).visibility, inert: node.inert, rowInert: document.querySelector(".search-bar__chiprow").inert, expanded: more.getAttribute("aria-expanded"), label: more.getAttribute("aria-label") };
     });
-    assert.deepEqual(closed, { visibility: "hidden", inert: true, expanded: "false", label: row.label }, "closed, the panel is gone and the button says so");
+    assert.deepEqual(closed, { visibility: "hidden", inert: true, rowInert: false, expanded: "false", label: row.label }, "closed, the panel is gone and the button says so");
     const picked = await page.evaluate(() => ({ open: document.querySelector(".search-bar__all").hasAttribute("data-open"), pressed: document.querySelectorAll(".search-bar__chiprow [aria-pressed=true]").length, query: document.querySelector(".search-bar input").value }));
     assert.deepEqual(picked, { open: false, pressed: 1, query: "đèn" });
     // A pick from the panel shows in the row, clear of the pinned button.

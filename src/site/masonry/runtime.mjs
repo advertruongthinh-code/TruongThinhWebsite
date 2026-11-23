@@ -4034,7 +4034,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (!always && !(gridCta && gridCta.getBoundingClientRect().top < innerHeight)) return;
     const y = getLogicalScroll();
     const target = scroll?.masonryTop?.(y);
-    if (target != null && Math.abs(target - y) > 1) scroll.glideTo(target);
+    // In step with the cards sliding to their new places: --dur-card (search-bar R9, owner 2026-11-23).
+    if (target != null && Math.abs(target - y) > 1) scroll.glideTo(target, DUR.card);
   }));
   const relayoutTo = (apply, { animate = false, reason = "filter", toGrid } = {}) => {
     const visualOrigins = animate && performance.now() < motionUntil ? visualCoordinates() : undefined;

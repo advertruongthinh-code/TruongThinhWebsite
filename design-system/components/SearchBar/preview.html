@@ -33,10 +33,11 @@ body.is-detail .search-host {
   font-weight: 500;
   /* The CTA block centres its text; the bar keeps one alignment in every place (owner 2026-11-22). */
   text-align: start;
-  /* The results morph while floating (560 to 760px, chip row): the card curve over 1s, like the site's other screen-sized moves
-     (owner 2026-11-18). Place changes follow the scroll instead (search-bar R7). */
-  --search-morph: 1s;
-  --search-ease: var(--ease-card);
+  /* Every move of the bar (results width, chip row, panel, slots, rise, slide away) keeps the masonry card rhythm: 0.4s ease, the
+     beat the grid relayouts on (owner 2026-11-23, search-bar R5). dock.mjs reads both for its Web Animations. */
+  --search-morph: var(--dur-card);
+  --search-ease: ease;
+  --search-chip-h: 44px;
   --search-hair: color-mix(in srgb, var(--ink) 14%, transparent);
   --search-shadow: 0 12px 32px rgb(0 0 0 / 18%);
 }
@@ -64,10 +65,10 @@ body.is-detail .search-host {
   transition: none;
 }
 
-/* Leaving the top slot, the floating bar flies up from below the bottom edge with the phone back-to-top button's rhythm (search-bar
-   R7, owner 2026-11-23); reduced motion skips it in dock.mjs. */
+/* Leaving the top slot, the floating bar flies up from below the bottom edge in the bar's rhythm (search-bar R7); reduced motion
+   skips it in dock.mjs. The host carries no .search-bar, so the timing is spelled with the same tokens. */
 .search-host.is-rising {
-  animation: search-rise 1s var(--ease-float);
+  animation: search-rise var(--dur-card) ease;
 }
 
 @keyframes search-rise {
@@ -80,7 +81,7 @@ body.is-detail .search-host {
 .search-host.is-off {
   visibility: hidden;
   transform: translate(-50%, calc(100% + 80px));
-  transition: transform 450ms var(--ease-card), visibility 0s linear 450ms;
+  transition: transform var(--dur-card) ease, visibility 0s linear var(--dur-card);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -168,7 +169,7 @@ body.is-detail .search-host {
   display: flex;
   align-items: center;
   gap: 18px;
-  min-height: 44px;
+  min-height: var(--search-chip-h);
   padding: 0 14px;
   overflow-x: auto;
   border-bottom: 1px solid var(--search-hair);
@@ -222,6 +223,9 @@ body.is-detail .search-host {
 
 /* Pinned at the row's right end while any chip is cut off (owner 2026-11-23): a chevron that turns over as the panel opens. */
 .search-bar__more {
+  /* Above the open panel, which covers the row it sits in. */
+  position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
   width: 44px;
@@ -237,14 +241,16 @@ body.is-detail .search-host {
   rotate: 180deg;
 }
 
-/* Every product with results, most cards first, in a panel joined to the top of the block (owner 2026-11-23): its side borders run
-   on from the bar's, a hairline takes the place of the bar's top border, and its shadow stops at the join. It grows up from the bar
-   and shrinks back into it with the bar's morph; closed, it is hidden once the morph ends. */
+/* Every product with results, most cards first, in a panel joined to the input row (owner 2026-11-23): it takes the chip row's place,
+   so no chip shows twice (owner 2026-11-23), its side borders run on from the bar's, its hairline is the row's, and its shadow stops
+   at the join. Open, it starts exactly over the row (first line where the row's chips are) and grows up with the bar's morph;
+   closing, it shrinks back onto the row and is hidden once the morph ends. The chevron stays above it. */
 .search-bar__all {
   position: absolute;
   right: -1px;
-  bottom: 100%;
+  bottom: var(--search-row-h, 48px);
   left: -1px;
+  min-height: calc(var(--search-chip-h) + 2px);
   display: grid;
   grid-template-rows: 0fr;
   overflow: hidden;
@@ -274,7 +280,8 @@ body.is-detail .search-host {
   gap: 12px 18px;
   min-height: 0;
   max-height: min(50vh, 320px);
-  padding: 14px;
+  /* Right: the row's padding plus the pinned chevron, so the first line breaks where the row's chips meet the chevron. */
+  padding: 14px 58px 14px 14px;
   overflow-y: auto;
 }
 

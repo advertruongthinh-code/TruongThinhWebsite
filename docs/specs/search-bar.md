@@ -21,7 +21,7 @@ audit trang thật với mock (R6).
 ### R1. Một khối ở ba chỗ
 
 **Một khối ở ba chỗ.** Thanh là một khối liền: nền `paper`, viền 1px `ink`, góc vuông. Ba chỗ dùng cùng khối đó; đổi chỗ chỉ đổi vị trí, bề rộng và bóng,
-không đổi dáng (bỏ đường kẻ ở khe CTA). Ngoại lệ có chủ ý so với mock: chữ ô 16px (mock 15px) và morph 1s (mock 0,6s, quyết định owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` như nay (thế chỗ hàng nhóm dưới tiêu đề hero; trang có lưới masonry bỏ "Cuộn xuống").
+không đổi dáng (bỏ đường kẻ ở khe CTA). Ngoại lệ có chủ ý so với mock: chữ ô 16px (mock 15px) và nhịp morph theo masonry, 400ms `ease` (mock 0,6s; owner 2026-11-23, thay 1s của 2026-11-18). Đầu trang: khe `[data-search-dock-top]` như nay (thế chỗ hàng nhóm dưới tiêu đề hero; trang có lưới masonry bỏ "Cuộn xuống").
 Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe dứt khoát theo vị trí cuộn ([R7](#r7-vào-khe-dứt-khoát)); trang card không có thanh, trang nhóm và trang sản phẩm có thanh và tìm trong nhóm ([R8](#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)).
 
 | | PC (chuột), màn từ 751px | Máy cảm ứng (phone, tablet, mọi chiều); PC dưới 751px |
@@ -41,11 +41,11 @@ dày thêm 1px vào trong (bóng `inset 0 0 0 1px ink`), không outline; nút, c
 rail nhóm, không chip "Tất cả" (như mock): các sản phẩm có ít nhất một kết quả, sản phẩm nhiều card kết quả xếp trước, bằng nhau thì theo thứ tự rail của trang (owner 2026-11-23; hero đang chọn một nhóm thì chỉ sản phẩm của nhóm đó; bấm một chip thì hàng vẫn giữ đủ chip như trước khi bấm, owner 2026-11-23);
 bấm chip là lọc trong kết quả, câu tìm giữ nguyên (gọi cùng bộ lọc của lưới như chip ở hero); bấm lại chip đang chọn thì về toàn bộ kết quả. Chip là `button`
 có `aria-pressed`, theo thứ tự Tab sau ô chữ và các nút. Số cạnh tên là số kết quả của sản phẩm đó. Chip chữ 13px đậm 600, cách nhau 18px; số kết quả nhỏ 10px đậm 700 màu `muted` cạnh tên; chip đang chọn gạch dưới 2px, cách chữ 5px.
-Dài quá thì cuộn ngang trong hàng (vuốt trên màn cảm ứng; chuột thì kéo hàng hoặc lăn bánh xe trên hàng, owner 2026-11-23: lăn tới đầu hoặc cuối hàng thì trả lăn về trang; kéo không tính là bấm chip), mép phải mờ dần (chỉ khi còn chip bị che), và nút icon mũi tên 44px ghim ở cuối hàng (chỉ hiện khi có chip bị cắt, owner 2026-11-23); tên nút cho screen reader và tooltip là "Hiện tất cả (N)" / "Show all (N)" khi bảng đóng (N là số sản phẩm có kết quả), "Thu gọn" / "Show less" khi mở. Bảng đóng thì mũi tên chỉ lên, mở thì quay 180 độ chỉ xuống, cùng nhịp morph (owner 2026-11-23). Bấm nút thì bảng mọc lên từ mép trên thanh, liền với thanh thành một khung (owner 2026-11-23): rộng bằng thanh, viền 1px `ink` hai bên và trên nối tiếp viền thanh, chỗ nối là đường mảnh 1px `ink` 14% thay viền trên của thanh, bóng như thanh nhưng không đổ xuống thanh; chứa mọi chip theo cùng thứ tự, xuống dòng, cao tối đa `min(50vh, 320px)` rồi cuộn dọc, hàng cuối mờ dần khi còn chip bên dưới. Mở và đóng là morph chiều cao từ 0 tới đủ bảng (và ngược lại) 1s `--ease-card`, cùng nhịp với thanh; đóng xong thì bảng ẩn hẳn; giảm chuyển động thì đổi ngay. Nút có `aria-expanded`, bảng đóng thì `inert`. Chọn một chip trong bảng thì lọc như chip ở hàng và bảng đóng; bấm lại nút, bấm ra ngoài thanh hoặc Esc (trong bảng hoặc trên nút) cũng đóng. Chip đang chọn luôn nằm trong phần thấy được của hàng, không bị nút che. Lăn chuột trên thanh nổi mà hàng chip không dùng thì trang cuộn như mọi chỗ khác. Thanh vào khe thì bảng ẩn cùng hàng chip. Chữ phóng 200% thì hàng chip cao theo chữ. Bỏ tìm thì hàng chip đóng. Hàng chip mở và đóng bằng chiều cao 0 tới 44px cùng nhịp đổi bề rộng.
+Dài quá thì cuộn ngang trong hàng (vuốt trên màn cảm ứng; chuột thì kéo hàng hoặc lăn bánh xe trên hàng, owner 2026-11-23: lăn tới đầu hoặc cuối hàng thì trả lăn về trang; kéo không tính là bấm chip), mép phải mờ dần (chỉ khi còn chip bị che), và nút icon mũi tên 44px ghim ở cuối hàng (chỉ hiện khi có chip bị cắt, owner 2026-11-23); tên nút cho screen reader và tooltip là "Hiện tất cả (N)" / "Show all (N)" khi bảng đóng (N là số sản phẩm có kết quả), "Thu gọn" / "Show less" khi mở. Bảng đóng thì mũi tên chỉ lên, mở thì quay 180 độ chỉ xuống, cùng nhịp morph (owner 2026-11-23). Bấm nút thì bảng thế chỗ hàng chip rồi mọc lên, liền với hàng nhập thành một khung (owner 2026-11-23); mở thì hàng chip thu gọn không còn hiện, không chip nào hiện hai lần (owner 2026-11-23): bảng phủ đúng hàng chip, dòng đầu của bảng nằm đúng chỗ các chip của hàng, nút mũi tên đứng yên trên bảng, chip của hàng ra khỏi thứ tự Tab (`inert`) tới khi bảng đóng; rộng bằng thanh, viền 1px `ink` hai bên và trên nối tiếp viền thanh, chỗ nối với hàng nhập là đường mảnh 1px `ink` 14% của hàng chip, bóng như thanh nhưng không đổ xuống hàng nhập; chứa mọi chip theo cùng thứ tự, xuống dòng, cao tối đa `min(50vh, 320px)` rồi cuộn dọc, hàng cuối mờ dần khi còn chip bên dưới. Mở và đóng là morph chiều cao từ đúng hàng chip tới đủ bảng (và ngược lại) cùng nhịp với thanh (`--search-morph`, [R5](#r5-nút-về-đầu-trang-phone-và-chuyển-động)); đóng xong thì bảng ẩn hẳn, hàng chip hiện lại; giảm chuyển động thì đổi ngay. Nút có `aria-expanded`, bảng đóng thì `inert`. Chọn một chip trong bảng thì lọc như chip ở hàng và bảng đóng; bấm lại nút, bấm ra ngoài thanh hoặc Esc (trong bảng hoặc trên nút) cũng đóng. Chip đang chọn luôn nằm trong phần thấy được của hàng, không bị nút che. Lăn chuột trên thanh nổi mà hàng chip không dùng thì trang cuộn như mọi chỗ khác. Thanh vào khe thì bảng ẩn cùng hàng chip. Chữ phóng 200% thì hàng chip cao theo chữ. Bỏ tìm thì hàng chip đóng. Hàng chip mở và đóng bằng chiều cao 0 tới 44px cùng nhịp đổi bề rộng.
 
 ```gherkin
 Given trang gốc ở 384px, khách tìm "đèn" ra 19 sản phẩm
-Then hàng chip có nút mũi tên "Hiện tất cả (19)" ở cuối; bấm thì bảng mọc lên liền mép trên thanh, hiện đủ 19 chip, chọn "Chữ nổi" thì lưới lọc và bảng thu về thanh
+Then hàng chip có nút mũi tên "Hiện tất cả (19)" ở cuối; bấm thì bảng thế chỗ hàng chip và mọc lên, hiện đủ 19 chip, chọn "Chữ nổi" thì lưới lọc và bảng thu về thanh
 ```
 
 ### R3. Chữ gợi ý, ảnh và thông báo
@@ -88,7 +88,7 @@ chip) + 12px; Floating CTA và nút về đầu trang không cùng hiện nên k
 **Phone, bàn phím mở.** Ô chữ focus trên phone: hàng chip và nút về đầu trang ẩn, chỉ còn hàng chữ trên bàn phím; thanh không đổi chỗ tới khi blur (như nay).
 
 **Chuyển động.** Đổi chỗ giữa nổi và khe theo [R7](#r7-vào-khe-dứt-khoát): morph vào và ra khe CTA, kéo dài ra ở khe đầu trang. Có kết quả và bỏ tìm khi đang nổi: bề rộng 560 và 760px, hàng chip đổi bằng morph
-`--search-morph` 1s `--search-ease` (`--ease-card`). Giảm chuyển động: morph đó và cú trượt lên của R7 đổi ngay.
+`--search-morph` `--search-ease`. Mọi chuyển động của thanh theo nhịp masonry (owner 2026-11-23: "cân chỉnh lại nhịp motion của toàn bộ các thứ liên quan tới searchbar để nó phù hợp với nhịp của các thứ thuộc masonry"): đổi chỗ, đổi bề rộng, hàng chip, bảng chip, mũi tên, kéo dài ở khe đầu trang, bay lên, trượt xuống khi ẩn và cú trượt về đầu lưới (R9) chạy `--dur-card` 400ms, đường `ease` như card đổi vị trí trên lưới; chữ gợi ý và thông báo đổi như ảnh lưới hiện dần, `--dur-fade` `--ease-expo-out`. Giảm chuyển động: morph đó và cú trượt lên của R7 đổi ngay.
 
 **Giữ nguyên.** Enter tìm, Esc bỏ tìm; đang tìm thì nút xoá chữ cũng bỏ tìm. Đang gõ thì Home, End, PageUp, PageDown, mũi tên, Space chỉ di con trỏ. Không có dòng
 trạng thái trên màn hình (owner 2026-11-17). Thanh nổi đẩy Floating CTA lên bằng `--search-bar-offset`. Không có JavaScript thì CTA vẫn có link cũ. Chữ trên thanh,
@@ -116,13 +116,13 @@ Owner sửa 2026-11-23 (thay bản "đi theo ngón tay" 2026-11-22): thanh đổ
 đứng yên nửa nổi nửa ở khe theo ngón tay. Owner 2026-11-23 4:16: đổi chỗ có motion chạy theo thời gian như dưới.
 
 - **Khe đầu trang.** Thanh nằm yên trong khe và cuộn đi cùng trang. Khi cả thanh đã khuất (chui hết dưới header, hoặc lên khỏi mép trên
-  màn hình khi header đã ẩn), thanh nổi mới hiện: bay lên từ mép dưới màn hình cùng nhịp nút về đầu trang phone, 1s `--ease-float` (owner 2026-11-23; giảm chuyển động thì hiện ngay).
+  màn hình khi header đã ẩn), thanh nổi mới hiện: bay lên từ mép dưới màn hình theo nhịp masonry của thanh (R5, owner 2026-11-23; giảm chuyển động thì hiện ngay).
   Thanh không bao giờ đi ngang qua giữa màn hình. Cuộn lên tới khi khe lộ lại thì thanh về khe.
 - **Kéo dài ra ở khe đầu trang.** Mỗi lần thanh vào khe đầu trang (lúc tải trang, sau khi lớp phủ vào trang tan, và khi từ chỗ khác về khe),
-  khối kéo dài từ một ô vuông cao bằng hàng nhập (49px) ở giữa ra đủ bề rộng khe, `--search-morph` 1s `--ease-card`; nội dung nằm trong
+  khối kéo dài từ một ô vuông cao bằng hàng nhập (49px) ở giữa ra đủ bề rộng khe, `--search-morph`; nội dung nằm trong
   viền trong lúc kéo. Không phải morph từ dáng chỗ cũ.
 - **Khe CTA.** Thanh nổi tới khi hàng nhập của khe chạm hàng nhập của thanh nổi, rồi vào khe và nằm trong khe trôi theo trang; dáng morph từ
-  dáng nổi sang dáng khe (bề rộng, bóng mờ đi, hàng chip gập lại) trong `--search-morph` 1s `--ease-card`, không đổi gắt. Cuộn ngược qua
+  dáng nổi sang dáng khe (bề rộng, bóng mờ đi, hàng chip gập lại) trong `--search-morph`, không đổi gắt. Cuộn ngược qua
   điểm đó thì về nổi, morph ngược lại.
 - **Tải lại giữa trang:** thanh đứng ngay ở chỗ của vị trí cuộn, không chạy hiệu ứng (trừ kéo dài ra ở khe đầu trang).
 - **Giảm chuyển động:** mọi motion trên đổi ngay.
@@ -153,7 +153,7 @@ trang Công trình không có thanh, không có khe.
 - Nhóm không có kết quả: trang đứng yên, lưới giữ danh sách đang lọc, thanh báo "Nhóm này chưa có" / "None in this group" kèm nút chữ "Tìm tất cả" /
   "Search all". Thông báo phủ cả hàng nhập: nút ảnh và kính lúp tạm ẩn (owner 2026-11-23, vì ô chữ phone 360px chỉ khoảng 157px); thông báo ở lại tới khi
   khách chạm vào ô, gõ chữ hoặc bấm nút. Bấm "Tìm tất cả" thì kết quả hiện trên cả danh mục (rail về "Tất cả") và trang trượt về đầu lưới (R9).
-- Mở chi tiết một card: thanh đang nổi trượt xuống khỏi màn hình (450ms `--ease-card`, giảm chuyển động thì tắt ngay) rồi ẩn; thanh đang ở khe mất cùng
+- Mở chi tiết một card: thanh đang nổi trượt xuống khỏi màn hình (`--search-morph`, giảm chuyển động thì tắt ngay) rồi ẩn; thanh đang ở khe mất cùng
   khe. Đóng card: thanh hiện lại ngay ở chỗ đúng theo R7.
 
 ```gherkin
@@ -179,7 +179,7 @@ chỉ đọc vị trí hai khe và đáy header.
 Owner 2026-11-23: tìm xong (Enter, kính lúp, thêm ảnh) thì trang trượt tới đầu lưới, ở cả ba chỗ (khe đầu trang, nổi giữa lưới, khe CTA),
 PC và phone. Đầu lưới nằm dưới đáy header một khoảng bằng lề trái, phải của lưới so với mép trang (`--masonry-outer`); header ẩn khi cuộn
 xuống và hiện khi cuộn lên ([phone-header-scroll R2](phone-header-scroll.md#r2-header-đi-theo-quãng-cuộn)), nên cuộn xuống thì khoảng đó tính
-từ mép trên màn hình. Trượt 600ms theo đường `--ease-card`, cùng lúc lưới xếp lại; chạm, lăn chuột hoặc bấm phím thì dừng; giảm chuyển động
+từ mép trên màn hình. Trượt `--dur-card` 400ms theo đường `--ease-card`, cùng lúc và cùng độ dài với card trượt khi lưới xếp lại (owner 2026-11-23); chạm, lăn chuột hoặc bấm phím thì dừng; giảm chuyển động
 thì nhảy ngay. Tìm lại đúng câu cũ (kết quả y hệt) cũng trượt (owner 2026-11-23). Không có kết quả thì đứng yên; trang chỉ trượt khi kết quả về,
 không trượt lúc bấm. Ảnh về muộn sau khi khách đã cuộn thì thành nút "Có thêm kết quả gợi ý", bấm mới trượt ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)).
 Bấm chip trong kết quả hoặc bỏ tìm (Esc, nút xoá): chỉ trượt khi lưới mới ngắn hơn làm trang lùi về chỗ thấy CTA; còn lại đứng yên.

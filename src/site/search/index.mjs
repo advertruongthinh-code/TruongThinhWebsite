@@ -5,11 +5,14 @@ import css from "./search.css";
 import { COPY, createBar, icon } from "./bar.mjs";
 import { createClient } from "./client.mjs";
 import { mountDock } from "./dock.mjs";
+import { DUR, EASE } from "../masonry/motion-tokens.mjs";
 import { hashOf, prepareImage } from "./images.mjs";
 import cfg from "../../search/score-config.json" with { type: "json" };
 import * as session from "./session.mjs";
 
 const reduced = () => window.TruongThinhEnv?.reducedMotion.matches;
+// Tips and notices change like the grid's images appear: --dur-fade, --ease-expo-out (search-bar R3, R5).
+const TEXT_SLIDE = { duration: DUR.fade, easing: EASE.expoOut };
 // Text that slides in from below while the old text slides up (search-bar R3): tips and notices share it.
 const slideText = (node, text, { animate = !reduced() } = {}) => {
   const old = node.lastElementChild;
@@ -17,9 +20,8 @@ const slideText = (node, text, { animate = !reduced() } = {}) => {
   const next = Object.assign(document.createElement("span"), { textContent: text });
   node.append(next);
   if (!animate || !old) return old?.remove();
-  const timing = { duration: 450, easing: "cubic-bezier(0.16, 1, 0.3, 1)" };
-  next.animate([{ transform: "translateY(60%)", opacity: 0 }, { transform: "none", opacity: 1 }], timing);
-  old.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(-60%)", opacity: 0 }], { ...timing, fill: "forwards" }).finished
+  next.animate([{ transform: "translateY(60%)", opacity: 0 }, { transform: "none", opacity: 1 }], TEXT_SLIDE);
+  old.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(-60%)", opacity: 0 }], { ...TEXT_SLIDE, fill: "forwards" }).finished
     .then(() => old.remove(), () => old.remove());
 };
 
@@ -53,7 +55,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
       if (noteNode.hidden) return;
       const done = () => { if (turn !== noteTurn) return; noteNode.hidden = true; noteNode.replaceChildren(); bar.classList.remove("has-note", "has-wide-note"); syncHint(); };
       if (reduced()) return done();
-      noteNode.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(-60%)", opacity: 0 }], { duration: 450, easing: "cubic-bezier(0.16, 1, 0.3, 1)" })
+      noteNode.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(-60%)", opacity: 0 }], TEXT_SLIDE)
         .finished.then(done, done);
       return;
     }
@@ -72,7 +74,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     noteNode.hidden = false;
     bar.classList.add("has-note");
     bar.classList.toggle("has-wide-note", Boolean(action?.text));
-    if (!reduced()) noteNode.animate([{ transform: "translateY(60%)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 450, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
+    if (!reduced()) noteNode.animate([{ transform: "translateY(60%)", opacity: 0 }, { transform: "none", opacity: 1 }], TEXT_SLIDE);
     if (!action) noteTimer = setTimeout(() => notice(""), 4000);
   };
   const client = createClient({ grid, artifact, locale, copy, announce, notice, session, signal });
@@ -179,6 +181,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   const setPanel = (open) => {
     panel.toggleAttribute("data-open", open);
     panel.inert = !open;
+    // The panel covers the row: its chips leave Tab and screen readers while it is open.
+    const row = chips.querySelector(".search-bar__chiprow");
+    if (row) row.inert = open;
     more.setAttribute("aria-expanded", String(open));
     more.title = open ? copy.showLess : copy.showAll(total);
     more.setAttribute("aria-label", more.title);
@@ -286,6 +291,7 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     total = products.length;
     setPanel(isOpen() && total > 0);
     const scrollLeft = chips.querySelector(".search-bar__chiprow")?.scrollLeft ?? 0;
+    row.inert = isOpen();
     chips.replaceChildren(row, more);
     row.scrollLeft = scrollLeft;
     const fade = () => row.toggleAttribute("data-more", row.scrollLeft + row.clientWidth < row.scrollWidth - 1);
