@@ -264,9 +264,10 @@
     activePage = undefined;
   };
 
-  // About R9 journey: from 981px each milestone owns a scroll window, from its year reaching 55% of the viewport to the next year;
-  // its drawing (--p 0 to 1) follows that window both ways, and only the current milestone's drawing shows. Reduced motion keeps
-  // --p at 1 (drawings complete, only the swap). Below 981px the CSS shows each milestone's own complete drawing.
+  // About R9 journey, from 981px: each milestone is a stage. When its year passes 55% of the viewport its drawing plays on its
+  // own from white to complete (--p 0 to 1); scrolling back rewinds the shown drawing to white, then the previous drawing shows
+  // complete. A drawing never stops halfway (owner 2026-11-24). Scrolling only compares cached year positions; style is written
+  // while a drawing plays. Reduced motion keeps --p at 1 (only the swap). Below 981px the CSS shows each complete drawing.
   const mountAboutJourney = (container, state, reduceMotion) => {
     const journey = container.querySelector(".about-journey");
     if (!journey || !window.matchMedia("(min-width: 981px)").matches) return;
@@ -274,49 +275,73 @@
     const years = items.map((item) => item.querySelector(".about-journey__year"));
     const arts = items.map((_, index) => journey.querySelector(`[data-journey-art="${index + 1}"]`));
     const nodes = [...journey.querySelectorAll(".about-journey__node")];
-    const last = new Map();
-    const write = (node, name, value) => {
-      if (last.get(node)?.[name] === value) return;
-      last.set(node, { ...last.get(node), [name]: value });
-      node.style.setProperty(name, value);
+    const fill = journey.querySelector(".about-journey__rail-fill");
+    const forward = 1500;
+    const rewind = 800;
+    // A forward drawing starts below 0: it stays plain white while the previous one fades out (owner 2026-11-23: white first frame).
+    const lead = -0.15;
+    const pageY = () => window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY;
+    let marks = [];
+    let target = -1;
+    let shown = 0;
+    let p = 0;
+    let frame = 0;
+    let last = 0;
+    const setP = (index, value) => arts[index].style.setProperty("--p", Math.max(0, value).toFixed(3));
+    const swap = (index, value) => {
+      arts[shown].classList.remove("is-current");
+      shown = index;
+      p = value;
+      setP(shown, p);
+      arts[shown].classList.add("is-current");
+    };
+    const tick = (now) => {
+      const dt = Math.min(now - last, 100);
+      last = now;
+      const goal = Math.max(target, 0);
+      if (goal > shown) {
+        setP(shown, 1);
+        swap(goal, lead);
+      }
+      const back = goal < shown || target < 0;
+      p = back ? Math.max(0, p - dt / rewind) : Math.min(1, p + dt / forward);
+      setP(shown, p);
+      if (back && p === 0 && goal < shown) swap(goal, 1);
+      const settled = goal === shown && p === (target < 0 ? 0 : 1);
+      frame = settled ? 0 : window.requestAnimationFrame(tick);
     };
     const update = () => {
-      const line = window.innerHeight * 0.55;
-      const tops = years.map((year) => year.getBoundingClientRect().top);
-      const reached = tops.filter((top) => top < line).length;
-      const current = Math.max(reached, 1) - 1;
-      const progress = tops.map((top, index) => {
-        if (reduceMotion) return 1;
-        const span = index < tops.length - 1 ? tops[index + 1] - top : items[index].offsetHeight * 0.9;
-        // A short blank lead-in: the first frame of every drawing is plain white (owner 2026-11-23).
-        return Math.min(1, Math.max(0, ((line - top) / (span * 0.55) - 0.06) / 0.94));
-      });
-      arts.forEach((art, index) => {
-        write(art, "--p", progress[index].toFixed(3));
-        art.classList.toggle("is-current", index === current);
-      });
-      items.forEach((item, index) => item.classList.toggle("is-current", index === current));
-      nodes.forEach((node, index) => node.classList.toggle("is-on", index < reached));
-      write(journey, "--about-journey-progress", Math.min(1, (current + (reached ? progress[current] : 0)) / (items.length - 1)).toFixed(3));
+      const line = pageY() + window.innerHeight * 0.55;
+      const next = marks.filter((mark) => mark < line).length - 1;
+      if (next === target) return;
+      target = next;
+      items.forEach((item, index) => item.classList.toggle("is-current", index === Math.max(target, 0)));
+      nodes.forEach((node, index) => node.classList.toggle("is-on", index <= target));
+      fill.style.setProperty("--about-journey-progress", (Math.max(target, 0) / (items.length - 1)).toFixed(3));
+      if (reduceMotion) swap(Math.max(target, 0), 1);
+      else if (!frame) {
+        last = performance.now();
+        frame = window.requestAnimationFrame(tick);
+      }
     };
-    let frame = 0;
-    const loop = () => {
+    const measure = () => {
+      const y = pageY();
+      marks = years.map((year) => year.getBoundingClientRect().top + y);
       update();
-      frame = window.requestAnimationFrame(loop);
     };
+    arts.forEach((_, index) => setP(index, reduceMotion ? 1 : 0));
+    swap(0, reduceMotion ? 1 : 0);
     journey.classList.add("is-armed");
-    const observer = new IntersectionObserver(([entry]) => {
-      window.cancelAnimationFrame(frame);
-      if (entry.isIntersecting) loop();
-      else update();
-    });
+    const { signal } = state.abort;
+    window.addEventListener("site:scroll", update, { signal });
+    window.addEventListener("scroll", update, { passive: true, signal });
+    const observer = new ResizeObserver(measure);
     observer.observe(journey);
     state.observers.push(observer);
-    state.abort.signal.addEventListener("abort", () => {
+    signal.addEventListener("abort", () => {
       window.cancelAnimationFrame(frame);
       journey.classList.remove("is-armed");
     }, { once: true });
-    update();
   };
 
   const mount = (

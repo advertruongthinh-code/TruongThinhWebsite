@@ -999,12 +999,13 @@
   text-align: left;
 }
 
-/* About R9 journey: a pinned stage on the left shows one line drawing per milestone (machine or product; 2020 is the 1220 x 2440 cabinet
-   nesting sheet) while seven milestones scroll on the right. From 981px with motion (is-armed) each drawing is drawn by the scroll: down
-   draws, up retracts. Every path has pathLength 1 and its own window (--a start, --b length) on the milestone's progress --p (detail.js);
-   fills come in once their stroke is done. Without is-armed (no JavaScript, reduced motion) --p stays 1: drawings complete. Below 981px each
-   milestone shows its own drawing (a <use> of the stage drawing, landscape sheet for 2020). Geometry is generated (Library
-   thiet-ke-trang-gioi-thieu/nesting/), not hand edited. */
+/* About R9 journey: a pinned stage on the left shows one line drawing per milestone (machine or product; 2020 is the cabinet
+   nesting sheet) while eight milestones scroll on the right. From 981px with motion (is-armed) each milestone is a stage: when its year
+   passes the line its drawing plays on its own (--p 0 to 1 over time, detail.js), scrolling back rewinds it, never stopping halfway.
+   Every path has pathLength 1 and its own window (--a start, --b length) on --p; colour is painted by brush passes. Curved surfaces
+   are shaded by gradients, with no line where they turn. Without is-armed (no JavaScript, reduced motion) --p stays 1: drawings
+   complete. Below 981px each milestone shows its own drawing (a <use> of the stage drawing, landscape sheet for 2020). Geometry is
+   generated (Library thiet-ke-trang-gioi-thieu/v2/ and nesting/), not hand edited. */
 .about-journey {
   /* Nesting parts (2020, studio years): light tint of the site blue. */
   --about-journey-part: #eef3fa;
@@ -1041,8 +1042,10 @@
 }
 
 /* Not armed on a wide screen: the stage keeps the nesting sheet only. */
-.about-journey:not(.is-armed) .about-journey__art:not([data-journey-art="7"]) {
-  visibility: hidden;
+@media (min-width: 981px) {
+  .about-journey:not(.is-armed) .about-journey__art:not([data-journey-art="7"]) {
+    visibility: hidden;
+  }
 }
 
 .about-journey__thumb {
@@ -1100,6 +1103,11 @@
   stroke-width: 1.2;
 }
 
+/* The CNC bit: one bold stroke (owner 2026-11-24). */
+.about-journey__ln--bold {
+  stroke-width: 6;
+}
+
 .about-journey__ln--accent,
 .about-journey__ln--accent-ln {
   stroke: var(--art-accent);
@@ -1130,19 +1138,6 @@
 .about-journey__brush--fy { stroke: #fff27f; }
 .about-journey__brush--fk { stroke: #2b2a29; }
 .about-journey__brush--accent-fill { stroke: var(--art-accent); }
-
-.about-journey__sheet-svg .about-journey__dims path {
-  fill: none;
-  stroke: var(--muted);
-  stroke-width: 2.4;
-}
-
-.about-journey__sheet-svg .about-journey__dims text {
-  fill: var(--muted);
-  font-family: inherit;
-  font-size: 34px;
-  font-weight: 600;
-}
 
 .about-journey__sheet-svg pattern path {
   stroke: rgba(23, 79, 155, 0.4);
@@ -1217,9 +1212,11 @@
 
 .about-journey__rail-fill {
   position: absolute;
-  inset: 0 0 auto;
-  height: calc(var(--about-journey-progress, 1) * 100%);
+  inset: 0;
   background: var(--orange-accent);
+  transform: scaleY(var(--about-journey-progress, 1));
+  transform-origin: top;
+  transition: transform 0.6s ease;
 }
 
 .about-journey__node {
@@ -1270,17 +1267,21 @@
 /* Armed (detail.js, from 981px): only the current milestone's drawing shows; the sheet is cut group by group by the 2020 progress.
    A resize below 981px (tablet turned) drops back to the phone layout: the rules only apply from 981px. */
 @media (min-width: 981px) {
+  /* A hidden drawing is not painted once it has faded out. */
   .about-journey.is-armed .about-journey__art {
     opacity: 0;
-    transition: opacity 0.35s ease;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0s linear 0.2s;
   }
 
   .about-journey.is-armed .about-journey__art.is-current {
     opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s ease;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .about-journey.is-armed :is(.about-journey__art, .about-journey__item) {
+    .about-journey.is-armed :is(.about-journey__art, .about-journey__item, .about-journey__rail-fill) {
       transition: none;
     }
   }
@@ -1309,8 +1310,8 @@
     stroke-opacity: clamp(0, max(min(var(--p, 1) * 3, 0.25), (var(--p, 1) - var(--a) - var(--b) * 0.8) * 40), 1);
   }
 
-  /* The sheet, its edge and its dimensions fade in after a white first frame (owner 2026-11-23). */
-  .about-journey.is-armed [data-journey-art="7"] :is(.about-journey__board, .about-journey__edge, .about-journey__dims) {
+  /* The sheet and its edge fade in after a white first frame (owner 2026-11-23); no sheet size is written (owner 2026-11-24). */
+  .about-journey.is-armed [data-journey-art="7"] :is(.about-journey__board, .about-journey__edge) {
     opacity: clamp(0, var(--p, 1) * 10, 1);
   }
 
@@ -1321,11 +1322,22 @@
 
 @media (max-width: 980px) {
   .about-journey {
+    position: relative;
     grid-template-columns: minmax(0, 1fr);
   }
 
+  /* The stage drawings stay rendered but unseen (not display:none, not visibility:hidden): the thumbs <use> them, and their
+     brush clips and gradients only resolve from a rendered, visible subtree; otherwise colour spills past each shape. */
   .about-journey__aside {
-    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .about-journey__thumb {
@@ -1345,12 +1357,8 @@
     stroke-width: 5.5;
   }
 
-  .about-journey__sheet-svg--landscape :is(.about-journey__groove, .about-journey__drill, .about-journey__dims path) {
+  .about-journey__sheet-svg--landscape :is(.about-journey__groove, .about-journey__drill) {
     stroke-width: 4;
-  }
-
-  .about-journey__sheet-svg--landscape .about-journey__dims text {
-    font-size: 64px;
   }
 
   .about-journey__list {
