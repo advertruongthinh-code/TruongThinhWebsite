@@ -61,9 +61,9 @@ lúc cuộn hay dừng máy dùng cùng số lớp, không thay bằng ảnh nh�
   `14.4`, `21.21`, `31.26`, `46.06`, `67.87`, `100px` (`4.5 × (100 / 4.5)^(i / 8)`). Quãng từ mép ngoài tới cuối đoạn lấn
   chia chín phần bằng nhau, bậc `i` đạt mức của nó ở cuối phần `i`; bậc kề chồng mép `0.3` phần để mắt không thấy ranh giới hay
   bóng ma hai lớp. Từ cuối đoạn lấn vào trong, cả vùng trong cung (lõi, gồm vùng trắng tuyệt đối R3) nhòe đều `100px`.
-- **Phone** (`pointer: coarse` hoặc có touch) 2 lớp: lõi `28px` và bậc band trong cùng; từ cung ra ngoài độ nhòe giảm về 0 qua
-  ba bậc `28`, `12`, `4.5px` (owner chọn ba bậc thay năm để vuốt trên phone Android đạt gate R7). Phone thêm bậc hay bậc band thứ hai đều rơi gate R7.
-  Bậc band phone trải hết dải `1.75` (owner 2026-11-07 thấy chuyển gắt; trước tắt ở `0.43` dải).
+- **Phone** (`pointer: coarse` hoặc có touch) 2 lớp: lõi `100px` và một bậc band `100px`, đỉnh cung và dải `2.5` như PC, để chữ CTA
+  không bị mép khung Flow cắt qua (owner 2026-11-23; trước lõi `28px`, đỉnh `+0.35`, dải `1.75`). Bậc band trải hết dải, mask giảm nhòe về 0 ở mép ngoài.
+  Phone thêm bậc hay bậc band thứ hai đều rơi gate R7; kính PC đủ 10 lớp trên A04s chỉ khoảng 19 fps.
 - Mép mask mỗi bậc (đặc tới trong suốt) đi theo smoothstep qua 7 điểm dừng thay một đoạn thẳng, nên không thấy vạch nơi bậc bắt đầu hay đủ.
 
 Các lớp blur xếp chồng thì cộng dồn (đo trên Chromium: hai lớp `6px` bằng một lớp `8.5px`), nên mỗi bậc chỉ thêm phần tăng
@@ -75,11 +75,11 @@ subpixel; footer xếp trên kính nên đường kẻ trên cùng của footer 
 
 | Giá trị | Số đã chốt |
 | --- | --- |
-| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi); phone giữ `+0.35` (đỉnh cao hơn làm phone vuốt 7-9% frame chậm) |
+| Đỉnh cung, giao của cung với trục giữa | mép trên tiêu đề - `0.15` × chiều cao cụm CTA (trên tiêu đề, để chữ nằm trong lõi), mọi máy |
 | Bán kính | `3.5` × bề rộng viewport |
-| Dải giảm nhòe, đo từ cung ra ngoài | PC `2.5`, phone `1.75` × chiều cao cụm CTA; PC thêm đoạn lấn `1/3` bề rộng dải vào trong cung |
+| Dải giảm nhòe, đo từ cung ra ngoài | `2.5` × chiều cao cụm CTA; PC thêm đoạn lấn `1/3` bề rộng dải vào trong cung |
 | Vùng trắng tuyệt đối | `0.35` × bề rộng card |
-| Trần nhòe | `100px`: PC đạt ở cuối đoạn lấn và đều tới vòng trắng tuyệt đối; phone đạt ở vòng trắng tuyệt đối không có lớp riêng |
+| Trần nhòe | `100px`: PC đạt ở cuối đoạn lấn, phone ở biên cung; từ đó đều tới vòng trắng tuyệt đối |
 
 Ba giới hạn tự động: dải hẹp lại nếu mép ngoài lên quá đáy cột ảnh thật cao
 nhất, nên Kính không bao giờ phủ ảnh thật; đỉnh cung dời lên nếu cần để cách đáy
@@ -164,7 +164,9 @@ Then không phần tử nào mang data-glass-reveal
 Gate điện thoại của [Skeleton chờ ảnh](loading-glass-and-page-entry.md) R9
 trên phone Android khi cuộn tới kính dạng cung:
 gate [phone Android trên 60fps](scroll-feel.md#r7-trên-60fps-trên-phone-android) (trên `60fps`). Nếu số bậc làm rơi gate,
-báo owner kèm số đo trước khi đổi số bậc (năm bậc rơi gate trên phone, owner chọn ba bậc cho dạng cung phone). Số lớp theo loại máy (R2); trần
+báo owner kèm số đo trước khi đổi số bậc (năm bậc rơi gate trên phone, owner chọn ba bậc cho dạng cung phone). Số lớp theo loại máy (R2).
+Kính phone `100px` (owner 2026-11-23, A04s máy mát, layer `ChromeChildSurface`): đứng yên ở CTA `60fps` như kính `28px` cũ; vuốt qua batch
+`56fps` so với `66fps`, owner chấp nhận để chữ CTA không nhiễu. Trần
 `100px` của ảnh nền primary chưa đo trên phone Android. Card chờ ảnh không đặt Kính thường trực (A04s kéo trang chỉ 9 đến 11 FPS),
 và không bề mặt nào hiện hay tan Kính (R6). Có tiền tố
 `-webkit-backdrop-filter` cho Safari; WebKit trên cloud không vẽ
@@ -183,7 +185,7 @@ Kính dạng cung là bề mặt tĩnh, giữ nguyên khi giảm chuyển độn
 | --- | --- | --- |
 | DOM | `.glass-surface` với `data-glass-shape="arc"` hoặc `"even"` | Component Kính; `aria-hidden`, không nhận pointer; không có opacity, mask hay filter để các bậc còn thấy trang phía sau |
 | DOM | `i.glass-surface__step`, rồi `i.glass-surface__tint`, `i.glass-surface__grain` | Dạng cung: một bậc `glass-surface__step--full` làm lõi trong cung (ở đó các bậc đều đủ), rồi các bậc chỉ phủ dải (PC chín, phone ba với hai bậc ngoài ẩn bằng `hidden`); lõi chuyển sang ba bậc qua `48px` bên trong cung nên không thấy đường nối: nửa ngoài lõi hiện dần khi các bậc còn đủ, nửa trong các bậc tắt dần khi lõi đã đủ, nên trang nét không lọt qua chỗ cả hai cùng mờ dần; dạng phủ đều đứng yên một bậc `glass-surface__step--full` (nhìn như ba bậc chồng, nhẹ hơn); kính phủ đều quanh primary không có bậc, chỉ tint và hạt nhiễu, còn ảnh nền primary tự mang `filter: blur(100px) saturate(1.7) brightness(1.04)` vì Chrome chụp backdrop theo từng raster tile khi chụp thumbnail lúc rê chuột lên tab, kẹp blur ở mép tile và để lại đường nối tới lần repaint đầy đủ. Chỉ lớp bậc có `backdrop-filter`; mọi lớp `z-index: 1` |
-| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): ba bậc `16.07`, `54.84`, `82.07px` (mức `16.07`, `57.14`, `100px`), dạng cung phone `4.5`, `11.12`, `25.3px`, chín bậc PC và lõi `100px` do runtime đặt inline; `--glass-saturate`, `--glass-brightness` (tổng, cho bậc đủ) và `--glass-step-saturate`, `--glass-step-brightness` (mỗi bậc) trên `.glass-surface` là `1.7`, `1.04`, `1.1935`, `1.0132`, dạng cung cả bốn bằng `1`; `.glass-surface__step--full` là `blur(var(--glass-full-blur))` với tổng đó, `100px`, riêng lõi dạng cung phone `28px` (PC đặt inline `100px`, R2); tint, hạt nhiễu `overlay` opacity `0.06`; dạng cung hạt trắng `--glass-grain-white` hòa trộn thường opacity `0.12` (R4) |
+| CSS | `detail.css`, mục Kính | Phần tăng blur từng bậc (`--glass-step-blur`, đếm bằng `nth-last-child` để lõi đứng trước không làm lệch): ba bậc `16.07`, `54.84`, `82.07px` (mức `16.07`, `57.14`, `100px`), dạng cung phone một bậc `100px` (`nth-last-child(3)`), chín bậc PC do runtime đặt inline; `--glass-saturate`, `--glass-brightness` (tổng, cho bậc đủ) và `--glass-step-saturate`, `--glass-step-brightness` (mỗi bậc) trên `.glass-surface` là `1.7`, `1.04`, `1.1935`, `1.0132`, dạng cung cả bốn bằng `1`; `.glass-surface__step--full` là `blur(var(--glass-full-blur))` với tổng đó, `100px`, cả lõi dạng cung mọi máy (R2); tint, hạt nhiễu `overlay` opacity `0.06`; dạng cung hạt trắng `--glass-grain-white` hòa trộn thường opacity `0.12` (R4) |
 | CSS | `--glass-grain`, `--glass-grain-size` trên từng `.glass-surface` | Hai ảnh hạt nhiễu 160×160 cùng nhiễu, xám cho overlay và trắng theo alpha cho dạng cung (`--glass-grain-white`), sinh một lần bằng canvas, một hạt một pixel thiết bị; đặt trên kính, không trên `html`, để ảnh tới muộn chỉ tính lại style của kính |
 | Runtime | `masonry/glass-surface.mjs` | `createGlassSurface(shape, steps)` (mặc định cung PC 9, phone 3, phủ đều 1); `arcGlassGeometry()` tính đỉnh, bán kính, dải và ba giới hạn; `desktopArcSteps({radius, band})` mức nhòe và bán kính bật, tắt của chín bậc PC; `layoutArcGlass()` đặt hộp và mask của lõi, các bậc và màu trắng; mỗi hộp bậc chạy quá mask một sigma của mức blur (rộng hơn không đổi pixel nào quá 3/255, mà mỗi hàng thêm là một hàng phải blur mỗi frame); số lớp theo loại máy (R2): PC lõi và 9 bậc band, phone lõi và 1 bậc band |
 | Runtime | `masonry/grain.mjs`, `masonry/grain-worker.mjs` | `grainImages()` tạo hai ảnh hạt (xám, trắng) dùng chung; Worker vẽ ra hai PNG bằng `OffscreenCanvas`, lỗi thì trả `null` để trang vẽ trên luồng chính (R4) |
