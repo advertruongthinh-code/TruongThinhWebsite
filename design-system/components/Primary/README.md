@@ -11,9 +11,10 @@ Khối ảnh chính khi mở một ảnh (`?photo=<id>`): ảnh lớn, nhóm, m�
 - Rộng `min(3, số cột)` cột masonry (`computeDetailGeometry` trong
   `masonry/layout.mjs`).
 - Bốn cột hoặc màn hình ngang (`split`): ảnh bên trái, chữ một cột bên phải,
-  cao bằng viewport trừ header và gutter; bốn cột thì trừ thêm 50px để lộ hàng
-  ảnh dưới. Hai hoặc ba cột trên màn hình dọc (`pinterest`): ảnh trên, chữ
-  dưới, chữ cao tối đa 28% viewport.
+  cao tối đa viewport trừ header, gutter và thêm gap cộng 50px để lộ hàng ảnh dưới.
+  Hai hoặc ba cột trên màn hình dọc (`pinterest`): ảnh trên, chữ dưới, ảnh giữ cỡ
+  như khi chừa 50px; phần còn lại tới đáy màn hình dành cho mô tả, mô tả còn cuộn
+  thì primary chạm đáy.
 - Ảnh foreground giữ trọn tỷ lệ. Khi còn chỗ trống quanh ảnh, nền khung là bản
   sao cover của chính ảnh (`aria-hidden`, không nhận pointer) dưới
   [Kính](../Glass/README.md) dạng phủ đều.

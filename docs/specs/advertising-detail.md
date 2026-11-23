@@ -55,8 +55,11 @@ And không có clone ảnh giữa card và primary
 `computeDetailGeometry` (`masonry/layout.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
 không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột cao `min(W/r, H)`
 ([player R6](primary-video-player.md#r6-khung-primary-cao-theo-media-ngang)), info một cột cao bằng vùng ảnh; `H` là viewport dưới header
-thu gọn (R10) trừ safe area; từ 3 cột trừ thêm gap và `50px` để related lộ dưới, kể cả primary chiếm hết cột (owner 2026-11-07); lưới 2 cột thì primary chạm đáy màn hình, không chừa (owner 2026-11-23). `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap, hoặc tới hết phần ảnh (cao tự nhiên) chừa lại nếu lớn hơn, nên mô tả còn cuộn thì primary luôn chạm `H` (owner 2026-11-22); vùng ảnh rộng
-hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa `H`, nên từ 3 cột dưới primary luôn còn gap và `50px` related, 2 cột thì mô tả còn cuộn primary kéo sát đáy, mô tả vừa thì primary co theo chữ. Ảnh `contain` trong vùng;
+thu gọn (R10) trừ safe area; `split` trừ thêm gap và `50px` để related lộ dưới (owner 2026-11-07). `N <= 3` và viewport dọc là `pinterest`
+(`detailLayoutMode`, runtime dùng cùng hàm): ảnh trên, info dưới, không chừa gap và `50px` ở mọi số cột (owner 2026-11-23). Vùng ảnh rộng hết primary,
+cao `min(W/r, H' - info gốc - gap)` với `H'` là `H` trừ gap và `50px`; info gốc cao theo chữ, tối đa `28%` viewport trừ gap, hoặc tới hết phần ảnh
+(cao tự nhiên) chừa lại nếu lớn hơn (owner 2026-11-22). Phần từ đó tới đáy màn hình dành cho mô tả: mô tả còn cuộn thì primary chạm đáy, mô tả vừa
+thì primary co theo chữ (owner 2026-11-23). Ảnh `contain` trong vùng;
 dư quá `0.5px` thì `data-detail-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn) cùng nhóm, thumbnail, CTA thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
 thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi).
 
@@ -64,7 +67,7 @@ thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.m
 Given viewport 1569×912 (4 cột), 820×912 (3 cột), 891×360 (3 cột, điện thoại ngang) và 360×800 (2 cột, mô tả dài)
 When mở cùng một ảnh ngang
 Then 1569px: layout split, primary span 3, ảnh hai cột, khung cao theo ảnh, chừa ít nhất 50px ở đáy viewport
-And 820px: layout pinterest, primary span 3, ảnh và info vừa phần dưới header trừ gap và 50px, info không quá 28% viewport
+And 820px: layout pinterest, primary span 3, ảnh giữ cỡ khi chừa gap và 50px, mô tả còn cuộn thì đáy primary chạm đáy viewport
 And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao bằng vùng ảnh, related xếp dưới primary
 And 360px: layout pinterest, primary span 2, đáy primary chạm đáy viewport, mô tả cuộn bên trong
 ```

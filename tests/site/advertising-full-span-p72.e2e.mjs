@@ -39,19 +39,25 @@ try {
             imageWidth: image.width, imageHeight: image.height, imageLeft: image.left,
             frameLeft: frame.left, infoHeight: info.height, gap,
             glass: document.querySelector("[data-detail-view]").dataset.detailGlass,
+            descriptionScrolls: (({ scrollHeight, clientHeight }) => scrollHeight > clientHeight + 1)(
+              document.querySelector("[data-detail-description-scroll]")),
             horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
           };
         });
         const label = `${locale} ${photo} ${width}x1000`;
         assert(state.primaryBottom <= 1001, `${label}: primary extends below viewport (${state.primaryBottom}px)`);
         assert(Math.abs(state.frameHeight - state.imageHeight) <= 1, `${label}: top/bottom overflow`);
-        // Over 28% only when primary fills its cap: a short image leaves that room to a long description (owner 2026-11-22).
-        assert(state.infoHeight + state.gap <= 1000 * 0.28 + 1 || Math.abs(state.primaryBottom - (1000 - state.gap - 50)) <= 1.5,
-          `${label}: description exceeds cap`);
+        // Over 28% only into the gap and 50px stacked primary no longer keeps (owner 2026-11-23), or when a short image leaves
+        // that room to a long description (owner 2026-11-22).
+        assert(state.infoHeight + state.gap <= 1000 * 0.28 + state.gap + 50 + 1 || Math.abs(state.primaryBottom - 1000) <= 1.5
+          || Math.abs(state.imageWidth - state.frameWidth) <= 1, `${label}: description exceeds cap`);
         assert.equal(state.horizontalOverflow, 0, `${label}: horizontal overflow`);
         if (capped) {
-          // Ceiling leaves room for the gap and the 50px of related exposed below the primary (advertising-detail R4).
-          assert(Math.abs(state.primaryBottom - (1000 - state.gap - 50)) <= 1, `${label}: tall image does not reach available viewport cap`);
+          // A tall image stops at the gap and 50px above the screen bottom; that room goes to the description, so primary ends
+          // where the description fits, or at the screen bottom while it still scrolls (advertising-detail R2, owner 2026-11-23).
+          const peekBottom = 1000 - state.gap - 50;
+          assert(state.descriptionScrolls ? Math.abs(state.primaryBottom - 1000) <= 1
+            : state.primaryBottom >= peekBottom - 1 && state.primaryBottom <= 1001, `${label}: tall image does not reach available viewport cap`);
           assert(state.imageWidth < state.frameWidth - 1, `${label}: side overflow is absent`);
           assert(Math.abs(state.imageLeft - state.frameLeft - (state.frameWidth - state.imageWidth) / 2) <= 1,
             `${label}: image is not horizontally centered`);

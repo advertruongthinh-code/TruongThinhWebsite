@@ -113,13 +113,29 @@ test("full-span portrait primary caps height and leaves side overflow only", () 
     headerHeight: 72.59375, imageWidth: 400, imageHeight: 1000,
     descriptionHeight: 120,
   });
-  // Up to two columns primary reaches the screen bottom, no peek (advertising-detail R2, owner 2026-11-23).
+  // Stacked primary has no peek (advertising-detail R2, owner 2026-11-23); the image keeps its size with the 15px gap and 50px,
+  // and a description that fits leaves primary short of the screen bottom.
   assert.equal(geometry.belowPeek, 0);
-  closeTo(geometry.height, 800 - geometry.top);
-  closeTo(geometry.imageZoneHeight, 800 - geometry.top - 120 - geometry.internalGap);
+  closeTo(geometry.imageZoneHeight, 800 - geometry.top - 15 - 50 - 120 - geometry.internalGap);
+  closeTo(geometry.height, 800 - geometry.top - 15 - 50);
   closeTo(geometry.imageHeight, geometry.imageZoneHeight);
   assert(geometry.imageWidth < geometry.imageZoneWidth);
   assert.equal(geometry.hasContainOverflow, true);
+});
+
+test("stacked primary gives the room down to the screen bottom to a clipped description", () => {
+  const options = { layoutViewportWidth: 768, viewportHeight: 1024, columns: 3, headerHeight: 72, imageWidth: 560, imageHeight: 1000 };
+  const short = computeDetailGeometry({ ...options, descriptionHeight: 150 });
+  const long = computeDetailGeometry({ ...options, descriptionHeight: 300 });
+  const clipped = computeDetailGeometry({ ...options, descriptionHeight: 2000 });
+  assert.equal(short.mode, "pinterest");
+  // The image keeps the size it has with the gap and 50px peek, whatever the description needs.
+  closeTo(long.imageZoneHeight, clipped.imageZoneHeight);
+  closeTo(long.descriptionHeight, 300);
+  assert(long.height < long.heightCap);
+  closeTo(clipped.height, clipped.heightCap);
+  closeTo(clipped.top + clipped.height, 1024);
+  closeTo(clipped.descriptionHeight, clipped.heightCap - clipped.imageZoneHeight - clipped.internalGap);
 });
 
 test("full-span long description takes the room a short image leaves, up to the height cap", () => {
@@ -170,7 +186,8 @@ test("uses Pinterest layout whenever the primary spans every column", () => {
 
 test("keeps responsive gaps and safe insets while capping full-span primary at the viewport", () => {
   const cases = [
-    { width: 700, height: 500, gap: 15, peek: 0 },
+    { width: 700, height: 500, gap: 15, peek: 50 },
+    { width: 1000, height: 1400, gap: 25, peek: 0 },
     { width: 1000, height: 900, gap: 25, peek: 50 },
     { width: 1300, height: 1500, gap: 35, peek: 50 },
   ];
@@ -190,7 +207,7 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
     assert.equal(geometry.gap, sample.gap);
     assert.equal(geometry.belowPeek, sample.peek);
     closeTo(geometry.top, 70 + sample.gap + 5);
-    // From three columns every viewport leaves the gap and peek, even a full-span primary; two columns reach the bottom (advertising-detail R2).
+    // Split leaves the gap and peek; stacked (pinterest) primary reaches the bottom at any column count (advertising-detail R2).
     closeTo(
       geometry.heightCap,
       sample.height - geometry.top - (sample.peek && sample.gap + sample.peek) - 7,
@@ -200,7 +217,7 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
       closeTo(geometry.height, Math.min(geometry.imageZoneWidth / 3, geometry.heightCap));
       assert.ok(geometry.top + geometry.height + (sample.peek && sample.gap + sample.peek) + 7 <= sample.height);
     } else {
-      assert.ok(geometry.top + geometry.height + geometry.gap + sample.peek + 7 <= sample.height + 1e-9);
+      assert.ok(geometry.top + geometry.height + (sample.peek && sample.gap + sample.peek) + 7 <= sample.height + 1e-9);
       assert.ok(geometry.imageZoneHeight <= geometry.width / (3000 / base.imageHeight) + 1e-9);
       closeTo(geometry.imageZoneHeight + geometry.descriptionHeight + geometry.internalGap, geometry.height);
     }
