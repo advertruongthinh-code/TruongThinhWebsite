@@ -179,3 +179,10 @@ jobs:
     if: ${{ !cancelled() && needs.static-release.result == 'success' && needs.select.outputs.suites != '[]' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true }}
     uses: ./.github/workflows/deploy-demo.yml
     secrets: inherit
+
+  # Admin Worker of the CMS; does not wait for deploy-demo, so a Worker fix still ships when the site deploy fails.
+  deploy-admin:
+    needs: [select, static-release]
+    if: ${{ !cancelled() && needs.static-release.result == 'success' && needs.select.outputs.suites != '[]' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true }}
+    uses: ./.github/workflows/deploy-admin.yml
+    secrets: inherit

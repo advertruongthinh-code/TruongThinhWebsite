@@ -1,0 +1,27 @@
+name: CMS check
+
+# Calls the admin snapshot 30 times with the CMS service token (cms-plan S4, Q12 CPU check).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - shell: bash
+        env:
+          CMS_ADMIN_ORIGIN: ${{ vars.CMS_ADMIN_ORIGIN }}
+          CMS_ACCESS_CLIENT_ID: ${{ secrets.CMS_ACCESS_CLIENT_ID }}
+          CMS_ACCESS_CLIENT_SECRET: ${{ secrets.CMS_ACCESS_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            curl -sS -o /dev/null -w "%{http_code} %{time_total}s %{size_download}B\n" -A "tt-cms-ci" \
+              -H "CF-Access-Client-Id: $CMS_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CMS_ACCESS_CLIENT_SECRET" \
+              "$CMS_ADMIN_ORIGIN/api/admin/snapshot" | tee -a codes.txt
+          done
+          test "$(grep -c '^200 ' codes.txt)" = 30
