@@ -4,6 +4,8 @@ export const nonPublicSourceAssets = [
   "advertising-products/media-contract.mjs",
   "advertising-products/media-manifest.mjs",
   "advertising-products/photo-tags.mjs",
+  "content/advertising-cards.json",
+  "content/advertising-merged.json",
   "content/client-logos.json",
   "content/hero-slides.json",
   "content/home-projects.json",

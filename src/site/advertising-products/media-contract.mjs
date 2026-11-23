@@ -12,6 +12,8 @@ const isNonEmptyString = (value) => typeof value === "string" && value.length > 
 const isPositiveNumber = (value) => typeof value === "number" && Number.isFinite(value) && value > 0;
 const isPositiveInteger = (value) => Number.isSafeInteger(value) && value > 0;
 const isSha256 = (value) => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+// Media on the media origin (cms-plan part 2 K6) has no repo source record: its manifest in variants.json vouches for it.
+const isR2 = (src) => /^https:\/\/[a-z0-9.-]+\/v\/[0-9a-f]{32}\//.test(src ?? "");
 
 function duplicateValue(records, readValue) {
   const seen = new Set();
@@ -52,7 +54,7 @@ export function validateAdvertisingCardMedia(record) {
     if (ids.has(item.id)) throw new Error(`${record.id} has duplicate media id: ${item.id}`);
     ids.add(item.id);
     if (item.kind !== "image" && item.kind !== "video") throw new Error(`${record.id} media ${item.id} requires image/video kind`);
-    if (!isNonEmptyString(item.src) || !isNonEmptyString(item.sourceId)) throw new Error(`${record.id} media ${item.id} requires src and sourceId`);
+    if (!isNonEmptyString(item.src) || (!isR2(item.src) && !isNonEmptyString(item.sourceId))) throw new Error(`${record.id} media ${item.id} requires src and sourceId`);
     if (!isPositiveInteger(item.width) || !isPositiveInteger(item.height)) throw new Error(`${record.id} media ${item.id} requires positive integer width and height`);
     if (cardWidth === 0n) {
       cardWidth = BigInt(item.width);
@@ -65,7 +67,7 @@ export function validateAdvertisingCardMedia(record) {
       if (altOwners.has(alt)) throw new Error(`${record.id} media ${altOwners.get(alt)} and ${item.id} share alt "${alt.slice(3)}"`);
       altOwners.set(alt, item.id);
     }
-    if (!isNonEmptyString(item.source) || !isSha256(item.sha256) || !isNonEmptyString(item.provenance)) {
+    if (!isR2(item.src) && (!isNonEmptyString(item.source) || !isSha256(item.sha256) || !isNonEmptyString(item.provenance))) {
       throw new Error(`${record.id} media ${item.id} requires source, sha256, and provenance`);
     }
     if (item.kind === "video") {
@@ -101,8 +103,9 @@ export function validateAdvertisingMediaPool(records, options) {
   const errors = validateAdvertisingTaxonomy(clusters, products);
   const clusterIdByProductId = new Map(products.map((product) => [product.id, product.cluster]));
   const ratiosByCluster = new Map(clusters.map((cluster) => [cluster.id, new Array()]));
-  const expectedEntries = Object.entries(ADVERTISING_MEDIA_CATEGORY_COUNTS);
-  const grouped = new Map(expectedEntries.map(([category]) => [category, new Array()]));
+  // A card's category is the legacySlug of its main product's cluster; a new cluster without one uses its slugEn (K6).
+  const categories = clusters.length ? clusters.map((cluster) => cluster.legacySlug ?? cluster.slugEn) : Object.keys(ADVERTISING_MEDIA_CATEGORY_COUNTS);
+  const grouped = new Map(categories.map((category) => [category, new Array()]));
 
   records.forEach((record, inputIndex) => {
     if (!record || typeof record !== "object") {
@@ -134,7 +137,7 @@ export function validateAdvertisingMediaPool(records, options) {
     if (!Number.isInteger(record.sourceOrder) || record.sourceOrder < 0) {
       errors.push(`${record.id ?? `record ${inputIndex}`} requires a non-negative integer sourceOrder`);
     }
-    if (!record.media || !isNonEmptyString(record.media.src) || !isNonEmptyString(record.media.sourceId)) {
+    if (!record.media || !isNonEmptyString(record.media.src) || (!isR2(record.media.src) && !isNonEmptyString(record.media.sourceId))) {
       errors.push(`${record.id ?? `record ${inputIndex}`} requires media.src and media.sourceId`);
     }
     if (!record.media || !isPositiveNumber(record.media.width) || !isPositiveNumber(record.media.height)) {
@@ -158,7 +161,7 @@ export function validateAdvertisingMediaPool(records, options) {
         if (!tagIds.has(tagId)) errors.push(String(record.id ?? ("record " + inputIndex)) + " has unknown tag ID " + String(tagId));
       }
     }
-    if (!isNonEmptyString(record.media?.source) || !isSha256(record.media?.sha256) || !isNonEmptyString(record.media?.provenance)) {
+    if (!isR2(record.media?.src) && (!isNonEmptyString(record.media?.source) || !isSha256(record.media?.sha256) || !isNonEmptyString(record.media?.provenance))) {
       errors.push(String(record.id ?? ("record " + inputIndex)) + " requires media source, SHA-256, and provenance");
     }
     try {
@@ -183,7 +186,7 @@ export function validateAdvertisingMediaPool(records, options) {
     if (duplicate !== null) errors.push(`duplicate media item ${label}: ${duplicate}`);
   }
 
-  for (const [category] of expectedEntries) {
+  for (const category of categories) {
     grouped.get(category).forEach((record, categoryIndex) => {
       if (record.sourceOrder !== categoryIndex) {
         errors.push(`${category} sourceOrder must follow input order at index ${categoryIndex}`);

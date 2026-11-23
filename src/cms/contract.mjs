@@ -6,7 +6,7 @@ import { heroSlideErrors } from "../../scripts/site/hero-slides.mjs";
 import { validateHomeProjects } from "../../scripts/site/home-projects.mjs";
 import { validateAdvertisingCardMedia } from "../../src/site/advertising-products/media-contract.mjs";
 import { IMAGE_SRC } from "../../scripts/site/lib-pure.mjs";
-import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
+import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS } from "../../src/site/advertising-products/taxonomy.mjs";
 import { layoutErrors } from "./layouts.mjs";
 import { mediaRefs } from "./media-ref.mjs";
 
@@ -47,6 +47,23 @@ const cropErrors = (crop, media, where) => {
   return ok ? [] : [shape(`${where}: crop must be 4 integers [x, y, w, h] inside ${media.width}x${media.height}`, "crop")];
 };
 
+// Derived fields of an Advertising card (cms-plan part 2 K6), set on save over what the client sent. category: the legacySlug
+// (else slugEn) of the main product's cluster; productKey: <category>-product-<id> for a new card. A card that already has
+// them keeps them (10 seeded cards sit in another category than their main product's cluster; changing that moves cards).
+// tagIds: one group-<category>; a framing tag from the cover ratio when none is set. sourceOrder: snapshotToFiles renumbers.
+export function deriveCard(data, { products = ADVERTISING_PRODUCTS, clusters = ADVERTISING_CLUSTERS } = {}) {
+  const product = products.find(({ id }) => id === data.productIds?.[0]);
+  const cluster = clusters.find(({ id }) => id === product?.cluster);
+  const category = data.category ?? cluster?.legacySlug ?? cluster?.slugEn;
+  const productKey = data.productKey ?? `${category}-product-${data.id}`;
+  const cover = data.mediaItems?.find(({ id }) => id === data.coverMediaId) ?? data.mediaItems?.[0] ?? data.media;
+  const ratio = cover?.width / cover?.height;
+  const tags = (data.tagIds ?? []).filter((tag) => !tag.startsWith("group-"));
+  const framing = tags.some((tag) => tag.startsWith("format-")) || !(ratio > 0) ? []
+    : [ratio < 0.9 ? "format-portrait" : ratio <= 1.1 ? "format-square" : "format-landscape"];
+  return { ...data, category, productKey, tagIds: data.tagIds?.length ? [`group-${category}`, ...tags, ...framing] : [] };
+}
+
 // ctx: { id, mediaById }. mediaById holds media that are not trashed, so a trashed id reads as unknown.
 export async function shapeErrors(type, data, ctx = {}) {
   if (!isObject(data)) return [shape(`${type}: data must be an object`)];
@@ -64,6 +81,7 @@ export async function shapeErrors(type, data, ctx = {}) {
     errors.push(...layoutErrors(pageKind(type), data).filter((error) => error.level === "shape").map((error) => ({ ...error, message: `${at}: ${error.message}` })));
     errors.push(...blockMarksErrors(data, at));
   }
+  if (type === "advertising-card" && !ADVERTISING_PRODUCTS.some(({ id }) => id === data.productIds?.[0])) errors.push(shape(`${at}: a card needs a known main product (productIds[0])`, "card-product"));
   const mediaById = ctx.mediaById ?? new Map();
   for (const ref of mediaRefs(type, data)) {
     // legacySrc keeps seeded fields as is, so it must not let a client keep its own src (Q6: legacySrc equals the seeded src).
@@ -127,7 +145,9 @@ export async function fullErrors(type, data, ctx = {}) {
   } else if (type === "home-projects") messages = validateHomeProjects(data.ids, projects);
   else if (type === "menu") messages = menuErrors(data, { projects: [...projects.values()], categories }, "menu");
   else if (type === "advertising-card") {
-    try { validateAdvertisingCardMedia(data); } catch (error) { messages = [error.message]; }
+    const card = deriveCard(data);
+    if (!card.tagIds.length) messages.push(`${at}: a card needs tagIds`);
+    try { validateAdvertisingCardMedia(card); } catch (error) { messages.push(error.message); }
   } else if (type === "media") messages = mediaErrors(data);
   return [
     ...messages.map(missing),
