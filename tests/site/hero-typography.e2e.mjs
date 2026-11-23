@@ -198,6 +198,10 @@ try {
           for (const spec of titles.filter((t) => t.route === route)) {
             const where = `${locale} /${path} ${spec.selector} @${width}`;
             await page.locator(spec.selector).scrollIntoViewIfNeeded();
+            // The closing block is a media frame whose lazy image starts loading once in view: while it loads, the loading layer is
+            // composited over the title and the title rasterizes 1px apart from after it settles (read as unstable or clipped ink).
+            await page.waitForFunction((selector) => !document.querySelector(selector).closest(".media-frame:not(.is-media-settled)"),
+              spec.selector, { timeout: 10_000 });
             const info = await inspectTitle(page, spec);
             if (!info) { failures.push(`${where}: title missing`); continue; }
             if (info.lines.length !== 2 || info.lines.some((n) => n !== 1)) failures.push(`${where}: lines ${JSON.stringify(info.lines)}`);

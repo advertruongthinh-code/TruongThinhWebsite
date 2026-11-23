@@ -348,7 +348,12 @@ try {
     assert.ok(await page.evaluate(() => document.querySelector("[data-project-grid] img.lazyloading")), `${viewport.width}px: geometry sampled while images load`);
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] img.lazyloading"), null, { timeout: 30_000 });
     const loaded = await geometry();
-    assert.deepEqual(loaded, duringLoad, `${viewport.width}px: grid, CTA, footer and filters keep geometry while images load`);
+    // The virtual window may mount more cards once the page is idle (on a slow runner after this sample): compare the cards both samples hold.
+    const sampledIds = new Set(duringLoad.cards.map(([id]) => id));
+    const settledIds = new Set(loaded.cards.map(([id]) => id));
+    assert.deepEqual({ ...loaded, cards: loaded.cards.filter(([id]) => sampledIds.has(id)) },
+      { ...duringLoad, cards: duringLoad.cards.filter(([id]) => settledIds.has(id)) },
+      `${viewport.width}px: grid, CTA, footer and filters keep geometry while images load`);
     const cardCount = loaded.cards.length;
     const cardRequests = counts.size;
     assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
