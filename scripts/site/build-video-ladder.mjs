@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Generates the HLS quality ladder for one video (video-delivery R1, R2): one fMP4 file per rung with a byte-range playlist, plus
-// master.m3u8. Does not modify card data (R5).
+// master.m3u8. Does not modify card data and drops the source metadata, e.g. the GPS tag of a phone (R5).
 // Usage: node scripts/site/build-video-ladder.mjs <source video> <output dir> (needs ffmpeg, ffprobe in PATH).
 import { execFileSync } from "node:child_process";
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
@@ -10,26 +10,30 @@ const [source, outDir] = process.argv.slice(2).map((arg) => arg && path.resolve(
 if (!source || !outDir) throw new Error("usage: build-video-ladder.mjs <source video> <output dir>");
 const CRF = { 240: 30, 480: 28, 960: 30, 1920: 28 };
 // cwd is the output dir so playlists reference files by relative name.
-const ffmpeg = (args) => execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args], { cwd: outDir });
+// -map_metadata -1 is an output option, so it goes just before the output file (the last argument).
+const ffmpeg = (args) => execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args.slice(0, -1), "-map_metadata", "-1", args.at(-1)], { cwd: outDir });
 const probe = (file, args) => JSON.parse(execFileSync("ffprobe", ["-v", "error", "-of", "json", ...args, file]).toString());
 
-const { streams } = probe(source, ["-show_entries", "stream=codec_type,codec_name,profile,pix_fmt,width,r_frame_rate"]);
+const { streams } = probe(source, ["-show_entries", "stream=codec_type,codec_name,profile,pix_fmt,width,height,r_frame_rate:stream_side_data=rotation"]);
 const video = streams.find((stream) => stream.codec_type === "video");
 const fps = video.r_frame_rate.split("/").reduce((num, den) => num / den);
+// Phones store landscape frames plus a rotation; rungs follow the width the viewer sees.
+const turned = Math.abs(Number(video.side_data_list?.[0]?.rotation ?? 0)) % 180 === 90;
+const displayWidth = turned ? video.height : video.width;
 const hasAudio = streams.some((stream) => stream.codec_type === "audio");
 const keyTimes = probe(source, ["-select_streams", "v:0", "-skip_frame", "nokey", "-show_entries", "frame=pts_time"]).frames
   .map((frame) => Number(frame.pts_time));
 // Copy the stream only when the source is already H.264 High 4:2:0 with keyframes at every 0.5 s multiple like the re-encoded rungs, so segments of all rungs
 // cut at the same time.
-const copyable = video.codec_name === "h264" && video.profile === "High" && video.pix_fmt === "yuv420p"
+const copyable = !turned && video.codec_name === "h264" && video.profile === "High" && video.pix_fmt === "yuv420p"
   && keyTimes.every((time, index) => Math.abs(time - index * 0.5) < 1e-3);
-const tiers = Object.keys(CRF).map(Number).filter((width) => width <= video.width);
+const tiers = Object.keys(CRF).map(Number).filter((width) => width <= displayWidth);
 
 mkdirSync(outDir, { recursive: true });
 // Audio is encoded once then copied into every rung so rung switches have no audible click (R4).
 if (hasAudio) ffmpeg(["-i", source, "-vn", "-c:a", "aac", "-b:a", "48k", "audio.m4a"]);
 for (const width of tiers) {
-  const encode = width === video.width && copyable ? ["-c:v", "copy"] : ["-vf", `scale=${width}:-2`, "-c:v", "libx264",
+  const encode = width === displayWidth && copyable ? ["-c:v", "copy"] : ["-vf", `scale=${width}:-2`, "-c:v", "libx264",
     "-profile:v", "high", "-crf", String(CRF[width]), "-preset", "slow", "-pix_fmt", "yuv420p",
     // Force a keyframe at every 0.5 s multiple so segments cut at the same place; -g sets the GOP cadence for rate control (without it the file is 9% larger).
     "-force_key_frames", "expr:gte(t,n_forced*0.5)", "-g", String(Math.round(fps / 2)), "-sc_threshold", "0"];

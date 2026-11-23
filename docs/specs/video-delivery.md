@@ -162,8 +162,9 @@ gốc nhỏ hơn 960), `cardSrc` trỏ file bậc 480; `source`, `sha256` là fi
 `cardSrc` như hiện tại. Mỗi video có một thư mục `<id>/` chứa `master.m3u8`, `<bậc>.m3u8`, `<bậc>.mp4`.
 
 `scripts/site/build-video-ladder.mjs <video gốc> <thư mục ra>` sinh thư mục trên từ một video gốc và không sửa dữ liệu
-card; dữ liệu card sửa tay. CMS chạy script này trong job biến thể cho video upload, không dùng Cloudflare Stream
-([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)). `main` chưa có video thật ([media-card](media-card.md#gate-còn-mở)).
+card; dữ liệu card sửa tay. Script bỏ metadata của bản gốc (thẻ vị trí GPS) khỏi mọi file ra và tính bậc theo bề rộng
+hiển thị: video xoay 90 độ (điện thoại quay dọc) dùng chiều cao đã lưu làm bề rộng, không phóng to. CMS chạy script này
+trong job biến thể cho video upload, không dùng Cloudflare Stream ([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)). `main` chưa có video thật ([media-card](media-card.md#gate-còn-mở)).
 
 ```gherkin
 Given item video không có hlsSrc
@@ -221,7 +222,7 @@ Không đổi giao diện; card video và player giữ component hiện có
 | R1 | `tests/site/primary-video-keyframes.test.mjs` đọc cả fMP4 (keyframe nằm trong `moof`, không trong `moov`) |
 | R3 | `tests/site/video-delivery.e2e.mjs` (thang AV1 trong `tests/site/fixtures/video-ladder`): card bậc 480, detail bậc đầu tiếp đúng giây, viewer giữ nguồn; không có Media Source thì phát `cardSrc`; không có `hlsSrc` hoặc Media Source thì không tải hls.js |
 | R4 | `tests/site/video-delivery.e2e.mjs`: server giới hạn 60 kbps rồi bỏ giới hạn, một video khác tải segment; frame sau giây 2 lên 480 trong 4 s, frame cách nhau dưới 250 ms, `waiting` dưới 100 ms (cloud đo 2 tới 6 ms; ngưỡng 10 ms đo ở R6). Tắt luật thay thì ca này đỏ |
-| R5 | `tests/site/video-delivery.e2e.mjs`: item thiếu `hlsSrc` phát `cardSrc`, không nạp playlist; không có Media Source thì không nạp hls.js |
+| R5 | `tests/site/video-delivery.e2e.mjs`: item thiếu `hlsSrc` phát `cardSrc`, không nạp playlist; không có Media Source thì không nạp hls.js; `tests/site/video-ladder.test.mjs`: nguồn xoay 90 độ không có bậc rộng hơn bề rộng hiển thị; `tests/cms/build-variants.test.mjs`: file ra không có thẻ `location` |
 | R6 | `tests/site/video-delivery-measure.mjs --base <98f3963> --candidate <nhánh> --h2`, chạy tay: 4G chậm 9 lượt mỗi bản (đứng hình, video không kịp chạy), mạng nhanh (thời gian chạy), lượt đổi bậc (lên bậc, `waiting`, frame tối, `droppedVideoFrames`); A04s thêm `DEVICE_CDP`. Main thread PC: `pnpm qa:scroll-trace`; A04s cuộn masonry 3 lượt mỗi bản, trace CDP, so với bản chặn hls.js. Tiếng ở detail kiểm tay |
 
 ## Gate còn mở
