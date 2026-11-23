@@ -43,11 +43,12 @@ export async function bootstrapOwner(env, email) {
   return inserted.meta.changes === 1 ? { email, role: "owner" } : null;
 }
 
-export function hasAllowedOrigin(request, url) {
+// ADMIN_ORIGIN ([vars] of wrangler.toml) names the one admin origin; without it (local run, tests) the request's own origin.
+export function hasAllowedOrigin(request, url, env = {}) {
   const origin = request.headers.get("origin");
   if (!origin) return false;
   try {
-    return new URL(origin).origin === url.origin;
+    return new URL(origin).origin === (env.ADMIN_ORIGIN || url.origin);
   } catch {
     return false;
   }
