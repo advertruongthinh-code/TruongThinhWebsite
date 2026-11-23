@@ -6544,39 +6544,162 @@ body.is-masonry-browse .site-footer {
   user-select: none;
 }
 
-/* The thumbnail strip of the viewer (primary-video-player R8): same strip as the primary, stacked vertically on the left, 16px from the edge and centered
-   vertically, height following the thumbnail count (owner 2026-11-14; before: a row at the bottom). The fit leaves 16px between the strip and the image
-   (detail-viewer measureFit). */
-.detail-dialog__thumbs {
-  --scroll-fade-direction: to bottom;
-  --viewer-thumb-width: 96px;
-  position: absolute;
-  top: calc(50% + (var(--viewer-visible-top, 0px) - var(--viewer-visible-bottom, 0px)) / 2);
-  left: calc(var(--viewer-visible-left, 0px) + max(1rem, env(safe-area-inset-left)));
-  z-index: 2;
-  flex-direction: column;
-  width: max-content;
-  max-height: calc(round(down, 100% - 2rem + 8px, var(--viewer-thumb-width) / var(--detail-thumb-ratio, 1) + 8px) - 8px);
-  overflow: hidden auto;
-  overscroll-behavior: contain;
-  translate: 0 -50%;
-  transition: opacity var(--dur-base) ease, translate var(--dur-base) ease;
+/* The viewer keeps a margin around the fitted image (owner 2026-11-23): 48px, phones 24px. Tablet and PC put the strip beside the image,
+   phones lay it over the image because a column plus margins would leave the image too narrow (detail-viewer measureFit reads both). */
+.detail-dialog {
+  --viewer-margin: 48px;
+  --viewer-dock: beside;
 }
 
-/* The vertical strip keeps a 96px column (60px before, owner asked wider 2026-11-14); each thumbnail's height follows its media's ratio. */
-.detail-dialog__thumbs button {
-  width: var(--viewer-thumb-width);
+/* The viewer strip keeps 96px thumbnails (owner 2026-11-14), phones 56px like the primary. */
+.detail-dialog__thumbs {
+  --dock-thumb: 96px;
+  --dock-inset: var(--viewer-margin);
+  --dock-top: var(--viewer-visible-top, 0px);
+  --dock-bottom: var(--viewer-visible-bottom, 0px);
+  --dock-left: var(--viewer-visible-left, 0px);
+}
+
+@media (max-width: 600px), (max-height: 600px) {
+  .detail-dialog {
+    --viewer-margin: 24px;
+    --viewer-dock: over;
+  }
+
+  .detail-dialog__thumbs {
+    --dock-thumb: 56px;
+  }
 }
 
 .detail-dialog__thumbs button:focus-visible {
   outline-color: #fff;
 }
 
-/* When the mouse is still the strip slides out to the left and fades (owner 2026-10-26). */
-.detail-dialog__thumbs[data-viewer-idle] {
-  opacity: 0;
-  translate: -1rem -50%;
+/* Floating thumbnail strip (owner 2026-11-23): the primary strip on touch screens and the viewer strip on every device. Portrait screens stack a
+   column on the left, landscape screens a row at the bottom; thumbnails keep one cross size either way. A dark edge fading like the hero shade sits
+   behind it, the strip itself takes no touch between thumbnails so the image under it still opens, swipes and zooms. */
+.thumb-dock {
+  --dock-fade: 48px;
+  --dock-shade: rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.529) 12.5%, rgba(0, 0, 0, 0.469) 25%, rgba(0, 0, 0, 0.38) 37.5%,
+    rgba(0, 0, 0, 0.275) 50%, rgba(0, 0, 0, 0.17) 62.5%, rgba(0, 0, 0, 0.081) 75%, rgba(0, 0, 0, 0.021) 87.5%, transparent;
+  --scroll-fade-size: var(--dock-thumb);
+  position: absolute;
+  /* Above the primary video player (3, earlier in the frame), so the strip takes touches over the play surface. */
+  z-index: 3;
+  display: flex;
+  box-sizing: border-box;
+  gap: 8px;
+  justify-content: safe center;
+  overscroll-behavior: contain;
   pointer-events: none;
+  scrollbar-width: none;
+  transition: translate var(--dur-card) var(--ease-card), opacity var(--dur-card) var(--ease-card), visibility 0s;
+}
+
+.thumb-dock > * {
+  flex: 0 0 auto;
+  pointer-events: auto;
+}
+
+@media (orientation: portrait) {
+  .thumb-dock {
+    --scroll-fade-direction: to bottom;
+    top: var(--dock-top, 0px);
+    bottom: var(--dock-bottom, 0px);
+    left: var(--dock-left, 0px);
+    flex-direction: column;
+    width: calc(var(--dock-inset) + var(--dock-thumb) + var(--dock-fade));
+    /* The column starts under the toggle in the top left corner. */
+    padding: calc(2 * var(--dock-inset) + 36px) var(--dock-fade) var(--dock-inset) var(--dock-inset);
+    overflow: hidden auto;
+    background: linear-gradient(to right, var(--dock-shade));
+    touch-action: pan-y;
+  }
+
+  .thumb-dock button {
+    width: var(--dock-thumb);
+    height: auto;
+  }
+}
+
+@media (orientation: landscape) {
+  .thumb-dock {
+    --scroll-fade-direction: to right;
+    right: 0;
+    bottom: var(--dock-bottom, 0px);
+    left: var(--dock-left, 0px);
+    align-items: flex-end;
+    height: calc(var(--dock-inset) + var(--dock-thumb) + var(--dock-fade));
+    padding: var(--dock-fade) var(--dock-inset) var(--dock-inset);
+    overflow: auto hidden;
+    background: linear-gradient(to top, var(--dock-shade));
+    touch-action: pan-x;
+  }
+
+  .thumb-dock button {
+    width: auto;
+    height: var(--dock-thumb);
+  }
+}
+
+/* Collapsed by the toggle, idle mouse in the viewer (owner 2026-10-26) or while the viewer opens and closes: the strip slides out past its edge
+   and the dark edge fades with it. */
+:root[data-thumbs-collapsed] .thumb-dock,
+.thumb-dock[data-viewer-idle],
+.detail-dialog:is([data-viewer-state="opening"], [data-viewer-state="closing"]) > .thumb-dock {
+  opacity: 0;
+  visibility: hidden;
+  translate: -100% 0;
+  transition: translate var(--dur-card) var(--ease-card), opacity var(--dur-card) var(--ease-card), visibility 0s var(--dur-card);
+}
+
+@media (orientation: landscape) {
+  :root[data-thumbs-collapsed] .thumb-dock,
+  .thumb-dock[data-viewer-idle],
+  .detail-dialog:is([data-viewer-state="opening"], [data-viewer-state="closing"]) > .thumb-dock {
+    translate: 0 100%;
+  }
+}
+
+.detail-dialog[data-viewer-state="closing"] > .thumb-dock {
+  transition-duration: var(--dur-quick);
+}
+
+/* The strip toggle sits where the back button was (owner 2026-11-23), only while a strip shows: the chevron points to where the strip goes. */
+.thumbs-toggle {
+  top: var(--dock-inset);
+  bottom: auto;
+  left: var(--dock-inset);
+  display: none;
+}
+
+.thumbs-toggle svg {
+  rotate: 0deg;
+  transition: rotate var(--dur-card) var(--ease-card);
+}
+
+:root[data-thumbs-collapsed] .thumbs-toggle svg {
+  rotate: 180deg;
+}
+
+@media (orientation: landscape) {
+  .thumbs-toggle svg {
+    rotate: -90deg;
+  }
+
+  :root[data-thumbs-collapsed] .thumbs-toggle svg {
+    rotate: 90deg;
+  }
+}
+
+.detail-dialog .thumbs-toggle {
+  --dock-inset: var(--viewer-margin);
+  top: calc(var(--viewer-visible-top, 0px) + var(--viewer-margin));
+  left: calc(var(--viewer-visible-left, 0px) + var(--viewer-margin));
+}
+
+.detail-dialog:has(> .thumb-dock:not([hidden])) > .thumbs-toggle {
+  display: grid;
 }
 
 /* Video host in the viewer: the area outside the video takes no mouse so clicking still closes the viewer; the player covers exactly the Fit frame. */
@@ -6889,15 +7012,39 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 
 }
 
-/* The touch screen opens the viewer by tapping and hides the thumbnail strip too (swipe changes media). */
+/* The touch screen opens the viewer by tapping; the primary strip floats on the image (owner 2026-11-23). */
 @media (hover: none) and (pointer: coarse) {
   /* Like manipulation but without pan-x: a horizontal swipe drags the media strip with the finger (media-card R6). */
   .detail-view__hero-frame {
     touch-action: pan-y pinch-zoom;
   }
 
-  .detail-view__image-action.detail-view__expand:not(:focus-visible, [data-detail-expand-video]),
-  .detail-dialog__thumbs:not(:focus-within) {
+  /* The primary strip keeps 56px thumbnails in both orientations and the corner inset of the frame buttons (16px, phones 8px). */
+  .detail-view__hero-frame {
+    --dock-inset: 16px;
+    --dock-thumb: 56px;
+  }
+
+  .detail-view__hero-frame:has(> .thumb-dock) > .thumbs-toggle {
+    display: grid;
+  }
+
+  /* A bottom row would cover the video bar and its expand button: they rise above the open strip. */
+  @media (orientation: landscape) {
+    .detail-view__hero-frame .video-player__bar {
+      transition: opacity 200ms ease-out, translate var(--dur-card) var(--ease-card);
+    }
+
+    .detail-view__hero-frame .detail-view__expand[data-detail-expand-video] {
+      transition: background-color var(--dur-fast) ease-out, translate var(--dur-card) var(--ease-card);
+    }
+
+    :root:not([data-thumbs-collapsed]) .detail-view__hero-frame:has(> .thumb-dock:not([hidden])) :is(.video-player__bar, .detail-view__expand[data-detail-expand-video]) {
+      translate: 0 calc(-1 * (var(--dock-inset) + var(--dock-thumb)));
+    }
+  }
+
+  .detail-view__image-action.detail-view__expand:not(:focus-visible, [data-detail-expand-video]) {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -6911,9 +7058,16 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 }
 
+@media (hover: none) and (pointer: coarse) and (max-width: 750px) {
+  .detail-view__hero-frame {
+    --dock-inset: 8px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .detail-view__image-action,
-  .detail-dialog__thumbs {
+  .thumb-dock,
+  .thumbs-toggle svg {
     transition: none !important;
   }
 

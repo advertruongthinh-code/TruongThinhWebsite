@@ -196,8 +196,9 @@ async function runPhone({ locale, width, height }) {
   const state = () => page.evaluate(readState);
   const start = await state();
   const label = `${locale} ${start.vw}x${start.vh}`;
-  // R7, R8: no button is shown on the primary or in the viewer (the viewer has none, owner 2026-11-14), and the page does not zoom on double tap.
-  const visibleButtons = await page.evaluate(() => [...document.querySelectorAll("[data-detail-expand], #detail-dialog button:not([data-detail-viewer-thumbs] button)")]
+  // R7, R8: no button is shown on the primary or in the viewer besides the strip and its toggle (owner 2026-11-14, 2026-11-23), and the page
+  // does not zoom on double tap.
+  const visibleButtons = await page.evaluate(() => [...document.querySelectorAll("[data-detail-expand], #detail-dialog button:not([data-detail-viewer-thumbs] button, [data-thumbs-toggle])")]
     .filter((node) => node.getBoundingClientRect().width > 1).map((node) => node.outerHTML.slice(0, 60)));
   check(visibleButtons.length === 0 && start.pageZoom === 1, `${label} R7/R8: visible ${visibleButtons}, page zoom ${start.pageZoom}`);
   // R4, R7: the second tap of the double tap that opens the viewer is swallowed, and the image stays at Fit.
@@ -218,7 +219,7 @@ async function runPhone({ locale, width, height }) {
   check(Math.abs(tripled.x - holding.x) <= 1 && Math.abs(tripled.y - holding.y) <= 1 && near(tripled.scale, holding.scale),
     `${label} R1: third finger moved the image`);
   await touch.send("touchEnd", [{ ...third, x: third.x + 30 }]);
-  // 230px keeps s = 2.3 under Max (2 × Cover) even when Fit touches the screen edge in landscape.
+  // 230px keeps s = 2.3 under Max (2 × Cover) in landscape.
   await touch.send("touchMove", touch.pair(centre, 230));
   check(near((await state()).scale, 2.3), `${label} R1: pinch stopped following after a third finger`);
   await touch.send("touchEnd", []);

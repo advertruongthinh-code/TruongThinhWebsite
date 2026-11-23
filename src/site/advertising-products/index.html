@@ -243,6 +243,16 @@
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 1l11 11L8 23" /></svg>
                   </button>
                   <button
+                    class="detail-view__image-action thumbs-toggle"
+                    type="button"
+                    data-thumbs-toggle
+                    aria-expanded="true"
+                    aria-label="Dãy ảnh"
+                    data-en-aria-label="Media strip"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7" /></svg>
+                  </button>
+                  <button
                     class="detail-view__image-action detail-view__expand"
                     type="button"
                     data-detail-expand
@@ -333,13 +343,23 @@
               <div class="detail-dialog__video" data-detail-video-host hidden></div>
             </div>
             <div
-              class="detail-view__media-thumbs detail-dialog__thumbs"
+              class="detail-view__media-thumbs detail-dialog__thumbs thumb-dock"
               role="group"
               aria-label="Media sản phẩm"
               data-en-aria-label="Product media"
               data-detail-viewer-thumbs
               hidden
             ></div>
+            <button
+              class="detail-view__image-action thumbs-toggle"
+              type="button"
+              data-thumbs-toggle
+              aria-expanded="true"
+              aria-label="Dãy ảnh"
+              data-en-aria-label="Media strip"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M15 5l-7 7 7 7" /></svg>
+            </button>
             <output class="sr-only" data-detail-zoom-status aria-live="polite">100%</output>
           </dialog>
         </section>

@@ -5148,6 +5148,22 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       });
     }
   };
+  // Touch screens float the primary strip on the image, other screens keep it in info above the description (owner 2026-11-23).
+  const touchScreen = env.phone;
+  const placePrimaryThumbs = () => {
+    if (!photoMediaThumbs) return;
+    const floating = touchScreen.matches && heroFrame;
+    photoMediaThumbs.classList.toggle("thumb-dock", Boolean(floating));
+    if (floating) heroFrame.append(photoMediaThumbs);
+    else photoDescriptionBox.before(photoMediaThumbs);
+  };
+  touchScreen.addEventListener("change", placePrimaryThumbs, { signal: controller.signal });
+  // One collapse state for the primary and viewer strips, kept while the page stays open (owner 2026-11-23).
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest?.("[data-thumbs-toggle]")) return;
+    const collapsed = document.documentElement.toggleAttribute("data-thumbs-collapsed");
+    document.querySelectorAll("[data-thumbs-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(!collapsed)));
+  }, { signal: controller.signal });
   const renderPrimaryThumbs = (record) => {
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
@@ -5173,7 +5189,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       photoMediaThumbs.setAttribute("role", "group");
       photoMediaThumbs.addEventListener("scroll", syncScrollHints, { passive: true });
       scrollHintObserver.observe(photoMediaThumbs);
-      photoDescriptionBox.before(photoMediaThumbs);
+      placePrimaryThumbs();
     }
     photoMediaThumbs.setAttribute("aria-label", english ? "Product media" : "Media sản phẩm");
     photoMediaThumbs.style.setProperty("--detail-thumb-ratio", String(thumbRatio(record)));
@@ -5376,7 +5392,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // A touch swipe drags the strip with the finger (R6 like card R3); arrow keys when focus is in the frame change media, the seek bar and
   // volume keep their keys. A finger on the seek bar and volume only seeks and adjusts sound (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {
-    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range']"),
+    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range'], .thumb-dock, [data-thumbs-toggle]"),
     width: primaryWidth,
     canStep: (step) => Boolean(primaryItems()[primaryIndex() + step]),
     drag: (offset) => {
