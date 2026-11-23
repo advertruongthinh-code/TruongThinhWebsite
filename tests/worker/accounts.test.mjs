@@ -22,7 +22,7 @@ function setup({ accounts = [["a@example.com", "owner", "active"]], fail = null 
   };
   const puts = [];
   globalThis.fetch = async (url, init = {}) => {
-    assert.equal(String(url), "https://api.cloudflare.com/client/v4/accounts/acc/access/apps/app1/policies/p1");
+    assert.equal(String(url), "https://api.cloudflare.com/client/v4/accounts/acc/access/policies/p1");
     assert.equal(init.headers.Authorization, "Bearer t");
     const method = init.method ?? "GET";
     if (fail === method) return new Response("{}", { status: 500 });
@@ -37,7 +37,6 @@ function setup({ accounts = [["a@example.com", "owner", "active"]], fail = null 
     DB,
     CF_ACCOUNT_ID: "acc",
     ACCESS_API_TOKEN: "t",
-    ACCESS_APP_ID: "app1",
     ACCESS_POLICY_ID: "p1",
     CMS_LOCAL_ADMIN_EMAIL: "a@example.com",
     ADMIN_WRITE_LIMIT: { limit: async () => ({ success: true }) },

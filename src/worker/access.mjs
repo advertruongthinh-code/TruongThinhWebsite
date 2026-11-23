@@ -3,10 +3,11 @@
 // PUT replaces the whole policy: send every field read back except the read-only ones, so no setting is reset.
 const READ_ONLY_KEYS = ["id", "uid", "created_at", "updated_at", "version", "app_count", "reusable"];
 
-const policyUrl = (env) => `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/access/apps/${env.ACCESS_APP_ID}/policies/${env.ACCESS_POLICY_ID}`;
+// The admin app uses a reusable policy, edited at the account level (Cloudflare API "Update an Access reusable policy").
+const policyUrl = (env) => `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/access/policies/${env.ACCESS_POLICY_ID}`;
 
 async function call(env, init = {}) {
-  if (!env.ACCESS_API_TOKEN || !env.ACCESS_APP_ID || !env.ACCESS_POLICY_ID) throw new Error("access not configured");
+  if (!env.ACCESS_API_TOKEN || !env.ACCESS_POLICY_ID) throw new Error("access not configured");
   const response = await fetch(policyUrl(env), {
     ...init,
     headers: { Authorization: `Bearer ${env.ACCESS_API_TOKEN}`, "Content-Type": "application/json" },
