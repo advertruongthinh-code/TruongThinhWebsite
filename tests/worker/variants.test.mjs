@@ -1,14 +1,13 @@
 // Variants settle and workflow dispatch (CMS plan P3 item 6, Q6 step 4, Q8).
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { fileURLToPath } from "node:url";
 import { runCron } from "../../src/worker/cron.mjs";
 import { dispatchVariants, dispatchWorkflow } from "../../src/worker/dispatch.mjs";
 import { settleVariants } from "../../src/worker/variants.mjs";
-import { createD1 } from "./d1-fake.mjs";
+import { createD1, MIGRATIONS } from "./d1-fake.mjs";
 import { createR2 } from "./r2-fake.mjs";
 
-const SCHEMA = fileURLToPath(new URL("../../src/db/migrations/0001_cms.sql", import.meta.url));
+const SCHEMA = MIGRATIONS;
 const KEY = "a".repeat(32);
 const realFetch = globalThis.fetch;
 globalThis.scheduler = { wait: async () => {} }; // no real 1, 2, 4 s waits between retries

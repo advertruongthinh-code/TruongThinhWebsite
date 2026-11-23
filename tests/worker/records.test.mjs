@@ -1,12 +1,11 @@
 // Record commands (CMS plan P1, Q3, Q9, Q10) on D1 seeded from the repo content.
 import assert from "node:assert/strict";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { seedSql } from "../../scripts/cms/seed.mjs";
 import { COMMANDS, route } from "../../src/worker/router.mjs";
-import { createD1 } from "./d1-fake.mjs";
+import { createD1, MIGRATIONS } from "./d1-fake.mjs";
 
-const SCHEMA = fileURLToPath(new URL("../../src/db/migrations/0001_cms.sql", import.meta.url));
+const SCHEMA = MIGRATIONS;
 const SEED = await seedSql({ now: "2026-11-22T00:00:00.000Z" });
 const ORIGIN = "http://127.0.0.1:8787";
 

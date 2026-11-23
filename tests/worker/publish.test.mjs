@@ -1,17 +1,16 @@
 // Publishing from the Worker (CMS plan P4 item 6): dispatchBuild, retryBuild, rebuild, build-status.
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { fileURLToPath } from "node:url";
 import { seedSql } from "../../scripts/cms/seed.mjs";
 import { runCron } from "../../src/worker/cron.mjs";
 import buildStatus from "../../src/worker/commands/build-status.mjs";
 import snapshot from "../../src/worker/commands/snapshot.mjs";
 import { dispatchBuild } from "../../src/worker/dispatch.mjs";
 import { route } from "../../src/worker/router.mjs";
-import { createD1 } from "./d1-fake.mjs";
+import { createD1, MIGRATIONS } from "./d1-fake.mjs";
 import { createR2 } from "./r2-fake.mjs";
 
-const SCHEMA = fileURLToPath(new URL("../../src/db/migrations/0001_cms.sql", import.meta.url));
+const SCHEMA = MIGRATIONS;
 const SEED = await seedSql({ now: "2026-11-22T00:00:00.000Z" });
 const ORIGIN = "http://127.0.0.1:8787";
 const realFetch = globalThis.fetch;

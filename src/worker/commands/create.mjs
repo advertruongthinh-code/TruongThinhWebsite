@@ -3,7 +3,7 @@ import { ID, OPEN_TYPES, recordName, recordSlugs } from "../../cms/contract.mjs"
 import { dispatchVariants } from "../dispatch.mjs";
 import { auditStatement, HttpError, isPlainObject, json, readJson } from "../http.mjs";
 import { contentRevStatement, FIXED_TYPES, guard, isUniqueId, isUniqueSlug } from "../records.mjs";
-import { prepare, writeStatements } from "./save.mjs";
+import { enFlag, prepare, writeStatements } from "./save.mjs";
 
 export default {
   method: "POST",
@@ -22,8 +22,8 @@ export default {
     const G = guard(type, id, writeId);
     try {
       await env.DB.batch([
-        env.DB.prepare("INSERT INTO records (type, id, status, version, live_version, pending, position, name, slug_vi, slug_en, data, write_id, created_at, created_by, updated_at, updated_by) VALUES (?, ?, 'draft', 1, NULL, 0, (SELECT COALESCE(MAX(position), -1) + 1 FROM records WHERE type = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?)")
-          .bind(type, id, type, recordName(type, prepared.next) || id, slugs.vi, slugs.en, text, writeId, now, actor.email, now, actor.email),
+        env.DB.prepare("INSERT INTO records (type, id, status, version, live_version, pending, position, name, slug_vi, slug_en, en_missing, data, write_id, created_at, created_by, updated_at, updated_by) VALUES (?, ?, 'draft', 1, NULL, 0, (SELECT COALESCE(MAX(position), -1) + 1 FROM records WHERE type = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")
+          .bind(type, id, type, recordName(type, prepared.next) || id, slugs.vi, slugs.en, enFlag(type, prepared.next), text, writeId, now, actor.email, now, actor.email),
         ...writeStatements(env, { type, id, version: 1, status: "draft", text, usesJson: prepared.usesJson, now, actor, writeId, G }),
         contentRevStatement(env, G),
         auditStatement(env, actor, "create", type, id, "ok", { guard: G }),

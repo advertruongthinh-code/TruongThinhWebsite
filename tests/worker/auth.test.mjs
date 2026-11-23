@@ -1,14 +1,13 @@
 // Admin Worker trust boundary (CMS plan Q7, Q9 audit rules): imports the real Worker, runs on the fake D1.
 import assert from "node:assert/strict";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
 import worker from "../../src/worker/index.js";
 import { COMMANDS } from "../../src/worker/router.mjs";
 import { json } from "../../src/worker/http.mjs";
 import { createR2 } from "./r2-fake.mjs";
-import { createD1 } from "./d1-fake.mjs";
+import { createD1, MIGRATIONS } from "./d1-fake.mjs";
 
-const SCHEMA = fileURLToPath(new URL("../../src/db/migrations/0001_cms.sql", import.meta.url));
+const SCHEMA = MIGRATIONS;
 const TEAM = "https://team.cloudflareaccess.com";
 const ORIGIN = "https://admin.example.test";
 const NOW = "2026-11-22T00:00:00.000Z";
@@ -72,7 +71,7 @@ test("a valid user JWT of an active account reaches a user command", async () =>
   const response = await call(env, "build-status", { jwt: await token({ email: "Staff@Example.test" }) });
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Cache-Control"), "no-store");
-  assert.deepEqual(await response.json(), { paused: false, dispatchError: null, lastSaveAt: null, deployments: [], runs: null, rollbackRuns: null, tokenExpiresAt: null, backupAt: null });
+  assert.deepEqual(await response.json(), { paused: false, dispatchError: null, lastSaveAt: null, stagingBehind: false, held: [], deployments: [], runs: null, rollbackRuns: null, tokenExpiresAt: null, backupAt: null });
 });
 
 test("a bad JWT is refused without an audit row", async () => {

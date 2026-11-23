@@ -1,12 +1,11 @@
 // Accounts and Access policy sync (CMS plan P7; cms.md R2, cms-editor-ops.md R6), against a fake Access API.
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { fileURLToPath } from "node:url";
 import { checkAccessDrift } from "../../src/worker/access.mjs";
 import { COMMANDS, route } from "../../src/worker/router.mjs";
-import { createD1 } from "./d1-fake.mjs";
+import { createD1, MIGRATIONS } from "./d1-fake.mjs";
 
-const SCHEMA = fileURLToPath(new URL("../../src/db/migrations/0001_cms.sql", import.meta.url));
+const SCHEMA = MIGRATIONS;
 const ORIGIN = "http://127.0.0.1:8787";
 const realFetch = globalThis.fetch;
 afterEach(() => { globalThis.fetch = realFetch; });
