@@ -24,8 +24,9 @@ const displayWidth = turned ? video.height : video.width;
 const hasAudio = streams.some((stream) => stream.codec_type === "audio");
 // CRF alone can spend more bits than the source (a 6 Mbps HEVC phone clip gave a 9.7 Mbps 1920 rung), so the video of every rung is capped so the rung
 // (video plus the 48 kbps audio) stays smaller than the source file. The 0.5 s buffer bounds the overshoot to half a second of bits; 10% headroom
-// covers it and the fMP4 overhead for clips from 5 s.
+// covers it and the fMP4 overhead for clips from 5 s. A container without a bitrate (raw .h264 stream) keeps CRF only.
 const cap = Math.floor((Number(format.bit_rate) - (hasAudio ? 48000 : 0)) * 0.9);
+const capped = Number.isFinite(cap) ? ["-maxrate", String(cap), "-bufsize", String(Math.floor(cap / 2))] : [];
 const keyTimes = probe(source, ["-select_streams", "v:0", "-skip_frame", "nokey", "-show_entries", "frame=pts_time"]).frames
   .map((frame) => Number(frame.pts_time));
 // Copy the stream only when the source is already H.264 High 4:2:0 with keyframes at every 0.5 s multiple like the re-encoded rungs, so segments of all rungs
@@ -39,7 +40,7 @@ mkdirSync(outDir, { recursive: true });
 if (hasAudio) ffmpeg(["-i", source, "-vn", "-c:a", "aac", "-b:a", "48k", "audio.m4a"]);
 for (const width of tiers) {
   const encode = width === displayWidth && copyable ? ["-c:v", "copy"] : ["-vf", `scale=${width}:-2`, "-c:v", "libx264",
-    "-profile:v", "high", "-crf", String(CRF[width]), "-maxrate", String(cap), "-bufsize", String(Math.floor(cap / 2)), "-preset", "slow", "-pix_fmt", "yuv420p",
+    "-profile:v", "high", "-crf", String(CRF[width]), ...capped, "-preset", "slow", "-pix_fmt", "yuv420p",
     // Force a keyframe at every 0.5 s multiple so segments cut at the same place; -g sets the GOP cadence for rate control (without it the file is 9% larger).
     "-force_key_frames", "expr:gte(t,n_forced*0.5)", "-g", String(Math.round(fps / 2)), "-sc_threshold", "0"];
   ffmpeg(["-i", source, ...(hasAudio ? ["-i", "audio.m4a", "-map", "1:a:0", "-c:a", "copy"] : []), "-map", "0:v:0", ...encode,

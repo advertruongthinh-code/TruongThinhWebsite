@@ -46,7 +46,7 @@ mọi bậc mang cùng một luồng AAC 48 kbps (mã hóa một lần, chép v�
 | 1920 | detail trên màn hình lớn, chỉ khi bản gốc đủ rộng | CRF 28 |
 
 Mọi bậc mã hóa lại có thêm trần bitrate: luồng hình tối đa 90% của (bitrate cả file gốc trừ 48 kbps tiếng nếu có), buffer
-0,5 s, nên không bậc nào nặng hơn file gốc. Chỉ CRF thì bậc 1920 của một clip điện thoại 85,8 MB ra 130 MB (9,7 so với 6 Mbps).
+0,5 s, nên không bậc nào nặng hơn file gốc; bậc copy bản gốc chỉ thêm vài trăm byte vỏ fMP4, file không ghi bitrate (luồng `.h264` trần) giữ CRF. Chỉ CRF thì bậc 1920 của một clip điện thoại 85,8 MB ra 130 MB (9,7 so với 6 Mbps).
 
 ```gherkin
 Given video gốc 960x640 có tiếng
