@@ -1417,6 +1417,31 @@ test("M02a touch primary video shows the expand button and a tap on the video pa
   });
 });
 
+// Collapsing the floating strip (viewer R8, owner 2026-11-23): the button only collapses and hides with the strip, the thumbnails peek 16px past
+// the edge, and a tap on that peek opens the strip again without changing media or opening the viewer.
+test("M02a collapsed strip peeks at the edge and a tap on the peek opens it", async () => {
+  await withPage("vi", async (page) => {
+    const card = await openFixture(page, "vi", { direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+    const toggle = page.locator(".detail-view__hero-frame > [data-thumbs-toggle]");
+    const thumb = page.locator(".detail-view__hero-frame > .thumb-dock button").first();
+    await toggle.tap();
+    await settleTransitions(page);
+    const frame = await page.locator(".detail-view__hero-frame").boundingBox();
+    const peek = await thumb.boundingBox();
+    assert(Math.abs(peek.x + peek.width - frame.x - 16) <= 1, `16px of the thumbnails stay inside the frame: ${JSON.stringify({ peek, frame })}`);
+    assert.equal(await toggle.isVisible(), false, "the collapse button hides while the strip is collapsed");
+    await page.touchscreen.tap(frame.x + 8, peek.y + peek.height / 2);
+    await settleTransitions(page);
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-thumbs-collapsed")), false, "the tap opens the strip");
+    assert.equal(await page.evaluate(() => document.querySelector("[data-detail-view]").dataset.masonryActiveMediaId), card.mediaItems[0].id,
+      "the tap does not change media");
+    assert.equal(await page.locator("[data-detail-dialog]").evaluate((node) => node.open), false, "the tap does not open the viewer");
+    assert.equal(await toggle.getAttribute("aria-expanded"), "true");
+    assert(await toggle.isVisible(), "the collapse button shows again with the open strip");
+  });
+});
+
 // The thumbnail row under the viewer replaces the two arrows (R8, owner 2026-10-25): change the card media with a sliding strip; video goes to primary,
 // on close primary stays at the media just viewed.
 test("M02a viewer thumbnails slide from the video to the image and closing keeps primary on that image", async () => {

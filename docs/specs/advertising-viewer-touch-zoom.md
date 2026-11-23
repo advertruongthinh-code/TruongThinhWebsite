@@ -169,14 +169,15 @@ Then viewer mở ở Fit, không zoom
 
 Viewer không có nút đóng, `+`, `−` trên mọi máy (owner 2026-11-14 bỏ hẳn; trước đó desktop có nút, cảm ứng ẩn khỏi mắt):
 đóng bằng chạm, click nền, Escape, Back; zoom bằng pinch (R1), chạm (R4), wheel, phím `+`/`-`.
-Dãy thumbnail nổi (`.thumb-dock`, owner 2026-11-23) là một UI cho dãy viewer trên mọi máy và dãy primary trên màn cảm ứng (dãy rời info, nằm trên ảnh; PC giữ dãy ngang trong info): màn dọc là cột sát trái, màn ngang là hàng ở đáy; thumbnail giữ cùng cạnh ngang (primary `56px`, viewer `96px`, phone `56px`) nên đổi chiều màn cỡ gần như không đổi. Sau dãy là vùng đen mờ dần từ mép theo đường cosine như hero; chỗ trống giữa thumbnail không nhận chạm nên ảnh dưới vẫn chạm mở, vuốt, zoom. Nút thu/mở `36px` (`[data-thumbs-toggle]`, `aria-expanded`) ở góc trên trái, chỗ nút quay lại cũ, chỉ hiện khi có dãy; mặc định mở; thu thì dãy trượt hết ra mép và vùng đen mờ đi `0.4s` `--ease-card`, mở ngược lại; một trạng thái chung cho primary và viewer, giữ tới khi rời trang.
-Viewer mở thì dãy trượt vào sau morph, đóng thì trượt ra cùng lúc; chuột PC đứng yên 3s dãy trượt ra như khi thu. Lề quanh ảnh viewer `48px`, phone (cạnh nào tới `600px`) `24px`, trên mọi máy kể cả cảm ứng. Tablet và PC: dãy nằm cạnh ảnh, ảnh cách dãy `16px` và phía đối diện chừa bằng để ảnh giữa màn hình (`VIEWER_GAP`); phone: dãy đè lên ảnh. Màn cảm ứng ngang, dãy primary đang mở: thanh video primary và nút mở lớn của video nâng lên trên dãy, thu dãy thì hạ về.
+Dãy thumbnail nổi (`.thumb-dock`, owner 2026-11-23) là một UI cho dãy viewer trên mọi máy và dãy primary trên màn cảm ứng (dãy rời info, nằm trên ảnh; PC giữ dãy ngang trong info): màn dọc là cột sát trái, màn ngang là hàng ở đáy; thumbnail giữ cùng cạnh ngang (primary `56px`, viewer `96px`, phone `56px`) nên đổi chiều màn cỡ gần như không đổi. Sau dãy là vùng đen mờ dần từ mép theo đường cosine như hero; chỗ trống giữa thumbnail không nhận chạm nên ảnh dưới vẫn chạm mở, vuốt, zoom. Dãy mặc định mở, có nút thu `36px` (`[data-thumbs-toggle]`, `aria-expanded`) ở đầu dãy sát mép: màn dọc ở góc trên trái trên cột, màn ngang bên trái hàng (owner 2026-11-23). Bấm nút thì dãy trượt ra mép, chỉ chừa `16px` thumbnail thò ra, vùng đen mờ đi, nút trượt ra theo và ẩn `0.4s` `--ease-card`; chạm hoặc click vào phần thò ra (cả dải `16px` sát bên trong) thì dãy mở lại, không đổi media, không mở viewer; một trạng thái chung cho primary và viewer, giữ tới khi rời trang.
+Viewer mở thì dãy và nút trượt vào sau morph, đóng thì trượt ra cùng lúc; chuột PC đứng yên 3s dãy và nút trượt hết ra mép. Lề quanh ảnh viewer `48px`, phone (cạnh nào tới `600px`) `24px`, trên mọi máy kể cả cảm ứng. Tablet và PC: dãy nằm cạnh ảnh, ảnh cách dãy `16px` và phía đối diện chừa bằng để ảnh giữa màn hình (`VIEWER_GAP`); phone: dãy đè lên ảnh. Màn cảm ứng ngang, dãy primary đang mở: thanh video primary và nút mở lớn của video nâng lên trên dãy, thu dãy thì hạ về ngay trên phần thò ra.
 
 ```gherkin
 Given điện thoại dọc 384×724 cảm ứng, card nhiều media
 When mở detail rồi chạm ảnh primary để mở viewer
 Then dãy primary là cột sát trái ảnh, thumbnail rộng 56px; trong viewer ảnh cách mép 24px, dãy viewer đè lên ảnh
-And bấm nút thu thì cả hai dãy trượt ra mép trái, nút vẫn ở góc trên trái
+And bấm nút thu thì cả hai dãy trượt ra mép trái chỉ chừa 16px thumbnail, nút thu ẩn
+And chạm phần thò ra thì dãy mở lại, media không đổi, viewer không mở
 And PC 1440×900 dãy viewer là hàng ở đáy, thumbnail cao 96px, cách đáy 48px, ảnh giữa màn hình
 ```
 

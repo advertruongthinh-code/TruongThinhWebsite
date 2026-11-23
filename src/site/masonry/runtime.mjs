@@ -5208,12 +5208,22 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     else photoDescriptionBox.before(photoMediaThumbs);
   };
   touchScreen.addEventListener("change", placePrimaryThumbs, { signal: controller.signal });
-  // One collapse state for the primary and viewer strips, kept while the page stays open (owner 2026-11-23).
-  document.addEventListener("click", (event) => {
-    if (!event.target.closest?.("[data-thumbs-toggle]")) return;
-    const collapsed = document.documentElement.toggleAttribute("data-thumbs-collapsed");
+  // One collapse state for the primary and viewer strips, kept while the page stays open (owner 2026-11-23). The button only collapses; a tap on
+  // the peeking collapsed strip opens it and does nothing else (no media change, no viewer open), so it is caught before any other listener.
+  const setThumbsCollapsed = (collapsed) => {
+    document.documentElement.toggleAttribute("data-thumbs-collapsed", collapsed);
     document.querySelectorAll("[data-thumbs-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(!collapsed)));
-  }, { signal: controller.signal });
+  };
+  document.addEventListener("click", (event) => {
+    if (event.target.closest?.("[data-thumbs-toggle]")) {
+      setThumbsCollapsed(true);
+      return;
+    }
+    if (!document.documentElement.hasAttribute("data-thumbs-collapsed") || !event.target.closest?.(".thumb-dock")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setThumbsCollapsed(false);
+  }, { capture: true, signal: controller.signal });
   const renderPrimaryThumbs = (record) => {
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
