@@ -1,6 +1,7 @@
 # CMS pull (cms-plan J2): downloads the D1 snapshot projected to content files as an artifact. A thread copies them
 # into src/site/content/ and opens a normal PR; no commit here, a PR made with GITHUB_TOKEN would not trigger CI.
-# CMS_MEDIA_ORIGIN stays unset, so R2 image src keeps the relative /v/... form stored in D1.
+# CMS_MEDIA_ORIGIN stays unset, so R2 image src keeps the relative /v/... form stored in D1; a repo build of such an image
+# also needs variants.json. The artifact is all of src/site/content/ with the projected files written over it.
 name: CMS pull
 on:
   workflow_dispatch:
