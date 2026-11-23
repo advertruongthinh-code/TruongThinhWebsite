@@ -14,6 +14,8 @@ const ENTRIES = [
   "src/cms/media-ref.mjs",
   "src/cms/contract.mjs",
   "src/cms/projection.mjs",
+  "src/cms/inline-marks.mjs",
+  "src/cms/links.mjs",
 ];
 
 for (const entry of ENTRIES) {

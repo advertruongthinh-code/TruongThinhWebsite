@@ -82,6 +82,8 @@ function setAttribute(tag, name, value) {
   return tag.replace(/\s*\/?\s*>$/, (ending) => ` ${name}="${value}"${ending}`);
 }
 
+const ATTRIBUTE = String.raw`(?:\s+[\w:-]+(?:="[^"]*")?)`;
+const EN_TEXT_ELEMENT = new RegExp(String.raw`<([a-z][\w:-]*)(${ATTRIBUTE}*?\s+data-en="([^"]*)"${ATTRIBUTE}*\s*)>[\s\S]*?<\/\1\s*>`, "gi");
 export function localeHtml(source, locale = "vi") {
   let html = source.replace(/<html\b[^>]*>/i, (tag) => setAttribute(setAttribute(tag, "lang", locale), "data-route-locale", locale));
   if (locale === "en") {
@@ -96,7 +98,8 @@ export function localeHtml(source, locale = "vi") {
       }
       return output;
     });
-    html = html.replace(/<([a-z][\w:-]*)\b([^>]*\bdata-en="([^"]*)"[^>]*)>[\s\S]*?<\/\1\s*>/gi, (_match, tag, attributes, english) => `<${tag}${attributes}>${english}</${tag}>`);
+    // Attributes match as whole name="value" tokens, so text such as "data-en=" inside another attribute value is not read as one.
+    html = html.replace(EN_TEXT_ELEMENT, (_match, tag, attributes, english) => `<${tag}${attributes}>${english}</${tag}>`);
   }
   return html.replace(/<a\b[^>]*>/gi, (tag) => {
     if (/\bdata-language-option\s*=/.test(tag)) return tag;

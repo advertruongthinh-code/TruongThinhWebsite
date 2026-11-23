@@ -102,7 +102,7 @@ test("project hero tagline needs 1 to 3 lines, at most one italic part and no , 
     [[], /tagline: needs 1 to 3 lines/],
     [[t("a", "a"), t("b", "b"), t("c", "c"), t("d", "d")], /tagline: needs 1 to 3 lines/],
     [[t("*a* và *b*", "*a* and b")], /tagline\[0\]: at most one \*italic\* part/],
-    [[t("chữ *lẻ", "odd")], /tagline\[0\]: at most one \*italic\* part/],
+    [[t("chữ *lẻ", "odd")], /tagline\[0\]: "chữ \*lẻ": \* has no closing mark/],
     [[t("Tường vuông,", "Square walls"), t("gỗ *mềm*", "soft *wood*")], /tagline\[0\]: a line must not end with , \. or ;/],
     [[t("Gỗ mềm", "Soft wood.")], /tagline\[0\]: a line must not end with , \. or ;/],
   ]) {
@@ -182,4 +182,30 @@ test("strip and News blocks may omit ids", async () => {
 
 test("validateBlockPage without checkImage names the missing option instead of a TypeError", async () => {
   await assert.rejects(validateBlockPage(fixture(), {}), /validateBlockPage: checkImage is required/);
+});
+
+// Marked text in blocks (cms-plan part 2 E1, K2): every mark, both list kinds, and the plain path kept for unmarked text.
+test("marked text and lists render as leaf segments; unmarked text keeps the old HTML", async () => {
+  const page = fixture();
+  page.blocks[2].text = t("Gỗ **sồi** cho m^2^\n\n• một\n• *hai*\n\n2. ba\n3. [bốn](page:news/other)", "**Oak** wood per m^2^\n\n• one\n• *two*\n\n2. three\n3. [four](page:news/other)");
+  page.blocks[1].text = t("Tổng *quan*\ncông trình", "The *overview*\nof the project");
+  assert.deepEqual(await validateBlockPage(page, ctx), []);
+  const html = renderBlocks(page, ctx);
+  const s = (tag, vi, en, attributes = "") => `<${tag}${attributes} data-en="${en}" data-vi="${vi}" data-seg>${vi}</${tag}>`;
+  assert.ok(html.includes(`<p>${s("span", "Gỗ ", "")}${s("strong", "sồi", "Oak")}${s("span", " cho m", " wood per m")}${s("sup", "2", "2")}</p>`), html);
+  assert.ok(html.includes(`<ul><li>${s("span", "một", "one")}</li><li>${s("em", "hai", "two")}</li></ul>`));
+  assert.ok(html.includes(`<ol start="2"><li>${s("span", "ba", "three")}</li><li>${s("a", "bốn", "four", ' href="/news/khac/" data-en-href="/en/news/other/"')}</li></ol>`));
+  assert.ok(html.includes(`<h2 data-motion-lines>${s("span", "Tổng ", "The ")}${s("em", "quan", "overview")}<br>${s("span", "công trình", "of the project")}</h2>`));
+  assert.ok(html.includes('<p data-en="Beside.">Cạnh ảnh.</p>'), "unmarked text keeps the plain path");
+});
+
+test("mark errors carry the block field and the kind of text slot", async () => {
+  const page = fixture();
+  page.blocks[2].text = t("**sồi", "**oak**");
+  page.blocks[8].items[0].label = t("**Loại**", "**Type**");
+  page.blocks[11].text = t("Xem *thêm*", "See *more*");
+  const errors = await validateBlockPage(page, ctx);
+  assert.ok(errors.some((error) => error.startsWith("sample.blocks[2].text:") && error.includes("no closing mark")), errors.join("\n"));
+  assert.ok(errors.some((error) => error.startsWith("sample.blocks[8].items[0].label:") && error.includes("not allowed")), errors.join("\n"));
+  assert.ok(errors.some((error) => error.startsWith("sample.blocks[11].text:") && error.includes("not allowed")), errors.join("\n"));
 });

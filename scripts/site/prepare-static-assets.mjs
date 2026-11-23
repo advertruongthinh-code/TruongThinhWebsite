@@ -6,16 +6,18 @@ import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 import "./sync-brand-lockup.mjs";
 import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
 import { contentDirOf, fileImageCheck, loadBlockContent, readHeroSources, readRedirects } from "./content-files.mjs";
 import { validateHomeProjects } from "./home-projects.mjs";
-import { KINDS, PROJECT_FILTERS, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
+import { KINDS, PROJECT_FILTERS, PROJECT_TYPES, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
+import { tieOrphans } from "./tie-orphans.mjs";
 import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, localePrefix, phonePacksScript, projectRoot, readJson, routeLocale, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
@@ -325,7 +327,11 @@ for (const card of ADVERTISING_CARDS) {
 // Project pages and News articles built from blocks (projects R3, news R3): content-contract already checked the data in the fast suite.
 const blockContent = loadBlockContent(sourceRoot);
 const redirects = readRedirects(sourceRoot);
-const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
+// Links in marked text resolve against these (cms-plan part 2 K1); contact.json comes with E7, until then a contact: link renders as text.
+const blockContext = {
+  projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])),
+  clusters: ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn }) => ({ slug: id, slugVi, slugEn })), projectTypes: Object.keys(PROJECT_TYPES), contact: null,
+};
 // Project strip (projects R1, page-home R8): Residential and Commercial list their sector's projects in projects.json order and link to the
 // sector filter; the home page lists the projects picked in content/home-projects.json and links to all projects.
 const homeProjectIds = await readJson(path.join(contentDirOf(sourceRoot), "home-projects.json"));
@@ -520,27 +526,6 @@ const responsivePictures = (html) =>
     const phoneSet = set("webp", WEBP_WIDTHS, intrinsic <= WEBP_WIDTHS.at(-1));
     return `<picture>${phone(`${srcset}="${phoneSet}" sizes="${sizes}"`)}<source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
   });
-
-// No orphan word (hero-typography R7): text-wrap: pretty does not always move a long last word, so every plain-text
-// bilingual element (paragraph, label, caption or inline part of a title) ties its last two words with a no-break
-// space in VI, EN and the rendered text. A two-word label stays on one line; a separator such as "·" stays with the
-// word after it. A heading that ends with an italic part ties that part to the word before it.
-const TIE_BLOCK = /<([a-z][\w-]*)\b([^>]*\bdata-en="[^"]*"[^>]*)>([^<]*)<\/\1>/g;
-const TIE_ITALIC_TAIL = /(<\/span>)\s+(<(i|em)\b[^>]*>[^<]*<\/\3>\s*<\/h[1-6]>)/g;
-const tieLastWord = (text) => {
-  const [, lead, body, trail] = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
-  const words = body.split(/\s+/);
-  if (words.length < 2) return text;
-  let glued = words.pop();
-  while (words.length > 1 && !/[\p{L}\p{N}]/u.test(words.at(-1))) glued = `${words.pop()}\u00a0${glued}`;
-  glued = `${words.pop()}\u00a0${glued}`;
-  return `${lead}${[...words, glued].join(" ")}${trail}`;
-};
-const tieElement = (_match, name, attributes, content) =>
-  `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`;
-// Page copy only: <head>, header and menu labels stay as written (exact strings for title, nav and their tests).
-const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/, (_match, open, body, close) =>
-  open + body.replace(TIE_BLOCK, tieElement).replace(TIE_ITALIC_TAIL, "$1\u00a0$2") + close);
 
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;

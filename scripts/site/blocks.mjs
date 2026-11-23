@@ -2,6 +2,7 @@
 // VI text goes in the tag, EN goes in data-en like existing pages; the localeHtml build swaps to EN.
 // The same data always yields the same HTML; text is plain text only, all HTML characters are escaped.
 import { IMAGE_SRC, escapeHtml } from "./lib-pure.mjs";
+import { listHtml, listOf, markedInner, marksErrors, paragraphs, parseMarks, plainText, sideMarksErrors, typoWarnings } from "../../src/cms/inline-marks.mjs";
 
 export const BLOCK_SCHEMA_VERSION = 1;
 export const ZALO_HREF = "https://zalo.me/0949131050";
@@ -10,13 +11,18 @@ const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 // ponytail: only internal links (VI at the root, EN under /en) or Zalo; extend when the CMS needs checked external links.
 const SAFE_HREF = /^(?:\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
 
-// ponytail: v1 text is just plain paragraphs split by blank lines; bold, italic, in-paragraph links when the CMS needs them.
-const paragraphs = (text) => text.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
+// Text is plain paragraphs split by blank lines; marked text (cms-plan part 2 K2) renders as leaf segments inside the element.
+// Text without marks or breaks keeps the plain path, so existing data renders the same HTML.
 const localized = (tag, text, attributes = "") => `<${tag}${attributes} data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</${tag}>`;
-const localizedParagraphs = (text, attributes = "") => {
+const marked = (tag, text, attributes, ctx) => {
+  const inner = markedInner(text.vi, text.en, ctx);
+  return inner === null ? localized(tag, text, attributes) : `<${tag}${attributes}>${inner}</${tag}>`;
+};
+// lists: a body paragraph whose every line starts with "• " or "<n>. " becomes <ul> or <ol>.
+const localizedParagraphs = (text, ctx, { lists = false } = {}) => {
   const vi = paragraphs(text.vi);
   const en = paragraphs(text.en);
-  return vi.map((part, index) => localized("p", { vi: part, en: en[index] }, attributes)).join("\n");
+  return vi.map((part, index) => (lists && listOf(part) ? listHtml(part, en[index], ctx) : marked("p", { vi: part, en: en[index] }, "", ctx))).join("\n");
 };
 const image = (media, attributes = 'loading="lazy"') =>
   `<img src="${media.src}" width="${media.width}" height="${media.height}" alt="${escapeHtml(media.altVi)}" data-en-alt="${escapeHtml(media.altEn)}" ${attributes} />`;
@@ -52,12 +58,12 @@ export const newsTeaser = (post) => {
 };
 // Hero tagline line: "ấm như *gỗ sồi*" becomes plain text, then the italic part as <em>, then the rest; each part keeps its own EN so the locale
 // swap (data-en) does not drop the italic. VI and EN may put the italic at different places in the line.
-// An intentional title line break carries the pause, so a line never ends with , . or ; (owner 2026-11-14, hero-typography R7).
-export const LINE_END_PUNCT = /[,.;]\s*$/;
-const ITALIC = /^([^*]*)(?:\*([^*]+)\*([^*]*))?$/;
+// An intentional title line break carries the pause, so a line never ends with , . or ; (owner 2026-11-14, hero-typography R7, typoWarnings).
 const taglineParts = (text) => {
-  const [, before, italic = "", after = ""] = text.match(ITALIC);
-  return [before, italic, after];
+  const tokens = parseMarks(text);
+  const italic = tokens.findIndex(({ t }) => t === "i");
+  if (italic < 0) return [tokens[0]?.s ?? "", "", ""];
+  return [tokens[italic - 1]?.s ?? "", tokens[italic].s, tokens[italic + 1]?.s ?? ""];
 };
 const taglineLine = (line) => {
   const vi = taglineParts(line.vi);
@@ -80,7 +86,8 @@ const NEWS_CARD_COUNT = 3;
 const autoProjectIds = (ctx, page) => [...ctx.projects.values()].filter((project) => project.sector === page.sector && project.id !== page.id).map((project) => project.id);
 // Syllables plus syllable pairs, since a Vietnamese word is often two syllables ("tủ bếp"). The title counts 3 times.
 const newsTokens = (post) => {
-  const text = [post.title?.vi, post.title?.vi, post.title?.vi, post.description?.vi, ...(post.blocks ?? []).flatMap((block) => [block.text?.vi, block.title?.vi])];
+  const blockText = (post.blocks ?? []).flatMap((block) => [block.text?.vi, block.title?.vi]).filter((part) => typeof part === "string").map(plainText);
+  const text = [post.title?.vi, post.title?.vi, post.title?.vi, post.description?.vi, ...blockText];
   return text.filter((part) => typeof part === "string").flatMap((part) => {
     const words = part.normalize("NFC").toLowerCase().match(/\p{L}+/gu) ?? [];
     return [...words, ...words.slice(1).map((word, index) => `${words[index]} ${word}`)];
@@ -116,14 +123,14 @@ export const autoNewsIds = (ctx, page) => {
 
 // Each block: required fields by type and the HTML builder. ctx holds the project and News lists so blocks can look them up.
 // media-single renders an image (old image-single) or a 16:9 video (old video-single); class names are unchanged.
-const renderImage = (block) => [
+const renderImage = (block, ctx) => [
   `<section class="blk blk-image ${IMAGE_POSITION[block.position]} section-gap" data-header-tone="ink">`,
-  `  <figure class="blk-image__figure">${image(block.image)}${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
+  `  <figure class="blk-image__figure">${image(block.image)}${block.caption ? marked("figcaption", block.caption, "", ctx) : ""}</figure>`,
   "</section>",
 ].join("\n");
-const renderVideo = (block) => [
+const renderVideo = (block, ctx) => [
   '<section class="blk blk-video section-gap" data-header-tone="ink">',
-  `  <figure class="blk-video__figure"><video src="${block.video.src}" poster="${block.video.poster}" width="${block.video.width}" height="${block.video.height}" muted playsinline controls preload="metadata"></video>${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
+  `  <figure class="blk-video__figure"><video src="${block.video.src}" poster="${block.video.poster}" width="${block.video.width}" height="${block.video.height}" muted playsinline controls preload="metadata"></video>${block.caption ? marked("figcaption", block.caption, "", ctx) : ""}</figure>`,
   "</section>",
 ].join("\n");
 
@@ -154,32 +161,37 @@ const BLOCKS = {
   },
   "section-title": {
     text: ["text"],
+    marks: { text: "title" },
     // Lines rise in on view like Espacio's titular ("animate-lines", detail-pages R6).
-    render: (block) => `<section class="blk blk-title section-gap" data-header-tone="ink">${localized("h2", block.text, " data-motion-lines")}</section>`,
+    render: (block, ctx) => `<section class="blk blk-title section-gap" data-header-tone="ink">${marked("h2", block.text, " data-motion-lines", ctx)}</section>`,
   },
   paragraph: {
     text: ["text"],
-    render: (block) => `<section class="blk blk-paragraph section-gap" data-header-tone="ink">${localizedParagraphs(block.text)}</section>`,
+    marks: { text: "body" },
+    render: (block, ctx) => `<section class="blk blk-paragraph section-gap" data-header-tone="ink">${localizedParagraphs(block.text, ctx, { lists: true })}</section>`,
   },
   "paragraph-columns": {
     text: ["text"],
-    render: (block) => `<section class="blk blk-paragraph blk-paragraph--columns section-gap" data-header-tone="ink">${localizedParagraphs(block.text)}</section>`,
+    marks: { text: "body" },
+    render: (block, ctx) => `<section class="blk blk-paragraph blk-paragraph--columns section-gap" data-header-tone="ink">${localizedParagraphs(block.text, ctx, { lists: true })}</section>`,
   },
   "media-single": {
     optionalText: ["caption"],
+    marks: { caption: "small" },
     enums: { position: Object.keys(IMAGE_POSITION) },
     oneOf: ["image", "video"], // exactly one; a video is always wide and 16:9 (cms-content R5)
-    render: (block) => block.video ? renderVideo(block) : renderImage(block),
+    render: (block, ctx) => block.video ? renderVideo(block, ctx) : renderImage(block, ctx),
   },
   // Portrait image with a paragraph beside it, Espacio's most used single-image variant (".-layout-parrafo -layout-right", 22 of 48 project
   // pages, measured 2026-11-14): image one third, text in the paragraph column on the right; phone stacks image then text.
   "media-text": {
     text: ["text"],
+    marks: { text: "body" },
     media: ["image"],
-    render: (block) => [
+    render: (block, ctx) => [
       '<section class="blk blk-image-text section-gap" data-header-tone="ink">',
       `  <figure class="blk-image-text__figure">${image(block.image)}</figure>`,
-      `  <div class="blk-paragraph blk-image-text__copy">${localizedParagraphs(block.text)}</div>`,
+      `  <div class="blk-paragraph blk-image-text__copy">${localizedParagraphs(block.text, ctx, { lists: true })}</div>`,
       "</section>",
     ].join("\n"),
   },
@@ -205,20 +217,22 @@ const BLOCKS = {
   },
   "facts-grid": {
     list: { items: [2, 4], text: ["label", "text"] },
-    render: (block) => [
+    marks: { label: "small", text: "small" },
+    render: (block, ctx) => [
       `<section class="blk blk-facts ${FACTS_COLUMNS[block.items.length]} section-gap" data-header-tone="ink">`,
       '  <ol class="blk-facts__list">',
       // Each fact rises 60px and fades in, 0.15s after the previous one (Espacio "animate-up animate-opacity").
-      ...block.items.map((item, index) => `    <li class="blk-facts__item" data-motion-up data-motion-delay="${index * 0.15}">${localized("h3", item.label, ' class="blk-facts__label"')}${localized("p", item.text, ' class="blk-facts__text"')}</li>`),
+      ...block.items.map((item, index) => `    <li class="blk-facts__item" data-motion-up data-motion-delay="${index * 0.15}">${marked("h3", item.label, ' class="blk-facts__label"', ctx)}${marked("p", item.text, ' class="blk-facts__text"', ctx)}</li>`),
       "  </ol>",
       "</section>",
     ].join("\n"),
   },
   "contact-quick": {
     text: ["title"],
-    render: (block) => [
+    marks: { title: "title" },
+    render: (block, ctx) => [
       `<section class="blk blk-contact section-gap" id="${CONTACT_ID}" data-header-tone="ink">`,
-      `  ${localized("h2", block.title, ' class="blk-contact__title"')}`,
+      `  ${marked("h2", block.title, ' class="blk-contact__title"', ctx)}`,
       `  <a class="blk-contact__zalo" href="${ZALO_HREF}" target="_blank" rel="noopener" data-en="Chat on Zalo">Nhắn Zalo</a>`,
       "</section>",
     ].join("\n"),
@@ -259,7 +273,8 @@ const BLOCKS = {
   quote: {
     text: ["text"],
     optionalText: ["author"],
-    render: (block) => `<section class="blk blk-quote section-gap" data-header-tone="ink"><blockquote>${localizedParagraphs(block.text)}${block.author ? localized("cite", block.author) : ""}</blockquote></section>`,
+    marks: { text: "quote" },
+    render: (block, ctx) => `<section class="blk blk-quote section-gap" data-header-tone="ink"><blockquote>${localizedParagraphs(block.text, ctx)}${block.author ? localized("cite", block.author) : ""}</blockquote></section>`,
   },
   "news-cards": {
     ids: "news",
@@ -275,14 +290,34 @@ const BLOCKS = {
   },
   "banner-links": {
     list: { items: [1, 3], text: ["title"], media: ["image"], href: ["hrefVi", "hrefEn"] },
-    render: (block) => [
+    marks: { title: "title" },
+    render: (block, ctx) => [
       `<section class="blk blk-banners ${BANNER_COLUMNS[block.items.length]} section-gap" data-header-tone="ink">`,
-      ...block.items.map((item) => `  <a class="blk-banner" href="${item.hrefVi}" data-en-href="${item.hrefEn}">${image(item.image)}${localized("span", item.title, ' class="blk-banner__title"')}</a>`),
+      ...block.items.map((item) => `  <a class="blk-banner" href="${item.hrefVi}" data-en-href="${item.hrefEn}">${image(item.image)}${marked("span", item.title, ' class="blk-banner__title"', ctx)}</a>`),
       "</section>",
     ].join("\n"),
   },
 };
 export const BLOCK_TYPES = Object.keys(BLOCKS);
+
+// Mark errors (level shape, with code) of every block text field, by the block's marks table; other fields are plain (K2).
+// The Worker reports them as shape errors, the build as page errors.
+export function blockMarksErrors(page, at = page?.id ?? "page") {
+  const errors = [];
+  const check = (value, kind, where) => {
+    if (typeof value?.vi === "string" && typeof value?.en === "string") errors.push(...marksErrors(value.vi, value.en, kind).map((error) => ({ ...error, message: `${where}: ${error.message}` })));
+  };
+  for (const [index, block] of (Array.isArray(page?.blocks) ? page.blocks : []).entries()) {
+    const spec = BLOCKS[block?.type];
+    if (!spec) continue;
+    const where = `${at}.blocks[${index}]`;
+    for (const field of [...spec.text ?? [], ...spec.optionalText ?? []]) check(block[field], spec.marks?.[field] ?? "plain", `${where}.${field}`);
+    if (spec.list && Array.isArray(block.items)) {
+      for (const [item, value] of block.items.entries()) for (const field of spec.list.text ?? []) check(value?.[field], spec.marks?.[field] ?? "plain", `${where}.items[${item}].${field}`);
+    }
+  }
+  return errors;
+}
 
 // Validate one page (project or News post). Returns the error list, does not stop at the first error.
 // checkImage(image, where) returns the errors of one image reference: fileImageCheck(siteRoot) in the build, a record check in the Worker.
@@ -303,6 +338,7 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
   text(page?.description, `${at}.description`);
   await media(page?.cover, `${at}.cover`);
   if (!Array.isArray(page?.blocks) || !page.blocks.length) return [...errors, `${at}: needs at least one block`];
+  errors.push(...blockMarksErrors(page, at).map(({ message }) => message));
 
   const blockIds = new Set();
   for (const [index, block] of page.blocks.entries()) {
@@ -319,8 +355,12 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
       if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.${field}: needs ${min} to ${max} lines`); continue; }
       for (const [index, line] of list.entries()) {
         text(line, `${where}.${field}[${index}]`);
-        if ([line?.vi, line?.en].some((value) => typeof value === "string" && !ITALIC.test(value))) errors.push(`${where}.${field}[${index}]: at most one *italic* part`);
-        if ([line?.vi, line?.en].some((value) => typeof value === "string" && LINE_END_PUNCT.test(value))) errors.push(`${where}.${field}[${index}]: a line must not end with , . or ;`);
+        for (const value of [line?.vi, line?.en].filter((side) => typeof side === "string")) {
+          const found = sideMarksErrors(value, ["i"]);
+          if (found.length) errors.push(...found.map(({ message }) => `${where}.${field}[${index}]: ${message}`));
+          else if (parseMarks(value).filter(({ t }) => t === "i").length > 1) errors.push(`${where}.${field}[${index}]: at most one *italic* part`);
+        }
+        if ([line?.vi, line?.en].some((value) => typeof value === "string" && typoWarnings(`${value}\n`).some(({ code }) => code === "line-end-punct"))) errors.push(`${where}.${field}[${index}]: a line must not end with , . or ;`);
       }
     }
     for (const field of spec.media ?? []) await media(block[field], `${where}.${field}`);

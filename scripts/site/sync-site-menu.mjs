@@ -7,6 +7,7 @@ import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advert
 import { PROJECT_TYPES, SECTOR_LABEL, menuFeatured, pageHref, projectTypeHref } from "./block-pages.mjs";
 import { contentDirOf } from "./content-files.mjs";
 import { escapeHtml, siteRoot } from "./lib.mjs";
+import { hrefAttrs } from "../../src/cms/links.mjs";
 import { renderShell } from "./shell.mjs";
 
 export const MENU_PAGES = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
@@ -37,7 +38,6 @@ const SOCIAL = [
 ];
 
 // A VI-to-EN route that only changes the prefix is swapped by the runtime itself; a different slug needs data-en-href.
-const hrefAttrs = (vi, en) => `href="${vi}"${en && en !== `/en${vi}` ? ` data-en-href="${en}"` : ""}`;
 const option = ({ vi, en, label }) => `<a class="menu-option" ${hrefAttrs(vi, en)} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`;
 const typeOption = (type) => option({ vi: projectTypeHref(type, "vi"), en: projectTypeHref(type, "en"), label: PROJECT_TYPES[type].label });
 const typesOf = (sector) => Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === sector);
