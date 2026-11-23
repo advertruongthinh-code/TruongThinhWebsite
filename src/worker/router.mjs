@@ -6,13 +6,16 @@ import accountList from "./commands/account-list.mjs";
 import accountUpdate from "./commands/account-update.mjs";
 import auditLog from "./commands/audit-log.mjs";
 import buildStatus from "./commands/build-status.mjs";
+import context from "./commands/context.mjs";
 import create from "./commands/create.mjs";
 import get from "./commands/get.mjs";
 import list from "./commands/list.mjs";
 import purge from "./commands/purge.mjs";
 import rebuild from "./commands/rebuild.mjs";
+import reorder from "./commands/reorder.mjs";
 import restore from "./commands/restore.mjs";
 import resumePublish from "./commands/resume-publish.mjs";
+import retryVariant from "./commands/retry-variant.mjs";
 import rollback from "./commands/rollback.mjs";
 import save from "./commands/save.mjs";
 import mediaFile from "./commands/media-file.mjs";
@@ -31,6 +34,7 @@ export const COMMANDS = {
   "account-update": accountUpdate,
   "audit-log": auditLog,
   "build-status": buildStatus,
+  context,
   create,
   get,
   list,
@@ -39,8 +43,10 @@ export const COMMANDS = {
   "media-original": mediaOriginal,
   purge,
   rebuild,
+  reorder,
   restore,
   "resume-publish": resumePublish,
+  "retry-variant": retryVariant,
   rollback,
   save,
   snapshot,
