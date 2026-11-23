@@ -264,6 +264,32 @@
     activePage = undefined;
   };
 
+  // About R9 journey: from 981px with motion, each milestone reaching 55% of the viewport cuts its group of parts on the nesting sheet
+  // (one way: scrolling back keeps them cut) and becomes the current milestone. Otherwise the CSS default shows the finished sheet.
+  const mountAboutJourney = (container, state, reduceMotion) => {
+    const journey = container.querySelector(".about-journey");
+    if (!journey || reduceMotion || !window.matchMedia("(min-width: 981px)").matches) return;
+    const items = [...journey.querySelectorAll(".about-journey__item")];
+    const parts = [...journey.querySelectorAll(".about-journey__svg--portrait [data-journey-part]")];
+    const nodes = [...journey.querySelectorAll(".about-journey__node")];
+    let drawn = 0;
+    const update = () => {
+      const line = window.innerHeight * 0.55;
+      const reached = items.filter((item) => item.querySelector(".about-journey__year").getBoundingClientRect().top < line).length;
+      drawn = Math.max(drawn, reached);
+      parts.forEach((part) => part.classList.toggle("is-drawn", Number(part.dataset.journeyPart) <= drawn));
+      items.forEach((item, index) => item.classList.toggle("is-current", index === Math.max(reached, 1) - 1));
+      nodes.forEach((node, index) => node.classList.toggle("is-on", index < reached));
+      journey.style.setProperty("--about-journey-progress", String(Math.max(reached - 1, 0) / (items.length - 1)));
+    };
+    journey.classList.add("is-armed");
+    const observer = new IntersectionObserver(update, { rootMargin: "0px 0px -45% 0px", threshold: [0, 1] });
+    items.forEach((item) => observer.observe(item.querySelector(".about-journey__year")));
+    state.observers.push(observer);
+    state.abort.signal.addEventListener("abort", () => journey.classList.remove("is-armed"), { once: true });
+    update();
+  };
+
   const mount = (
     container = document.querySelector('[data-barba="container"]'),
     { settled = false, softNavigation = false, introStart = Promise.resolve() } = {},
@@ -868,6 +894,8 @@
       observer.observe(gallery);
       observers.push(observer);
     });
+
+    mountAboutJourney(container, state, reduceMotion);
 
     return state.catalogReady;
   };

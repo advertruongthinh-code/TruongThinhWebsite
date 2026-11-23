@@ -1,6 +1,6 @@
 # Portal
 
-Nguồn: CSS `.service-portals`, `.service-portal`, `.portal-copy`; spec [trang chủ R5](../../../docs/specs/page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ), [ba trang con R8](../../../docs/specs/detail-pages.md#r8-dải-quy-trình-duo-portal-loại-hình).
+Nguồn: CSS `.service-portals`, `.service-portal`, `.portal-copy`; spec [trang chủ R5](../../../docs/specs/page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ), [ba trang con R8](../../../docs/specs/detail-pages.md#r8-dải-quy-trình-portal-loại-hình).
 
 Card ảnh lớn, hai kiểu theo việc có link hay không (owner 2026-11-22). Markup `section.portal-stage` > `div.service-portals` > card.
 
