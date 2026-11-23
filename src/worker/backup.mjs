@@ -7,6 +7,15 @@ const DAY_MS = 86_400_000;
 
 const todayKey = () => `${PREFIX}${new Date().toISOString().slice(0, 10)}.sql`;
 
+// Says which secret is wrong without logging either value: token state from the verify API, account id shape.
+async function authHint(env) {
+  const verify = await fetch("https://api.cloudflare.com/client/v4/user/tokens/verify", {
+    headers: { Authorization: `Bearer ${env.D1_EXPORT_TOKEN}` },
+  }).catch(() => null);
+  const state = verify ? `${verify.status} ${(await verify.json().catch(() => ({}))).result?.status ?? ""}`.trim() : "unreachable";
+  return `; token verify: ${state}; account id is 32 hex: ${/^[0-9a-f]{32}$/.test(env.CF_ACCOUNT_ID ?? "")}`;
+}
+
 // Polls the D1 export REST API, then streams the dump into R2; the dump is never read into memory.
 export async function exportDatabase(env) {
   const api = `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/d1/database/${env.D1_DATABASE_ID}/export`;
@@ -21,7 +30,8 @@ export async function exportDatabase(env) {
     const { result } = data;
     if (!response.ok || result?.status === "error") {
       const reason = result?.error ?? data.errors?.map(({ code, message }) => `${code} ${message}`).join("; ") ?? "";
-      throw new Error(`d1 export failed: ${response.status} ${reason}`);
+      const hint = response.status === 401 || response.status === 403 ? await authHint(env) : "";
+      throw new Error(`d1 export failed: ${response.status} ${reason}${hint}`);
     }
     if (result?.status === "complete") {
       const dump = await fetch(result.result.signed_url);
