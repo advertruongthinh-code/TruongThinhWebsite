@@ -282,13 +282,15 @@ test("save: a card that takes another card's photo with a new crop is 400 pool-d
 });
 
 // Plan E10 section 7: save reads D1 at most once more for media-reuse and once more for the card pool.
-// Main before E10: 18 statements for a news save, 15 for a card save.
+// Main before E10, with a live Cron: 16 statements for a news save, 14 for a card save.
 test("save prepares main + 1 statements for a news and main + 2 for a card", async () => {
   const { call, DB } = setup();
+  // A live Cron, so a save never takes the dead-Cron dispatch path (its statements depend on the clock).
+  DB.sqlite.prepare("INSERT OR REPLACE INTO settings VALUES ('cron_at', ?)").run(new Date().toISOString());
   const prepare = DB.prepare.bind(DB);
   let count = 0;
   DB.prepare = (...args) => { count += 1; return prepare(...args); };
-  for (const [type, expected] of [["news", 18 + 1], ["advertising-card", 15 + 2]]) {
+  for (const [type, expected] of [["news", 16 + 1], ["advertising-card", 14 + 2]]) {
     const id = firstOf(DB, type);
     const got = await call("get", undefined, `?type=${type}&id=${id}`);
     count = 0;
