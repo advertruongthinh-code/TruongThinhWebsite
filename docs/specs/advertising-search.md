@@ -204,7 +204,7 @@ Phiên tìm (chữ, ảnh đã thu nhỏ) lưu trong `sessionStorage` của tab,
 `#q=<encodeURIComponent(chữ)>` bằng `history.replaceState` giữ nguyên state của lưới (owner 2026-11-18), bỏ tìm thì xoá; ảnh chưa vào link (chờ P8). Tải lại, Back từ card, đổi ngôn ngữ (nút
 đổi đặt dấu trong phiên trước khi chuyển trang) thì đọc phiên, tìm lại, gọi lại `setResults`; vào trang mới từ menu hay link thì không khôi phục. Link `#q=` (link `#tim=` cũ vẫn mở được):
 script đầu trang (`head-inline.js`) lưu phần `#` vào phiên trước khi `motion.js` viết lại URL, tìm kiếm ghi vào phiên rồi chạy. `masonry:search-left` có `reason` khác `"clear"` (navbar,
-breadcrumb, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm luôn trên mọi card; lúc bắt đầu tìm rail chọn "Tất cả". Trong lúc tìm, nhóm và chip không có kết quả nào ẩn đi, số
+breadcrumb, Back sang filter khác) thì xoá ô chữ, khay ảnh và phiên. Tìm trong bộ lọc đang chọn trên rail (ở "Tất cả" là mọi card); nhóm không có kết quả thì lưới đứng yên, báo "Nhóm này chưa có" kèm nút "Tìm tất cả" (owner 2026-11-23, [Thanh tìm kiếm R8](search-bar.md#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)). Trong lúc tìm, nhóm và chip không có kết quả nào ẩn đi, số
 trên chip là số kết quả; các mục còn lại trượt về chỗ mới, mục hiện lại thì hiện dần (owner 2026-11-18). Bấm một nhóm hoặc chip thì lưới chỉ còn kết quả thuộc mục đó, câu tìm giữ nguyên, URL
 và lịch sử duyệt không đổi; bấm "Tất cả" thì về đủ kết quả.
 

@@ -29,7 +29,8 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
   tiêu đề và thanh nằm ở tâm thị giác khi cuộn tới cuối ([R4](../../../docs/specs/search-bar.md#r4-khe-cta)).
 - Đổi chỗ dứt khoát theo vị trí cuộn ([R7](../../../docs/specs/search-bar.md#r7-vào-khe-dứt-khoát)): `dock.mjs` chọn một trong ba chỗ mỗi frame cuộn. Vào và ra khe CTA: Web Animations morph bề rộng, bóng, hàng chip 1s `--ease-card` (CSS transition mất khi chuyển parent). Vào khe đầu trang (cả lúc tải sau lớp phủ): khối kéo dài từ ô vuông 49px ra đủ khe (`.is-stretching`, nội dung bị cắt trong viền). Khi cả thanh đã khuất dưới header, thanh nổi bay lên từ mép dưới 1s `--ease-float` (`.search-host.is-rising`).
 - Tìm xong về đầu lưới ([R9](../../../docs/specs/search-bar.md#r9-tìm-xong-về-đầu-lưới)): `glideToGrid` trong `masonry/runtime.mjs` gọi `TruongThinhMotion.glideTo` (600ms, đường `--ease-card`).
-- Chỉ trang gốc có thanh ([R8](../../../docs/specs/search-bar.md#r8-chỉ-trang-gốc-có-thanh)): trang con và card có `data-search-off`, khe ẩn, thanh nổi trượt xuống rồi ẩn (`.search-host.is-off`).
+- Trang gốc, trang nhóm, trang sản phẩm có thanh; đang lọc thì tìm trong bộ lọc ([R8](../../../docs/specs/search-bar.md#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)). Trang card có `data-search-off`, khe ẩn, thanh nổi trượt xuống rồi ẩn (`.search-host.is-off`).
+- Nhóm không có kết quả: thông báo "Nhóm này chưa có" kèm nút chữ "Tìm tất cả" (`.search-bar__action`, gạch chân 2px) phủ cả hàng nhập; `.has-wide-note` tạm ẩn nút ảnh và kính lúp.
 - Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset`; `body[data-search-place]` và `--search-block-h`
   đặt nút về đầu trang trên tablet ([Floating CTA](../FloatingCta/README.md)). Phone dọc và ngang: thanh nổi và nút chung một hàng cách đáy 16px,
   thẳng mép lưới (`--masonry-outer` đặt trên `.detail-page`), `.search-host` chừa làn nút 60px bằng padding phải. Bàn phím điện thoại mở

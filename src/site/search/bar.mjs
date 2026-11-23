@@ -1,6 +1,7 @@
 // Search bar markup (search-bar R1 to R5, mock approved 2026-11-22): one white block in the three places. No visible status line
 // (owner 2026-11-17): results show on the grid, the outcome is announced to screen readers; short notices take the input's place.
-// Tips and notices fit the phone field beside the back-to-top button: 157px at 360px, 107px next to the retry icon (search-bar R3).
+// Tips and notices fit the phone field beside the back-to-top button: 157px at 360px, 107px next to the retry icon (search-bar R3);
+// the group note with its "Search all" button takes the whole row (search-bar R8).
 export const COPY = {
   vi: {
     label: "Tìm sản phẩm quảng cáo",
@@ -30,6 +31,8 @@ export const COPY = {
     searching: "Đang tìm...",
     results: (n, text) => `${n} kết quả cho “${text}”`,
     empty: "Chưa thấy mẫu nào",
+    notInGroup: "Nhóm này chưa có",
+    searchAll: "Tìm tất cả",
     more: "Có thêm kết quả gợi ý",
   },
   en: {
@@ -60,6 +63,8 @@ export const COPY = {
     searching: "Searching...",
     results: (n, text) => `${n} results for “${text}”`,
     empty: "No match yet",
+    notInGroup: "None in this group",
+    searchAll: "Search all",
     more: "More suggested results",
   },
 };

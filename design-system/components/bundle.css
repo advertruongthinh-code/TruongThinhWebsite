@@ -7162,7 +7162,7 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 }
 
-/* Off the root grid (filter pages, cards) there is no search bar and no slot (search-bar R8). */
+/* Card pages have no search bar and no slot (search-bar R8); group and product pages keep both. */
 [data-search-off] :is(.hero-search, [data-search-dock]) {
   display: none;
 }
