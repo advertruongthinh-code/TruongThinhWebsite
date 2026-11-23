@@ -1,5 +1,5 @@
 // settleVariants (CMS plan P3, Q6 step 4): every Cron minute, marks pending variants ready once their manifest.json is in the
-// public bucket (error on a size mismatch or after 30 minutes), recounts pending of the records using them, and publishes.
+// public bucket (error on a size mismatch, after 45 minutes for an image or 90 for a video), recounts pending of the records using them, and publishes.
 import { dispatchBuild } from "./dispatch.mjs";
 import { contentRevStatement } from "./records.mjs";
 
@@ -9,17 +9,18 @@ export async function settleVariants(env, _ctx) {
   const { results } = await env.DB.prepare("SELECT key, media_id, created_at FROM variants WHERE status = 'pending' ORDER BY created_at LIMIT 20").all();
   if (!results.length) return;
   // Two media with identical bytes and crop share a key; the row keeps the first media_id, whose size is the one compared.
-  const sizes = new Map((await env.DB.prepare("SELECT id, json_extract(data, '$.width') AS width, json_extract(data, '$.height') AS height FROM records WHERE type = 'media' AND id IN (SELECT value FROM json_each(?))")
+  const sizes = new Map((await env.DB.prepare("SELECT id, json_extract(data, '$.width') AS width, json_extract(data, '$.height') AS height, json_extract(data, '$.kind') AS kind FROM records WHERE type = 'media' AND id IN (SELECT value FROM json_each(?))")
     .bind(JSON.stringify(results.map((variant) => variant.media_id))).all()).results.map((media) => [media.id, media]));
   const now = Date.now(), ready = [], failed = [];
   for (const variant of results) {
     const object = await env.MEDIA_PUBLIC.get(`v/${variant.key}/manifest.json`);
+    const limit = (sizes.get(variant.media_id)?.kind === "video" ? 90 : 45) * 60_000;
     if (object) {
       // An unreadable manifest counts as a size mismatch, so one bad object never blocks the queue.
       const manifest = await object.json().catch(() => ({})), media = sizes.get(variant.media_id);
       if (media && manifest.sourceWidth === media.width && manifest.sourceHeight === media.height) ready.push(variant.key);
       else failed.push({ k: variant.key, r: "size" });
-    } else if (now - Date.parse(variant.created_at) > 45 * 60_000) failed.push({ k: variant.key, r: "timeout" });
+    } else if (now - Date.parse(variant.created_at) > limit) failed.push({ k: variant.key, r: "timeout" });
   }
   if (!ready.length && !failed.length) return;
   const at = new Date(now).toISOString(), failedJson = JSON.stringify(failed);

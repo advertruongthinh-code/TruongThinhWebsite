@@ -1,11 +1,16 @@
 #!/usr/bin/env node
-// CMS variants job (CMS plan P3, Q6): for each ITEMS entry { m, c, p } build the public variants into .tmp/variants/<key>/
-// and, when R2_PUBLIC_BUCKET is set, upload them (files first, manifest.json last). Prints one line per item.
-import { spawnSync } from "node:child_process";
+// CMS variants job (CMS plan P3, P10, Q6): for each ITEMS entry { m, c, p } (image) or { m, c, k: "video" } build the public
+// variants into .tmp/variants/<key>/ and, when R2_PUBLIC_BUCKET is set, upload them (files first, manifest.json last).
+// Prints one line per item.
+import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { createWriteStream } from "node:fs";
 import { mkdir, mkdtemp, readdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { ID } from "../../src/cms/contract.mjs";
 import { VARIANT_RECIPE, variantKey } from "../../src/cms/media-ref.mjs";
@@ -16,6 +21,8 @@ import { IMAGE_SRC, siteRoot } from "../site/lib.mjs";
 const env = process.env;
 const bucket = env.R2_PUBLIC_BUCKET;
 const outRoot = path.resolve(".tmp/variants");
+const srcRoot = path.resolve(".tmp/variants-src");
+const LADDER = fileURLToPath(new URL("../site/build-video-ladder.mjs", import.meta.url));
 const isCrop = (c) => Array.isArray(c) && c.length === 4 && c.every(Number.isInteger) && c[0] >= 0 && c[1] >= 0 && c[2] >= 1 && c[3] >= 1;
 
 // Repo media come from the checkout (sha256); R2 media from the admin Worker, re-hashed with the algorithm named in X-Hash.
@@ -25,17 +32,30 @@ async function original({ m, p }) {
     const bytes = await readFile(path.join(siteRoot, p));
     return { bytes, hash: `sha256:${createHash("sha256").update(bytes).digest("hex")}` };
   }
+  const { response, expected, algorithm } = await fetchOriginal(m);
+  const bytes = Buffer.from(await response.arrayBuffer());
+  const hash = `${algorithm}:${createHash(algorithm).update(bytes).digest("hex")}`;
+  if (hash !== expected) throw new Error("hash");
+  return { bytes, hash };
+}
+
+async function fetchOriginal(m) {
   const response = await fetch(`${env.CMS_ADMIN_ORIGIN}/api/admin/media-original?id=${encodeURIComponent(m)}`, {
     headers: { "CF-Access-Client-Id": env.CMS_ACCESS_CLIENT_ID ?? "", "CF-Access-Client-Secret": env.CMS_ACCESS_CLIENT_SECRET ?? "", "User-Agent": "tt-cms-ci" },
   });
   if (!response.ok) throw new Error(`original ${response.status}`);
-  const bytes = Buffer.from(await response.arrayBuffer());
   const expected = response.headers.get("X-Hash") ?? "";
   const algorithm = expected.split(":")[0];
   if (!["md5", "sha256"].includes(algorithm)) throw new Error("hash algorithm");
-  const hash = `${algorithm}:${createHash(algorithm).update(bytes).digest("hex")}`;
-  if (hash !== expected) throw new Error("hash");
-  return { bytes, hash };
+  return { response, expected, algorithm };
+}
+
+// Uploads dir in passes (each pass is the extra aws arguments after the destination), manifest.json last.
+function upload(dir, key, passes) {
+  for (const args of [...passes, [path.join(dir, "manifest.json"), `s3://${bucket}/v/${key}/manifest.json`, "--cache-control", "no-store"]]) {
+    const result = spawnSync("aws", ["s3", "cp", ...args, "--endpoint-url", env.R2_ENDPOINT], { stdio: ["ignore", "ignore", "inherit"] });
+    if (result.status !== 0) throw new Error(`aws exit ${result.status}`);
+  }
 }
 
 // JXL at the widths build-image-variants.mjs uses, each sized to the AVIF of the same width.
@@ -93,16 +113,49 @@ async function build(item) {
   const files = await Promise.all(names.map(async (name) => ({ name, bytes: (await stat(path.join(dir, name))).size })));
   const manifest = { recipe: VARIANT_RECIPE, key, mediaId: m, hash, crop: c, sourceWidth, sourceHeight, width, height: c[3], files, colors: mediaColors({ full, thumb }), thresholds };
   await writeFile(path.join(dir, "manifest.json"), `${JSON.stringify(manifest)}\n`);
-  if (bucket) {
-    for (const args of [
-      [`${dir}/`, `s3://${bucket}/v/${key}/`, "--recursive", "--exclude", "manifest.json", "--cache-control", "public, max-age=31536000, immutable"],
-      [path.join(dir, "manifest.json"), `s3://${bucket}/v/${key}/manifest.json`, "--cache-control", "no-store"],
-    ]) {
-      const result = spawnSync("aws", ["s3", "cp", ...args, "--endpoint-url", env.R2_ENDPOINT], { stdio: ["ignore", "ignore", "inherit"] });
-      if (result.status !== 0) throw new Error(`aws exit ${result.status}`);
-    }
-  }
+  if (bucket) upload(dir, key, [[`${dir}/`, `s3://${bucket}/v/${key}/`, "--recursive", "--exclude", "manifest.json", "--cache-control", "public, max-age=31536000, immutable"]]);
   return key;
+}
+
+const ffprobe = (file, args) => JSON.parse(execFileSync("ffprobe", ["-v", "error", "-of", "json", ...args, file]).toString());
+
+// Video (P10): stream the original to disk (never into memory), build the HLS ladder with build-video-ladder.mjs, then upload.
+async function buildVideo({ m, c, p }) {
+  if (typeof m !== "string" || !ID.test(m) || p !== undefined || !isCrop(c)) throw new Error("item");
+  const file = path.join(srcRoot, `${m}.mp4`);
+  await mkdir(srcRoot, { recursive: true });
+  try {
+    const { response, expected, algorithm } = await fetchOriginal(m);
+    const sum = createHash(algorithm);
+    await pipeline(Readable.fromWeb(response.body), async function* (source) { for await (const chunk of source) { sum.update(chunk); yield chunk; } }, createWriteStream(file));
+    const hash = `${algorithm}:${sum.digest("hex")}`;
+    if (hash !== expected) throw new Error("hash");
+    // An unreadable file makes ffprobe exit non-zero; it is reported like a file without a video stream.
+    const info = (() => { try { return ffprobe(file, ["-select_streams", "v:0", "-show_entries", "stream=width,height:stream_side_data=rotation:format=duration"]); } catch { return {}; } })();
+    const [stream] = info.streams ?? [];
+    if (!stream) throw new Error("no-video");
+    const turned = Math.abs(Number(stream.side_data_list?.[0]?.rotation ?? 0)) % 180 === 90;
+    const sourceWidth = turned ? stream.height : stream.width, sourceHeight = turned ? stream.width : stream.height;
+    if (sourceWidth < 240) throw new Error("too-small");
+    // c is not compared with the measured size: settleVariants turns a mismatch with the media record into error "size".
+    const key = await variantKey(hash, c);
+    const dir = path.join(outRoot, key);
+    await rm(dir, { recursive: true, force: true });
+    execFileSync(process.execPath, [LADDER, file, dir], { stdio: ["ignore", "ignore", "inherit"] });
+    const hasAudio = ffprobe(file, ["-select_streams", "a:0", "-show_entries", "stream=codec_type"]).streams.length > 0;
+    const names = (await readdir(dir)).sort();
+    const rungs = names.flatMap((name) => /^(\d+)\.mp4$/.test(name) ? [Number.parseInt(name, 10)] : []).sort((a, b) => a - b);
+    const files = await Promise.all(names.map(async (name) => ({ name, bytes: (await stat(path.join(dir, name))).size })));
+    const manifest = { recipe: VARIANT_RECIPE, key, mediaId: m, hash, kind: "video", sourceWidth, sourceHeight, duration: Number(info.format.duration), hasAudio, rungs, files };
+    await writeFile(path.join(dir, "manifest.json"), `${JSON.stringify(manifest)}\n`);
+    if (bucket) {
+      const copy = (include, type, cache) => [`${dir}/`, `s3://${bucket}/v/${key}/`, "--recursive", "--exclude", "*", "--include", include, "--content-type", type, "--cache-control", cache];
+      upload(dir, key, [copy("*.mp4", "video/mp4", "public, max-age=31536000, immutable"), copy("*.m3u8", "application/vnd.apple.mpegurl", "public, max-age=31536000, immutable")]);
+    }
+    return key;
+  } finally {
+    await rm(file, { force: true });
+  }
 }
 
 const items = JSON.parse(env.ITEMS ?? "[]");
@@ -110,7 +163,7 @@ let done = 0;
 for (const item of items) {
   const start = Date.now();
   try {
-    const key = await build(item);
+    const key = await (item?.k === "video" ? buildVideo(item) : build(item));
     done += 1;
     console.log(`ok ${item.m} ${key} ${((Date.now() - start) / 1000).toFixed(1)}s`);
   } catch (error) {
