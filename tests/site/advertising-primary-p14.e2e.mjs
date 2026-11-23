@@ -489,7 +489,10 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   assert(actual.infoState?.ariaLabel?.trim(), `${label}: photo information has no accessible region label`);
   closeTo(actual.typography.body, actual.viewport.rootFontSize, `${label}: body size follows root scale`, 0.1);
   const canonicalDescription = locale === "vi" ? card.descriptionVi : card.descriptionEn;
-  assert.equal(actual.copy.description, canonicalDescription.trim(), `${label}: description is not the whole canonical copy`);
+  // The copy now carries a lead paragraph, bullet lines and a closing line rendered as separate blocks (SEO rewrite, owner "duyệt SEO"
+  // 2026-11-22): compare the text without the line breaks and spaces the blocks replace.
+  const flat = (text) => text.replace(/\s+/g, "");
+  assert.equal(flat(actual.copy.description), flat(canonicalDescription), `${label}: description is not the whole canonical copy`);
   assert.equal(actual.descriptionScroll?.overflowY, "auto", `${label}: description is not its own scroller`);
   assert(actual.descriptionScroll.label, `${label}: description scroller has no accessible label`);
   assert(["start", "left"].includes(actual.descriptionScroll.textAlign), `${label}: description is not left aligned`);
