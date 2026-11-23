@@ -1079,10 +1079,6 @@ export const SLOTS = {
       "kind": "text",
       "marks": "body"
     },
-    "di-san.label": {
-      "kind": "text",
-      "marks": "small"
-    },
     "di-san.text-1": {
       "kind": "text",
       "marks": "small"
@@ -1175,6 +1171,18 @@ export const SLOTS = {
       "kind": "text",
       "marks": "small"
     },
+    "hanh-trinh.title-9": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-17": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-18": {
+      "kind": "text",
+      "marks": "small"
+    },
     "hanh-trinh.title-8": {
       "kind": "text",
       "marks": "title"
@@ -1184,10 +1192,6 @@ export const SLOTS = {
       "marks": "small"
     },
     "hanh-trinh.text-16": {
-      "kind": "text",
-      "marks": "small"
-    },
-    "cach-lam.label": {
       "kind": "text",
       "marks": "small"
     },
@@ -1262,10 +1266,6 @@ export const SLOTS = {
     "editorial-strip.body-5": {
       "kind": "text",
       "marks": "body"
-    },
-    "cam-ket.label": {
-      "kind": "text",
-      "marks": "small"
     },
     "cam-ket.text-1": {
       "kind": "text",
@@ -1342,10 +1342,6 @@ export const SLOTS = {
     "tu-van.image-1": {
       "kind": "media",
       "ratio": 1.5
-    },
-    "tu-van.body": {
-      "kind": "text",
-      "marks": "body"
     },
     "tu-van.title": {
       "kind": "text",

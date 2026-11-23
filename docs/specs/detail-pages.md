@@ -78,22 +78,22 @@ Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, g
 
 ### R3. About: section và nội dung
 
-`main` có một `h1` và các khối theo bảng; ba chương mở bằng `.detail-heading` (eyebrow số La Mã, `h2` hai dòng).
+`main` có một `h1` và các khối theo bảng; ba chương mở bằng `.detail-heading` (`h2` hai dòng). Phần nội dung không có kicker hay eyebrow nào, kể cả CTA (owner 2026-11-24).
 
 | # | Khối | Nội dung (VI) | Tone |
 | --- | --- | --- | --- |
 | 1 | `.hero.about-hero#top` | Ảnh `tho-lap-thung-tu-go-xuong` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / *vững niềm tin*" (dòng 2 nghiêng đậm) | inverse |
 | 2–4 | `.detail-lead#tong-quan`, ảnh `xuong-cnc-can-chinh-tam-go`, `.detail-note` | `h2` "Hơn 20 năm / vững nghề", đoạn mở (2006, in khổ lớn, CNC, in UV, trọn gói); một đoạn | ink |
-| 5–6 | `#di-san`, `.about-journey#hanh-trinh` | "I. HÀNH TRÌNH", `h2` "Mỗi bước tiến / là một lần đổi mới"; tám mốc Những năm 2000, 2005, 2006, 2012, 2015, 2017, 2020, Hôm nay (R9) | ink |
-| 7–9 | `#cach-lam`, `.detail-note`, `.editorial-strip.detail-process-editorial` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một buổi khảo sát kỹ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi (R8) | ink |
-| 10–11 | `#cam-ket`, `.portal-stage#nguyen-tac` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; ba card cam kết (R8) | ink |
+| 5–6 | `#di-san`, `.about-journey#hanh-trinh` | `h2` "Mỗi bước tiến / là một lần đổi mới"; chín mốc Những năm 2000, 2005, 2006, 2012, 2015, 2017, 2020, 2021, Hôm nay (R9) | ink |
+| 7–9 | `#cach-lam`, `.detail-note`, `.editorial-strip.detail-process-editorial` | `h2` "Mỗi công trình bắt đầu / bằng một buổi khảo sát kỹ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi (R8) | ink |
+| 10–11 | `#cam-ket`, `.portal-stage#nguyen-tac` | `h2` "Làm chắc / để đi đường dài"; ba card cam kết (R8) | ink |
 | 12 | `.client-logo-marquee` | Partial `client-logos` của trang chủ (owner 2026-11-22: thay dải chữ chạy) | ink |
-| 13 | `.detail-cta#tu-van` | Khối cuối `main`. "BẮT ĐẦU TỪ MẶT BẰNG / Mời chúng tôi đến khảo sát", nút "Trao đổi qua Zalo"; ảnh `tho-do-he-ke-go` | inverse |
+| 13 | `.detail-cta#tu-van` | Khối cuối `main`. "Mời chúng tôi đến khảo sát", nút "Trao đổi qua Zalo"; ảnh `tho-do-he-ke-go` | inverse |
 
 ```gherkin
 Given output đã build
 When mở /about/
-Then main có một h1 "Vững nghề vững niềm tin", ba chương I, II, III, sáu mốc, năm bước, ba card cam kết, khối cuối là CTA ngay sau dải logo
+Then main có một h1 "Vững nghề vững niềm tin", ba chương không kicker, chín mốc, năm bước, ba card cam kết, khối cuối là CTA ngay sau dải logo
 ```
 
 ### R4. Nội dung VI/EN và hook
@@ -192,14 +192,15 @@ When cuộn qua #quy-trinh và #loai-hinh
 Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít nhất 400px, document không tràn ngang
 ```
 
-### R9. About: dòng thời gian tám bản vẽ
+### R9. About: dòng thời gian chín bản vẽ
 
-`.about-journey`: tám `article` mốc (`h3` năm, câu mở `strong`): Những năm 2000, 2005, 2006, 2012, 2015, 2017, 2020, Hôm nay (owner 2026-11-23, không bịa năm); mỗi mốc một bản vẽ nét `svg[data-journey-art]` (máy hoặc sản phẩm, không biểu tượng tôn giáo, khối nổi có nét gấp ở góc sắc), sinh bằng `draw4.py` (Library `thiet-ke-trang-gioi-thieu/v2/`), không sửa tay. Mốc 2020 là tấm ván 1220 x 2440 nesting phôi tủ (mũi 6 mm, khe và lề 10 mm, tận dụng 90%, owner 2026-11-23), không ghi khổ ván lên hình; mốc 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chữ theo bản owner duyệt 2026-11-24 (`about-text-approved.md`); nội thất chỉ gọi "quy trình tinh gọn". Bản vẽ (owner 2026-11-24): không nét nào lố khỏi vùng của nó, đúng trước sau; mặt cong có màu tô chuyển sáng tối (gradient), không kẻ nét chỗ cong; ít chi tiết (máy in không nút, không màn hình; đầu CNC là khối hộp, khối trụ và một nét đậm). Từ 981px: khung bản vẽ sticky trái, tám nút tiến độ; mỗi mốc là một chặng (owner 2026-11-24): năm qua vạch 55% màn hình thì `detail.js` cho `--p` chạy 0 tới 1 theo thời gian (1,5 giây, khung đầu trắng tinh), cuộn ngược thì tua về 0 (0,8 giây) rồi bản vẽ mốc trước hiện đủ; không bao giờ dừng giữa chừng; khi cuộn chỉ so vị trí năm đã lưu, không đọc layout hay ghi style mỗi khung. Chỉ bản vẽ mốc hiện tại hiện; nét viền chạy bằng dashoffset, màu quét bằng nét cọ `.about-journey__brush` cắt theo hình (không mờ dần); nhóm `__rise`, `__reveal`, `__press` (chữ nổi 2012, con dấu 2006). Reduced motion: `--p` 1, chỉ đổi bản vẽ. Dưới 981px: mỗi mốc có bản vẽ đủ (`__thumb`, `<use>` bản vẽ sân khấu) trên chữ, đứng yên; sân khấu vẫn render (ô 1px, opacity 0), không `display: none` hay `visibility: hidden`, để clip cọ và gradient còn tác dụng.
+`.about-journey`: chín `article` mốc (`h3` năm, câu mở `strong`): Những năm 2000, 2005, 2006, 2012, 2015, 2017, 2020, 2021 (máy dán cạnh, owner 2026-11-24), Hôm nay (owner 2026-11-23, không bịa năm; không ghi mã máy nào); mỗi mốc một bản vẽ nét `svg[data-journey-art]` (máy hoặc sản phẩm, không biểu tượng tôn giáo, khối nổi có nét gấp ở góc sắc), sinh bằng `draw5.py` (Library `thiet-ke-trang-gioi-thieu/v2/`), không sửa tay. Mốc 2020 là tấm ván 1220 x 2440 nesting phôi tủ (mũi 6 mm, khe và lề 10 mm, tận dụng 90%, owner 2026-11-23), không ghi khổ ván lên hình; mốc 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chữ theo bản owner duyệt 2026-11-24 (`about-text-approved.md`); nội thất chỉ gọi "quy trình tinh gọn". Bản vẽ (owner 2026-11-24): không nét nào lố khỏi vùng của nó, đúng trước sau; mặt cong có màu tô chuyển sáng tối (gradient), không kẻ nét chỗ cong; máy in, CNC, máy dán cạnh vẽ theo chi tiết ảnh mẫu owner gửi 2026-11-24 nhưng giữ nét và bảng màu của trang (máy in thân vuông, media rộng gần hết thân máy, không nút, không màn hình, dây mực giấu dưới nắp che cạnh tháp mực; đầu CNC là khối hộp, khối trụ và một nét đậm); mốc 2012 là chữ Đ, Â, T với ba logo lá, giọt nước, con cá; sọc tủ Hôm nay dừng cách viền. Từ 981px: khung bản vẽ sticky trái; đường tiến độ nằm ở khe giữa hai cột, mỗi nút cạnh năm của mốc mình và trôi cùng chữ (owner 2026-11-24), phần tô cam chạy tới nút mốc hiện tại; mỗi mốc là một chặng (owner 2026-11-24): năm qua vạch 55% màn hình thì `detail.js` cho `--p` chạy 0 tới 1 theo thời gian (1,5 giây, khung đầu trắng tinh), cuộn ngược thì tua về 0 (0,8 giây) rồi bản vẽ mốc trước hiện đủ; không bao giờ dừng giữa chừng; khi cuộn chỉ so vị trí năm đã lưu, không đọc layout hay ghi style mỗi khung. Chỉ bản vẽ mốc hiện tại hiện; nét viền chạy bằng dashoffset, màu quét bằng nét cọ `.about-journey__brush` cắt theo hình (không mờ dần); nhóm `__rise`, `__reveal`, `__press` (chữ nổi 2012, con dấu 2006). Reduced motion: `--p` 1, chỉ đổi bản vẽ. Dưới 981px: mỗi mốc có bản vẽ đủ (`__thumb`, `<use>` bản vẽ sân khấu) trên chữ, đứng yên; sân khấu vẫn render (ô 1px, opacity 0), không `display: none` hay `visibility: hidden`, để clip cọ và gradient còn tác dụng.
 
 ```gherkin
 Given /about/ ở 1440px
 When năm 2005 vừa qua vạch 55% màn hình rồi dừng cuộn, sau đó cuộn ngược
 Then bản vẽ tự chạy từ trắng tinh tới đủ; cuộn ngược thì tua về trắng rồi bản vẽ mốc trước hiện đủ
+And mỗi nút tiến độ nằm ngang tâm năm của mốc mình ở mọi vị trí cuộn
 ```
 
 ### R10. CTA, marquee, hover và ảnh dưới chữ trắng
@@ -208,7 +209,7 @@ Then bản vẽ tự chạy từ trắng tinh tới đủ; cuộn ngược thì 
 "Talk on Zalo"), `aria-label` riêng từng trang; footer giữ `id="lien-he"`. Rule CTA chung cho CTA này, khối
 "Giữ nghề" ([cảm giác cuộn R5](scroll-feel.md#r5-khối-giữ-nghề-theo-banner-cta-của-espacio)) và CTA Advertising: tiêu đề
 canh giữa ở mọi bề rộng, weight 500, cỡ `--cta-title-size` (`clamp(3.2rem, 6vw, 7rem)`; CTA Advertising giữ cỡ riêng,
-[R3](advertising-cta-center-parallax.md#r3-tiêu-đề-luôn-lớn-hơn-nút)); eyebrow (nếu có) ở trên, nút ở
+[R3](advertising-cta-center-parallax.md#r3-tiêu-đề-luôn-lớn-hơn-nút)); eyebrow (nếu có, About không có) ở trên, nút ở
 dưới. Ở `.detail-cta#tu-van` nét chữ nhìn thấy của tiêu đề (đỉnh chữ hoa tới chân chữ dòng cuối, không tính dấu) nằm đúng tâm
 khối theo chiều dọc, lệch tối đa 2px: copy là grid `1fr auto 1fr`, eyebrow và nút ở hai hàng 1fr bằng nhau, cả cụm dời
 theo `--cta-title-size`. Khối "Giữ nghề" dùng chung grid và rule nút này. Nút là nhãn `.legacy-link` + `.portal-subtitle` như link "VỀ CHÚNG TÔI": 16px, viết hoa, không mũi tên, vùng chạm

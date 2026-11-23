@@ -1,7 +1,8 @@
-// About journey (detail-pages R3, R9): eight milestones beside one sticky drawing per milestone. From 981px with motion each
+// About journey (detail-pages R3, R9): nine milestones beside one sticky drawing per milestone. From 981px with motion each
 // milestone is a stage: when its year passes the line its drawing plays on its own from a white first frame to complete, and
 // scrolling back rewinds it, then the previous drawing shows complete; a drawing never stops halfway (owner 2026-11-24).
-// Below 981px each milestone shows its own complete drawing. The page ends with the client logos then the CTA.
+// Each milestone's rail node sits beside its year and scrolls with it (owner 2026-11-24). Below 981px each milestone shows its
+// own complete drawing. No kicker in the content (owner 2026-11-24); the page ends with the client logos then the CTA.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/about-journey.e2e.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -29,8 +30,15 @@ const art = (page, n) => page.evaluate((index) => {
     painted: brush ? 1 - Number(getComputedStyle(brush).strokeDashoffset.match(/-?[\d.]+/)[0]) : null };
 }, n);
 
+// Per milestone: vertical distance from its node's centre to its year's centre, and the year's top in the viewport.
+const nodes = (page) => page.evaluate(() => [...document.querySelectorAll(".about-journey__item")].map((item) => {
+  const year = item.querySelector(".about-journey__year").getBoundingClientRect();
+  const node = item.querySelector(".about-journey__node")?.getBoundingClientRect();
+  return { gap: node ? Math.abs(node.top + node.height / 2 - (year.top + year.height / 2)) : Infinity, top: year.top };
+}));
+
 for (const locale of ["", "en/"]) {
-  test(`/${locale}about/ ends with the client logos then the CTA, eight milestones, eight drawings`, async () => {
+  test(`/${locale}about/ ends with the client logos then the CTA, nine milestones, nine drawings, no kicker`, async () => {
     const browser = await launchBrowser();
     const { context, page } = await openPage(browser, VIEWPORTS.desktop);
     try {
@@ -40,15 +48,20 @@ for (const locale of ["", "en/"]) {
         return { last: blocks.at(-1).className, before: blocks.at(-2).className,
           cta: document.querySelector("#tu-van a")?.dataset.cta, items: document.querySelectorAll(".about-journey__item").length,
           arts: document.querySelectorAll(".about-journey__art[data-journey-art]").length,
-          abf: /\bABF\b/.test(document.body.innerHTML),
+          abf: /\bABF\b/.test(document.body.innerHTML), model: /FN-?353/i.test(document.body.innerHTML),
+          years: [...document.querySelectorAll(".about-journey__year")].map((year) => year.textContent.trim()),
+          kickers: document.querySelectorAll("main .detail-eyebrow, main [class*='kicker'], #tu-van .detail-cta__copy > p").length,
           sheetSize: /1220|2440/.test(document.querySelector(".about-journey").textContent) };
       });
       assert.match(order.last, /\bdetail-cta\b/);
       assert.match(order.before, /\bclient-logo-marquee\b/);
       assert.equal(order.cta, "about-1");
-      assert.equal(order.items, 8);
-      assert.equal(order.arts, 8);
+      assert.equal(order.items, 9);
+      assert.equal(order.arts, 9);
+      assert.equal(order.years[7], "2021", "the edge bander milestone sits between 2020 and today (owner 2026-11-24)");
       assert.equal(order.abf, false);
+      assert.equal(order.model, false, "no machine model number anywhere (owner 2026-11-24)");
+      assert.equal(order.kickers, 0, "no kicker in the content (owner 2026-11-24)");
       assert.equal(order.sheetSize, false, "no sheet size written on the 2020 drawing (owner 2026-11-24)");
     } finally {
       await context.close();
@@ -66,8 +79,12 @@ test("1440: a drawing plays to the end on its own once its year passes, and rewi
     await logicalScroll(page, await yearAt(page, 2, 0.7));
     await page.waitForTimeout(2000);
     assert.equal((await art(page, 2)).current, false, "the printer waits for its year");
+    const before = await nodes(page);
+    assert(before.every((n) => n.gap <= 1), `each node sits beside its year: ${before.map((n) => n.gap.toFixed(1))}`);
     await logicalScroll(page, await yearAt(page, 2, 0.5));
     const start = await art(page, 2);
+    const after = await nodes(page);
+    assert(after[1].top < before[1].top - 50 && after.every((n) => n.gap <= 1), "the nodes scroll with the milestones");
     assert(start.current && start.p < 0.5, `the printer starts near white: ${start.p}`);
     await page.waitForTimeout(2200);
     const done = await art(page, 2);
@@ -147,7 +164,7 @@ for (const width of [320, 390, 768]) {
           display: getComputedStyle(aside).display }, stage, armed: journey.classList.contains("is-armed"), clipped,
           overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth };
       });
-      assert.equal(state.thumbs, 8);
+      assert.equal(state.thumbs, 9);
       assert(state.aside.width <= 1 && state.aside.opacity === "0" && state.aside.display !== "none", JSON.stringify(state.aside));
       assert.equal(state.stage, 0, "no stage drawing is hidden from the thumbs");
       assert.equal(state.armed, false);

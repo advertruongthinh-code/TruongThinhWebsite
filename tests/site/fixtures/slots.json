@@ -1347,11 +1347,6 @@
       "marks": "body"
     },
     {
-      "id": "di-san.label",
-      "kind": "text",
-      "marks": "small"
-    },
-    {
       "id": "di-san.text-1",
       "kind": "text",
       "marks": "small"
@@ -1467,6 +1462,21 @@
       "marks": "small"
     },
     {
+      "id": "hanh-trinh.title-9",
+      "kind": "text",
+      "marks": "title"
+    },
+    {
+      "id": "hanh-trinh.text-17",
+      "kind": "text",
+      "marks": "small"
+    },
+    {
+      "id": "hanh-trinh.text-18",
+      "kind": "text",
+      "marks": "small"
+    },
+    {
       "id": "hanh-trinh.title-8",
       "kind": "text",
       "marks": "title"
@@ -1478,11 +1488,6 @@
     },
     {
       "id": "hanh-trinh.text-16",
-      "kind": "text",
-      "marks": "small"
-    },
-    {
-      "id": "cach-lam.label",
       "kind": "text",
       "marks": "small"
     },
@@ -1575,11 +1580,6 @@
       "id": "editorial-strip.body-5",
       "kind": "text",
       "marks": "body"
-    },
-    {
-      "id": "cam-ket.label",
-      "kind": "text",
-      "marks": "small"
     },
     {
       "id": "cam-ket.text-1",
@@ -1675,11 +1675,6 @@
       "id": "tu-van.image-1",
       "kind": "media",
       "ratio": 1.5
-    },
-    {
-      "id": "tu-van.body",
-      "kind": "text",
-      "marks": "body"
     },
     {
       "id": "tu-van.title",
