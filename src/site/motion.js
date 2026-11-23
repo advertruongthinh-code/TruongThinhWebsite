@@ -1191,6 +1191,12 @@
       },
     };
   };
+  // The floating search bar lives outside the smooth container: a wheel over it that nothing used scrolls the page as anywhere else.
+  // The chip panel keeps its own scroll.
+  window.addEventListener("wheel", (event) => {
+    if (event.defaultPrevented || !event.target.closest?.(".search-host") || event.target.closest(".search-bar__all")) return;
+    pageState?.smoothScroll?.scroll?.vs?._onWheel(event);
+  }, { passive: true, signal: runtimeAbort.signal });
   let glideFrame = 0;
   let glideStop;
   window.TruongThinhMotion = {
