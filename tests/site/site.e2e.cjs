@@ -5916,8 +5916,9 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
             // Masonry pages drop the "Cuộn xuống" cue (owner 2026-11-18).
             const scrollRect = scrollCue && rect(scrollCue);
             const gridRect = rect(document.querySelector("[data-project-grid]"));
+            // A multi-media card prepends the next media's hidden layer while it loads (media-card R4 slideshow, owner 2026-11-13).
             const firstImageRect = rect(
-              document.querySelector("[data-project-grid] img"),
+              document.querySelector("[data-project-grid] img:not([hidden])"),
             );
             const mobile = window.innerWidth <= 680;
             const expectedGutter = mobile
