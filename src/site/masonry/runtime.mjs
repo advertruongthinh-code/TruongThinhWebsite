@@ -5198,17 +5198,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       });
     }
   };
-  // Touch screens float the primary strip on the image, other screens keep it in info above the description (owner 2026-11-23).
-  const touchScreen = env.phone;
-  const placePrimaryThumbs = () => {
-    if (!photoMediaThumbs) return;
-    const floating = touchScreen.matches && heroFrame;
-    photoMediaThumbs.classList.toggle("thumb-dock", Boolean(floating));
-    if (floating) heroFrame.append(photoMediaThumbs);
-    else photoDescriptionBox.before(photoMediaThumbs);
-  };
-  touchScreen.addEventListener("change", placePrimaryThumbs, { signal: controller.signal });
-  // One collapse state for the primary and viewer strips, kept while the page stays open (owner 2026-11-23). The button only collapses; a tap on
+  // The viewer strip collapse state, kept while the page stays open (owner 2026-11-23). The button only collapses; a tap on
   // the peeking collapsed strip opens it and does nothing else (no media change, no viewer open), so it is caught before any other listener.
   const setThumbsCollapsed = (collapsed) => {
     document.documentElement.toggleAttribute("data-thumbs-collapsed", collapsed);
@@ -5253,7 +5243,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       photoMediaThumbs.setAttribute("role", "group");
       photoMediaThumbs.addEventListener("scroll", syncScrollHints, { passive: true });
       scrollHintObserver.observe(photoMediaThumbs);
-      placePrimaryThumbs();
+      photoDescriptionBox.before(photoMediaThumbs);
     }
     photoMediaThumbs.setAttribute("aria-label", english ? "Product media" : "Media sản phẩm");
     photoMediaThumbs.style.setProperty("--detail-thumb-ratio", String(thumbRatio(record)));
@@ -5456,7 +5446,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // A touch swipe drags the strip with the finger (R6 like card R3); arrow keys when focus is in the frame change media, the seek bar and
   // volume keep their keys. A finger on the seek bar and volume only seeks and adjusts sound (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {
-    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range'], .thumb-dock, [data-thumbs-toggle]"),
+    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range']"),
     width: primaryWidth,
     canStep: (step) => Boolean(primaryItems()[primaryIndex() + step]),
     drag: (offset) => {

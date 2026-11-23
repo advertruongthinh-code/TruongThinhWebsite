@@ -9,7 +9,7 @@ tests:
   - tests/site/advertising-photo-transitions.e2e.mjs
   - tests/site/advertising-viewer-stale-image.e2e.mjs
 notion: https://app.notion.com/p/3f0332849a0e8178be65cd68d4de4b43
-updated: 2026-11-23
+updated: 2026-11-24
 ---
 
 # Viewer Advertising theo cử chỉ tay
@@ -169,15 +169,17 @@ Then viewer mở ở Fit, không zoom
 
 Viewer không có nút đóng, `+`, `−` trên mọi máy (owner 2026-11-14 bỏ hẳn; trước đó desktop có nút, cảm ứng ẩn khỏi mắt):
 đóng bằng chạm, click nền, Escape, Back; zoom bằng pinch (R1), chạm (R4), wheel, phím `+`/`-`.
-Dãy thumbnail nổi (`.thumb-dock`, owner 2026-11-23) là một UI cho dãy viewer trên mọi máy và dãy primary trên màn cảm ứng (dãy rời info, nằm trên ảnh; PC giữ dãy ngang trong info): màn dọc là cột sát trái, màn ngang là hàng ở đáy; thumbnail giữ cùng cạnh ngang (primary `56px`, viewer `96px`, phone `56px`) nên đổi chiều màn cỡ gần như không đổi. Sau dãy là vùng đen mờ dần từ mép theo đường cosine như hero; chỗ trống giữa thumbnail không nhận chạm nên ảnh dưới vẫn chạm mở, vuốt, zoom. Dãy mặc định mở, có nút thu `36px` (`[data-thumbs-toggle]`, `aria-expanded`) ở đầu dãy sát mép: màn dọc ở góc trên trái trên cột, màn ngang bên trái hàng (owner 2026-11-23). Bấm nút thì dãy trượt ra mép, chỉ chừa `16px` thumbnail thò ra, vùng đen mờ đi, nút trượt ra theo và ẩn `0.4s` `--ease-card`; chạm hoặc click vào phần thò ra (cả dải `16px` sát bên trong) thì dãy mở lại, không đổi media, không mở viewer; một trạng thái chung cho primary và viewer, giữ tới khi rời trang.
-Viewer mở thì dãy và nút trượt vào sau morph, đóng thì trượt ra cùng lúc; chuột PC đứng yên 3s dãy và nút trượt hết ra mép. Lề quanh ảnh viewer `48px`, phone (cạnh nào tới `600px`) `24px`, trên mọi máy kể cả cảm ứng. Tablet và PC: dãy nằm cạnh ảnh, ảnh cách dãy `16px` và phía đối diện chừa bằng để ảnh giữa màn hình (`VIEWER_GAP`); phone: dãy đè lên ảnh. Màn cảm ứng ngang, dãy primary đang mở: thanh video primary và nút mở lớn của video nâng lên trên dãy, thu dãy thì hạ về ngay trên phần thò ra.
+Dãy thumbnail nổi (`.thumb-dock`) chỉ còn ở viewer, trên mọi máy và mọi chiều màn là một hàng ở đáy (owner 2026-11-24; trước đó màn dọc là cột sát trái và dãy primary cảm ứng cũng nổi trên ảnh, owner 2026-11-23). Dãy primary trên mọi máy nằm trong phần mô tả như PC. Thumbnail viewer cao `96px`, phone `56px`; sau dãy là vùng đen mờ dần lên theo đường cosine như hero; chỗ trống giữa thumbnail không nhận chạm nên ảnh dưới vẫn vuốt, zoom. Dãy mặc định mở; nút thu (`[data-thumbs-toggle]`, `aria-expanded`) là thanh trắng ngang nhỏ `28×4px` (vùng bấm `44×24px`) giữa màn, dưới hàng, nằm trong lề đáy nên không chiếm chỗ (owner 2026-11-24). Bấm nút thì dãy trượt xuống, chỉ chừa `16px` thumbnail thò lên khỏi mép đáy, vùng đen mờ đi, nút trượt theo và ẩn `0.4s` `--ease-card` (owner 2026-11-23); chạm hoặc click vào phần thò ra (cả dải `16px` ngay trên) thì dãy mở lại, không đổi media; trạng thái giữ tới khi rời trang.
+Viewer mở thì dãy và nút trượt vào sau morph, đóng thì trượt ra cùng lúc; chuột PC đứng yên 3s dãy và nút trượt hết xuống mép đáy. Lề quanh ảnh viewer `48px`, phone (cạnh nào tới `600px`) `24px`, trên mọi máy kể cả cảm ứng. Tablet và PC: dãy nằm dưới ảnh, ảnh cách dãy `16px` và phía trên chừa bằng để ảnh giữa màn hình (`VIEWER_GAP`); phone: dãy đè lên ảnh.
 
 ```gherkin
 Given điện thoại dọc 384×724 cảm ứng, card nhiều media
-When mở detail rồi chạm ảnh primary để mở viewer
-Then dãy primary là cột sát trái ảnh, thumbnail rộng 56px; trong viewer ảnh cách mép 24px, dãy viewer đè lên ảnh
-And bấm nút thu thì cả hai dãy trượt ra mép trái chỉ chừa 16px thumbnail, nút thu ẩn
-And chạm phần thò ra thì dãy mở lại, media không đổi, viewer không mở
+When mở detail
+Then dãy primary là một hàng trong phần mô tả
+When chạm ảnh primary để mở viewer
+Then dãy viewer là hàng ở đáy, thumbnail cao 56px, cách đáy 24px, thanh trắng nhỏ giữa màn dưới hàng
+And bấm thanh trắng thì dãy trượt xuống chỉ chừa 16px thumbnail, thanh trắng ẩn
+And chạm phần thò ra thì dãy mở lại, media không đổi, viewer vẫn mở
 And PC 1440×900 dãy viewer là hàng ở đáy, thumbnail cao 96px, cách đáy 48px, ảnh giữa màn hình
 ```
 
