@@ -3,6 +3,7 @@
 import { localePrefix } from "../../scripts/site/lib-pure.mjs";
 
 export const LINK = /^(page:[a-z0-9-]+(\/[a-z0-9-]+)?|contact:[a-z]+|https:\/\/[^\s"'<>()]+)$/;
+export const CONTACT_HREF = /^(https:\/\/[^\s"'<>]+|tel:\+?[0-9]+|mailto:[^\s"'<>]+)$/;
 export const ABOUT_TOPICS = ["heritage", "process", "commitment", "contact"];
 const PAGES = { home: "/", residential: "/residential/", commercial: "/commercial/", projects: "/projects/", advertising: "/advertising-products/", about: "/about/", news: "/news/" };
 
@@ -14,8 +15,9 @@ export function resolveLink(link, ctx = {}) {
   if (typeof link !== "string" || !LINK.test(link)) return null;
   if (link.startsWith("https://")) return { vi: link, en: link, external: true };
   if (link.startsWith("contact:")) {
+    // Only the schemes contact.json allows (K8); anything else (javascript:, data:) reads as an empty channel.
     const href = ctx.contact?.channels?.[link.slice(8)]?.href;
-    return href ? { vi: href, en: href, external: href.startsWith("https://") } : null;
+    return typeof href === "string" && CONTACT_HREF.test(href) ? { vi: href, en: href, external: href.startsWith("https://") } : null;
   }
   const [page, key] = link.slice(5).split("/");
   if (key === undefined) return Object.hasOwn(PAGES, page) ? both(PAGES[page]) : null;

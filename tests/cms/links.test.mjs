@@ -30,6 +30,7 @@ test("a missing target returns null", () => {
     assert.equal(resolveLink(link, ctx), null, link);
   }
   assert.equal(resolveLink("contact:zalo", {}), null);
+  for (const href of ["javascript:alert(1)", "data:text/html,x", "http://zalo.me/1", "tel:abc"]) assert.equal(resolveLink("contact:zalo", { contact: { channels: { zalo: { href } } } }), null, href);
 });
 
 test("unsafe schemes and malformed links do not match LINK", () => {

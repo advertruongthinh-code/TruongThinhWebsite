@@ -1,6 +1,7 @@
 // Marked text (cms-plan part 2 K2, cms-content R8, cms-editor R5): node --test tests/cms/inline-marks.test.mjs
 import assert from "node:assert/strict";
 import test from "node:test";
+import { localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
 import { listHtml, markedInner, marksErrors, parseMarks, plainText, skeleton, typoWarnings } from "../../src/cms/inline-marks.mjs";
 
 const ctx = { news: new Map([["n1", { slugVi: "tin-a", slugEn: "post-a" }]]), projects: new Map(), clusters: [], projectTypes: [] };
@@ -97,4 +98,9 @@ test("typo warnings: a broken line ends with punctuation, a lone word after a br
   assert.deepEqual(typoWarnings("Dòng một,\nhai ba").map(({ code }) => code), ["line-end-punct"]);
   assert.deepEqual(typoWarnings("Dòng một\nhai").map(({ code }) => code), ["lone-word"]);
   assert.deepEqual(typoWarnings("Câu một. Câu hai."), []);
+});
+
+test("the EN page swaps every segment even when the text contains data-en=", () => {
+  const html = `<p>${markedInner("x data-en=\nabc", "y data-en=\ndef", ctx)}</p>`;
+  assert.equal(localeHtml(html, "en"), '<p><span data-en="y data-en=" data-vi="x data-en=" data-seg>y data-en=</span><br><span data-en="def" data-vi="abc" data-seg>def</span></p>');
 });
