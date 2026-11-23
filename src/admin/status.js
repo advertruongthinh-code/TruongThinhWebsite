@@ -2,7 +2,7 @@
 
 const $ = (id) => document.getElementById(id);
 const logEl = $('log');
-const buttons = [$('save1'), $('save10'), $('stale10'), $('uploadTest'), $('mediaReload'), $('rebuild')];
+const buttons = [$('save1'), $('save10'), $('stale10'), $('uploadTest'), $('uploadVideoTest'), $('mediaReload'), $('rebuild')];
 
 function log(line, out = logEl) {
   out.textContent += line + '\n';
@@ -129,6 +129,40 @@ async function uploadTest() {
   await loadMediaList();
 }
 
+// Upload one test MP4: the first decoded frame becomes the WebP poster, then the video follows with the size the browser shows (after rotation).
+async function uploadVideoTest() {
+  const out = $('uploadLog');
+  const file = $('testVideo').files[0];
+  if (!file) { log('Chọn một video MP4 trước.', out); return; }
+  const video = document.createElement('video');
+  video.muted = true;
+  video.src = URL.createObjectURL(file);
+  try {
+    await new Promise((resolve, reject) => {
+      video.addEventListener('loadeddata', resolve, { once: true });
+      video.addEventListener('error', reject, { once: true });
+    });
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const poster = await new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', 0.9));
+    if (!poster) throw new Error('poster');
+    const alts = (vi, en) => ({ altVi: vi, altEn: en });
+    const size = { width: String(video.videoWidth), height: String(video.videoHeight) };
+    const first = await timed('upload poster', '/api/admin/upload-media?' + new URLSearchParams({ slugBase: 'thu-poster', ...size, ...alts('Poster thử', 'Test poster') }), { method: 'POST', headers: { 'Content-Type': 'image/webp' }, body: poster }, out);
+    if (first.status !== 201) return;
+    const query = new URLSearchParams({ slugBase: 'thu-video', ...size, duration: String(video.duration), posterId: first.data.id, ...alts('Video thử', 'Test video') });
+    const second = await timed('upload video', '/api/admin/upload-media?' + query, { method: 'POST', headers: { 'Content-Type': 'video/mp4' }, body: file }, out);
+    log(JSON.stringify(second.data), out);
+  } catch (e) {
+    log('Không đọc được video.', out);
+  } finally {
+    URL.revokeObjectURL(video.src);
+  }
+  await loadMediaList();
+}
+
 // First page of media-list: id, status and the full-frame variant (key, status, error).
 async function loadMediaList() {
   const el = $('mediaList');
@@ -150,6 +184,7 @@ async function loadMediaList() {
 
 $('uploadTest').addEventListener('click', () => run(uploadTest));
 $('rebuild').addEventListener('click', () => run(rebuild));
+$('uploadVideoTest').addEventListener('click', () => run(uploadVideoTest));
 $('mediaReload').addEventListener('click', () => run(loadMediaList));
 
 loadBuildStatus();

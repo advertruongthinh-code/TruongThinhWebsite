@@ -23,7 +23,7 @@ export default {
     if (row.status === "trashed") throw new HttpError(409, { error: "trashed" }, target);
     if (row.version !== version) throw stale(row);
     const { results: users } = await env.DB
-      .prepare("SELECT r.type, r.id, r.status, r.data, r.write_id FROM records r WHERE EXISTS (SELECT 1 FROM record_media m WHERE m.type = r.type AND m.id = r.id AND m.media_id = ?) LIMIT 38")
+      .prepare("SELECT r.type, r.id, r.status, r.data, r.write_id FROM records r WHERE EXISTS (SELECT 1 FROM record_media m WHERE m.type = r.type AND m.id = r.id AND m.media_id = ?) AND r.type != 'media' LIMIT 38")
       .bind(id).all();
     if (users.length > MAX_USES) throw new HttpError(409, { error: "too-many-uses" }, target);
     const filled = Boolean(altVi.trim() && altEn.trim());

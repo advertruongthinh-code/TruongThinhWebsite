@@ -4,6 +4,7 @@ import { isLegacy, mediaRefs } from "../cms/media-ref.mjs";
 import { HttpError } from "./http.mjs";
 
 export const MAX_UPLOAD_BYTES = 25 * 1024 * 1024;
+export const MAX_VIDEO_BYTES = 95_000_000;
 export const IMAGE_EXT = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/avif": "avif" };
 
 export const hex = (buffer) => [...new Uint8Array(buffer)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
@@ -16,6 +17,8 @@ export function sniff(head, ext) {
   if (ext === "png") return startsWith(head, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
   if (ext === "webp") return ascii(head, 0, 4) === "RIFF" && ascii(head, 8, 12) === "WEBP";
   if (ext === "avif") return ascii(head, 4, 8) === "ftyp" && ["avif", "avis"].includes(ascii(head, 8, 12));
+  // Any other ftyp brand (HEIC, QuickTime, AVIF) is refused; the real check is the ffprobe of the variants job.
+  if (ext === "mp4") return ascii(head, 4, 8) === "ftyp" && !["avif", "avis", "heic", "heix", "hevc", "mif1", "msf1", "qt  "].includes(ascii(head, 8, 12));
   return false;
 }
 
