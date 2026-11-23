@@ -5,7 +5,10 @@ export const h = (tag, props = {}, ...children) => {
   return node;
 };
 
-export const time = (iso) => (iso ? new Date(iso).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" }) : "");
+const DATE = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+const CLOCK = new Intl.DateTimeFormat("vi-VN", { hour: "2-digit", minute: "2-digit" });
+// "23/11/2026 22:47"
+export const time = (iso) => (iso ? `${DATE.format(new Date(iso))} ${CLOCK.format(new Date(iso))}` : "");
 
 export function toast(message) {
   const node = document.getElementById("toast");

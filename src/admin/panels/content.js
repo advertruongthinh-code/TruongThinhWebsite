@@ -5,6 +5,7 @@ import { h, time, toast } from "../dom.js";
 import { slugOf } from "../slug.mjs";
 import { hasDraft, state } from "../state.js";
 import { ID } from "../lib/src/cms/contract.mjs";
+import { LAYOUTS } from "../lib/src/cms/layouts.mjs";
 import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS } from "../lib/src/site/advertising-products/taxonomy.mjs";
 import { NEWS_GROUPS } from "../lib/scripts/site/blocks.mjs";
 import { PROJECT_TYPES, SECTOR_LABEL, pageHref } from "../lib/scripts/site/block-pages.mjs";
@@ -29,6 +30,8 @@ const FILTERS = [
   ["error", "Có lỗi", (item) => item.variantError],
 ];
 const CREATE_TITLE = { news: "Tạo bài News", project: "Tạo công trình", "advertising-card": "Tạo card Advertising" };
+// A new News or project page starts on the first layout of its kind; the author picks another while editing (R4).
+const firstLayout = (kind) => Object.keys(LAYOUTS).find((id) => LAYOUTS[id].kind === kind);
 const fold = (value) => String(value ?? "").normalize("NFD").replace(/\p{M}/gu, "").replace(/đ/gi, "d").toLowerCase();
 export const nameOf = (type, item) => FIXED[type]?.[item.id]?.[0] ?? item.name ?? item.id;
 
@@ -147,7 +150,6 @@ export function mountContent(root, { open }) {
     order.splice(to, 0, ...order.splice(from, 1));
     const slot = entry(type);
     const before = slot.items;
-    const position = new Map(order.map((item, index) => [item.id, index]));
     const moved = new Set(order.map((item) => item.id));
     // Items outside the reordered list (other card products) keep their places; the moved ones take the new order.
     const queue = [...order];
@@ -155,7 +157,7 @@ export function mountContent(root, { open }) {
     renderAll();
     root.querySelector(`[data-row="${CSS.escape(`${type}:${order[to].id}`)}"] .row`)?.focus();
     const result = await call("reorder", { body: { type, ids: order.map((item) => item.id), ...(scope ? { scope } : {}) } });
-    if (!result.error) return void position;
+    if (!result.error) return;
     slot.items = before;
     if (result.status === 409) {
       toast("Danh sách vừa đổi, xếp lại giúp.");
@@ -210,7 +212,7 @@ export function mountContent(root, { open }) {
       return li;
     }));
     if (slot.next && !slot.loading && !slot.error) {
-      const sentinel = h("li", { className: "rows__more", dataset: { type } }, "Đang tải thêm");
+      const sentinel = h("li", { className: "rows__more" }, "Đang tải thêm");
       sentinel.dataset.type = type;
       ul.append(sentinel);
       observer.observe(sentinel);
@@ -218,7 +220,7 @@ export function mountContent(root, { open }) {
     return [ul, shown.length];
   }
 
-  function state_(type) {
+  function loadState(type) {
     const slot = entry(type);
     if (slot.error) return h("p", { className: "group__note" }, "Chưa tải được danh sách. ", h("button", { type: "button", className: "link", onclick: () => load(type) }, "Thử lại"));
     if (!slot.done && !slot.items.length) return h("p", { className: "group__note" }, "Đang tải");
@@ -238,7 +240,7 @@ export function mountContent(root, { open }) {
       if (type === "page-copy") items.sort((a, b) => Object.keys(FIXED["page-copy"]).indexOf(a.id) - Object.keys(FIXED["page-copy"]).indexOf(b.id));
       const [ul, count] = listBody(type, items, { reorder: group.reorder && entry(type).done });
       shown += count;
-      parts.push(ul, state_(type));
+      parts.push(ul, loadState(type));
     }
     if (group.reorder && filtering() && total) parts.unshift(h("p", { className: "group__hint" }, "Bỏ lọc và ô tìm để kéo thả xếp thứ tự."));
     const loading = group.types.some((type) => !entry(type).done && !entry(type).error);
@@ -253,7 +255,7 @@ export function mountContent(root, { open }) {
     const slot = entry(type);
     const cards = live(type);
     counts.get("cards").textContent = slot.done ? String(cards.length) : "";
-    if (!slot.done) return void body.replaceChildren(state_(type) ?? h("p", { className: "group__note" }, "Đang tải"));
+    if (!slot.done) return void body.replaceChildren(loadState(type) ?? h("p", { className: "group__note" }, "Đang tải"));
     const byProduct = Map.groupBy(cards, (card) => card.product);
     const clusters = ADVERTISING_CLUSTERS.map((cluster) => {
       const products = ADVERTISING_PRODUCTS.filter((product) => product.cluster === cluster.id).map((product) => {
@@ -315,14 +317,15 @@ export function mountContent(root, { open }) {
     const count = h("span", { className: "count" });
     bodies.set(group.key, body);
     counts.set(group.key, count);
-    return h("section", { className: "group", dataset: { group: group.key } },
+    const section = h("section", { className: "group" },
       h("div", { className: "group__head" },
         h("button", { type: "button", className: "group__toggle", ariaExpanded: "false", onclick: () => toggleGroup(group) },
           h("span", { className: "group__title" }, group.title), count),
         group.create && h("button", { type: "button", className: "group__create", title: CREATE_TITLE[group.create], onclick: () => createDialog(group.create) }, "Tạo")),
       body);
+    section.dataset.group = group.key;
+    return section;
   });
-  groups.forEach((node, index) => (node.dataset.group = GROUPS[index].key));
   root.replaceChildren(
     h("div", { className: "content__tools" }, search, h("div", { className: "segs", role: "group", ariaLabel: "Bộ lọc" }, filterButtons)),
     h("div", { className: "content__groups" }, groups),
@@ -387,8 +390,8 @@ export function mountContent(root, { open }) {
       event.preventDefault();
       submit.disabled = true;
       const title = name.value.trim();
-      const data = type === "news" ? { id: id.value, group: fields.group.value, slugVi: slug.value, title: { vi: title, en: "" } }
-        : type === "project" ? { id: id.value, sector: fields.sector.value, type: fields.type.value, slugVi: slug.value, title: { vi: title, en: "" } }
+      const data = type === "news" ? { id: id.value, layout: firstLayout("news"), group: fields.group.value, slugVi: slug.value, title: { vi: title, en: "" } }
+        : type === "project" ? { id: id.value, layout: firstLayout("projects"), sector: fields.sector.value, type: fields.type.value, slugVi: slug.value, title: { vi: title, en: "" } }
           : { id: id.value, productIds: [fields.product.value], titleVi: title };
       const result = await call("create", { body: { type, id: id.value, data } });
       if (result.error) {

@@ -1,244 +1,171 @@
 import assert from "node:assert/strict";
+import { spawn, spawnSync } from "node:child_process";
+import { mkdirSync, rmSync } from "node:fs";
+import { createServer } from "node:net";
 import path from "node:path";
 import process from "node:process";
 
-// Main flow of the placeholder editor (cms-editor R1 to R8) on the static preview after `node scripts/cms/build-admin.mjs`:
-// select text, edit VI, change size, add a gallery item with an image from Media, draft survives a reload, Save blocks empty cells then reports storage
-// is not connected; Media panel filters, detail, dropping an image into the gallery, writing alt (R6); edit an Advertising Products card (R7).
-const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
+// Editor frame and Content panel (cms-editor R1, R2, cms-dock R1 to R4, CMS plan E12) on the local admin Worker with a
+// D1 seeded from the repo: run after `pnpm prepare:site && node scripts/cms/build-admin.mjs`. The Worker and its D1 live
+// in their own .wrangler/e2e-* folder, so the run never touches `pnpm cms:dev` data.
+// The local Worker signs everyone in as owner (CMS_LOCAL_ADMIN_EMAIL), so the staff case answers whoami as staff in the page.
+const CONFIG = "scripts/cms/wrangler.local.toml";
+const persist = path.resolve(`.wrangler/e2e-${process.pid}`);
+const shots = process.env.SHOTS; // optional folder for 1440px screenshots
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
+
+const wrangler = (...args) => {
+  const result = spawnSync("pnpm", ["-s", "demo:wrangler", ...args, "--config", CONFIG, "--persist-to", persist], { stdio: "inherit", shell: process.platform === "win32" });
+  if (result.status !== 0) throw new Error(`wrangler ${args.join(" ")} failed`);
+};
+const port = await new Promise((resolve) => {
+  const server = createServer().listen(0, "127.0.0.1", () => {
+    const { port: free } = server.address();
+    server.close(() => resolve(free));
+  });
+});
+const baseUrl = `http://127.0.0.1:${port}`;
+
+mkdirSync(".tmp/cms", { recursive: true });
+spawnSync("node", ["scripts/cms/seed.mjs", "--out", ".tmp/cms/e2e-seed.sql"], { stdio: "inherit" });
+wrangler("d1", "migrations", "apply", "DB", "--local");
+wrangler("d1", "execute", "DB", "--local", "--file", ".tmp/cms/e2e-seed.sql");
+const worker = spawn("pnpm", ["-s", "demo:wrangler", "dev", "--config", CONFIG, "--persist-to", persist, "--ip", "127.0.0.1", "--port", String(port)],
+  { stdio: ["ignore", "ignore", "inherit"], shell: process.platform === "win32", detached: process.platform !== "win32" });
+for (let i = 0; !(await fetch(`${baseUrl}/api/admin/whoami`).then((r) => r.ok, () => false)); i++) {
+  if (i > 60) throw new Error(`local Worker did not start on ${baseUrl}`);
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+}
+
 const { chromium } = await import("playwright");
 const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
-const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 const errors = [];
-page.on("pageerror", (error) => errors.push(String(error)));
-// PUT /api/admin/content/ does not exist on the static preview (404) and the local Worker (501): a resource load error there matches the contract.
-page.on("console", (message) => message.type() === "error" && !message.location().url?.includes("/api/admin/")
-  && errors.push(`${message.text()} ${message.location().url ?? ""}`));
 
-// The Advertising Products preview switches its URL to a real path (replaceState): find the iframe by level, not by URL.
-const frame = () => page.frames().find((entry) => entry.parentFrame() === page.mainFrame());
-const draft = () => page.evaluate(() => JSON.parse(localStorage.getItem("tt-cms-draft:residential") || "null"));
-// Preview ready: the overlay has loaded and the site runtime is running (scroll, text splitting). The local Worker redirects
-// `x.html` to `x/` (html_handling), the static server keeps `.html`: compare page names without the extension.
-const previewReady = (name) => page.waitForFunction((route) => {
-  const win = document.querySelector("iframe[data-cms-preview]")?.contentWindow;
-  return win?.location.pathname.replace(/(\.html|\/)$/, "").endsWith(route) && win.TTCmsOverlay && win.__ttMotionRuntimeHealthy;
-}, name, { timeout: 20_000 }).then(() => page.waitForTimeout(300));
-const props = page.locator(".panel--props");
+async function open({ width = 1440, routes = {} } = {}) {
+  const context = await browser.newContext({ viewport: { width, height: 900 } });
+  const page = await context.newPage();
+  page.on("pageerror", (error) => errors.push(String(error)));
+  for (const [command, answer] of Object.entries(routes)) await page.route(`**/api/admin/${command}*`, answer);
+  await page.goto(`${baseUrl}/admin/`);
+  return page;
+}
+const shot = (page, name) => shots && page.screenshot({ path: path.join(shots, `${name}.png`) });
+const rowNames = (page, group) => page.locator(`.group[data-group="${group}"] .row__name`).allTextContents();
+const api = async (page, command, body) => (await page.request.fetch(`${baseUrl}/api/admin/${command}`, body
+  ? { method: "POST", data: body, headers: { Origin: baseUrl } } : {})).json();
 
 try {
-  // The static server has no directory index for /admin/; the local Worker does.
-  await page.goto(`${baseUrl}/admin/index.html`);
-  await page.waitForSelector(".dv-tab");
-  assert.deepEqual(await page.$$eval(".dv-tab", (tabs) => tabs.map((tab) => tab.textContent.trim()).sort()),
-    ["Media", "Nháp", "Thuộc tính", "Trang", "Xem trước"]);
-  await page.locator(".tree__item", { hasText: "Nhà ở" }).click();
-  await previewReady("/vi/residential");
+  // (a) First open: three panels by the default layout, Trang chủ open, owner sees Tài khoản in the Bảng menu.
+  let page = await open();
+  await page.locator('.group[data-group="projects"] .row').first().waitFor();
+  assert.deepEqual(await page.$$eval(".dv-tab", (tabs) => tabs.map((tab) => tab.textContent.trim())), ["Nội dung", "Xem trước", "Thuộc tính", "Media", "Nháp"]);
+  const width = (name) => page.locator(".dv-groupview", { has: page.locator(".dv-tab", { hasText: name }) }).evaluate((node) => Math.round(node.getBoundingClientRect().width));
+  assert.equal(await width("Nội dung"), 280);
+  assert.equal(await width("Thuộc tính"), 380);
+  assert.equal(await page.textContent("#record-name"), "Trang chủ");
+  assert.equal(await page.textContent("#record-status"), "Đã đăng");
+  assert.deepEqual(await rowNames(page, "pages"), ["Trang chủ", "Nhà ở", "Kinh doanh", "Giới thiệu"]);
+  await page.click(".topbar__menu > summary");
+  assert.ok(await page.locator("#panel-menu button", { hasText: "Tài khoản" }).isVisible());
+  await page.keyboard.press("Escape");
+  await shot(page, "1-mac-dinh");
 
-  // The SEO title lives in <head>: open it from Properties with nothing selected, and the preview's document.title changes immediately.
-  await props.getByRole("button", { name: "Tiêu đề trang (SEO)" }).click();
-  await props.locator("textarea").first().fill("Nhà ở thử SEO");
-  assert.equal(await frame().evaluate(() => document.title), "Nhà ở thử SEO");
-
-  // Select the H1 in the iframe, edit Vietnamese: the iframe changes immediately and the draft is written to localStorage.
-  await frame().locator("main h1").first().click();
-  await props.locator("textarea").first().fill("Thử CMS nhà ở");
-  const key = Object.keys((await draft()).text).find((entry) => entry !== "title");
-  assert.ok(key, "draft has the edited text key");
-  assert.equal(await frame().locator(`[data-cms-key="${key}"]`).evaluate((node) => node.textContent.trim()), "Thử CMS nhà ở");
-
-  // Change to size A04s: iframe frame 384px, reload so the runtime builds the right breakpoint, the draft text still shows.
-  await page.getByRole("button", { name: "A04s 384" }).click();
-  assert.equal(await page.$eval("iframe[data-cms-preview]", (node) => node.style.width), "384px");
-  await previewReady("/vi/residential");
-  assert.equal(await frame().evaluate(() => innerWidth), 384);
-  assert.equal(await frame().locator(`[data-cms-key="${key}"]`).evaluate((node) => node.textContent.trim()), "Thử CMS nhà ở");
-
-  // Open the gallery list from an image in the gallery, add an item, pick an image from Media.
-  const gallery = await frame().evaluate(() => {
-    const img = document.querySelector('[data-cms-list] .detail-gallery__item img[data-cms-key]');
-    const list = img.closest("[data-cms-list]");
-    window.parent.TTEditor.onSelect({ key: img.dataset.cmsKey, kind: "image", list: list.dataset.cmsList, item: img.closest("[data-cms-item]").dataset.cmsItem });
-    return { list: list.dataset.cmsList, count: list.querySelectorAll(":scope > .detail-gallery__item").length };
-  });
-  await props.getByRole("button", { name: "Mở danh sách" }).click();
-  assert.equal(await props.locator(".list-row").count(), gallery.count);
-  await props.getByRole("button", { name: "Thêm mục" }).click();
-  await page.locator(".pick").waitFor();
-  const tile = page.locator(".media-tile").first();
-  const src = (await tile.getAttribute("title")).split("\n")[0];
-  await tile.click();
-  await previewReady("/vi/residential");
-  const saved = await draft();
-  assert.equal(saved.list[gallery.list].length, gallery.count + 1);
-  const added = await frame().evaluate((list) => {
-    const items = document.querySelectorAll(`[data-cms-list="${list}"] > .detail-gallery__item`);
-    return { count: items.length, src: items[items.length - 1].querySelector("img").getAttribute("data-src") || items[items.length - 1].querySelector("img").getAttribute("src") };
-  }, gallery.list);
-  assert.deepEqual(added, { count: gallery.count + 1, src });
-
-  // Reload the editor: draft and layout remain, the open page stays as is.
-  assert.ok(await page.evaluate(() => localStorage.getItem("tt-cms-layout")));
+  // (c) R2 Gherkin: one News without description.en; filter "Thiếu EN" shows only it with the label.
+  const news = (await api(page, "list?type=news")).items[0];
+  const got = await api(page, `get?type=news&id=${news.id}`);
+  await api(page, "save", { type: "news", id: news.id, version: got.version, data: { ...got.data, description: { ...got.data.description, en: "" } } });
   await page.reload();
-  await previewReady("/vi/residential");
-  assert.match(await page.textContent("#draft-status"), /Chưa lưu · 4 thay đổi/);
-  assert.equal(await frame().locator(`[data-cms-key="${key}"]`).evaluate((node) => node.textContent.trim()), "Thử CMS nhà ở");
+  await page.locator('.group[data-group="news"] .row').first().waitFor();
+  await page.getByRole("button", { name: "Thiếu EN" }).click();
+  assert.deepEqual(await rowNames(page, "news"), [news.name]);
+  assert.deepEqual(await rowNames(page, "projects"), []);
+  assert.equal(await page.locator('.group[data-group="news"] .badge').allTextContents().then((labels) => labels.join(",")), "Thiếu EN");
+  await shot(page, "2-loc-thieu-en");
+  await page.getByRole("button", { name: "Tất cả" }).click();
 
-  // The hero list is shuffled by the site on each load: only add and delete, no reorder buttons.
-  await frame().evaluate(() => {
-    const img = document.querySelector('[data-cms-shuffled] img[data-cms-key]');
-    const list = img.closest("[data-cms-list]").dataset.cmsList;
-    window.parent.TTEditor.onSelect({ key: img.dataset.cmsKey, kind: "image", list, item: img.closest("[data-cms-item]").dataset.cmsItem });
-  });
-  await props.getByRole("button", { name: "Mở danh sách" }).click();
-  assert.ok((await props.locator(".list-row").count()) > 1);
-  assert.equal(await props.getByTitle("Lên").count(), 0);
+  // Search ignores Vietnamese marks.
+  await page.getByLabel("Tìm theo tên").fill("go soi");
+  assert.deepEqual(await rowNames(page, "projects"), ["Căn hộ gỗ sồi ấm"]);
+  await page.getByLabel("Tìm theo tên").fill("");
 
-  // View mode does not let a link take the iframe away from the preview; Reload still returns to the right preview.
-  await page.getByRole("button", { name: "Chế độ sửa" }).click();
-  await frame().evaluate(() => document.querySelector('a[href="/commercial/"]').click());
-  await page.waitForSelector("#toast:not([hidden])");
-  await page.waitForTimeout(500);
-  assert.match(frame().url(), /\/admin\/preview\/vi\/residential/);
-  await page.getByRole("button", { name: "Chế độ xem" }).click();
-  await page.getByRole("button", { name: "Tải lại" }).click();
-  await previewReady("/vi/residential");
+  // Create a News post: id and slug come from the name; it opens as Nháp. The same name again is a 409 that keeps the dialog.
+  const create = async (name) => {
+    await page.locator('.group[data-group="news"] .group__create').click();
+    const dialog = page.locator("dialog.dialog");
+    await dialog.getByLabel("Tên tiếng Việt").fill(name);
+    await dialog.getByLabel("Nhóm").selectOption("nha-o");
+    return dialog;
+  };
+  let dialog = await create("Chọn màu gỗ cho phòng ngủ");
+  assert.equal(await dialog.getByLabel("Định danh").inputValue(), "chon-mau-go-cho-phong-ngu");
+  assert.equal(await dialog.getByLabel("Link tiếng Việt").inputValue(), "chon-mau-go-cho-phong-ngu");
+  await shot(page, "3-tao-bai");
+  await dialog.getByRole("button", { name: "Tạo" }).click();
+  await page.waitForFunction(() => document.querySelector("#record-name").textContent === "Chọn màu gỗ cho phòng ngủ");
+  assert.equal(await page.textContent("#record-status"), "Nháp");
+  const created = page.locator('.group[data-group="news"] .row[aria-current="true"]');
+  assert.equal(await created.locator(".row__name").textContent(), "Chọn màu gỗ cho phòng ngủ");
+  assert.match(await created.locator(".row__badges").textContent(), /Nháp/);
+  assert.equal(await page.locator("dialog.dialog").count(), 0);
+  dialog = await create("Chọn màu gỗ cho phòng ngủ");
+  await dialog.getByRole("button", { name: "Tạo" }).click();
+  await dialog.getByText("Tên định danh này đã có, đổi tên khác.").waitFor();
+  assert.equal(await dialog.getByLabel("Tên tiếng Việt").inputValue(), "Chọn màu gỗ cho phòng ngủ");
+  // An id typed by hand that breaks the pattern greys out Tạo and says why.
+  await dialog.getByLabel("Định danh").fill("Sai Mau");
+  assert.equal(await dialog.getByRole("button", { name: "Tạo" }).isDisabled(), true);
+  await dialog.getByText("Định danh chỉ gồm chữ thường không dấu").waitFor();
+  await dialog.getByRole("button", { name: "Hủy" }).click();
 
-  // Close Preview then reopen it from the Panels menu; reopen the closed Media via "Đổi ảnh".
-  await page.locator(".dv-tab", { hasText: "Xem trước" }).locator(".dv-default-tab-action").click();
-  await page.locator(".dv-tab", { hasText: "Media" }).locator(".dv-default-tab-action").click();
-  await page.locator(".topbar__menu > summary").click();
-  await page.locator("#panel-menu").getByRole("button", { name: "Xem trước" }).click();
-  await previewReady("/vi/residential");
-  await frame().locator(`[data-cms-key="${key}"]`).click();
-  await frame().evaluate(() => {
-    const img = document.querySelector("main img[data-cms-key]");
-    window.parent.TTEditor.onSelect({ key: img.dataset.cmsKey, kind: "image", list: null, item: null });
-  });
-  await props.getByRole("button", { name: "Đổi ảnh" }).click();
-  await page.locator(".pick").waitFor();
+  // A name with markup stays text (no innerHTML with server strings).
+  await page.locator('.group[data-group="projects"] .group__create').click();
+  dialog = page.locator("dialog.dialog");
+  await dialog.getByLabel("Tên tiếng Việt").fill('<img src=x onerror="window.__xss=1">Bếp');
+  await dialog.getByRole("button", { name: "Tạo" }).click();
+  await page.waitForFunction(() => document.querySelector("#record-name").textContent.endsWith("Bếp"));
+  assert.ok((await rowNames(page, "projects")).includes('<img src=x onerror="window.__xss=1">Bếp'));
+  assert.equal(await page.evaluate(() => window.__xss), undefined);
+
+  // (d) Drag the second project above the first, move another with the keyboard, reload: the order stays.
+  const before = await rowNames(page, "projects");
+  const rows = page.locator('.group[data-group="projects"] .row');
+  await rows.nth(1).dragTo(rows.nth(0), { targetPosition: { x: 40, y: 4 } });
+  await page.waitForResponse((response) => response.url().includes("/api/admin/reorder"));
+  const dragged = [before[1], before[0], ...before.slice(2)];
+  assert.deepEqual(await rowNames(page, "projects"), dragged);
+  await rows.nth(2).focus();
+  await page.keyboard.press("Alt+ArrowDown");
+  await page.waitForResponse((response) => response.url().includes("/api/admin/reorder"));
+  const moved = [...dragged.slice(0, 2), dragged[3], dragged[2], ...dragged.slice(4)];
+  await page.reload();
+  await page.locator('.group[data-group="projects"] .row').first().waitFor();
+  assert.deepEqual(await rowNames(page, "projects"), moved);
+  // The record opened last opens again.
+  assert.match(await page.textContent("#record-name"), /Bếp$/);
+  // A filter turns dragging off.
+  await page.getByRole("button", { name: "Nháp" }).click();
+  assert.equal(await page.locator('.group[data-group="projects"] .row[draggable="true"]').count(), 0);
+  await page.getByRole("button", { name: "Tất cả" }).click();
+
+  // Cards by cluster then product: a product opens its own cards.
+  await page.locator('.group[data-group="cards"] .group__toggle').click();
+  const product = page.locator(".sub--product .sub__toggle").first();
+  await product.waitFor();
+  await product.click();
+  assert.ok(await page.locator(".sub--product .row").count() > 0);
+  await shot(page, "4-card");
+
+  // Context menu: "Mở trên staging" links the published record on staging; a draft has it greyed out.
+  const project = page.locator('.group[data-group="projects"] .row', { hasText: "Căn hộ gỗ sồi ấm" });
+  await project.click({ button: "right" });
+  assert.equal(await page.locator(".ctx-menu a").getAttribute("href"), "https://staging.truongthinhads.vn/projects/can-ho-go-soi-am/");
+  await page.keyboard.press("Escape");
+  await page.locator('.group[data-group="news"] .row', { hasText: "Chọn màu gỗ" }).focus();
+  await page.keyboard.press("Shift+F10");
+  assert.equal(await page.locator(".ctx-menu button", { hasText: "Mở trên staging" }).isDisabled(), true);
   await page.keyboard.press("Escape");
 
-  // Save with a new item whose caption is still empty: block and report the number of empty cells; fill in then Save while storage is not connected: report clearly, draft kept as is.
-  await page.click("#save");
-  await page.waitForFunction(() => document.querySelector("#toast").textContent.startsWith("Còn 1 ô trống"));
-  await frame().evaluate((list) => {
-    const item = [...document.querySelectorAll(`[data-cms-list="${list}"] > [data-cms-item]`)].at(-1);
-    const node = item.querySelector("[data-cms-key]:not(img)");
-    window.parent.TTEditor.onSelect({ kind: "text", key: node.dataset.cmsKey, list, item: item.dataset.cmsItem });
-  }, gallery.list);
-  await props.locator("textarea").nth(0).fill("Chú thích mới");
-  await props.locator("textarea").nth(1).fill("New caption");
-  await page.click("#save");
-  await page.waitForFunction(() => document.querySelector("#toast").textContent.startsWith("Chưa nối"));
-  assert.equal(await page.textContent("#toast"), "Chưa nối lưu trữ, nháp vẫn ở máy này.");
-  assert.ok(await draft());
-
-  // Worker responses (R8) faked with page.route: 400 shows an error, connection lost, 409 asks before overwriting (declining keeps
-  // the draft). PUT carries the original placeholders of the edited keys (R10).
-  const toastStarts = (prefix) => page.waitForFunction((text) => document.querySelector("#toast").textContent.startsWith(text), prefix);
-  const putBodies = [];
-  const respond = async (route, reply) => {
-    putBodies.push(route.request().postDataJSON());
-    await page.evaluate(() => (document.querySelector("#toast").textContent = ""));
-    return reply(route);
-  };
-  await page.route("**/api/admin/content/residential", (route) => respond(route, (entry) => entry.fulfill({ status: 400, json: { error: "Trang vừa cập nhật" } })));
-  await page.click("#save");
-  await toastStarts("Lưu chưa được: Trang vừa cập nhật");
-  assert.ok(Object.keys(putBodies[0].anchors).includes(gallery.list), "gallery list marker");
-  await page.unroute("**/api/admin/content/residential");
-  await page.route("**/api/admin/content/residential", (route) => respond(route, (entry) => entry.abort()));
-  await page.click("#save");
-  await toastStarts("Lưu chưa được (mất kết nối)");
-  await page.unroute("**/api/admin/content/residential");
-  await page.route("**/api/admin/content/residential", (route) => respond(route, (entry) => entry.fulfill({ status: 409, json: { updatedAt: "2026-11-01T00:00:00.000Z", updatedBy: "nv@truongthinh.vn" } })));
-  page.once("dialog", (dialog) => dialog.dismiss());
-  await page.click("#save");
-  await toastStarts("Chưa lưu. Xuất JSON");
-  await page.unroute("**/api/admin/content/residential");
-  assert.ok(await draft());
-
-  // R6: filter "Chưa dùng", view detail, drag and drop an image into the gallery in the preview: add an item, the image becomes "in use".
-  await page.locator(".dv-tab", { hasText: "Media" }).click();
-  await page.locator(".panel--media select").nth(1).selectOption("unused");
-  const unused = page.locator(".media-tile", { hasText: "Chưa dùng" }).first();
-  const unusedSrc = (await unused.getAttribute("title")).split("\n")[0];
-  await unused.click();
-  await page.locator(".media-detail", { hasText: "Chưa dùng ở đâu" }).waitFor();
-  const target = await frame().evaluate((list) => {
-    const img = document.querySelector(`[data-cms-list="${list}"] img[data-cms-key]`);
-    window.TTCmsOverlay.select(img.dataset.cmsKey);
-    return img.dataset.cmsKey;
-  }, gallery.list);
-  await page.waitForTimeout(400);
-  const before = (await draft()).list[gallery.list].length;
-  await frame().evaluate(({ key, src }) => {
-    const rect = document.querySelector(`[data-cms-key="${key}"]`).getBoundingClientRect();
-    const data = new DataTransfer();
-    data.setData("application/x-tt-media", src);
-    const point = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 };
-    document.elementFromPoint(point.clientX, point.clientY).dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: data, ...point }));
-  }, { key: target, src: unusedSrc });
-  await previewReady("/vi/residential");
-  const dropped = await draft();
-  assert.equal(dropped.list[gallery.list].length, before + 1);
-  assert.ok(Object.entries(dropped.image).some(([entry, value]) => entry.includes("@") && value.src === unusedSrc), "dropped media lands in a new gallery item");
-  await page.locator(".panel--media select").nth(1).selectOption("used");
-  await page.locator(".media-tile", { hasText: unusedSrc.split("/").pop() }).first().click();
-  await page.locator(".media-detail .uses button", { hasText: "Nhà ở" }).first().waitFor();
-  // Alt edited in Media is written into the draft of every place that uses the image.
-  await page.locator(".media-detail").getByLabel("Alt tiếng Việt").fill("Alt thử từ Media");
-  await page.locator(".media-detail").getByRole("button", { name: /Ghi alt vào 1 chỗ dùng/ }).click();
-  assert.ok(Object.values((await draft()).image).some((value) => value.src === unusedSrc && value.altVi === "Alt thử từ Media"));
-
-  // R7: Advertising Products page, click a card in the preview, rename (the preview rebuilds from the patched catalog), add media.
-  await page.locator(".panel--pages .search").fill("advertising-products");
-  await page.locator(".tree__item", { hasText: "Sản phẩm quảng cáo" }).first().click();
-  await previewReady("/advertising-products");
-  const tileLocator = frame().locator("[data-masonry-card]").first();
-  await tileLocator.waitFor();
-  const cardId = await tileLocator.getAttribute("data-masonry-card");
-  await tileLocator.click();
-  await props.getByRole("heading", { name: `Card · ${cardId}` }).waitFor();
-  await props.getByLabel("Tên tiếng Việt").fill("Card thử CMS");
-  await props.getByLabel("Tên tiếng Việt").blur();
-  await previewReady("/advertising-products");
-  const patched = await frame().evaluate(async (id) => (await window.__TT_ADVERTISING_ARTIFACT__).cards.find((card) => card.id === id).titleVi, cardId);
-  assert.equal(patched, "Card thử CMS");
-  // The first card may already be a multi-media card (media-card R7), so count from its current items.
-  const itemsBefore = await frame().evaluate(async (id) => (await window.__TT_ADVERTISING_ARTIFACT__).cards.find((card) => card.id === id).mediaItems.length, cardId);
-  await props.getByRole("button", { name: "Thêm media" }).click();
-  await page.locator(".pick").waitFor();
-  await page.locator(".media-tile").first().click();
-  const cardDraft = await page.evaluate(() => JSON.parse(localStorage.getItem("tt-cms-draft:advertising")));
-  assert.equal(cardDraft.cards[cardId].titleVi, "Card thử CMS");
-  assert.equal(cardDraft.cards[cardId].mediaItems.length, itemsBefore + 1);
-  assert.match(await page.textContent("#draft-status"), /Chưa lưu · 1 thay đổi/);
-  // Card page p/<id>: opening it preselects that card.
-  await page.locator(".panel--pages .search").fill(`p/${cardId}`);
-  await page.locator(".tree__item", { hasText: cardId }).click();
-  await previewReady(`/p/${cardId}`);
-  await props.getByRole("heading", { name: `Card · ${cardId}` }).waitFor();
-  assert.equal(await props.getByLabel("Tên tiếng Việt").inputValue(), "Card thử CMS");
-
-  // Successful save (fake 200): drop the draft, top bar shows "Đã lưu". Undo to before the save then save again still builds on the version just
-  // saved (does not cause a 409 by itself).
-  await props.getByLabel("Tên tiếng Việt").fill("Card thử CMS lần hai");
-  await props.getByLabel("Tên tiếng Việt").blur();
-  await page.route("**/api/admin/content/advertising", (route) => respond(route, (entry) => entry.fulfill({ status: 200, json: { updatedAt: "2026-11-01T01:00:00.000Z", updatedBy: "admin@localhost" } })));
-  await page.click("#save");
-  await toastStarts("Đã lưu");
-  assert.match(await page.textContent("#draft-status"), /^Đã lưu/);
-  assert.equal(await page.evaluate(() => localStorage.getItem("tt-cms-draft:advertising")), null);
-  for (let step = 0; step < 4 && !/Chưa lưu/.test(await page.textContent("#draft-status")); step += 1) await page.click("#undo");
-  assert.match(await page.textContent("#draft-status"), /Chưa lưu/);
-  await page.click("#save");
-  await toastStarts("Đã lưu");
-  assert.equal(putBodies.at(-1).baseUpdatedAt, "2026-11-01T01:00:00.000Z");
-
-  // R11: pin a tab, drag a panel to the edge to become an auto-hide strip, click the tab on the strip to slide it out, pin opens it fully, undo the layout.
+  // cms-dock R1 to R4: pin a tab, drag Media to the left edge, slide it out, Esc, pin the edge group, undo the layout.
   await page.click(".topbar__menu summary");
   await page.locator("#panel-menu button", { hasText: "Bố cục mặc định" }).click();
   await page.waitForTimeout(600);
@@ -248,7 +175,7 @@ try {
   await tab("Nháp").click({ button: "right" });
   await page.locator(".dock-menu button", { hasText: "Ghim tab" }).click();
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("Nháp*,Media"), "the pinned tab leads the group");
+  assert.ok((await groupTabs()).includes("Nháp*,Thuộc tính,Media"), "the pinned tab leads the group");
   const from = await tab("Media").boundingBox();
   await page.mouse.move(from.x + 10, from.y + 10);
   await page.mouse.down();
@@ -266,17 +193,44 @@ try {
   await tab("Media").click();
   await page.locator(".dock-peek__button", { hasText: "Ghim" }).click();
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("Media"), "pin fully opens the edge group");
   for (let step = 0; step < 3; step += 1) {
     await page.keyboard.press("Control+Alt+z");
     await page.waitForTimeout(200);
   }
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("Media,Nháp"), "undo returns to the default layout");
+  assert.ok((await groupTabs()).includes("Thuộc tính,Media,Nháp"), "undo returns to the default layout");
   assert.equal(await page.locator(".dv-edge-group").count(), 0);
+  await page.context().close();
 
-  assert.deepEqual(errors, []);
+  // (b) Staff: no Tài khoản in the Bảng menu.
+  page = await open({ routes: { whoami: (route) => route.fulfill({ json: { email: "staff@example.com", role: "staff", stagingOrigin: null } }) } });
+  await page.locator(".group .row").first().waitFor();
+  await page.click(".topbar__menu > summary");
+  assert.deepEqual(await page.locator("#panel-menu button").allTextContents(),
+    ["Nội dung", "Xem trước", "Thuộc tính", "Media", "Nháp", "Bố cục mặc định", "Hoàn tác bố cục", "Làm lại bố cục"]);
+  await page.context().close();
+
+  // A locked account (403) and an expired Access session (HTML instead of JSON) see one sentence and no panel.
+  page = await open({ routes: { whoami: (route) => route.fulfill({ status: 403, json: { error: "Forbidden" } }) } });
+  await page.getByText("Tài khoản của bạn chưa được mở trong CMS.").waitFor();
+  assert.equal(await page.locator(".dock").isVisible(), false);
+  await page.context().close();
+  page = await open({ routes: { list: (route) => route.fulfill({ status: 200, contentType: "text/html", body: "<html>login</html>" }) } });
+  await page.getByText("Phiên đăng nhập hết hạn. Tải lại trang.").waitFor();
+  await page.context().close();
+
+  // (e) A window narrower than 1024px shows the desktop note.
+  page = await open({ width: 900 });
+  assert.equal(await page.getByText("Mở CMS trên máy tính, cửa sổ rộng từ 1024px.").isVisible(), true);
+  assert.equal(await page.locator(".dock").isVisible(), false);
+  await page.context().close();
+
+  // The two stubbed failure pages above throw on purpose (whoami 403); nothing else may.
+  assert.deepEqual(errors.filter((error) => !error.includes("whoami 403")), []);
   console.log("[editor.e2e] PASS");
 } finally {
   await browser.close();
+  if (process.platform === "win32") worker.kill();
+  else process.kill(-worker.pid);
+  rmSync(persist, { recursive: true, force: true });
 }

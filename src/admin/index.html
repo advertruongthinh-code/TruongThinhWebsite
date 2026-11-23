@@ -6,28 +6,29 @@
     <meta name="robots" content="noindex, nofollow" />
     <title>Trường Thịnh CMS</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./vendor/dockview.css" />
+    <link rel="stylesheet" href="./vendor/dockview/dockview.css" />
     <link rel="stylesheet" href="./editor.css" />
-    <script src="./vendor/dockview.min.js"></script>
-    <script src="./cms-core.js"></script>
+    <script src="./vendor/dockview/dockview.min.js"></script>
     <script type="module" src="./editor.js"></script>
   </head>
   <body>
     <header class="topbar">
       <strong class="topbar__brand">Trường Thịnh CMS</strong>
-      <span class="topbar__page" id="page-label">Đang tải</span>
-      <span class="topbar__status" id="draft-status" role="status" aria-live="polite"></span>
-      <span class="topbar__spacer"></span>
-      <button type="button" id="undo" title="Hoàn tác thao tác cuối">Hoàn tác</button>
-      <button type="button" id="export" title="Tải bản nháp trang này về máy">Xuất JSON</button>
+      <span class="topbar__sep" aria-hidden="true"></span>
+      <div class="topbar__record">
+        <span class="topbar__name" id="record-name">Đang tải</span>
+        <span class="topbar__status" id="record-status"></span>
+      </div>
+      <button type="button" id="undo" disabled title="Hoàn tác thay đổi nội dung cuối">Hoàn tác</button>
+      <button type="button" class="is-primary" id="save" disabled title="Lưu bản ghi đang mở">Lưu</button>
       <details class="topbar__menu">
         <summary>Bảng</summary>
         <div id="panel-menu"></div>
       </details>
-      <button type="button" class="is-primary" id="save">Lưu</button>
     </header>
     <main class="dock" id="dock"></main>
+    <div class="gate" id="gate" role="alert" hidden></div>
     <p class="narrow">Mở CMS trên máy tính, cửa sổ rộng từ 1024px.</p>
-    <p class="toast" id="toast" role="alert" hidden></p>
+    <p class="toast" id="toast" role="status" aria-live="polite" hidden></p>
   </body>
 </html>

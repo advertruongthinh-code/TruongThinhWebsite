@@ -68,6 +68,17 @@ test("list gives enMissing from the column, variantError, and who trashed a tras
   assert.equal(projects[0].trashedBy, undefined);
 });
 
+test("list gives the editor slugVi, the News date and the card's main product", async () => {
+  const t = seededEnv();
+  const news = t.one("SELECT id, slug_vi, json_extract(data, '$.published') AS published FROM records WHERE type = 'news' ORDER BY position LIMIT 1");
+  const item = (await t.call("list", undefined, "?type=news")).body.items.find((entry) => entry.id === news.id);
+  assert.deepEqual([item.slugVi, item.published, item.product], [news.slug_vi, news.published, undefined]);
+  const card = t.one("SELECT id, json_extract(data, '$.productIds[0]') AS product FROM records WHERE type = 'advertising-card' ORDER BY position LIMIT 1");
+  const listed = (await t.call("list", undefined, "?type=advertising-card")).body.items[0];
+  assert.deepEqual([listed.id, listed.product, listed.slugVi, listed.published], [card.id, card.product, undefined, undefined]);
+  assert.ok(card.product);
+});
+
 test("list reads a 100-row page with one D1 query", async () => {
   let selects = 0;
   const t = seededEnv();

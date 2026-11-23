@@ -1,5 +1,8 @@
 // Accounts panel (cms-editor-ops.md R6, CMS plan P7): owner adds a person by email, changes the role, locks or reopens.
 // Emails are shown only in this panel: nothing is written to localStorage or to the dock layout.
+import { call } from "../api.js";
+import { h, time } from "../dom.js";
+
 const ROLES = { owner: "Owner", staff: "Nhân viên" };
 const ROLE_NOTE = {
   owner: "Toàn quyền: thêm người, khóa, xóa hẳn, quay về bản trước.",
@@ -12,19 +15,7 @@ const ERRORS = {
   shape: "Email chưa đúng dạng.",
 };
 
-const h = (tag, props = {}, ...children) => {
-  const node = Object.assign(document.createElement(tag), props);
-  node.append(...children.flat().filter((child) => child != null));
-  return node;
-};
-const time = (iso) => (iso ? new Date(iso).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" }) : "");
-
-async function api(command, body) {
-  const init = body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {};
-  const response = await fetch(`/api/admin/${command}`, init).catch(() => null);
-  const data = await response?.json().catch(() => ({}));
-  return { status: response?.status ?? 0, data: data ?? {} };
-}
+const api = (command, body) => call(command, { body });
 
 // Returns false for staff (403): the editor then leaves the panel out of the menu.
 export async function mountAccounts(root, { toast }) {
