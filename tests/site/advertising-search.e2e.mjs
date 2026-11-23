@@ -710,7 +710,9 @@ test("search-bar R2 at 1440px: dragging or wheeling over the chip row scrolls it
     const { context, page } = await open(browser, WIDE);
     await search(page, "đèn");
     await page.waitForFunction(() => document.querySelector(".search-bar__more") && !document.querySelector(".search-bar__more").hidden, null, { timeout: 10000 });
-    await page.waitForTimeout(1200);
+    // The search glides the page to the grid top (R9) and the bar moves with it: measure once both have settled.
+    const pageAt = () => page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    for (let last = -1, now = await pageAt(); Math.abs(now - last) > 0.01; last = now, now = await pageAt()) await page.waitForTimeout(400);
     const box = await page.locator(".search-bar__chiprow").boundingBox();
     const left = () => page.evaluate(() => document.querySelector(".search-bar__chiprow").scrollLeft);
     await mouseDrag(page, { x: box.x + box.width - 60, y: box.y + box.height / 2 }, { x: box.x + 60, y: box.y + box.height / 2 });

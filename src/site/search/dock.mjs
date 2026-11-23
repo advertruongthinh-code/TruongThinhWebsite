@@ -77,6 +77,11 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
     bar.classList.toggle("is-docked", docked);
     if (docked) bar.dataset.dock = next;
     else delete bar.dataset.dock;
+    // Focus back first: the end look then has the focus ring the bar keeps.
+    if (focused && document.activeElement !== input) {
+      input.focus({ preventScroll: true });
+      try { input.setSelectionRange(selectionStart, selectionEnd); } catch {}
+    }
     if (from) {
       const to = lookOf();
       // The page offset is measured again once the bar has its final height.
@@ -92,10 +97,6 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
           if (!shell.getAnimations().includes(grow)) bar.classList.remove("is-stretching");
         });
       });
-    }
-    if (focused && document.activeElement !== input) {
-      input.focus({ preventScroll: true });
-      try { input.setSelectionRange(selectionStart, selectionEnd); } catch {}
     }
     onChange(next);
   };
