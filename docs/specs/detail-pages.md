@@ -84,7 +84,7 @@ Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, g
 | --- | --- | --- | --- |
 | 1 | `.hero.about-hero#top` | Ảnh `tho-lap-thung-tu-go-xuong` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / *vững niềm tin*" (dòng 2 nghiêng đậm) | inverse |
 | 2–4 | `.detail-lead#tong-quan`, ảnh `xuong-cnc-can-chinh-tam-go`, `.detail-note` | `h2` "Hơn 20 năm / vững nghề", đoạn mở (2006, in khổ lớn, CNC, in UV, trọn gói); một đoạn | ink |
-| 5–6 | `#di-san`, `.about-journey#hanh-trinh` | "I. HÀNH TRÌNH", `h2` "Mỗi bước tiến / là một lần đổi mới"; sáu mốc 2006, 2009, 2012, 2016, 2020, Hôm nay (R9) | ink |
+| 5–6 | `#di-san`, `.about-journey#hanh-trinh` | "I. HÀNH TRÌNH", `h2` "Mỗi bước tiến / là một lần đổi mới"; tám mốc Những năm 2000, 2005, 2006, 2012, 2015, 2017, 2020, Hôm nay (R9) | ink |
 | 7–9 | `#cach-lam`, `.detail-note`, `.editorial-strip.detail-process-editorial` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một buổi khảo sát kỹ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi (R8) | ink |
 | 10–11 | `#cam-ket`, `.portal-stage#nguyen-tac` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; ba card cam kết (R8) | ink |
 | 12 | `.client-logo-marquee` | Partial `client-logos` của trang chủ (owner 2026-11-22: thay dải chữ chạy) | ink |
@@ -192,18 +192,14 @@ When cuộn qua #quy-trinh và #loai-hinh
 Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít nhất 400px, document không tràn ngang
 ```
 
-### R9. About: dòng thời gian tấm ván nesting
+### R9. About: dòng thời gian tám bản vẽ
 
-`.about-journey`: từ 981px hai cột; trái `figure.about-journey__sheet` (`data-sticky-column`, sticky dưới header, cao bằng màn hình) là bản vẽ kỹ thuật một tấm ván 1220 x 2440 nesting phôi tủ (nét mực trên nền trắng, không vân gỗ, không nhãn; mũi 6
-mm, khe và lề 10 mm, lỗ xuyên và ván thừa gạch chéo, hèm kính mặt sau nét đứt; tận dụng 90%, owner 2026-11-23); thanh tiến độ cam sáu nút; phải sáu `article` mốc (`h3` năm, câu mở `strong`). Sinh bằng `build_svg.py` (Library
-`thiet-ke-trang-gioi-thieu/nesting/`), không sửa tay. Có motion: `detail.js` gắn `is-armed`; năm mốc chạm 55% màn hình thì nhóm phôi của mốc đó chạy đường dao cam rồi hiện nét đậm (một chiều), mốc đó đậm, các mốc khác nhạt. Không JavaScript, reduced
-motion, dưới 981px: tấm ván vẽ đủ, đứng yên; dưới 981px là bản xếp ngang nằm trên danh sách. Mốc đầu là năm 2006:
-Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chưa có bảo hành tới khi owner xác nhận fact.
+`.about-journey`: tám `article` mốc (`h3` năm, câu mở `strong`): Những năm 2000, 2005, 2006, 2012, 2015, 2017, 2020, Hôm nay (owner 2026-11-23, không bịa năm); mỗi mốc một bản vẽ nét `svg[data-journey-art]` (máy hoặc sản phẩm, không biểu tượng tôn giáo, khối nổi có nét gấp ở góc sắc), sinh bằng `draw4.py` (Library `thiet-ke-trang-gioi-thieu/v2/`), không sửa tay. Mốc 2020 là tấm ván 1220 x 2440 nesting phôi tủ (mũi 6 mm, khe và lề 10 mm, tận dụng 90%, owner 2026-11-23); mốc 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chữ theo bản owner duyệt 2026-11-24 (`about-text-approved.md`); nội thất chỉ gọi "quy trình tinh gọn". Từ 981px: khung bản vẽ sticky trái, tám nút tiến độ; `detail.js` ghi `--p` 0 tới 1 theo cuộn hai chiều, chỉ bản vẽ mốc hiện tại hiện; khung đầu trắng tinh (6% đầu để trống); nét viền chạy bằng dashoffset, màu quét bằng nét cọ `.about-journey__brush` cắt theo hình (không mờ dần); nhóm `__rise`, `__reveal`, `__press` (chữ nổi 2012, con dấu 2006). Reduced motion: `--p` 1, chỉ đổi bản vẽ. Dưới 981px: mỗi mốc có bản vẽ đủ (`__thumb`) trên chữ, đứng yên.
 
 ```gherkin
-Given /about/ ở 390px
-When cuộn qua dòng thời gian
-Then tấm ván ngang vẽ đủ nằm trên sáu mốc một cột, chữ không bị cắt, document không tràn ngang
+Given /about/ ở 1440px
+When năm 2005 vừa qua vạch 55% màn hình rồi cuộn tiếp, cuộn ngược
+Then bản vẽ bắt đầu trắng tinh, nét và màu cọ hiện dần, cuộn ngược thì rút lại
 ```
 
 ### R10. CTA, marquee, hover và ảnh dưới chữ trắng
@@ -279,7 +275,7 @@ E2E cần preview, `BASE_URL`; `TT_E2E_*_ONLY=1` chạy một phần `pnpm qa:si
 | R6 | `TT_E2E_LOCALE_SCROLL_ONLY` (Residential), `TT_E2E_WHEEL_ONLY` (parallax About) |
 | R7 | `runGalleryCheck` trong `TT_E2E_M1_ONLY` (cao, tỷ lệ, caption, kéo chuột, chấm, không zoom); `mobile-layout-parity.e2e.mjs` ca `reduced` (mục rail 10 và 18 vào đúng khung), ca `text200` và `fallback` (caption không vượt track); `gallery-fill.e2e.mjs` (ảnh ít vẫn kín hàng, suite `block-pages`) |
 | R8 | `mobile-layout-parity.e2e.mjs`, `TT_E2E_ESPACIO_TYPE_MOTION_ONLY` (dải quy trình) |
-| R9 | `mobile-layout-parity.e2e.mjs --scope home-about`; chưa có test riêng |
+| R9 | `about-journey.e2e.mjs`, `mobile-layout-parity.e2e.mjs --scope home-about` |
 | R10 | `cta-title-punctuation.e2e.mjs` (dấu câu cuối tiêu đề CTA không rơi dòng, VI và EN, 320 tới 1920px), `TT_E2E_MEDIA_FALLBACK_ONLY` (CTA Commercial, hero About), `image-loading-frame.e2e.mjs`, `TT_E2E_P5_MEDIA_HOVER_ONLY` (hover); marquee chưa có test |
 | R11 | `TT_E2E_FAILOPEN_ONLY` (Residential), `runNoScriptHeroCheck` trong `TT_E2E_M1_ONLY`, `cross-browser.smoke.spec.cjs`; `TT_E2E_REDUCED_ONLY` chưa đếm `[data-motion-*]` |
 
