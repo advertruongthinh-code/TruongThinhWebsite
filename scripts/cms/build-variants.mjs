@@ -117,7 +117,9 @@ async function build(item) {
   return key;
 }
 
-const ffprobe = (file, args) => JSON.parse(execFileSync("ffprobe", ["-v", "error", "-of", "json", ...args, file]).toString());
+// Child processes get PATH only, so the Access secret and R2 keys of the job never reach ffprobe, ffmpeg or the ladder script.
+const CHILD_ENV = { PATH: env.PATH };
+const ffprobe = (file, args) => JSON.parse(execFileSync("ffprobe", ["-v", "error", "-of", "json", ...args, file], { env: CHILD_ENV, maxBuffer: 64 * 1024 * 1024 }).toString());
 
 // Video (P10): stream the original to disk (never into memory), build the HLS ladder with build-video-ladder.mjs, then upload.
 async function buildVideo({ m, c, p }) {
@@ -134,14 +136,17 @@ async function buildVideo({ m, c, p }) {
     const info = (() => { try { return ffprobe(file, ["-select_streams", "v:0", "-show_entries", "stream=width,height:stream_side_data=rotation:format=duration"]); } catch { return {}; } })();
     const [stream] = info.streams ?? [];
     if (!stream) throw new Error("no-video");
-    const turned = Math.abs(Number(stream.side_data_list?.[0]?.rotation ?? 0)) % 180 === 90;
+    const turned = Math.abs(Number(stream.side_data_list?.find((entry) => entry.rotation !== undefined)?.rotation ?? 0)) % 180 === 90;
     const sourceWidth = turned ? stream.height : stream.width, sourceHeight = turned ? stream.width : stream.height;
     if (sourceWidth < 240) throw new Error("too-small");
-    // c is not compared with the measured size: settleVariants turns a mismatch with the media record into error "size".
+    // upload-media accepts up to 600 s; 1 s of slack for container rounding.
+    if (!(Number(info.format?.duration) <= 601)) throw new Error("too-long");
+    // The whole frame is the only video crop: a size other than the measured one means the record lies about the file.
+    if (c[0] !== 0 || c[1] !== 0 || c[2] !== sourceWidth || c[3] !== sourceHeight) throw new Error("size");
     const key = await variantKey(hash, c);
     const dir = path.join(outRoot, key);
     await rm(dir, { recursive: true, force: true });
-    execFileSync(process.execPath, [LADDER, file, dir], { stdio: ["ignore", "ignore", "inherit"] });
+    execFileSync(process.execPath, [LADDER, file, dir], { stdio: ["ignore", "ignore", "inherit"], env: CHILD_ENV });
     const hasAudio = ffprobe(file, ["-select_streams", "a:0", "-show_entries", "stream=codec_type"]).streams.length > 0;
     const names = (await readdir(dir)).sort();
     const rungs = names.flatMap((name) => /^(\d+)\.mp4$/.test(name) ? [Number.parseInt(name, 10)] : []).sort((a, b) => a - b);

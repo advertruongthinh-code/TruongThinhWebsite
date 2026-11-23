@@ -34,7 +34,7 @@ after(async () => {
 });
 
 function runScript(items, extraEnv = {}) {
-  const env = { ...process.env, ...extraEnv, ITEMS: JSON.stringify(items), CMS_ADMIN_ORIGIN: origin, CMS_ACCESS_CLIENT_ID: "client", CMS_ACCESS_CLIENT_SECRET: "secret", PATH: `${work}${path.delimiter}${process.env.PATH}` };
+  const env = { ...process.env, ...extraEnv, ITEMS: JSON.stringify(items), CMS_ADMIN_ORIGIN: origin, CMS_ACCESS_CLIENT_ID: "client", CMS_ACCESS_CLIENT_SECRET: "secret", PATH: `${work}${path.delimiter}${extraEnv.PATH ?? process.env.PATH}` };
   env.R2_PUBLIC_BUCKET = extraEnv.R2_PUBLIC_BUCKET ?? "";
   return new Promise((resolve) => execFile(process.execPath, [SCRIPT], { cwd: work, env }, (error, stdout, stderr) => resolve({ code: error ? error.code : 0, stdout, stderr })));
 }
@@ -120,4 +120,40 @@ test("an audio-only file prints error no-video and exits 1", { skip: noFfmpeg },
   const { code, stdout } = await runScript([{ m: "tone-01", c: [0, 0, 960, 540], k: "video" }]);
   assert.equal(code, 1);
   assert.equal(stdout.trim(), "error tone-01 no-video");
+});
+
+test("a video crop other than the measured frame prints error size and uploads nothing", { skip: noFfmpeg }, async () => {
+  await rm(path.join(work, "aws-called"), { force: true });
+  const { code, stdout } = await runScript([{ m: "clip-01", c: [0, 0, 1920, 1080], k: "video" }], { R2_PUBLIC_BUCKET: "pub", R2_ENDPOINT: "http://r2" });
+  assert.equal(code, 1);
+  assert.equal(stdout.trim(), "error clip-01 size");
+  assert.equal(existsSync(path.join(work, "aws-called")), false);
+});
+
+test("a video longer than 601 s prints error too-long", { skip: noFfmpeg }, async () => {
+  const file = path.join(work, "long.mp4");
+  ffmpeg("-f", "lavfi", "-i", "color=size=320x180:rate=1", "-t", "605", "-pix_fmt", "yuv420p", file);
+  originals.set("long-01", await readFile(file));
+  const { code, stdout } = await runScript([{ m: "long-01", c: [0, 0, 320, 180], k: "video" }]);
+  assert.equal(code, 1);
+  assert.equal(stdout.trim(), "error long-01 too-long");
+});
+
+test("ffprobe, ffmpeg and the ladder script never see the Access secret", { skip: noFfmpeg }, async () => {
+  const spy = await mkdtemp(path.join(os.tmpdir(), "cms-spy-"));
+  const seen = path.join(spy, "env.txt");
+  for (const tool of ["ffprobe", "ffmpeg"]) {
+    const real = execFileSync("sh", ["-c", `command -v ${tool}`]).toString().trim();
+    await writeFile(path.join(spy, tool), `#!/bin/sh\nenv >> "${seen}"\nexec "${real}" "$@"\n`);
+    await chmod(path.join(spy, tool), 0o755);
+  }
+  try {
+    const { code, stdout, stderr } = await runScript([{ m: "clip-01", c: [0, 0, 960, 540], k: "video" }], { PATH: `${spy}${path.delimiter}${process.env.PATH}` });
+    assert.equal(code, 0, stdout + stderr);
+    const text = await readFile(seen, "utf8");
+    assert.ok(text.includes("PATH="), "the spy ran");
+    assert.equal(/secret|CMS_ACCESS|ITEMS=/.test(text), false);
+  } finally {
+    await rm(spy, { recursive: true, force: true });
+  }
 });

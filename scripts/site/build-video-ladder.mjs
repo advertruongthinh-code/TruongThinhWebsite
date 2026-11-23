@@ -12,7 +12,8 @@ const CRF = { 240: 30, 480: 28, 960: 30, 1920: 28 };
 // cwd is the output dir so playlists reference files by relative name.
 // -map_metadata -1 is an output option, so it goes just before the output file (the last argument).
 const ffmpeg = (args) => execFileSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", ...args.slice(0, -1), "-map_metadata", "-1", args.at(-1)], { cwd: outDir });
-const probe = (file, args) => JSON.parse(execFileSync("ffprobe", ["-v", "error", "-of", "json", ...args, file]).toString());
+// keyTimes lists one line per key frame: a 10-minute video overflows the 1 MB default buffer.
+const probe = (file, args) => JSON.parse(execFileSync("ffprobe", ["-v", "error", "-of", "json", ...args, file], { maxBuffer: 64 * 1024 * 1024 }).toString());
 
 const { streams } = probe(source, ["-show_entries", "stream=codec_type,codec_name,profile,pix_fmt,width,height,r_frame_rate:stream_side_data=rotation"]);
 const video = streams.find((stream) => stream.codec_type === "video");
