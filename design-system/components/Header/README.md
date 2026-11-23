@@ -49,6 +49,7 @@ mở full menu. Markup ở mọi trang (`<header class="site-header">`), style �
 | `is-collapsed` | `scrollY > 100` | Nền `white`, viền dưới 1px `#d3d3d3`, chữ `#2f2f2f` |
 | `is-brand-color` | Sticky hoặc nền trắng | Mark CMYK ([state machine](../../brand.md#state-machine-màu)) |
 | `is-hidden` | Cuộn xuống giữa trang | `translateY(-100%)`; `:focus-within` luôn hiện |
+| `is-scroll-away` | Trang chi tiết Advertising có chuột, header đang trôi theo trang | `translateY(-scrollY)` inline, không transition |
 
 Timing collapse, ẩn/hiện, FLIP lockup ở [Motion](../../motion.md#shell). Collapse: FLIP lockup và navbar
 `0.3s expo.out`; nền (`.is-surface`, vẽ ở `::before`), viền và chữ đổi một lần, không fade: thu gọn thì đổi ngay lúc bắt đầu nhịp rồi nền co cùng logo và navbar, mở ra thì viền mất ngay lúc bắt đầu (`.is-surface-held`, owner 2026-11-15), nền giãn cùng logo và navbar, hết nhịp mới đổi; cỡ lớn nhất của nền là lúc logo lớn nhất cách đều cạnh trên và cạnh dưới nền; mark lật ngay lúc bắt đầu ([Brand Motion](../../brand.md#motion)).

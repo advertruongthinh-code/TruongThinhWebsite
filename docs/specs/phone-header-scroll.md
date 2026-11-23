@@ -24,7 +24,7 @@ Owner chốt intent 2026-10-10 qua interview-me.
 
 Áp dụng trên màn hình cảm ứng (`(hover: none) and (pointer: coarse)`) có cạnh ngắn tối đa 750px, tức
 `(max-width: 750px), (max-height: 750px)`; điện thoại cả dọc lẫn ngang đều theo spec này (owner chốt
-2026-10-10). Tablet và desktop theo Shell R3. Đổi qua lại điều kiện (resize) thì header về hiện đủ rồi
+2026-10-10). Tablet và desktop theo Shell R3. Trang chi tiết Advertising theo [Shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống): header luôn dính (owner 2026-11-23). Đổi qua lại điều kiện (resize) thì header về hiện đủ rồi
 chạy theo chế độ mới.
 
 ```gherkin

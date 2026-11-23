@@ -65,6 +65,7 @@
         "node tests/site/phone-header-scroll.e2e.mjs",
         "node tests/site/shared-header-menu-route-close.e2e.mjs",
         "node tests/site/shared-header-bottom-p7-1.e2e.mjs",
+        "node tests/site/shared-header-detail-scroll.e2e.mjs",
         "node tests/site/shared-header-locale.e2e.mjs",
         "node tests/site/shared-header-menu-p7.e2e.mjs",
         "node tests/site/shared-header-single-line.e2e.mjs",
