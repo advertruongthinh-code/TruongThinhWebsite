@@ -264,29 +264,57 @@
     activePage = undefined;
   };
 
-  // About R9 journey: from 981px with motion, each milestone reaching 55% of the viewport cuts its group of parts on the nesting sheet
-  // (one way: scrolling back keeps them cut) and becomes the current milestone. Otherwise the CSS default shows the finished sheet.
+  // About R9 journey: from 981px each milestone owns a scroll window, from its year reaching 55% of the viewport to the next year;
+  // its drawing (--p 0 to 1) follows that window both ways, and only the current milestone's drawing shows. Reduced motion keeps
+  // --p at 1 (drawings complete, only the swap). Below 981px the CSS shows each milestone's own complete drawing.
   const mountAboutJourney = (container, state, reduceMotion) => {
     const journey = container.querySelector(".about-journey");
-    if (!journey || reduceMotion || !window.matchMedia("(min-width: 981px)").matches) return;
+    if (!journey || !window.matchMedia("(min-width: 981px)").matches) return;
     const items = [...journey.querySelectorAll(".about-journey__item")];
-    const parts = [...journey.querySelectorAll(".about-journey__svg--portrait [data-journey-part]")];
+    const years = items.map((item) => item.querySelector(".about-journey__year"));
+    const arts = items.map((_, index) => journey.querySelector(`[data-journey-art="${index + 1}"]`));
     const nodes = [...journey.querySelectorAll(".about-journey__node")];
-    let drawn = 0;
+    const last = new Map();
+    const write = (node, name, value) => {
+      if (last.get(node)?.[name] === value) return;
+      last.set(node, { ...last.get(node), [name]: value });
+      node.style.setProperty(name, value);
+    };
     const update = () => {
       const line = window.innerHeight * 0.55;
-      const reached = items.filter((item) => item.querySelector(".about-journey__year").getBoundingClientRect().top < line).length;
-      drawn = Math.max(drawn, reached);
-      parts.forEach((part) => part.classList.toggle("is-drawn", Number(part.dataset.journeyPart) <= drawn));
-      items.forEach((item, index) => item.classList.toggle("is-current", index === Math.max(reached, 1) - 1));
+      const tops = years.map((year) => year.getBoundingClientRect().top);
+      const reached = tops.filter((top) => top < line).length;
+      const current = Math.max(reached, 1) - 1;
+      const progress = tops.map((top, index) => {
+        if (reduceMotion) return 1;
+        const span = index < tops.length - 1 ? tops[index + 1] - top : items[index].offsetHeight * 0.9;
+        return Math.min(1, Math.max(0, (line - top) / (span * 0.55)));
+      });
+      arts.forEach((art, index) => {
+        write(art, "--p", progress[index].toFixed(3));
+        art.classList.toggle("is-current", index === current);
+      });
+      items.forEach((item, index) => item.classList.toggle("is-current", index === current));
       nodes.forEach((node, index) => node.classList.toggle("is-on", index < reached));
-      journey.style.setProperty("--about-journey-progress", String(Math.max(reached - 1, 0) / (items.length - 1)));
+      write(journey, "--about-journey-progress", Math.min(1, (current + (reached ? progress[current] : 0)) / (items.length - 1)).toFixed(3));
+    };
+    let frame = 0;
+    const loop = () => {
+      update();
+      frame = window.requestAnimationFrame(loop);
     };
     journey.classList.add("is-armed");
-    const observer = new IntersectionObserver(update, { rootMargin: "0px 0px -45% 0px", threshold: [0, 1] });
-    items.forEach((item) => observer.observe(item.querySelector(".about-journey__year")));
+    const observer = new IntersectionObserver(([entry]) => {
+      window.cancelAnimationFrame(frame);
+      if (entry.isIntersecting) loop();
+      else update();
+    });
+    observer.observe(journey);
     state.observers.push(observer);
-    state.abort.signal.addEventListener("abort", () => journey.classList.remove("is-armed"), { once: true });
+    state.abort.signal.addEventListener("abort", () => {
+      window.cancelAnimationFrame(frame);
+      journey.classList.remove("is-armed");
+    }, { once: true });
     update();
   };
 
