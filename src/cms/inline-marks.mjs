@@ -4,11 +4,12 @@
 import { escapeHtml } from "../../scripts/site/lib-pure.mjs";
 import { LINK, hrefAttrs, resolveLink } from "./links.mjs";
 
-// Where each kind of text slot accepts which marks; "list" is the bullet and numbered list of a body paragraph.
+// Where each kind of text slot accepts which marks; "list" is the bullet and numbered list of a body paragraph, "paragraph"
+// a blank line between paragraphs (only kinds rendered as paragraphs take it).
 export const MARKS_BY_KIND = {
   title: ["i", "br"],
-  body: ["b", "i", "sup", "a", "br", "list"],
-  quote: ["b", "i", "br"],
+  body: ["b", "i", "sup", "a", "br", "list", "paragraph"],
+  quote: ["b", "i", "br", "paragraph"],
   small: ["sup"],
   plain: [],
 };
@@ -145,7 +146,9 @@ function segmentsHtml(viTokens, enTokens, ctx) {
 // existing plain-text path, so current data renders the same HTML. Call only with text that passed marksErrors.
 export function markedInner(vi, en, ctx = {}) {
   const viTokens = parseMarks(vi);
-  if (viTokens.every(({ t }) => t === "text")) return null;
+  // Plain only when both sides read as typed: an escape (5\^) must render without its backslash, so it takes the segment path.
+  const asTyped = (text, tokens) => tokens.every(({ t }) => t === "text") && tokens.map(({ s }) => s).join("") === String(text ?? "");
+  if (asTyped(vi, viTokens) && asTyped(en, parseMarks(en))) return null;
   return segmentsHtml(viTokens, parseMarks(en), ctx);
 }
 
@@ -179,8 +182,11 @@ export function marksErrors(vi, en, allowed) {
     if (found.length) return errors.push(...found);
     if (skeleton(parseMarks(viText)) !== skeleton(parseMarks(enText))) errors.push(shape(`"${viText}": VI and EN must use the same marks and line breaks in the same order`, "marks-mismatch"));
   };
-  const viParts = paragraphs(vi);
-  const enParts = paragraphs(en);
+  // A blank line is a paragraph break only where the field renders paragraphs; elsewhere it would print two <br>.
+  const split = kinds.includes("paragraph") ? paragraphs : (text) => [String(text ?? "")];
+  for (const text of kinds.includes("paragraph") ? [] : [vi, en]) if (/\n\s*\n/.test(String(text ?? ""))) errors.push(shape(`"${text}": a blank line is not allowed here`, "mark-not-allowed"));
+  const viParts = split(vi);
+  const enParts = split(en);
   for (const [index, viPart] of viParts.entries()) {
     const enPart = enParts[index] ?? "";
     const viList = lists ? listOf(viPart) : null;

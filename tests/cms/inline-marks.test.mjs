@@ -111,3 +111,9 @@ test("render never throws on EN that has not been validated, plainText never thr
   assert.equal(listHtml("• một\n• hai", "", ctx), `<ul><li>${seg("span", "một", "")}</li><li>${seg("span", "hai", "")}</li></ul>`);
   assert.equal(plainText("Giá 5* sao"), "Giá 5* sao");
 });
+
+test("advisor E1: escapes render without backslash; a blank line only splits paragraph kinds", () => {
+  assert.equal(markedInner("5\\^ m", "5\\^ m", ctx), seg("span", "5^\u00a0m", "5^\u00a0m"));
+  assert.deepEqual(codes(marksErrors("a\n\nb", "a\n\nb", "title")), ["mark-not-allowed", "mark-not-allowed"]);
+  assert.deepEqual(marksErrors("a\n\nb", "c\n\nd", "quote"), []);
+});
