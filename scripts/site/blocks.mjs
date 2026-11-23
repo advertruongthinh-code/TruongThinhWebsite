@@ -314,7 +314,7 @@ const BLOCKS = {
     marks: { title: "title" },
     render: (block, ctx) => [
       `<section class="blk blk-banners ${BANNER_COLUMNS[block.items.length]} section-gap" data-header-tone="ink">`,
-      ...block.items.map((item) => `  <a class="blk-banner" href="${item.hrefVi}" data-en-href="${item.hrefEn}">${image(item.image)}${marked("span", item.title, ' class="blk-banner__title"', ctx)}</a>`),
+      ...block.items.map((item) => `  <a class="blk-banner" href="${item.hrefVi}"${item.hrefEn ? ` data-en-href="${item.hrefEn}"` : ""}>${image(item.image)}${marked("span", item.title, ' class="blk-banner__title"', ctx)}</a>`),
       "</section>",
     ].join("\n"),
   },
@@ -323,6 +323,9 @@ export const BLOCK_TYPES = Object.keys(BLOCKS);
 
 // Every text field of a page's blocks: [path, value, marks kind]; path is relative to the page ("blocks[2].text"). Hero lines
 // have no marks kind (null): they keep their own italic rule. Used by the mark check and by enMissing (cms-plan part 2 K3).
+// Empty EN links of list items (banner-links hrefEn): a page with one is VI only (cms-content R2).
+export const blockEmptyEnHrefs = (page) => (Array.isArray(page?.blocks) ? page.blocks : []).flatMap((block, index) => (BLOCKS[block?.type]?.list?.href ?? []).includes("hrefEn") && Array.isArray(block.items)
+  ? block.items.flatMap((item, line) => (item?.hrefEn ? [] : [`blocks[${index}].items[${line}].hrefEn`])) : []);
 export function blockTextFields(page) {
   const fields = [];
   for (const [index, block] of (Array.isArray(page?.blocks) ? page.blocks : []).entries()) {
@@ -417,7 +420,7 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
       for (const [item, value] of list.entries()) {
         for (const field of spec.list.text ?? []) text(value?.[field], `${where}.items[${item}].${field}`);
         for (const field of spec.list.media ?? []) await media(value?.[field], `${where}.items[${item}].${field}`);
-        for (const field of spec.list.href ?? []) href(value?.[field], `${where}.items[${item}].${field}`);
+        for (const field of spec.list.href ?? []) if (!(field === "hrefEn" && en === "optional" && !value?.[field])) href(value?.[field], `${where}.items[${item}].${field}`);
       }
     }
     if (spec.ids) {

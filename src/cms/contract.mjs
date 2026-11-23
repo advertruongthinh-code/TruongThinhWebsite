@@ -1,6 +1,6 @@
 // Shared record contract of the CMS (cms-plan Q1, Q5, Q10): record types, names and slugs, and the two error levels the
 // Worker and the build both use. Pure module: must not import catalog.mjs (it drags the 733 KB card manifest into the Worker).
-import { BLOCK_TYPES, blockMarksErrors, blockTextFields, validateBlockPage } from "../../scripts/site/blocks.mjs";
+import { BLOCK_TYPES, blockEmptyEnHrefs, blockMarksErrors, blockTextFields, validateBlockPage } from "../../scripts/site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../../scripts/site/block-pages.mjs";
 import { heroSlideErrors } from "../../scripts/site/hero-slides.mjs";
 import { validateHomeProjects } from "../../scripts/site/home-projects.mjs";
@@ -96,6 +96,7 @@ export function enMissing(type, data) {
     ...(typeof data?.slugEn === "string" && data.slugEn ? [] : ["slugEn"]),
     ...(type === "project" && data?.seoTitle !== undefined && empty(data.seoTitle) ? ["seoTitle.en"] : []),
     ...blockTextFields(data).filter(([, value]) => empty(value)).map(([field]) => `${field}.en`),
+    ...blockEmptyEnHrefs(data),
   ];
 }
 

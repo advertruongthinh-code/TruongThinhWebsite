@@ -24,17 +24,30 @@ export function htmlElements(html) {
     }
     const entry = { name, tag: token, start: match.index, contentStart: tagPattern.lastIndex };
     elements.push(entry);
+    // Script and style bodies are raw text: a tag inside a string there is not an element.
+    if (name === "script" || name === "style") {
+      const close = html.toLowerCase().indexOf(`</${name}`, tagPattern.lastIndex);
+      if (close < 0) continue;
+      const closeEnd = html.indexOf(">", close);
+      Object.assign(entry, { contentEnd: close, end: closeEnd < 0 ? html.length : closeEnd + 1 });
+      tagPattern.lastIndex = entry.end;
+      continue;
+    }
     if (!/\/$/.test(token.slice(0, -1).trim()) && !VOID.has(name)) stack.push(entry);
   }
   return elements;
 }
 
-// Drops every closed element whose opening tag has the attribute (nested matches go with their outer one).
+// Drops every element whose opening tag has the attribute (nested matches go with their outer one). Quoted values are
+// blanked before the test, so the name inside another attribute's value does not count. An element carrying it that has no
+// closing tag (void, self-closing, unclosed) stops the build instead of shipping its content in the wrong locale.
 export function dropElements(html, attribute) {
   const pattern = new RegExp(`\\s${attribute}(?=[\\s=>/])`, "i");
   const spans = [];
   for (const { tag, start, end } of htmlElements(html)) {
-    if (end !== undefined && pattern.test(tag) && !spans.some((span) => start >= span.start && start < span.end)) spans.push({ start, end });
+    if (!pattern.test(tag.replace(/"[^"]*"|'[^']*'/g, '""'))) continue;
+    if (end === undefined) throw new Error(`${attribute} on an element without a closing tag: ${tag}`);
+    if (!spans.some((span) => start >= span.start && start < span.end)) spans.push({ start, end });
   }
   return spans.reduceRight((output, { start, end }) => output.slice(0, start) + output.slice(end), html);
 }

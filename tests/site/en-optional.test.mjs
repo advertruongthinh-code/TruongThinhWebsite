@@ -63,3 +63,24 @@ test("old and kept EN slugs of a VI-only post go to the EN news list", () => {
   const lines = slugRedirects([{ type: "news", locale: "en", slug: "old-slug", id: viOnly.id }], { news: posts });
   assert.deepEqual(lines, [["/en/news/old-slug/", "/en/news/"], [`/en/news/${viOnly.slugEn}/`, "/en/news/"]]);
 });
+
+test("an inline link to a VI-only record goes to the EN list on EN", async () => {
+  const { resolveLink } = await import("../../src/cms/links.mjs");
+  assert.deepEqual(resolveLink(`page:news/${viOnly.id}`, ctx), { vi: `/news/${viOnly.slugVi}/`, en: "/en/news/", external: false });
+});
+
+test("an empty banner hrefEn makes the page VI only and is not a link error", async () => {
+  const { validateBlockPage } = await import("../../scripts/site/blocks.mjs");
+  const banner = { type: "banner-links", items: [{ title: { vi: "A" }, image: viOnly.cover, hrefVi: "/news/", hrefEn: "" }] };
+  const page = { ...structuredClone(posts[1]), blocks: [banner] };
+  assert.deepEqual(enMissing("news", page), ["blocks[0].items[0].title.en", "blocks[0].items[0].hrefEn"]);
+  const errors = await validateBlockPage(page, { checkImage: () => [], en: "optional" });
+  assert.ok(!errors.some((error) => error.includes("hrefEn")), errors.join("\n"));
+});
+
+test("dropElements skips script text, ignores attribute values and refuses an unclosed match", async () => {
+  const { dropElements } = await import("../../scripts/site/html-elements.mjs");
+  assert.equal(dropElements('<div><script>"</div>"</script><p data-vi-only>x</p></div>', "data-vi-only"), '<div><script>"</div>"</script></div>');
+  assert.equal(dropElements('<p data-en="a data-vi-only b">x</p>', "data-vi-only"), '<p data-en="a data-vi-only b">x</p>');
+  assert.throws(() => dropElements('<img data-vi-only src="a">', "data-vi-only"), /without a closing tag/);
+});
