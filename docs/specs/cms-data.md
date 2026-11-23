@@ -11,7 +11,7 @@ tests:
   - tests/cms/projection.test.mjs
   - tests/worker/schema.test.mjs
 notion: https://app.notion.com/p/420332849a0e81c9adfcf363d96fcde5
-updated: 2026-11-22
+updated: 2026-11-23
 ---
 
 # Dữ liệu và đường xuất bản của CMS
@@ -114,8 +114,9 @@ Then /news/a/ và /news/b/ trả 301 thẳng tới /news/c/
 
 ### R4. Preview URL của `workers.dev`
 
-`wrangler.static.toml` và `wrangler.toml` đều ghi `preview_urls = false`. Admin Worker dùng `workers_dev = true` tới khi
-đổi domain, sau đó `workers_dev = false` và custom domain `admin.truongthinhads.vn`.
+`wrangler.static.toml` và `wrangler.toml` đều ghi `preview_urls = false`. Admin Worker chỉ chạy ở custom domain
+`admin.truongthinhads.vn` (hai ứng dụng Access "Người dùng" và "Máy" phủ hostname này), `workers_dev = false` nên URL
+`workers.dev` cũ tắt (owner 2026-11-23).
 
 ```gherkin
 Given một Worker vừa deploy bản mới
