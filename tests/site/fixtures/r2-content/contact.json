@@ -1,0 +1,24 @@
+{
+  "channels": {
+    "zalo": { "href": "https://zalo.me/0949131050" },
+    "hotline": { "href": "tel:+84949131050", "text": "+84 949 131 050" },
+    "office": { "href": "tel:+842753813753", "text": "+84 275 381 3753" },
+    "facebook": { "href": "" },
+    "tiktok": { "href": "" },
+    "youtube": { "href": "" }
+  },
+  "cta": {
+    "floating": { "vi": "Gọi Zalo tư vấn", "en": "Talk to us on Zalo", "channel": "zalo" },
+    "floating-project": { "vi": "Trao đổi qua Zalo", "en": "Talk on Zalo", "channel": "zalo" },
+    "floating-advertising": { "vi": "Trao đổi qua Zalo", "en": "Discuss on Zalo", "channel": "zalo" },
+    "menu": { "vi": "Gọi Zalo tư vấn", "en": "Talk to us on Zalo", "channel": "zalo" },
+    "contact-quick": { "vi": "Nhắn Zalo", "en": "Chat on Zalo", "channel": "zalo" },
+    "home-1": { "vi": "Gọi Zalo tư vấn", "en": "Talk to us on Zalo", "channel": "zalo" },
+    "home-2": { "vi": "Gọi Zalo tư vấn", "en": "Talk on Zalo", "channel": "zalo" },
+    "residential-1": { "vi": "Gọi Zalo tư vấn", "en": "Talk on Zalo", "aria": { "vi": "Gọi Zalo để đặt lịch khảo sát nhà", "en": "Book a home survey on Zalo" }, "channel": "zalo" },
+    "commercial-1": { "vi": "Gọi Zalo tư vấn", "en": "Talk on Zalo", "aria": { "vi": "Gọi Zalo để đặt lịch khảo sát", "en": "Book a site survey on Zalo" }, "channel": "zalo" },
+    "about-1": { "vi": "Trao đổi qua Zalo", "en": "Talk on Zalo", "aria": { "vi": "Đặt lịch khảo sát qua Zalo", "en": "Book a site survey on Zalo" }, "channel": "zalo" },
+    "advertising-1": { "vi": "Trao đổi ý tưởng", "en": "Discuss an idea", "channel": "zalo" },
+    "advertising-2": { "vi": "Trao đổi ý tưởng", "en": "Discuss an idea", "channel": "zalo" }
+  }
+}

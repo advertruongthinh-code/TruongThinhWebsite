@@ -96,7 +96,7 @@ test("page-copy goes from files to records and back to page-copy.json keyed by p
   assert.deepEqual(records.map(({ id }) => id), ["home"]);
   const image = Object.values(records[0].data.slots).find((slot) => slot.src);
   assert.equal(image.legacySrc, image.src, "seeded image slots keep their file");
-  const files = snapshotToFiles({ records: { "page-copy": [records[0].data], "home-projects": [{ ids: [] }], menu: [{ featuredProjects: [] }] } });
+  const files = snapshotToFiles({ records: { "page-copy": [records[0].data], "home-projects": [{ ids: [] }], menu: [{ featuredProjects: [] }], contact: [{}] } });
   assert.deepEqual(Object.keys(files["page-copy.json"]), ["home"]);
   assert.equal(files["page-copy.json"].home.slots["dich-vu.title"].vi, slots["dich-vu.title"].vi);
 });

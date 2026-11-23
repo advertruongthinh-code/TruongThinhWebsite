@@ -9,6 +9,7 @@ import { contentDirOf, loadBlockContent } from "./content-files.mjs";
 import { escapeHtml, siteRoot } from "./lib.mjs";
 import { hrefAttrs } from "../../src/cms/links.mjs";
 import { renderShell } from "./shell.mjs";
+import { fillContact } from "./slots.mjs";
 
 export const MENU_PAGES = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
 const navMarker = /( *)<!-- menu-nav -->/;
@@ -104,6 +105,8 @@ export const renderMenuNav = ({ projects, productGroups }) => {
 };
 
 const menu = JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "menu.json"), "utf8"));
+// Contact links and CTA buttons (K8): every page source fills them from contact.json here, so block pages get them too.
+export const contact = JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "contact.json"), "utf8"));
 const { projects } = loadBlockContent(siteRoot);
 export const renderDesktopList = (indent) => [
   "<ul>",
@@ -115,7 +118,7 @@ const nav = renderMenuNav(menuFeatured(menu, { projects, categories: ADVERTISING
 
 // Source page (path relative to src/site) with the shell, menu and navbar list rendered in place of their markers.
 export const readPageSource = (relativePath) => {
-  const source = renderShell(readFileSync(path.join(siteRoot, relativePath), "utf8"), relativePath);
+  const source = fillContact(renderShell(readFileSync(path.join(siteRoot, relativePath), "utf8"), relativePath), contact);
   if (!navMarker.test(source)) throw new Error(`${relativePath} is missing <!-- menu-nav -->`);
   if (!desktopMarker.test(source)) throw new Error(`${relativePath} is missing <!-- desktop-nav -->`);
   // A page's own group title carries a static aria-current; pages built from blocks remove it in block-pages.

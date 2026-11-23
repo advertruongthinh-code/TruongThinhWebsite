@@ -36,6 +36,8 @@ test("snapshotToFiles drops gone project ids, prefixes R2 srcs and requires sing
   assert.ok(!files["home-projects.json"].includes("can-ho-go-soi"));
   assert.ok(!files["menu.json"].featuredProjects.includes("can-ho-go-soi"));
   assert.equal(files["news.json"][0].cover.src, "https://media.example/v/0123456789abcdef0123456789abcdef/x.webp");
+  delete snapshot.records.contact;
+  assert.throws(() => snapshotToFiles(snapshot), /snapshot: missing contact/);
   delete snapshot.records.menu;
   assert.throws(() => snapshotToFiles(snapshot), /snapshot: missing menu/);
 });

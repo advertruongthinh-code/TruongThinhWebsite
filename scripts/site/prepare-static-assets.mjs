@@ -9,7 +9,7 @@ import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 import "./sync-brand-lockup.mjs";
-import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
+import { MENU_PAGES, contact, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
 import { contentDirOf, fileImageCheck, loadBlockContent, loadVariants, readHeroSources, readRedirects } from "./content-files.mjs";
@@ -355,10 +355,10 @@ if (Object.keys(variants).length) {
   await writeFile(thresholdsFile, JSON.stringify(thresholds), "utf8");
 }
 const redirects = readRedirects(sourceRoot);
-// Links in marked text resolve against these (cms-plan part 2 K1); contact.json comes with E7, until then a contact: link renders as text.
+// Links in marked text resolve against these (cms-plan part 2 K1); contact: links and the contact-quick button read contact.json (K8).
 const blockContext = {
   projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])),
-  clusters: ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn }) => ({ slug: id, slugVi, slugEn })), projectTypes: Object.keys(PROJECT_TYPES), contact: null,
+  clusters: ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn }) => ({ slug: id, slugVi, slugEn })), projectTypes: Object.keys(PROJECT_TYPES), contact,
 };
 // Project strip (projects R1, page-home R8): Residential and Commercial list their sector's projects in projects.json order and link to the
 // sector filter; the home page lists the projects picked in content/home-projects.json and links to all projects.
