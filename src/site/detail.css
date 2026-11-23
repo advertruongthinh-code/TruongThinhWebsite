@@ -1131,6 +1131,29 @@
 .about-journey__ln--lm { stroke: #e5097f; stroke-width: 3; }
 .about-journey__ln--ly { stroke: #e8c400; stroke-width: 3; }
 
+/* Colour is painted on: brush passes clipped to each shape run while its outline draws (owner 2026-11-23: paint, not fade). */
+.about-journey__ln--brushed { fill: none; }
+
+.about-journey__brush {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: calc(1 - clamp(0, (var(--p, 1) - var(--a, 0)) / var(--b, 1), 1));
+}
+
+.about-journey__brush--face,
+.about-journey__brush--accent-face { stroke: var(--art-face); }
+.about-journey__brush--side { stroke: var(--art-side); }
+.about-journey__brush--paper { stroke: var(--paper); }
+.about-journey__brush--ink { stroke: var(--art-line, var(--ink)); }
+.about-journey__brush--fc { stroke: #7fcff1; }
+.about-journey__brush--fm { stroke: #f283bf; }
+.about-journey__brush--fy,
+.about-journey__brush--glow { stroke: #fff27f; }
+.about-journey__brush--fk { stroke: #2b2a29; }
+.about-journey__brush--accent-fill { stroke: var(--art-accent); }
+
 .about-journey__sheet-svg .about-journey__dims path {
   fill: none;
   stroke: var(--muted);
