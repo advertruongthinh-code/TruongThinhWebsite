@@ -1411,8 +1411,8 @@ test("M02a touch primary video shows the expand button and a tap on the video pa
       === "open");
     await settleTransitions(page);
     const touchStrip = await page.locator("[data-detail-viewer-thumbs] button").first().boundingBox();
-    assert(touchStrip && Math.abs(844 - touchStrip.y - touchStrip.height - 24) <= 1 && Math.abs(touchStrip.height - 56) <= 1,
-      `the viewer strip shows on touch screens, a row of 56px thumbnails 24px above the bottom: ${JSON.stringify(touchStrip)}`);
+    assert(touchStrip && Math.abs(844 - touchStrip.y - touchStrip.height - 24) <= 1 && Math.abs(touchStrip.height - 844 * 0.07) <= 1,
+      `the viewer strip shows on touch screens, a row of thumbnails 7% of the screen high (owner 2026-11-24) 24px above the bottom: ${JSON.stringify(touchStrip)}`);
     assert(await page.locator("#detail-dialog [data-thumbs-toggle]").isVisible(), "the strip toggle shows in the viewer");
   });
 });
@@ -1472,9 +1472,9 @@ test("M02a viewer thumbnails slide from the video to the image and closing keeps
     await settleTransitions(page);
     const thumbs = await page.$$eval("[data-detail-viewer-thumbs] button", (nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
     const viewport = page.viewportSize();
-    // PC landscape: the strip is a row of 96px thumbnails 48px above the bottom edge, centered across (owner 2026-11-23).
+    // PC landscape: the strip is a row of thumbnails 7% of the screen high (owner 2026-11-24), 48px above the bottom edge, centered across.
     const row = { left: thumbs[0].left, right: thumbs.at(-1).right, bottom: thumbs[0].bottom, height: thumbs[0].height };
-    assert(Math.abs(row.bottom - (viewport.height - 48)) <= 1 && Math.abs(row.height - 96) <= 1
+    assert(Math.abs(row.bottom - (viewport.height - 48)) <= 1 && Math.abs(row.height - viewport.height * 0.07) <= 1
       && Math.abs((row.left + row.right) / 2 - viewport.width / 2) <= 1,
       `the strip is a bottom row of the viewer, centered: ${JSON.stringify(row)}`);
     const ghost = await page.evaluate((id) => {

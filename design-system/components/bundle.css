@@ -6235,11 +6235,29 @@ body.is-masonry-browse .site-footer {
   margin-left: 2em;
 }
 
-/* A single-row thumbnail strip fits a whole number of thumbnails (at least 60px, gap 8px), overflow scrolls horizontally (owner 2026-10-24); the runtime
+/* Every thumbnail size follows the screen height so strips never take much room (owner 2026-11-24): 7% of the height, 36px to 80px. Registered
+   as a length so the computed value is in px: the runtime reads it for the primary strip and detail-viewer measureFit for the viewer row. */
+@property --thumb-base {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 60px;
+}
+
+@property --dock-thumb {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+:root {
+  --thumb-base: clamp(36px, 7svh, 80px);
+}
+
+/* A single-row thumbnail strip fits a whole number of thumbnails (at least --thumb-base high, gap 8px), overflow scrolls horizontally (owner 2026-10-24); the runtime
    widens each thumbnail (--detail-thumb-size) so the strip spans the full column like the text below (owner 2026-11-12). */
 .detail-view__media-thumbs {
   --scroll-fade-direction: to right;
-  --scroll-fade-size: var(--detail-thumb-size, 60px);
+  --scroll-fade-size: var(--detail-thumb-size, var(--thumb-base));
   display: flex;
   gap: 8px;
   width: 100%;
@@ -6268,7 +6286,7 @@ body.is-masonry-browse .site-footer {
 .detail-view__media-thumbs button {
   position: relative;
   flex: 0 0 auto;
-  width: var(--detail-thumb-size, calc(60px * var(--detail-thumb-ratio, 1)));
+  width: var(--detail-thumb-size, calc(var(--thumb-base) * var(--detail-thumb-ratio, 1)));
   aspect-ratio: var(--detail-thumb-ratio, 1);
   overflow: hidden;
   padding: 0;
@@ -6675,9 +6693,9 @@ body.is-masonry-browse .site-footer {
   --viewer-dock: beside;
 }
 
-/* The viewer strip keeps 96px thumbnails (owner 2026-11-14), phones 56px like the primary. */
+/* Viewer thumbnails are the shared screen-height share (--thumb-base). */
 .detail-dialog {
-  --dock-thumb: 96px;
+  --dock-thumb: var(--thumb-base);
   --dock-inset: var(--viewer-margin);
   --dock-top: var(--viewer-visible-top, 0px);
   --dock-bottom: var(--viewer-visible-bottom, 0px);
@@ -6688,7 +6706,6 @@ body.is-masonry-browse .site-footer {
   .detail-dialog {
     --viewer-margin: 24px;
     --viewer-dock: over;
-    --dock-thumb: 56px;
   }
 }
 

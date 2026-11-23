@@ -18,7 +18,7 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 - Không có nút đóng và nút zoom (owner 2026-11-14): đóng bằng click nền, Escape, Back; zoom bằng con lăn,
   phím `+`/`-`, chuột giữa về fit. Mở viewer thì focus vào chính hộp thoại.
 - Lề quanh ảnh `48px`, phone (cạnh nào tới `600px`) `24px`. Dãy thumbnail là [dãy nổi](../../../docs/specs/advertising-viewer-touch-zoom.md#r8-dãy-thumbnail-nổi-và-lề-viewer)
-  (`.thumb-dock`, owner 2026-11-24): mọi máy một hàng ở đáy, thumbnail cao `96px` (phone `56px`), rộng theo đúng tỷ lệ media
+  (`.thumb-dock`, owner 2026-11-24): mọi máy một hàng ở đáy, thumbnail cao `7%` chiều cao màn hình (`36px` tới `80px`, `--thumb-base`), rộng theo đúng tỷ lệ media
   như dãy Primary (owner 2026-11-14), vùng đen mờ dần sau dãy. Nút thu là thanh trắng ngang nhỏ giữa màn dưới hàng; thu thì
   chỉ chừa `16px` thumbnail thò lên và nút ẩn, chạm phần thò ra để mở lại. Tablet và PC: ảnh cách dãy `16px`, phía trên chừa bằng
   nên ảnh vẫn giữa màn hình; phone: dãy đè lên ảnh.
