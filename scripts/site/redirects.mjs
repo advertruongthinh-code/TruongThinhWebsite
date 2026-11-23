@@ -27,9 +27,10 @@ export const legacyRedirects = (content, redirects = []) => [
 // Vietnamese moved from /vi/ to the root (owner 2026-11-22): an old /vi/ path of a moved page goes straight to its final
 // target (one hop), then every other /vi/ path drops the prefix. Specific lines come first: Cloudflare takes the first match.
 export const redirectsFile = (content, redirects = []) => {
-  const moved = legacyRedirects(content, redirects);
+  const moved = legacyRedirects(content);
+  // Slug lines get no /vi/ twin: an old slug never lived under /vi/ (cms-data Q3), so 1,200 history rows stay under the limit.
   const oldVi = moved.filter(([from]) => !from.startsWith("/en/")).map(([from, to]) => [`/vi${from}`, to]);
-  const lines = [...moved, ...oldVi, ["/vi", "/"], ["/vi/*", "/:splat"]].map(([from, to]) => `${from} ${to} 301`);
+  const lines = [...moved, ...slugRedirects(redirects, content), ...oldVi, ["/vi", "/"], ["/vi/*", "/:splat"]].map(([from, to]) => `${from} ${to} 301`);
   // Workers static assets take at most 2,000 static redirects (cms-data Q3); keep a margin for the wildcard lines.
   if (lines.length > 1900) throw new Error(`_redirects has ${lines.length} lines, limit 1900`);
   return `${lines.join("\n")}\n`;

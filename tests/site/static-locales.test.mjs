@@ -60,7 +60,10 @@ test("an old slug of a live page gets one 301 per locale to its current slug", (
   const redirects = [{ type: "news", locale: "vi", slug: "bai-cu", id: article.id }, { type: "news", locale: "en", slug: "old-post", id: article.id }];
   assert.deepEqual(slugRedirects(redirects, content), [["/news/bai-cu/", `/news/${article.slugVi}/`], ["/en/news/old-post/", `/en/news/${article.slugEn}/`]]);
   assert.match(redirectsFile(content, redirects), new RegExp(`^/news/bai-cu/ /news/${article.slugVi}/ 301$`, "m"));
-  assert.match(redirectsFile(content, redirects), new RegExp(`^/vi/news/bai-cu/ /news/${article.slugVi}/ 301$`, "m"));
+  assert.equal(redirectsFile(content, redirects).split("\n").length, redirectsFile(content).split("\n").length + 2);
+  assert.doesNotMatch(redirectsFile(content, redirects), /^\/vi\/news\/bai-cu\//m);
+  const lines = redirectsFile(content, redirects).split("\n");
+  assert.ok(lines.indexOf(`/news/bai-cu/ /news/${article.slugVi}/ 301`) < lines.indexOf("/vi / 301"));
 });
 
 test("a slug of a page that is not projected, or equal to the current slug, gets no redirect", () => {
