@@ -229,15 +229,19 @@ const CMS = /^src\/(worker|admin|db)\//;
 const SITE = /^src\/(site|search)\//;
 const ZONES = [SITE, CMS, /^(scripts\/|\.github\/workflows\/)/, /^design-system\//];
 const NOT_LOC = /\.md$|(^|\/)pnpm-lock\.yaml$|^(\.site-output|\.tmp|\.tooling|graphify-out|\.wrangler|vendor)\//;
+// Design System files built from the site source by scripts/docs/build-design-system.mjs: they follow the site change, so they are
+// neither LOC nor a zone of their own. Markdown still counts as a zone: specs and rules are Markdown (trust tiers, PR #1123).
+const GENERATED = /^design-system\/components\/(bundle\.(css|js)|[^/]+\/preview\.html)$/;
 export const LONG_TASK = { loc: 400, files: 8, hot: 2, zones: 2 };
 
 // numstat: [{ file, added, deleted }] from `git diff --numstat` (binary files carry NaN and count as 0 LOC).
 export function tierFloor(numstat, hotFiles = []) {
   const files = numstat.map((r) => r.file);
-  const loc = numstat.filter((r) => !NOT_LOC.test(r.file)).reduce((n, r) => n + (r.added || 0) + (r.deleted || 0), 0);
+  const loc = numstat.filter((r) => !NOT_LOC.test(r.file) && !GENERATED.test(r.file)).reduce((n, r) => n + (r.added || 0) + (r.deleted || 0), 0);
   const sourceTest = files.filter((f) => /^(src|tests)\//.test(f) && !f.endsWith('.md')).length;
   const hot = files.filter((f) => hotFiles.includes(f)).length;
-  const zones = ZONES.filter((z) => files.some((f) => z.test(f))).length;
+  const zoneFiles = files.filter((f) => !GENERATED.test(f));
+  const zones = ZONES.filter((z) => zoneFiles.some((f) => z.test(f))).length;
   if (files.some((f) => CMS.test(f)) || loc >= LONG_TASK.loc || sourceTest >= LONG_TASK.files || hot >= LONG_TASK.hot || zones >= LONG_TASK.zones) return 3;
   return files.some((f) => SITE.test(f)) ? 1 : 0;
 }
