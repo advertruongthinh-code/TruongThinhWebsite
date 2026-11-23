@@ -133,8 +133,12 @@ body.is-detail .search-host {
 }
 
 .search-bar.is-docked .search-bar__shell {
+  /* Centred by its own width, so a block still wider than the slot while it morphs in overflows both sides evenly. */
+  left: 50%;
   width: min(1000px, 100%);
+  margin-inline: 0;
   box-shadow: 0 0 0 transparent;
+  translate: -50% 0;
 }
 
 /* Focus in the input: the border grows 1px inward, no outline (search-bar R1). */
@@ -143,7 +147,7 @@ body.is-detail .search-host {
 }
 
 .search-bar.is-docked .search-bar__shell:has(input:focus) {
-  box-shadow: inset 0 0 0 1px var(--ink);
+  box-shadow: 0 0 0 transparent, inset 0 0 0 1px var(--ink);
 }
 
 .search-bar :is(button, a):focus-visible {
@@ -238,6 +242,11 @@ body.is-detail .search-host {
   border: 1px solid var(--ink);
   background: var(--paper);
   box-shadow: var(--search-shadow);
+}
+
+/* More chips below the panel's edge: the last row fades out. */
+.search-bar__all[data-more] {
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
 }
 
 .search-bar.is-docked :is(.search-bar__chips, .search-bar__all) {

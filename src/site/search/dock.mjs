@@ -36,16 +36,23 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
     const style = getComputedStyle(shell);
     return { width: style.width, boxShadow: style.boxShadow, gridTemplateRows: style.gridTemplateRows };
   };
+  // One pending watcher at most: a later entry replaces the earlier run.
+  let veilRun = null;
+  let veilWatch = null;
   const afterVeil = (run) => {
     const root = document.documentElement;
     if (!root.classList.contains("route-enter")) return run();
-    const watch = new MutationObserver(() => {
+    veilRun = run;
+    if (veilWatch) return;
+    veilWatch = new MutationObserver(() => {
       if (root.classList.contains("route-enter")) return;
-      watch.disconnect();
-      run();
+      veilWatch.disconnect();
+      veilWatch = null;
+      veilRun?.();
+      veilRun = null;
     });
-    watch.observe(root, { attributes: true, attributeFilter: ["class"] });
-    signal?.addEventListener("abort", () => watch.disconnect(), { once: true });
+    veilWatch.observe(root, { attributes: true, attributeFilter: ["class"] });
+    signal?.addEventListener("abort", () => veilWatch?.disconnect(), { once: true });
   };
 
   const setPlace = (next) => {
@@ -53,9 +60,11 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
     const parent = next === "cta" ? cta : next === "top" ? top : host;
     const focused = document.activeElement === input;
     const { selectionStart, selectionEnd } = input;
-    const motion = !reduced.matches && mounted && (next === "cta" || place === "cta");
+    // The top slot always stretches in, even when leaving the CTA; no morph while the page veil is still up.
+    const veiled = document.documentElement.classList.contains("route-enter");
+    const motion = !reduced.matches && mounted && !veiled && next !== "top" && (next === "cta" || place === "cta");
     const from = motion ? lookOf() : null;
-    shell.getAnimations().forEach((animation) => animation.cancel());
+    [...shell.getAnimations(), ...chipRow.getAnimations()].forEach((animation) => animation.cancel());
     if (bar.parentElement !== parent) parent.append(bar);
     // CSS transitions would start from the old parent's values: they stay off for the move, Web Animations do the motion.
     bar.classList.add("is-moving");
@@ -70,7 +79,8 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
     else delete bar.dataset.dock;
     if (from) {
       const to = lookOf();
-      shell.animate([from, to], morph());
+      // The page offset is measured again once the bar has its final height.
+      shell.animate([from, to], morph()).finished.then(() => onChange(place), () => {});
       if (next === "cta") chipRow.animate([{ visibility: "visible" }, { visibility: "visible" }], morph());
     } else if (next === "top" && !reduced.matches) {
       afterVeil(() => {
@@ -78,7 +88,9 @@ export function mountDock({ host, bar, top, cta, input, onChange, signal }) {
         // From a square as tall as the row to the slot's width; the content stays clipped inside the border while it grows.
         bar.classList.add("is-stretching");
         const grow = shell.animate([{ width: `${ROW + 1}px` }, { width: getComputedStyle(shell).width }], morph());
-        grow.finished.catch(() => {}).finally(() => bar.classList.remove("is-stretching"));
+        grow.finished.catch(() => {}).finally(() => {
+          if (!shell.getAnimations().includes(grow)) bar.classList.remove("is-stretching");
+        });
       });
     }
     if (focused && document.activeElement !== input) {

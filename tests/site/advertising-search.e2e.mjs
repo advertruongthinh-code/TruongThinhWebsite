@@ -2,7 +2,7 @@
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/advertising-search.e2e.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BASE_URL, SWEEP_WIDTHS, launchBrowser, openPage, viewportAt } from "./harness.mjs";
+import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, viewportAt } from "./harness.mjs";
 
 const PAGE = `${BASE_URL}/advertising-products/`;
 const WIDE = { width: 1440, height: 900 };
@@ -602,13 +602,15 @@ for (const viewport of [WIDE, PHONE]) {
         const seen = [];
         const start = performance.now();
         const frame = () => {
-          seen.push(Math.round(document.querySelector(".search-bar__shell").getBoundingClientRect().width));
+          const box = document.querySelector(".search-bar__shell").getBoundingClientRect();
+          seen.push(box.left >= -1 && box.right <= innerWidth + 1 ? Math.round(box.width) : -1);
           if (performance.now() - start < 1300) requestAnimationFrame(frame);
           else resolve(seen);
         };
         requestAnimationFrame(frame);
       }));
       const slotWidth = await page.evaluate(() => Math.round(Math.min(1000, document.querySelector("[data-search-dock]").getBoundingClientRect().width)));
+      assert(!widths.includes(-1), "the morph stays inside the screen");
       assert(new Set(widths).size > 2, `morph frames: ${[...new Set(widths)].join(", ")}`);
       assert(Math.abs(widths.at(-1) - slotWidth) <= 1, `ends at the slot width ${slotWidth}: ${widths.at(-1)}`);
       assert(widths.every((width) => width >= Math.min(floatWidth, slotWidth) - 1 && width <= Math.max(floatWidth, slotWidth) + 1), "stays between the two widths");
@@ -620,6 +622,11 @@ for (const viewport of [WIDE, PHONE]) {
       await to(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY) - Math.round(viewport.height * 0.6));
       await page.waitForTimeout(400);
       assert.equal((await state()).place, "float", "far above the slot the bar floats again");
+      // From the CTA straight back to the top slot it stretches in, as on every entry to the top slot.
+      await to(1e6);
+      await page.waitForTimeout(1200);
+      await to(0);
+      await page.waitForFunction(() => document.querySelector(".search-bar__shell").getAnimations().some((animation) => animation.effect.getKeyframes()[0].width === "50px"), null, { timeout: 3000 });
       await context.close();
     } finally {
       await browser.close();
@@ -679,6 +686,15 @@ test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all o
     await page.waitForTimeout(900);
     const picked = await page.evaluate(() => ({ open: !document.querySelector(".search-bar__all").hidden, pressed: document.querySelectorAll(".search-bar__chiprow [aria-pressed=true]").length, query: document.querySelector(".search-bar input").value }));
     assert.deepEqual(picked, { open: false, pressed: 1, query: "đèn" });
+    // A pick from the panel shows in the row, clear of the pinned button.
+    await page.click(".search-bar__more");
+    await page.click(".search-bar__all .search-bar__chip:last-child");
+    await page.waitForTimeout(900);
+    assert(await page.evaluate(() => {
+      const chip = document.querySelector(".search-bar__chiprow [aria-pressed=true]").getBoundingClientRect();
+      const row = document.querySelector(".search-bar__chiprow").getBoundingClientRect();
+      return chip.left >= row.left - 1 && chip.right <= row.right + 1;
+    }), "the picked chip is in sight");
     // Picking a chip keeps the whole row (owner 2026-11-23).
     assert.equal(await page.locator(".search-bar__chiprow .search-bar__chip").count(), row.counts.length);
     await context.close();
@@ -697,10 +713,7 @@ test("search-bar R2 at 1440px: dragging or wheeling over the chip row scrolls it
     await page.waitForTimeout(1200);
     const box = await page.locator(".search-bar__chiprow").boundingBox();
     const left = () => page.evaluate(() => document.querySelector(".search-bar__chiprow").scrollLeft);
-    await page.mouse.move(box.x + box.width - 60, box.y + box.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(box.x + 60, box.y + box.height / 2, { steps: 10 });
-    await page.mouse.up();
+    await mouseDrag(page, { x: box.x + box.width - 60, y: box.y + box.height / 2 }, { x: box.x + 60, y: box.y + box.height / 2 });
     assert((await left()) > 100, "a drag scrolls the row");
     assert.equal(await page.locator(".search-bar__chiprow [aria-pressed=true]").count(), 0, "a drag is not a click");
     await page.evaluate(() => { document.querySelector(".search-bar__chiprow").scrollLeft = 0; });
@@ -710,6 +723,22 @@ test("search-bar R2 at 1440px: dragging or wheeling over the chip row scrolls it
     await page.waitForTimeout(500);
     assert((await left()) > 100, "the wheel scrolls the row");
     assert.equal(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY), pageY, "the page stays");
+    // Esc closes a panel opened with the mouse.
+    await page.click(".search-bar__more");
+    await page.keyboard.press("Escape");
+    assert.equal(await page.evaluate(() => document.querySelector(".search-bar__all").hidden), true, "Esc closes the panel");
+    // At the row's end the wheel goes back to the page.
+    await page.evaluate(() => { const row = document.querySelector(".search-bar__chiprow"); row.scrollLeft = row.scrollWidth; });
+    await page.mouse.wheel(0, 300);
+    await page.waitForTimeout(800);
+    assert.notEqual(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY), pageY, "at the end the page scrolls");
+    // A drag released off the row does not eat the next real click on a chip.
+    await page.evaluate(() => { document.querySelector(".search-bar__chiprow").scrollLeft = 0; });
+    const row = await page.locator(".search-bar__chiprow").boundingBox();
+    await mouseDrag(page, { x: row.x + row.width - 60, y: row.y + row.height / 2 }, { x: row.x + 60, y: row.y - 200 });
+    await page.waitForTimeout(100);
+    await page.locator(".search-bar__chiprow .search-bar__chip").first().click();
+    await page.waitForFunction(() => document.querySelectorAll(".search-bar__chiprow [aria-pressed=true]").length === 1, null, { timeout: 3000 });
     await context.close();
   } finally {
     await browser.close();
