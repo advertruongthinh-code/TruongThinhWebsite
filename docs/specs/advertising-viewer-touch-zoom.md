@@ -174,9 +174,7 @@ Viewer mở thì dãy và nút trượt vào sau morph, đóng thì trượt ra 
 
 ```gherkin
 Given điện thoại dọc 384×724 cảm ứng, card nhiều media
-When mở detail
-Then dãy primary là một hàng trong phần mô tả
-When chạm ảnh primary để mở viewer
+When mở detail thì dãy primary là một hàng trong phần mô tả, rồi chạm ảnh primary để mở viewer
 Then dãy viewer là hàng ở đáy, thumbnail cao 56px, cách đáy 24px, thanh trắng nhỏ giữa màn dưới hàng
 And bấm thanh trắng thì dãy trượt xuống chỉ chừa 16px thumbnail, thanh trắng ẩn
 And chạm phần thò ra thì dãy mở lại, media không đổi, viewer vẫn mở
