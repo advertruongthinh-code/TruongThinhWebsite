@@ -1,15 +1,15 @@
-// Minimal operations page script: build status and save load tests (cms-plan P1).
+// Minimal operations page script: build status, save load tests (cms-plan P1), test upload and media list (P3).
 
 const $ = (id) => document.getElementById(id);
 const logEl = $('log');
-const buttons = [$('save1'), $('save10'), $('stale10')];
+const buttons = [$('save1'), $('save10'), $('stale10'), $('uploadTest'), $('mediaReload')];
 
-function log(line) {
-  logEl.textContent += line + '\n';
+function log(line, out = logEl) {
+  out.textContent += line + '\n';
 }
 
 // Fetch and log "label: HTTP status, elapsed ms"; returns { status, data }.
-async function timed(label, url, init) {
+async function timed(label, url, init, out = logEl) {
   const t0 = performance.now();
   let status = 0;
   let data = null;
@@ -18,10 +18,10 @@ async function timed(label, url, init) {
     status = res.status;
     try { data = await res.json(); } catch (e) { data = null; }
   } catch (e) {
-    log(label + ': lỗi mạng');
+    log(label + ': lỗi mạng', out);
     return { status, data };
   }
-  log(label + ': HTTP ' + status + ', ' + Math.round(performance.now() - t0) + ' ms');
+  log(label + ': HTTP ' + status + ', ' + Math.round(performance.now() - t0) + ' ms', out);
   return { status, data };
 }
 
@@ -90,4 +90,47 @@ async function loadBuildStatus() {
   }
 }
 
+// Upload one test image as media thu-NN: the browser reads the EXIF-rotated size, the body is the raw file.
+async function uploadTest() {
+  const out = $('uploadLog');
+  const file = $('testFile').files[0];
+  if (!file) { log('Chọn một ảnh trước.', out); return; }
+  let size;
+  try {
+    const bitmap = await createImageBitmap(file);
+    size = { width: bitmap.width, height: bitmap.height };
+    bitmap.close();
+  } catch (e) {
+    log('Không đọc được ảnh.', out);
+    return;
+  }
+  const query = new URLSearchParams({ slugBase: 'thu', width: String(size.width), height: String(size.height) });
+  const r = await timed('upload-media', '/api/admin/upload-media?' + query, { method: 'POST', headers: { 'Content-Type': file.type }, body: file }, out);
+  log(JSON.stringify(r.data), out);
+  await loadMediaList();
+}
+
+// First page of media-list: id, status and the full-frame variant (key, status, error).
+async function loadMediaList() {
+  const el = $('mediaList');
+  try {
+    const res = await fetch('/api/admin/media-list');
+    const data = await res.json();
+    if (!res.ok) {
+      el.textContent = 'Lỗi ' + res.status + ': ' + (data && data.error);
+      return;
+    }
+    el.textContent = data.items.map((item) => {
+      const v = item.variant;
+      return item.id + '  ' + item.status + '  ' + (v ? 'variant ' + v.status + (v.error ? ' ' + v.error : '') + ' ' + v.key : 'repo');
+    }).join('\n') || '(trống)';
+  } catch (e) {
+    el.textContent = 'Không tải được media.';
+  }
+}
+
+$('uploadTest').addEventListener('click', () => run(uploadTest));
+$('mediaReload').addEventListener('click', () => run(loadMediaList));
+
 loadBuildStatus();
+loadMediaList();

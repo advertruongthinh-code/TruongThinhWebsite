@@ -19,6 +19,7 @@
     ".github/workflows/release.yml",
     ".github/workflows/deploy-admin.yml",
     ".github/workflows/cms-check.yml",
+    ".github/workflows/cms-variants.yml",
     ".claude/**",
     ".impeccable/**"
   ],
