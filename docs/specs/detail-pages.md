@@ -197,8 +197,8 @@ Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít n
 `.about-journey`: từ 981px hai cột; trái `figure.about-journey__sheet` (`data-sticky-column`, sticky dưới header, cao bằng màn hình) là bản vẽ kỹ thuật một tấm ván 1220 x 2440 nesting phôi tủ (nét mực trên nền trắng, không vân gỗ, không nhãn; mũi 6
 mm, khe và lề 10 mm, lỗ xuyên và ván thừa gạch chéo, hèm kính mặt sau nét đứt; tận dụng 90%, owner 2026-11-23); thanh tiến độ cam sáu nút; phải sáu `article` mốc (`h3` năm, câu mở `strong`). Sinh bằng `build_svg.py` (Library
 `thiet-ke-trang-gioi-thieu/nesting/`), không sửa tay. Có motion: `detail.js` gắn `is-armed`; năm mốc chạm 55% màn hình thì nhóm phôi của mốc đó chạy đường dao cam rồi hiện nét đậm (một chiều), mốc đó đậm, các mốc khác nhạt. Không JavaScript, reduced
-motion, dưới 981px: tấm ván vẽ đủ, đứng yên; dưới 981px là bản xếp ngang nằm trên danh sách. Mốc 2020 nói "quy trình tinh gọn" tủ module, không nêu tên hệ thống của đơn vị khác. Mốc đầu 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép
-09/01/2006 tại Vĩnh Long. Chưa có bảo hành tới khi owner xác nhận fact.
+motion, dưới 981px: tấm ván vẽ đủ, đứng yên; dưới 981px là bản xếp ngang nằm trên danh sách. Mốc đầu là năm 2006:
+Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chưa có bảo hành tới khi owner xác nhận fact.
 
 ```gherkin
 Given /about/ ở 390px
