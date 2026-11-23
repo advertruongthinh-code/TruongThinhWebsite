@@ -41,10 +41,10 @@ export async function dispatchVariants(env, keys) {
   await Promise.all(lots.map((lot) => dispatchWorkflow(env, "cms-variants.yml", { items: JSON.stringify(lot) })));
 }
 
-// Content build (Q8): paused publishing never calls GitHub.
+// Content build (Q8): paused publishing never calls GitHub and returns "paused"; after unpausing, press "Dựng lại" (runbook).
 export async function dispatchBuild(env) {
   const paused = await env.DB.prepare("SELECT value FROM settings WHERE key = 'publish_paused'").first("value");
-  return paused === "1" ? false : dispatchWorkflow(env, "ci.yml", { content: "true" });
+  return paused === "1" ? "paused" : dispatchWorkflow(env, "ci.yml", { content: "true" });
 }
 
 // Cron calls this every 5 minutes: a failed ci.yml dispatch is repeated until it succeeds (success clears dispatch_error).

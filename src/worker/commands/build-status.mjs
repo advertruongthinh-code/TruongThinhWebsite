@@ -5,21 +5,29 @@ import { json } from "../http.mjs";
 
 const RUN_FIELDS = ["id", "status", "conclusion", "event", "display_title", "created_at", "html_url"];
 
-// Newest deploy markers first (Q6 keys); one list plus at most ten gets keep the Free subrequest budget.
+// Newest deploy markers first by upload time (the key format does not sort by time); one list plus at most ten gets keep the Free subrequest budget.
 async function readDeployments(env) {
-  const { objects } = await env.MEDIA_PUBLIC.list({ prefix: "deploys/", limit: 10 });
-  const markers = await Promise.all(objects.map(async ({ key }) => (await env.MEDIA_PUBLIC.get(key))?.json().catch(() => null)));
+  const { objects } = await env.MEDIA_PUBLIC.list({ prefix: "deploys/" });
+  const newest = objects.sort((a, b) => b.uploaded - a.uploaded).slice(0, 10);
+  const markers = await Promise.all(newest.map(async ({ key }) => (await env.MEDIA_PUBLIC.get(key))?.json().catch(() => null)));
   return markers.filter(Boolean);
 }
+
+// GitHub sends "2027-01-01 00:00:00 UTC"; ISO parses in every browser.
+const isoExpiry = (value) => {
+  const time = value ? Date.parse(value.replace(" UTC", "Z").replace(" ", "T")) : NaN;
+  return Number.isFinite(time) ? new Date(time).toISOString() : null;
+};
 
 async function readRuns(env) {
   if (!env.GITHUB_ACTIONS_TOKEN) throw new Error("no token");
   const response = await fetch(`${WORKFLOWS}/ci.yml/runs?branch=main&per_page=5`, {
     headers: { Authorization: `Bearer ${env.GITHUB_ACTIONS_TOKEN}`, Accept: "application/vnd.github+json", "User-Agent": "tt-cms" },
+    signal: AbortSignal.timeout(5000),
   });
   if (!response.ok) throw new Error(`runs ${response.status}`);
   const { workflow_runs: runs } = await response.json();
-  return { runs: runs.map((run) => Object.fromEntries(RUN_FIELDS.map((field) => [field, run[field]]))), tokenExpiresAt: response.headers.get("github-authentication-token-expiration") };
+  return { runs: runs.map((run) => Object.fromEntries(RUN_FIELDS.map((field) => [field, run[field]]))), tokenExpiresAt: isoExpiry(response.headers.get("github-authentication-token-expiration")) };
 }
 
 export default {

@@ -83,7 +83,8 @@ function warnings(data) {
   const snapshotAt = data.deployments && data.deployments[0] && data.deployments[0].snapshotAt;
   if (data.lastSaveAt && (!snapshotAt || data.lastSaveAt > snapshotAt)) lines.push('Site chậm hơn lần lưu cuối: lần dựng gần nhất chưa chứa nội dung mới.');
   const expires = Date.parse(data.tokenExpiresAt);
-  if (expires - Date.now() < TOKEN_WARN_MS) lines.push('Token GitHub hết hạn ngày ' + data.tokenExpiresAt + ' (còn dưới 14 ngày): đổi theo runbook.');
+  if (data.runs === null) lines.push('Không đọc được GitHub: token thiếu, sai hoặc hết hạn. Đổi theo runbook.');
+  else if (expires - Date.now() < TOKEN_WARN_MS) lines.push('Token GitHub hết hạn ngày ' + data.tokenExpiresAt + ' (còn dưới 14 ngày): đổi theo runbook.');
   return lines;
 }
 

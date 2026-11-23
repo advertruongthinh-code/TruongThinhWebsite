@@ -115,13 +115,14 @@ test("build-status: staff has no accessDrift, owner has null; GitHub failure kee
 test("build-status reads runs, token expiry, deployments, dispatchError and lastSaveAt", async () => {
   const run = { id: 7, status: "completed", conclusion: "success", event: "workflow_dispatch", display_title: "CMS content build", created_at: "t", html_url: "u" };
   const { call, env, put } = setup({ runs: [{ ...run, extra: 1 }], headers: { "github-authentication-token-expiration": "2027-01-01 00:00:00 UTC" } });
-  await env.MEDIA_PUBLIC.put("deploys/b.json", JSON.stringify({ versionId: "b" }));
-  await env.MEDIA_PUBLIC.put("deploys/a.json", JSON.stringify({ versionId: "a" }));
+  // Key order (a, b) differs from upload order: the newest upload comes first.
+  await env.MEDIA_PUBLIC.put("deploys/b.json", JSON.stringify({ versionId: "b" }), { uploaded: new Date("2026-11-02") });
+  await env.MEDIA_PUBLIC.put("deploys/a.json", JSON.stringify({ versionId: "a" }), { uploaded: new Date("2026-11-01") });
   put("dispatch_error:ci.yml", "t ci.yml 401");
   const { body } = await call("build-status", undefined);
   assert.deepEqual(body.runs, [run]);
-  assert.equal(body.tokenExpiresAt, "2027-01-01 00:00:00 UTC");
-  assert.deepEqual(body.deployments.map((d) => d.versionId), ["a", "b"]);
+  assert.equal(body.tokenExpiresAt, "2027-01-01T00:00:00.000Z");
+  assert.deepEqual(body.deployments.map((d) => d.versionId), ["b", "a"]);
   assert.equal(body.dispatchError, "t ci.yml 401");
   assert.equal(body.paused, false);
   assert.equal(body.lastSaveAt, "2026-11-22T00:00:00.000Z");
@@ -131,6 +132,8 @@ test("cron retries a failed ci.yml dispatch at minute 05 only; cms-variants erro
   const { cron, put, calls, setting } = setup();
   put("dispatch_error:ci.yml", "t ci.yml 500");
   await cron("10:06");
+  assert.equal(calls.length, 0);
+  await cron("18:05"); // daily job minute: the backup keeps the subrequest budget
   assert.equal(calls.length, 0);
   await cron("10:05");
   assert.equal(calls.length, 1);

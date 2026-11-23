@@ -97,6 +97,7 @@ Owner nhập một lần; agent không đọc giá trị. Admin Worker dùng tok
 2. Cloudflare, Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets, Add: Type `Secret`, tên `GITHUB_ACTIONS_TOKEN`, dán token, Deploy.
 3. Cách khác trên PC: `pnpm demo:wrangler secret put GITHUB_ACTIONS_TOKEN --config wrangler.toml`, dán token khi được hỏi.
 4. Kiểm: mở `status.html`, `tokenExpiresAt` có ngày hết hạn và `runs` không phải `null`. Ghi ngày hết hạn vào bảng dưới; đổi token trước hạn bằng cùng các bước.
+5. Lúc tạm dừng xuất bản, các lần lưu không gọi dựng và Cron không gọi lại. Bỏ tạm dừng xong, bấm "Dựng lại" trên `status.html` để staging nhận nội dung đã lưu.
 
 ## Migration D1
 

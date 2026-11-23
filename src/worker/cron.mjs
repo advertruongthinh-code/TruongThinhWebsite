@@ -15,8 +15,8 @@ const DAILY = { "18:00": [exportDatabase], "18:05": [pruneBackups] }; // later t
 export async function runCron(event, env, ctx) {
   const scheduled = new Date(event.scheduledTime);
   const time = scheduled.toISOString().slice(11, 16);
-  // A daily job minute skips settleVariants, so the export's fetches and the R2 reads never share one invocation's limits.
+  // A daily job minute skips settleVariants and retryBuild, so the export's fetches and the R2 reads never share one invocation's limits.
   if (!DAILY[time]) ctx?.waitUntil(settleVariants(env, ctx).catch((error) => console.error("settleVariants", error)));
-  if (scheduled.getUTCMinutes() % 5 === 0) ctx?.waitUntil(retryBuild(env).catch((error) => console.error("retryBuild", error)));
+  if (!DAILY[time] && scheduled.getUTCMinutes() % 5 === 0) ctx?.waitUntil(retryBuild(env).catch((error) => console.error("retryBuild", error)));
   await Promise.all((DAILY[time] ?? []).map((job) => job(env).catch((error) => console.error(job.name, error))));
 }
