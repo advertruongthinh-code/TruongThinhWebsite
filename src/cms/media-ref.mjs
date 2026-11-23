@@ -8,6 +8,8 @@ export async function variantKey(hash, crop) {
   return [...digest.slice(0, 16)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+// Seed placement still kept byte for byte: legacySrc and no crop sent with it.
+export const isLegacy = (ref) => ref.legacySrc !== undefined && ref.crop === undefined;
 export const isFullCrop = (media, crop) => !crop || (crop[0] === 0 && crop[1] === 0 && crop[2] === media.width && crop[3] === media.height);
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -22,7 +24,7 @@ export function mediaRefs(type, data) {
     ...(type === "project" && isObject(data.card) ? list(data.card.media) : []),
   ];
   if (type === "advertising-card") return [...(isObject(data.media) ? [data.media] : []), ...list(data.mediaItems)];
-  if (type === "hero-slide") return [data];
+  if (type === "hero-slide" || type === "client-logo") return [data];
   // Image slots of a standard page: the slot objects that are not text (K7).
   if (type === "page-copy") return Object.values(isObject(data.slots) ? data.slots : {}).filter((slot) => isObject(slot) && !Object.hasOwn(slot, "vi"));
   return [];
@@ -30,15 +32,21 @@ export function mediaRefs(type, data) {
 
 // Rewrites src, width, height and alts of every placement from its media record; client-sent values are not trusted.
 // A placement with legacySrc (seed data) or an unknown mediaId is left as is (shapeErrors reports the unknown id).
+// A seeded placement sent back with a crop is being reset: it loses legacySrc and is computed like any other (cms-content R4).
 export async function materialize(type, data, mediaById) {
   const copy = structuredClone(data);
   const uses = new Map();
   for (const ref of mediaRefs(type, copy)) {
-    const media = ref.legacySrc === undefined ? mediaById.get(ref.mediaId) : undefined;
+    const media = isLegacy(ref) ? undefined : mediaById.get(ref.mediaId);
     if (!media) continue;
-    const crop = ref.crop ?? [0, 0, media.width, media.height];
+    delete ref.legacySrc;
+    // A logo is never cropped: its one variant is the whole SVG, and the record keeps only src and viewBox (K9).
+    const logo = type === "client-logo";
+    const crop = !logo && ref.crop || [0, 0, media.width, media.height];
     const key = media.source === "repo" && isFullCrop(media, crop) ? "" : await variantKey(media.hash, crop);
-    Object.assign(ref, { crop, src: key ? `/v/${key}/${media.id}.webp` : media.path, width: crop[2], height: crop[3], altVi: media.altVi, altEn: media.altEn });
+    const src = key ? `/v/${key}/${media.id}.${logo ? "svg" : "webp"}` : media.path;
+    if (logo) Object.assign(ref, { src, viewBox: media.viewBox });
+    else Object.assign(ref, { crop, src, width: crop[2], height: crop[3], altVi: media.altVi, altEn: media.altEn });
     uses.set(`${media.id}|${key}`, { mediaId: media.id, key, crop: key ? crop.join(",") : "" });
   }
   return { data: copy, uses: [...uses.values()] };

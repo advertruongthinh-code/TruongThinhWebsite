@@ -47,7 +47,7 @@ Database `truong-thinh-cms` (vùng `apac`, binding `DB`), một migration `src/d
 `home-projects`, `menu`, `contact`, `page-copy`; kiểu đơn có đúng một dòng `id = 'main'`, không tạo, không xóa.
 `page-copy` có bốn bản ghi cố định `home`, `residential`, `commercial`, `about`, không tạo thêm, không xóa
 ([editor R6](cms-editor.md#r6-trang-chuẩn)). Phần 1 mở `media`, `news`, `project`, `advertising-card`, `hero-slide`,
-`home-projects`, `menu`; ba kiểu còn lại mở ở phần 2: `page-copy` ở task E6, `contact` ở task E7.
+`home-projects`, `menu`; ba kiểu còn lại mở ở phần 2: `page-copy` ở task E6, `contact` ở task E7, `client-logo` ở task E8 (lệnh upload SVG ở PR Worker của E8).
 Media là một kiểu bản ghi, cùng trạng thái, phiên bản và thùng rác; media là `published` khi có đủ `altVi`, `altEn`
 (tới khi phần 2 mở EN không bắt buộc theo [nội dung CMS R2](cms-content.md)). `data` có đúng hình dạng một phần tử file chiếu. Slug duy nhất theo kiểu trong
 các bản ghi chưa vào thùng rác (index duy nhất một phần), nên khôi phục bài trùng slug trả 409. `save` ghi bằng một câu
@@ -126,7 +126,8 @@ là JPEG, PNG, WebP, AVIF, tối đa 25 MB. Logo SVG (tối đa 200 KB, qua bộ
 file ghi thẳng `v/<key>/<mediaId>.svg` ở bucket public kèm manifest, kích thước lấy từ `viewBox` làm tròn. Kích thước media là kích thước sau khi xoay theo EXIF; job
 biến thể xoay trước khi cắt. Chỗ đặt media trong nội dung là `{ mediaId, crop: [x, y, w, h] }`; Worker tự ghi `src`,
 `width`, `height`, `altVi`, `altEn`, không tin giá trị client gửi. Chỗ đặt có `legacySrc` (chỉ dữ liệu seed, ví dụ file
-cắt riêng của card công trình) giữ nguyên `src` và alt cho tới khi người soạn đặt lại crop.
+cắt riêng của card công trình) giữ nguyên `src` và alt cho tới khi người soạn đặt lại crop: chỗ đặt gửi lên có cả
+`legacySrc` và `crop` thì bỏ `legacySrc` và tính như chỗ đặt thường, ở mọi kiểu.
 
 Key biến thể là 32 ký tự hex đầu của SHA-256 trên `<hash bản gốc>|<x,y,w,h>|<số công thức>`. Media `repo` với crop
 nguyên khung dùng thẳng `path`; còn lại dùng object `v/<key>/<mediaId>[-<bề rộng>].<webp|avif|jxl>` ở bucket public, cùng

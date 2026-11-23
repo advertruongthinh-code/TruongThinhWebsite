@@ -1415,6 +1415,9 @@ function createPhotoCard(record, locale, onMediaLoaded, related, initialMediaId 
       onPendingChange(figure);
       void clearLaneWait(node, layer, reducedMotion()).then(() => layer.style.removeProperty("transition"));
     };
+    // The legacy cover is the card's own img, not made by layerFor: it clears its wait layer on load too. The slideshow can come back to a
+    // cover still loading, and without this its frosted wait stayed over it for good.
+    if (useLegacyCover) image.addEventListener("load", () => void image.decode().catch(() => {}).then(() => dismissWait(coverIndex)));
     // A lane carries its media and, while that media loads, its wait layer; both move with the strip.
     const laneNodes = (index) => {
       const layer = layerFor(index);

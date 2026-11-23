@@ -18,6 +18,8 @@ const ENTRIES = [
   "src/cms/projection.mjs",
   "src/cms/inline-marks.mjs",
   "src/cms/links.mjs",
+  "src/cms/svg.mjs",
+  "scripts/site/client-logos.mjs",
 ];
 
 for (const entry of ENTRIES) {

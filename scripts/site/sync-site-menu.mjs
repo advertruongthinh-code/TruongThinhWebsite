@@ -8,6 +8,7 @@ import { PROJECT_TYPES } from "./block-pages.mjs";
 import { contentDirOf, loadBlockContent } from "./content-files.mjs";
 import { escapeHtml, siteRoot } from "./lib.mjs";
 import { hrefAttrs, resolveLink } from "../../src/cms/links.mjs";
+import { fillClientLogos } from "./client-logos.mjs";
 import { renderShell } from "./shell.mjs";
 import { fillContact } from "./slots.mjs";
 
@@ -75,6 +76,7 @@ export const renderDesktopList = (menu, ctx, indent) => [
 const menu = JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "menu.json"), "utf8"));
 // Contact links and CTA buttons (K8): every page source fills them from contact.json here, so block pages get them too.
 export const contact = JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "contact.json"), "utf8"));
+const clientLogos = JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "client-logos.json"), "utf8"));
 const { projects, news } = loadBlockContent(siteRoot);
 const linkContext = {
   projects: new Map(projects.map((page) => [page.id, page])), news: new Map(news.map((page) => [page.id, page])),
@@ -85,7 +87,7 @@ const desktop = (indent) => renderDesktopList(menu, linkContext, indent);
 
 // Source page (path relative to src/site) with the shell, menu and navbar list rendered in place of their markers.
 export const readPageSource = (relativePath) => {
-  const source = fillContact(renderShell(readFileSync(path.join(siteRoot, relativePath), "utf8"), relativePath), contact);
+  const source = fillClientLogos(fillContact(renderShell(readFileSync(path.join(siteRoot, relativePath), "utf8"), relativePath), contact), clientLogos, relativePath);
   if (!navMarker.test(source)) throw new Error(`${relativePath} is missing <!-- menu-nav -->`);
   if (!desktopMarker.test(source)) throw new Error(`${relativePath} is missing <!-- desktop-nav -->`);
   // A page's own group title carries a static aria-current; pages built from blocks remove it in block-pages.

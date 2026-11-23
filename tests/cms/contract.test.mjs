@@ -32,7 +32,7 @@ test("project card with one media is missing; card media outside the page is a s
   page.card = { width: 1, height: 1, media: [] };
   const other = [...ctx.mediaById.keys()].find((id) => id !== page.cover.mediaId && !JSON.stringify(page).includes(`"${id}"`));
   page.card.media = [{ ...page.cover, mediaId: other }];
-  assert.ok((await shapeErrors("project", page, ctx)).some(({ code }) => code === "card-media"));
+  assert.ok((await shapeErrors("project", page, ctx)).some(({ code }) => code === "card-foreign"));
 });
 
 test("crop outside the image, unknown media, bad id and unknown block are shape errors", async () => {

@@ -32,7 +32,7 @@ là bộ file này, qua cùng validator với build (một module dùng chung, k
 | `hero-slide` | `content/hero-slides.json` | `validateHeroSlides` (`scripts/site/hero-slides.mjs`) |
 | `home-projects` | `content/home-projects.json` | `validateHomeProjects` (`scripts/site/home-projects.mjs`) |
 | `menu` | `content/menu.json` (mở rộng theo R7) | `menuErrors` |
-| `client-logo` | `content/client-logos.json` | chưa có; thêm ở slice Storage |
+| `client-logo` | `content/client-logos.json` | `shapeErrors` (`src/cms/contract.mjs`): media phải là SVG, không crop; SVG kiểm bằng `isSafeSvg` (`src/cms/svg.mjs`) |
 | `advertising-card` | `content/advertising-cards.json` (mới) | luật card hiện ở `catalog.mjs` và `media-contract.mjs`, tách ra file dữ liệu |
 | `page-copy` | `content/page-copy.json` (mới) | chưa có; plan viết, chữ và media theo slot trang chuẩn (R6) |
 | `contact` | `content/contact.json` (mới) | chưa có; plan viết, cách liên hệ và nút CTA (R7) |
@@ -71,7 +71,7 @@ trang công trình và News nhận cả ảnh lẫn video, nên gọi chung là 
 - Khung: mỗi chỗ media có khung tỷ lệ khóa theo [layout-library R7](layout-library.md#r7-khung-ảnh-cố-định-từng-khối); người
   soạn kéo, phóng ảnh đều trong khung, CMS lưu vùng crop cùng bản gốc, lần dựng cắt biến thể theo vùng đó.
 - Upload: bỏ EXIF và GPS; tên file theo slug nội dung cộng số thứ tự. Đầu vào nhận JPEG, PNG, WebP, AVIF cho ảnh, MP4
-  cho video; SVG chỉ cho `client-logo` qua `isSafeSvg` hiện có.
+  cho video; SVG chỉ cho `client-logo` qua `isSafeSvg` (`src/cms/svg.mjs`); media SVG ở kiểu khác là lỗi `media-kind`.
 - Bản public: biến thể theo chuẩn site ([tải ảnh R1](media-delivery.md#r1-biến-thể-ảnh-nội-dung),
   [tải video](video-delivery.md)) sinh một lần khi upload hoặc lưu vùng crop, bằng một job GitHub Actions (sharp không
   chạy trong Worker); key theo hash của bản gốc, vùng crop và công thức biến thể, đổi công thức thì key đổi. Biến thể
@@ -119,7 +119,7 @@ lần dựng tạo lại mọi trang lưới cùng dữ liệu card trong cùng 
 | Alt | Riêng từng media, không trùng trong card | Dùng alt của media trên trang |
 
 Card công trình lưu tham chiếu tới media của trang cộng vùng crop theo khung card, không chép file. Gỡ một media khỏi
-trang khi card đang dùng nó trả 409. Dữ liệu hiện tại (`card.media` là
+trang khi card đang dùng nó trả 400 `card-foreign`; card dưới 2 media là thiếu (`card-min`). Dữ liệu hiện tại (`card.media` là
 file cắt riêng như `can-ho-hero-card-wide.webp`) giữ nguyên dưới dạng chỗ đặt `legacySrc` và đổi sang tham chiếu ở phần 2,
 khi có giao diện crop ([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)).
 
