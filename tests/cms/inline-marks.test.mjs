@@ -118,6 +118,13 @@ test("advisor E1: escapes render without backslash; a blank line only splits par
   assert.deepEqual(marksErrors("a\n\nb", "c\n\nd", "quote"), []);
 });
 
+test("tieOrphans ties a heading's italic tail to the part before it and leaves that part's own words free (hero-typography R7)", async () => {
+  const { tieOrphans } = await import("../../scripts/site/tie-orphans.mjs");
+  const html = tieOrphans('<main><h2><span data-en="Spaces for business">Không gian kinh doanh</span> <em data-en="today">hôm nay</em></h2></main>');
+  assert.match(html, /<span data-en="Spaces for business">Không gian kinh doanh<\/span> <em/, "the part keeps its spaces, the tail joins it");
+  assert.match(html, /<em data-en="today">hôm nay<\/em>/, "the tail ties its own last two words");
+});
+
 test("tieOrphans of the build leaves marked segments alone and still ties a plain leaf (reviewer E1)", async () => {
   const { tieOrphans } = await import("../../scripts/site/tie-orphans.mjs");
   const marked = `<p>${markedInner("Gỗ **sồi đẹp** giữa câu dài", "**Oak wood** in a long line", ctx)}</p>`;
