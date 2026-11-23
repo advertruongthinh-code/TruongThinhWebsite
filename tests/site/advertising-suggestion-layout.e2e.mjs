@@ -125,7 +125,7 @@ try {
 
   for (const locale of ["vi", "en"]) {
     await page.setViewportSize({ width: 1569, height: 912 });
-    await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/?photo=kiosk-posm-07&tag=format-square`, { waitUntil: "networkidle" });
     // Wait for the Worker phase to finish and related to mount; do not capture geometry of the warm phase.
     await page.waitForFunction(entryDone, null, { timeout: 8_000 });
     const split = await page.evaluate(readSuggestions);
@@ -146,7 +146,7 @@ try {
     const off = await readSettled(page);
     assert.deepEqual(stableIdentity(off), stableIdentity(split), `${locale}: split off changes slot geometry ${layoutInputs(split, off)}`);
 
-    await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/?photo=kiosk-posm-03`, { waitUntil: "networkidle" });
     // Wait for the Worker phase to finish and related to mount; do not capture geometry of the warm phase.
     await page.waitForFunction(entryDone, null, { timeout: 8_000 });
     const secondDesktop = await page.evaluate(readSuggestions);

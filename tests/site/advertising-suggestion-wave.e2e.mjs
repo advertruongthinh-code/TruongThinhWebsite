@@ -6,7 +6,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   // Phone 780px tall: the last suggestion button sits below the screen edge but must still be pushed along the 0.4s wave (detail R6).
   const page = await browser.newPage({ viewport: { width: 412, height: 780 }, isMobile: true, hasTouch: true });
-  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?photo=kiosk-posm-07`, { waitUntil: "networkidle" });
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/advertising-products/?photo=kiosk-posm-07`, { waitUntil: "networkidle" });
   await page.waitForSelector("[data-detail-view]:not([hidden]) [data-masonry-suggestion-tag]");
   const pushes = await page.evaluate(async () => {
     const t0 = performance.now(), log = [];

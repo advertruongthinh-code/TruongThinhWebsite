@@ -5,35 +5,37 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { blockRoutes, newsListRoutes } from "../site/block-pages.mjs";
-import { loadBlockContent } from "../site/content-files.mjs";
+import { dropElements } from "../site/html-elements.mjs";
+import { loadBlockContent, readRedirects } from "../site/content-files.mjs";
 import { projectListRoutes } from "../site/project-list.mjs";
 import { legacyRedirects } from "../site/redirects.mjs";
+import { localePrefix, routeLocale } from "../site/lib.mjs";
 
 export const ROUTES = new Map([
-  ["/vi/", "index.html"],
+  ["/", "index.html"],
   ["/en/", "index.html"],
-  ["/vi/residential/", "residential/index.html"],
+  ["/residential/", "residential/index.html"],
   ["/en/residential/", "residential/index.html"],
-  ["/vi/commercial/", "commercial/index.html"],
+  ["/commercial/", "commercial/index.html"],
   ["/en/commercial/", "commercial/index.html"],
-  ["/vi/advertising-products/", "advertising-products/index.html"],
+  ["/advertising-products/", "advertising-products/index.html"],
   ["/en/advertising-products/", "advertising-products/index.html"],
-  ...["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"].flatMap((slug) => [[`/vi/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`], [`/en/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`]]),
+  ...["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"].flatMap((slug) => [[`/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`], [`/en/advertising-products/${slug}/`, `advertising-products/${slug}/index.html`]]),
   // Advertising cluster and product pages (taxonomy R4): the build pre-writes a file per slug per locale.
-  ...ADVERTISING_PAGES.flatMap((page) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/${page[locale]}/`, `${locale}/advertising-products/${page[locale]}/index.html`])),
+  ...ADVERTISING_PAGES.flatMap((page) => ["vi", "en"].map((locale) => [`${localePrefix(locale)}/advertising-products/${page[locale]}/`, `${localePrefix(locale)}/advertising-products/${page[locale]}/index.html`.slice(1)])),
   // Trang card (media-seo R1).
-  ...ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${card.id}/`, `${locale}/advertising-products/p/${card.id}/index.html`])),
+  ...ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) => [`${localePrefix(locale)}/advertising-products/p/${card.id}/`, `${localePrefix(locale)}/advertising-products/p/${card.id}/index.html`.slice(1)])),
   // Old URL of a card merged into a multi-media card: redirect page to the cover card (media-card Gate).
-  ...Object.keys(MERGED_CARD_REDIRECTS).flatMap((id) => ["vi", "en"].map((locale) => [`/${locale}/advertising-products/p/${id}/`, `${locale}/advertising-products/p/${id}/index.html`])),
+  ...Object.keys(MERGED_CARD_REDIRECTS).flatMap((id) => ["vi", "en"].map((locale) => [`${localePrefix(locale)}/advertising-products/p/${id}/`, `${localePrefix(locale)}/advertising-products/p/${id}/index.html`.slice(1)])),
   // Project and News article pages built from blocks (projects R3, news R3).
   ...blockRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)))),
   // The all-projects page and the filter-by-sector pages (projects R2).
   ...projectListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).projects),
   // Moved paths (renamed project filter, removed News year pages): fallback redirect page; merged cards are listed above.
-  ...legacyRedirects(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url)))).filter(([from]) => !from.includes("/advertising-products/p/")).map(([from]) => [from, `${from.slice(1)}index.html`]),
+  ...legacyRedirects(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))), readRedirects(fileURLToPath(new URL("../../src/site/", import.meta.url)))).filter(([from]) => !from.includes("/advertising-products/p/")).map(([from]) => [from, `${from.slice(1)}index.html`]),
   // The News list page, group pages and paginated pages (news R2).
   ...newsListRoutes(loadBlockContent(fileURLToPath(new URL("../../src/site/", import.meta.url))).news),
-  ["/vi/about/", "about/index.html"],
+  ["/about/", "about/index.html"],
   ["/en/about/", "about/index.html"],
 ]);
 
@@ -81,8 +83,12 @@ function setAttribute(tag, name, value) {
   return tag.replace(/\s*\/?\s*>$/, (ending) => ` ${name}="${value}"${ending}`);
 }
 
+const ATTRIBUTE = String.raw`(?:\s+[\w:-]+(?:="[^"]*")?)`;
+const EN_TEXT_ELEMENT = new RegExp(String.raw`<([a-z][\w:-]*)(${ATTRIBUTE}*?\s+data-en="([^"]*)"${ATTRIBUTE}*\s*)>[\s\S]*?<\/\1\s*>`, "gi");
 export function localeHtml(source, locale = "vi") {
-  let html = source.replace(/<html\b[^>]*>/i, (tag) => setAttribute(setAttribute(tag, "lang", locale), "data-route-locale", locale));
+  // A post without EN shows only on VI pages (data-vi-only), its EN-only replacement only on EN pages (cms-content R2).
+  const other = locale === "en" ? "data-vi-only" : "data-en-only";
+  let html = (source.includes(other) ? dropElements(source, other) : source).replace(/<html\b[^>]*>/i, (tag) => setAttribute(setAttribute(tag, "lang", locale), "data-route-locale", locale));
   if (locale === "en") {
     html = html.replace(/<[^>]+>/g, (tag) => {
       let output = tag;
@@ -95,14 +101,15 @@ export function localeHtml(source, locale = "vi") {
       }
       return output;
     });
-    html = html.replace(/<([a-z][\w:-]*)\b([^>]*\bdata-en="([^"]*)"[^>]*)>[\s\S]*?<\/\1\s*>/gi, (_match, tag, attributes, english) => `<${tag}${attributes}>${english}</${tag}>`);
+    // Attributes match as whole name="value" tokens, so text such as "data-en=" inside another attribute value is not read as one.
+    html = html.replace(EN_TEXT_ELEMENT, (_match, tag, attributes, english) => `<${tag}${attributes}>${english}</${tag}>`);
   }
   return html.replace(/<a\b[^>]*>/gi, (tag) => {
     if (/\bdata-language-option\s*=/.test(tag)) return tag;
     const href = attribute(tag, "href");
     if (!href?.startsWith("/") || href.startsWith("//")) return tag;
     const path = href.replace(/^\/(?:vi|en)(?=\/|$)/, "");
-    return setAttribute(tag, "href", `/${locale}${path || "/"}`);
+    return setAttribute(tag, "href", `${localePrefix(locale)}${path || "/"}`);
   });
 }
 
@@ -111,7 +118,7 @@ function requestFile(root, pathname) {
   const relative = route || decodeURIComponent(pathname).replace(/^\/+/, "");
   if (!relative || relative.endsWith("/")) return null;
   const file = resolve(root, relative);
-  return file.startsWith(`${root}${sep}`) ? { file, html: Boolean(route), locale: pathname.startsWith("/en/") ? "en" : "vi" } : null;
+  return file.startsWith(`${root}${sep}`) ? { file, html: Boolean(route), locale: routeLocale(pathname) } : null;
 }
 
 function byteRange(header, size) {
@@ -126,7 +133,13 @@ function byteRange(header, size) {
 
 function handler(root) {
   return (request, response) => {
-    const pathname = new URL(request.url, "http://local").pathname;
+    const { pathname, search } = new URL(request.url, "http://local");
+    // Old /vi/ URLs moved to the root (owner 2026-11-22); the demo answers them from _redirects.
+    if (/^\/vi(?:\/|$)/.test(pathname)) {
+      response.writeHead(301, { Location: `${pathname.slice(3) || "/"}${search}`, "Cache-Control": "no-store" });
+      response.end();
+      return;
+    }
     let resolved;
     try {
       resolved = requestFile(root, pathname);
@@ -179,19 +192,19 @@ function handler(root) {
 function selfTest() {
   const root = resolve(".site-output");
   const checks = [
-    requestFile(root, "/vi/")?.file === resolve(root, "index.html"),
+    requestFile(root, "/")?.file === resolve(root, "index.html"),
     requestFile(root, "/en/")?.locale === "en",
-    requestFile(root, "/vi/about/")?.file === resolve(root, "about/index.html"),
+    requestFile(root, "/about/")?.file === resolve(root, "about/index.html"),
     requestFile(root, "/en/advertising-products/kiosk-posm/")?.file === resolve(root, "advertising-products/kiosk-posm/index.html"),
     requestFile(root, "/style.css")?.file === resolve(root, "style.css"),
     requestFile(root, "/../package.json") === null,
     byteRange("bytes=10-19", 100)?.end === 19,
     byteRange("bytes=100-101", 100) === null,
     localeHtml('<html lang="vi"><a href="/">A</a><a data-language-option="en" href="/en/">E</a>') ===
-      '<html lang="vi" data-route-locale="vi"><a href="/vi/">A</a><a data-language-option="en" href="/en/">E</a>',
-    localeHtml('<html lang="vi"><body><p data-en="English">Tiếng Việt</p><img alt="Vi" data-en-alt="En"><a href="/vi/about/">A</a></body></html>', "en") ===
+      '<html lang="vi" data-route-locale="vi"><a href="/">A</a><a data-language-option="en" href="/en/">E</a>',
+    localeHtml('<html lang="vi"><body><p data-en="English">Tiếng Việt</p><img alt="Vi" data-en-alt="En"><a href="/about/">A</a></body></html>', "en") ===
       '<html lang="en" data-route-locale="en"><body><p data-en="English">English</p><img alt="En" data-en-alt="En" data-vi-alt="Vi"><a href="/en/about/">A</a></body></html>',
-    localeHtml('<nav><a data-en="Residential">Nhà ở</a\n><a href="/vi/about/">Về chúng tôi</a></nav>', "en") ===
+    localeHtml('<nav><a data-en="Residential">Nhà ở</a\n><a href="/about/">Về chúng tôi</a></nav>', "en") ===
       '<nav><a data-en="Residential">Residential</a><a href="/en/about/">Về chúng tôi</a></nav>',
   ];
   if (checks.some((check) => !check)) throw new Error(`Static parity server self-test failed: ${checks.filter(Boolean).length}/${checks.length}`);

@@ -63,7 +63,7 @@ async function runDevice() {
   // Map CSS px to touchscreen px with one calibration tap on a temporary full-viewport overlay.
   const [screenW, screenH] = adbRun(serial, "shell", "wm", "size").match(/(\d+)x(\d+)/).slice(1).map(Number);
   const [touchW, touchH] = orientation === "landscape" ? [Math.max(screenW, screenH), Math.min(screenW, screenH)] : [Math.min(screenW, screenH), Math.max(screenW, screenH)];
-  await page.goto(`http://localhost:${port}/vi/advertising-products/?category=signage-raised-letters&photo=${A}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`http://localhost:${port}/advertising-products/?category=signage-raised-letters&photo=${A}`, { waitUntil: "domcontentloaded" });
   await page.evaluate(() => {
     const overlay = Object.assign(document.createElement("div"), { id: "tt-calibrate" });
     overlay.style.cssText = "position:fixed;inset:0;z-index:2147483647;background:transparent;touch-action:none";
@@ -78,7 +78,7 @@ async function runDevice() {
   const toTouch = (cssX, cssY) => [Math.round(probe[0] + (cssX - x) * dpr), Math.round(probe[1] + (cssY - y) * dpr)];
 
   for (const locale of ["vi", "en"]) for (const card of cards) {
-    await page.goto(`http://localhost:${port}/${locale}/advertising-products/?category=signage-raised-letters&photo=${A}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`http://localhost:${port}${locale === "en" ? "/en" : ""}/advertising-products/?category=signage-raised-letters&photo=${A}`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-masonry-related-card]"), null, { timeout: 60_000 });
     await sleep(1200);
     const target = await page.evaluate(async (wanted) => {
@@ -120,7 +120,7 @@ async function runDevice() {
   }
 }
 
-const up = () => fetch(`${base}/vi/advertising-products/`).then((r) => r.ok, () => false);
+const up = () => fetch(`${base}/advertising-products/`).then((r) => r.ok, () => false);
 const preview = (await up()) ? null : spawn(process.execPath, ["scripts/tooling/serve-static-parity.mjs", "--port", String(port)], { cwd: root });
 if (preview) { execFileSync(process.execPath, ["scripts/site/prepare-static-assets.mjs"], { cwd: root }); while (!(await up())) await sleep(250); }
 if (!args.includes("--skip-emulator")) runEmulator();

@@ -329,7 +329,9 @@
       && container.querySelector("script[data-project-artifact]");
     if (projectArtifact) {
       // Parse inside the promise chain: broken JSON goes down the error branch (static cards) instead of bubbling up to the shell and reloading the page forever.
-      const artifactReady = Promise.resolve().then(() => JSON.parse(projectArtifact.textContent));
+      // EN pages leave out projects without EN (cms-content R2).
+      const artifactReady = Promise.resolve().then(() => JSON.parse(projectArtifact.textContent)).then((artifact) => (document.documentElement.lang === "en"
+        ? { ...artifact, cards: artifact.cards.filter((card) => !card.noEn) } : artifact));
       // The "updating" line follows the active filter (the runtime changes aria-current when filtering in place).
       const emptyLine = container.querySelector(".projects-empty");
       const rail = container.querySelector(".project-filters");

@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES, ADVERTISING_ROOT_PAGE } from "../../src/site/advertising-products/catalog.mjs";
 import { localeHtml } from "../tooling/serve-static-parity.mjs";
+import { localePrefix } from "../site/lib-pure.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const output = path.join(root, ".site-output");
@@ -37,7 +38,8 @@ for (const [id, , route, file = `${route.slice(1)}index.html`] of EDITABLE) {
 // path, so a script at the start of <head> rewrites the URL to the real path (?path=) before any page script; cms-core patches the catalog from the draft.
 const advertisingSource = await readFile(path.join(output, "advertising-products", "index.html"), "utf8");
 for (const locale of ["vi", "en"]) {
-  const route = `history.replaceState(null, "", (/^\\/${locale}\\/advertising-products\\//.test(new URLSearchParams(location.search).get("path")) && new URLSearchParams(location.search).get("path")) || "/${locale}/advertising-products/")`;
+  const base = `${localePrefix(locale)}/advertising-products/`;
+  const route = `history.replaceState(null, "", (/^${base.replaceAll("/", "\\/")}/.test(new URLSearchParams(location.search).get("path")) && new URLSearchParams(location.search).get("path")) || "${base}")`;
   const html = localeHtml(advertisingSource, locale)
     .replace(/<head>/, `<head>\n<script>${route};</script>`)
     .replace(/<\/body>(?![\s\S]*<\/body>)/, '<script src="/admin/cms-core.js" data-cms-boot="advertising"></script>\n</body>');
@@ -50,21 +52,21 @@ const cardsPage = (page) => ({
 
 const pages = [
   ...EDITABLE.map(([id, label, route]) => ({
-    id, label, group: "Trang", vi: `/vi${route}`, en: `/en${route}`, editable: true,
+    id, label, group: "Trang", vi: route, en: `/en${route}`, editable: true,
     preview: { vi: `/admin/preview/vi/${id}.html`, en: `/admin/preview/en/${id}.html` },
   })),
   { id: "404", label: "Trang 404", group: "Trang", vi: "/404.html", en: "/en/404.html" },
-  cardsPage({ id: "advertising-products", label: ADVERTISING_ROOT_PAGE.labelVi, group: "Sản phẩm Quảng cáo", vi: "/vi/advertising-products/", en: "/en/advertising-products/" }),
+  cardsPage({ id: "advertising-products", label: ADVERTISING_ROOT_PAGE.labelVi, group: "Sản phẩm Quảng cáo", vi: "/advertising-products/", en: "/en/advertising-products/" }),
   ...ADVERTISING_PAGES.map((page) => cardsPage({
     id: `advertising-products/${page.vi}`,
     label: page.labelVi,
     group: page.cluster === page.id ? "Sản phẩm Quảng cáo" : "Trang sản phẩm",
-    vi: `/vi/advertising-products/${page.vi}/`,
+    vi: `/advertising-products/${page.vi}/`,
     en: `/en/advertising-products/${page.en}/`,
   })),
   ...ADVERTISING_CARDS.map((card) => cardsPage({
     id: `p/${card.id}`, label: `${card.titleVi} · ${card.id}`, group: "Trang card", card: card.id,
-    vi: `/vi/advertising-products/p/${card.id}/`, en: `/en/advertising-products/p/${card.id}/`,
+    vi: `/advertising-products/p/${card.id}/`, en: `/en/advertising-products/p/${card.id}/`,
   })),
 ];
 await writeFile(path.join(admin, "pages.json"), JSON.stringify(pages));

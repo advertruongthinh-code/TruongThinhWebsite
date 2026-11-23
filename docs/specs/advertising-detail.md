@@ -44,9 +44,9 @@ Body có `is-detail`: masonry, hero, project index, CTA masonry, quy trình ẩn
 navbar ẩn trừ khi hover, focus. Không clone ảnh, veil hay khóa cuộn ([loading glass R4](loading-glass-and-page-entry.md#r4-mở-ảnh-tại-chỗ)).
 
 ```gherkin
-Given masonry /vi/advertising-products/ đang ở Y0
+Given masonry /advertising-products/ đang ở Y0
 When bấm card kiosk-posm-07
-Then URL là /vi/advertising-products/p/kiosk-posm-07/, history thêm đúng một entry, detail ở Y=0
+Then URL là /advertising-products/p/kiosk-posm-07/, history thêm đúng một entry, detail ở Y=0
 And không có clone ảnh giữa card và primary
 ```
 
@@ -199,7 +199,7 @@ Given masonry nhóm Kiosk & POSM mở A, A mở related B cùng nhóm
 When bấm Advertising trên navbar
 Then URL là ?category=kiosk-posm, rail sáng nhóm đó, history thêm một entry, card B ở giữa viewport mang "Vừa xem"
 
-Given /vi/advertising-products/p/kiosk-posm-07/ vào thẳng ở 390×844, scrollY 0
+Given /advertising-products/p/kiosk-posm-07/ vào thẳng ở 390×844, scrollY 0
 When cuộn xuống 400px rồi cuộn ngược về 0, sau đó đóng detail về masonry ở scrollY 0
 Then header luôn is-collapsed, nền trắng, cao 71px khi ở detail; về masonry thì bỏ is-collapsed
 ```

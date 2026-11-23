@@ -64,7 +64,7 @@ for (const viewport of viewports) for (const locale of ["vi", "en"]) for (const 
   let context = await newContext();
   for (let run = 0; run < runs + (warm ? 1 : 0); run += 1) {
     const cold = !warm || run === 0;
-    const url = `${base}/${locale}/${route}`;
+    const url = `${base}${locale === "en" ? "/en" : ""}/${route}`;
     const row = { url, route: route || "home", locale, viewport: `${viewport.width}x${viewport.height}`, run, cache: cold ? "cold" : "warm" };
     const errors = [];
     const pending = new Map();

@@ -187,7 +187,7 @@ function stableFlowAssignment({ slot, preset, anchorPermutation, phase, directio
 }
 
 async function assertCanonicalAdvertisingNav(page, { locale, mobile, query }) {
-  const canonicalPath = `/${locale}/advertising-products/`;
+  const canonicalPath = `${locale === "en" ? "/en" : ""}/advertising-products/`;
   await page.setViewportSize(mobile
     ? { width: 390, height: 844 }
     : { width: 1440, height: 900 });
@@ -469,7 +469,7 @@ async function firstEntryReveals(browser, scrollTarget) {
     }).observe(document, { childList: true, subtree: true });
   });
   try {
-    await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+    await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });
     // The background page in headless does not run rAF so the entry does not start.
     await page.bringToFront();
     await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
@@ -637,7 +637,7 @@ try {
     ]) {
       await page.setViewportSize(viewport);
       await page.emulateMedia({ reducedMotion: "no-preference" });
-      await page.goto(`${baseUrl}/${locale}/advertising-products/`, { waitUntil: "networkidle" });
+      await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/`, { waitUntil: "networkidle" });
       await ready(page).catch((error) => {
         throw new Error(`${locale} ${viewport.width}x${viewport.height}: skeleton readiness failed`, { cause: error });
       });
@@ -836,7 +836,7 @@ try {
     `reduced motion keeps a CTA parallax offset (${movingOffset}, ${reducedOffset})`);
 
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });
   await ready(page);
   const beforeFilterAssignments = await flowAssignments(page);
   const beforeFilter = await page.locator("[data-masonry-cta-skeleton]").getAttribute("data-masonry-cta-signature");
@@ -1010,7 +1010,7 @@ try {
   });
   const mobilePerformancePage = await mobilePerformanceContext.newPage();
   await installSkeletonPaintProbe(mobilePerformancePage);
-  await mobilePerformancePage.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await mobilePerformancePage.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });
   await ready(mobilePerformancePage);
   await mobilePerformancePage.waitForTimeout(1000);
   const mobileVisible = await mobilePerformancePage.evaluate(() => {
@@ -1241,7 +1241,7 @@ try {
   assert.equal(await page.evaluate(() => window.__ttSkeletonPaints.detached), detachedAfterRemount,
     "twenty remounts left a detached canvas RAF loop");
 
-  await page.goto(`${baseUrl}/vi/advertising-products/?photo=kiosk-posm-01`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/advertising-products/?photo=kiosk-posm-01`, { waitUntil: "networkidle" });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.waitForFunction(() => document.body.classList.contains("is-detail"));
   const navLink = page.locator('.desktop-nav a[aria-current="page"]');

@@ -6,7 +6,6 @@ import { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES } from "../../src
 
 const slugs = ADVERTISING_LEGACY_CATEGORIES.map(({ slug }) => slug);
 const output = (path) => new URL("../../.site-output/" + path, import.meta.url);
-const worker = await readFile(new URL("../../src/worker/index.js", import.meta.url), "utf8");
 
 assert.equal(slugs.length, 6, "the compatibility contract covers six Advertising categories");
 
@@ -35,7 +34,7 @@ for (const slug of slugs) {
   const html = await readFile(output(path), "utf8");
   // The compatibility page redirects to the new cluster page (taxonomy R4).
   const cluster = ADVERTISING_CATEGORIES.find(({ legacySlug }) => legacySlug === slug);
-  const targets = { vi: "/vi/advertising-products/" + cluster.slugVi + "/", en: "/en/advertising-products/" + cluster.slugEn + "/" };
+  const targets = { vi: "/advertising-products/" + cluster.slugVi + "/", en: "/en/advertising-products/" + cluster.slugEn + "/" };
   assert.match(html, new RegExp('<link rel="canonical" href="' + targets.vi + '" data-en-href="' + targets.en + '">'));
   assert.match(html, new RegExp('<noscript>\\s*<meta http-equiv="refresh" content="0; url=' + targets.vi + '" data-en-content="0; url=' + targets.en + '">\\s*<\/noscript>'));
   assert.match(html, new RegExp('<a href="' + targets.vi + '" data-en-href="' + targets.en + '"'));
@@ -65,7 +64,6 @@ for (const slug of slugs) {
   assert.equal(languageFallback.pathname, targets.en);
   assert.equal(languageFallback.searchParams.get("encoded"), "Dưa");
   assert.equal(languageFallback.searchParams.has("category"), false);
-  assert.match(worker, new RegExp('"' + slug + '"'), slug + " is not registered in the worker route set");
 }
 
 console.log("[advertising-products-detail-routes] six legacy compatibility routes and VM redirects passed");

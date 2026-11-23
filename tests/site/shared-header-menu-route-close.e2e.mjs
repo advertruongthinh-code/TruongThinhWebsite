@@ -12,7 +12,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 try {
   const context = await browser.newContext(devices["Pixel 7"]);
   const page = await context.newPage();
-  await page.goto(`${origin}/vi/`);
+  await page.goto(`${origin}/`);
   await page.waitForFunction(() => window.barba?.history && !document.documentElement.classList.contains("route-enter"));
   await page.tap("[data-menu-open]");
   // Wait for the open timeline to finish (focus returns to the close button).
@@ -33,13 +33,13 @@ try {
       watch();
     }, { capture: true, once: true });
   });
-  await page.tap('#site-menu .menu-group__title[href="/vi/residential/"]');
+  await page.tap('#site-menu .menu-group__title[href="/residential/"]');
   await page.waitForFunction(() => window.__menuClosed, null, { timeout: 5_000 });
   const closed = await page.evaluate(() => window.__menuClosed);
   // Before the fix the menu closed after page scale, about 1.6s; after the fix about 0.75-0.9s.
   assert.ok(closed.ms < 1_300, `menu closed ${Math.round(closed.ms)}ms after tap`);
   assert.ok(closed.veil >= 0.999, `menu closed before the veil covered (opacity ${closed.veil})`);
-  await page.waitForURL(`${origin}/vi/residential/`);
+  await page.waitForURL(`${origin}/residential/`);
   // Reopen the menu after the route: menu text must stay hidden until the shutter covers. syncDocumentState once cleared the menu's GSAP style
   // so all 6 groups showed immediately on the new page (owner 2026-11-08, PC).
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));

@@ -7,11 +7,15 @@ import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
 import { contentDirOf, fileImageCheck } from "../site/content-files.mjs";
 import { validateHomeProjects } from "../site/home-projects.mjs";
-import { LINE_END_PUNCT, duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
+import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
+import { LINE_END_PUNCT } from "../../src/cms/inline-marks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 
 // Skip `$`: paths built in inline scripts (`${name}`) are not files.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
+// An R2 image of a projected snapshot (cms-plan part 2 K4): its URL stem is one crop of one photo, so imageStem works unchanged.
+const VARIANT_PATH = /https:\/\/[a-z0-9.-]+\/v\/[0-9a-f]{32}\/[a-z0-9.-]+/g;
+const imagesIn = (text) => new Set([...(text.match(CONTENT_PATH) ?? []), ...(text.match(VARIANT_PATH) ?? [])]);
 
 const attribute = (tag, name) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1];
 
@@ -30,7 +34,7 @@ function ownImageReuse(siteRoot, kind, pages, label) {
   const errors = [];
   const owner = new Map();
   for (const page of pages) {
-    for (const src of new Set(JSON.stringify(page).match(CONTENT_PATH) ?? [])) {
+    for (const src of imagesIn(JSON.stringify(page))) {
       const stem = imageStem(src);
       if (path.basename(stem).startsWith("placeholder")) continue;
       if (owner.has(stem) && owner.get(stem) !== page.id) errors.push(`content/${kind}.json:${page.id}: ${src}: ${label} image also used by ${label} ${owner.get(stem)}`);
@@ -47,7 +51,7 @@ function ownImageReuse(siteRoot, kind, pages, label) {
   const files = [...[".html", ".css", ".json", ".mjs", ".js"].flatMap((extension) => filesUnder(siteRoot, extension)), ...(external ? filesUnder(contentDir, ".json") : [])]
     .filter((file) => file !== ownFile && !file.startsWith(assets) && !(external && file.startsWith(repoContent)));
   for (const file of files) {
-    for (const src of new Set(readFileSync(file, "utf8").match(CONTENT_PATH) ?? [])) {
+    for (const src of imagesIn(readFileSync(file, "utf8"))) {
       if (owner.has(imageStem(src))) errors.push(`${path.relative(siteRoot, file)}: ${src}: ${label} image (${owner.get(imageStem(src))}) reused outside ${label}`);
     }
   }
@@ -146,8 +150,9 @@ export async function checkSiteContent(siteRoot) {
   const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
   for (const [kind, list] of Object.entries(pages)) {
     errors.push(...duplicatePageFields(list, `content/${kind}.json`));
-    for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`));
-    for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
+    // EN is optional for News and projects (cms-content R2): a page without it builds in VI only.
+    for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`, { en: "optional" }));
+    for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}`, en: "optional" }));
   }
   errors.push(...ownImageReuse(siteRoot, "news", pages.news, "News"), ...ownImageReuse(siteRoot, "projects", pages.projects, "Project"));
   const homeProjectsFile = path.join(contentDir, "home-projects.json");

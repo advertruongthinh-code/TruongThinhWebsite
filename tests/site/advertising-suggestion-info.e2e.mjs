@@ -13,7 +13,7 @@ const browser = await chromium.launch({ headless: true });
 try {
   for (const [locale, viewport] of [["vi", { width: 390, height: 844 }], ["en", { width: 820, height: 1180 }]]) {
     const page = await browser.newPage({ viewport });
-    const url = `${baseUrl}/${locale}/advertising-products/?photo=kiosk-posm-07&tag=format-square`;
+    const url = `${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/?photo=kiosk-posm-07&tag=format-square`;
     await page.goto(url, { waitUntil: "networkidle" });
     await page.waitForSelector('[data-detail-view]:not([hidden]) [data-masonry-suggestion-tag][aria-pressed="true"]');
     const before = await page.evaluate(() => ({

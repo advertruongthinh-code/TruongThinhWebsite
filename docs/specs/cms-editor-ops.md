@@ -72,7 +72,12 @@ Hợp đồng của `release`, để cùng đầu vào luôn cho cùng kết qu�
 3. `release.yml` checkout đúng `commit`, lấy bản chụp, tính `snapshotId`. Khác input (có người vừa lưu) thì dừng trước
    khi build, site chính giữ bản cũ, run ghi `snapshot changed`. Bằng thì chạy đúng các bước kiểm và build của staging
    rồi deploy đích `production`, và ghi dấu phát hành `releases/<khóa>.json` cùng dạng dấu deployment.
-4. Hai lần `release` với cùng `commit` và `snapshotId` cho cùng một site; lần thứ hai bị chặn ở điều kiện thứ tư.
+4. Hai lần `release` với cùng `commit` và `snapshotId` cho cùng một site; lần thứ hai bị chặn ở điều kiện thứ tư,
+   Worker cũng trả 409 `already-released`.
+5. Phát hành dựng lại từ cùng `commit` và `snapshotId`, không chép bản dựng của staging: trang HTML giống staging,
+   riêng chỉ mục tìm kiếm có thể khác vì được dựng lại.
+
+Trước khi CMS bật hẳn, staging còn dựng từ repo nên nút mờ kèm "CMS chưa bật" và `release` trả 409 `cms-not-live`.
 
 Sau khi bấm, hộp thoại đổi thành tiến độ: "Đang phát hành" rồi "Đã lên site chính lúc <giờ>" kèm link mở site, hoặc
 "Phát hành lỗi: <lý do>" kèm "Thử lại". Lý do `snapshot changed` ghi là "Nội dung vừa có thay đổi mới. Chờ staging cập
@@ -100,7 +105,8 @@ Chỉ owner. Panel Trạng thái có hai danh sách, mỗi danh sách 10 bản g
 
 Mỗi nút mở hộp thoại xác nhận (`<dialog>`, không dùng `confirm()`) ghi rõ bản sẽ quay về và điều xảy ra sau đó. Sau khi
 quay site chính về bản trước, dòng Site chính ghi "Đã quay về bản lúc <giờ>" và nút Phát hành sáng lại vì staging khác
-site chính. Nhân viên thấy hai danh sách nhưng không có nút.
+site chính. Nhân viên thấy hai danh sách nhưng không có nút. Mọi lần deploy site chính đều ghi dấu phát hành, kể cả
+lần dựng từ repo trước khi CMS bật, nên lần phát hành đầu từ CMS vẫn có bản để quay về.
 
 ```gherkin
 Given owner quay site chính về bản phát hành trước

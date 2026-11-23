@@ -70,3 +70,14 @@ test("record names and slugs follow Q5", () => {
   assert.equal(recordName("menu", {}), "main");
   assert.deepEqual(recordSlugs("media", { id: "x" }), { vi: null, en: null });
 });
+
+test("bad marks in a block are shape errors with a code, reported once (cms-plan part 2 E1)", async () => {
+  const { ctx, find } = seed();
+  const post = find("news", "chon-tu-bep");
+  const block = post.blocks.find(({ type }) => type === "paragraph");
+  block.text = { vi: "**gỗ", en: "**wood**" };
+  const shapes = await shapeErrors("news", post, ctx);
+  assert.deepEqual(shapes.map(({ level, code }) => [level, code]), [["shape", "mark-unclosed"]], JSON.stringify(shapes));
+  const full = await fullErrors("news", post, ctx);
+  assert.ok(!full.some(({ message }) => message.includes("no closing mark")), JSON.stringify(full));
+});

@@ -11,17 +11,17 @@ const BASE_URL = (process.env.BASE_URL || "http://127.0.0.1:8787").replace(
   "",
 );
 const BASE_ORIGIN = new URL(BASE_URL).origin;
-const ROUTES = ["/vi/", "/vi/residential/", "/vi/commercial/", "/vi/advertising-products/", "/vi/about/"];
+const ROUTES = ["/", "/residential/", "/commercial/", "/advertising-products/", "/about/"];
 const ADVERTISING_CATEGORY_SLUGS = ["kiosk-posm", "mobile-retail", "signage-raised-letters", "office-signs-wayfinding", "led-displays-lightboxes", "print-decals"];
 const CANONICAL_ROUTES = [
   ...ROUTES,
-  ...ADVERTISING_CATEGORY_SLUGS.map((slug) => `/vi/advertising-products/${slug}/`),
+  ...ADVERTISING_CATEGORY_SLUGS.map((slug) => `/advertising-products/${slug}/`),
   // Cluster and product pages (taxonomy R4) that the root page's two-tier rail links to.
   ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_PAGES
-    .map((page) => `/vi/advertising-products/${page.vi}/`),
+    .map((page) => `/advertising-products/${page.vi}/`),
   // Card pages (media-seo R1) that the card links on masonry point to.
   ...require("../../src/site/advertising-products/catalog.mjs").ADVERTISING_CARDS
-    .map((card) => `/vi/advertising-products/p/${card.id}/`),
+    .map((card) => `/advertising-products/p/${card.id}/`),
   // Project and news pages and their filter pages: same source as serve-static-parity.
   ...(() => {
     const blocks = require("../../scripts/site/block-pages.mjs");
@@ -31,10 +31,10 @@ const CANONICAL_ROUTES = [
       ...blocks.blockRoutes(content),
       ...projectListRoutes(content.projects),
       ...blocks.newsListRoutes(content.news),
-    ].map(([route]) => route).filter((route) => route.startsWith("/vi/"));
+    ].map(([route]) => route).filter((route) => route.startsWith("/"));
   })(),
 ];
-const HEADER_ROUTES = ["/vi/residential/", "/vi/commercial/", "/vi/projects/", "/vi/advertising-products/"];
+const HEADER_ROUTES = ["/residential/", "/commercial/", "/projects/", "/advertising-products/"];
 const VIEWPORTS = [
   { width: 320, height: 844 },
   { width: 390, height: 844 },
@@ -52,7 +52,7 @@ const HEADER_VIEWPORTS = [
 ];
 const SSR_CMS_HYDRATION_CASES = [
   {
-    route: "/vi/advertising-products/",
+    route: "/advertising-products/",
     locale: "vi",
     title: "Sản phẩm Quảng cáo — Trường Thịnh",
     description:
@@ -308,7 +308,7 @@ function assertPersistentNavigationContracts() {
           headerSource,
         ) &&
         (headerSource.match(/<li(?:\s[^>]*)?>\s*<a\b/g) || []).length === 4 &&
-        headerSource.includes('<a href="/vi/projects/"') &&
+        headerSource.includes('<a href="/projects/"') &&
         /<button\b(?=[^>]*\bid="header-menu-toggle")(?=[^>]*\bclass="[^"]*\bmenu-button\b)/.test(
           headerSource,
         ) &&
@@ -1094,23 +1094,23 @@ async function assertDirectRouteContracts(page) {
       menuAbout: inspect("#site-menu .menu-group:nth-last-child(-n+2) a[href]"),
     };
   });
-  const expectedHeader = ["/vi/", ...HEADER_ROUTES].sort();
-  const expectedMenu = [...HEADER_ROUTES, "/vi/about/"].sort();
+  const expectedHeader = ["/", ...HEADER_ROUTES].sort();
+  const expectedMenu = [...HEADER_ROUTES, "/about/"].sort();
   const expectedAbout = [
-    "/vi/about/",
-    "/vi/about/?topic=commitment",
-    "/vi/about/?topic=contact",
-    "/vi/about/?topic=heritage",
-    "/vi/about/?topic=process",
-    "/vi/news/",
+    "/about/",
+    "/about/?topic=commitment",
+    "/about/?topic=contact",
+    "/about/?topic=heritage",
+    "/about/?topic=process",
+    "/news/",
   ].sort();
   const headerHrefs = unique(contracts.header.hrefs).sort();
   const menuHrefs = unique(contracts.menuPrimary.hrefs).sort();
   const aboutHrefs = unique(contracts.menuAbout.hrefs).sort();
 
   assert(
-    contracts.brandHref === "/vi/",
-    `Header brand href is ${JSON.stringify(contracts.brandHref)}; expected "/vi/"`,
+    contracts.brandHref === "/",
+    `Header brand href is ${JSON.stringify(contracts.brandHref)}; expected "/"`,
   );
   assert(
     contracts.brandLabel ===
@@ -1613,7 +1613,7 @@ async function runPortalAlignmentChecks() {
     for (const width of [320, 390, 430, 750, 751, 960, 961, 1024, 1200, 1201, 1329, 1440, 1569, 1920]) {
       if (path && ![320, 390, 961, 1440, 1920].includes(width)) continue;
       const viewport = { width, height: 900 };
-      const route = `/${locale}/${path}`;
+      const route = `${locale === "en" ? "/en" : ""}/${path}`;
       await runPageCase(
         `${label} portal hierarchy and title anchor ${locale} ${width}x900`,
         { route, viewport },
@@ -1844,11 +1844,11 @@ async function runPortalAlignmentChecks() {
 async function runDirectHeaderRouteChecks() {
   const viewport = { width: 1440, height: 900 };
   const routePairs = [
-    ["/vi/", "/vi/residential/"],
-    ["/vi/residential/", "/vi/commercial/"],
-    ["/vi/commercial/", "/vi/advertising-products/"],
-    ["/vi/advertising-products/", "/vi/residential/"],
-    ["/vi/about/", "/vi/residential/"],
+    ["/", "/residential/"],
+    ["/residential/", "/commercial/"],
+    ["/commercial/", "/advertising-products/"],
+    ["/advertising-products/", "/residential/"],
+    ["/about/", "/residential/"],
   ];
 
   for (const [source, destination] of routePairs) {
@@ -1875,10 +1875,10 @@ async function runHeaderParityChecks() {
   for (const viewport of HEADER_VIEWPORTS) {
     await runPageCase(
       `header geometry ${viewport.width}`,
-      { route: "/vi/", viewport },
+      { route: "/", viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/");
+        await gotoRoute(page, "/");
         await page.waitForTimeout(2_600);
         const expanded = await page.evaluate(() => {
           const rect = (element) => {
@@ -2142,7 +2142,7 @@ async function runHeaderParityChecks() {
 
   await runPageCase(
     "header direct intro and soft-navigation persistence",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       // The header intro runs on WAAPI (motion.js createHeaderIntro): record every animate() call on the logo, nav items and
       // menu button to check the initial state, delay and duration like the old GSAP timeline (motion.md).
@@ -2167,7 +2167,7 @@ async function runHeaderParityChecks() {
         };
       });
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.waitForTimeout(3_300);
       const intro = await page.evaluate(() => ({
         final: {
@@ -2226,9 +2226,9 @@ async function runHeaderParityChecks() {
       const link = await findRouteLink(
         page,
         "[data-site-header]",
-        "/vi/residential/",
+        "/residential/",
       );
-      await clickRouteLink(page, link, "/vi/residential/");
+      await clickRouteLink(page, link, "/residential/");
       await page.waitForTimeout(500);
       assert(
         await header.evaluate(
@@ -2253,10 +2253,10 @@ async function runHeaderParityChecks() {
 
   await runPageCase(
     "header synchronized tone tween",
-    { route: "/vi/", viewport: { width: 768, height: 900 } },
+    { route: "/", viewport: { width: 768, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.waitForTimeout(2_600);
       const trace = await page.evaluate(async () => {
         document.documentElement.style.scrollBehavior = "auto";
@@ -2307,10 +2307,10 @@ async function runHeaderParityChecks() {
     "header scroll direction pointer and interaction motion",
     // 961 to 980px: native scroll (Locomotive from 981px). The four-item navbar (#708) only shows from about 1040px, so the
     // hover and active-link part switches the viewport to 1100px.
-    { route: "/vi/residential/", viewport: { width: 970, height: 900 } },
+    { route: "/residential/", viewport: { width: 970, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/residential/");
+      await gotoRoute(page, "/residential/");
       await page.waitForTimeout(2_600);
       await page.evaluate(() => {
         document.documentElement.style.scrollBehavior = "auto";
@@ -2494,7 +2494,7 @@ async function runHeaderParityChecks() {
   await runPageCase(
     "touch input cannot force-show the hidden header",
     {
-      route: "/vi/residential/",
+      route: "/residential/",
       viewport: { width: 390, height: 844 },
       hasTouch: true,
       isMobile: true,
@@ -2502,7 +2502,7 @@ async function runHeaderParityChecks() {
     },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/residential/");
+      await gotoRoute(page, "/residential/");
       await page.waitForTimeout(2_600);
       await page.evaluate(() => {
         document.documentElement.style.scrollBehavior = "auto";
@@ -2541,7 +2541,7 @@ async function runPersistentBarbaNavigationChecks() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "persistent Barba header and page lifecycle",
-    { route: "/vi/", viewport },
+    { route: "/", viewport },
     async (page) => {
       await page.addInitScript(() => {
         window.__ttLocomotiveActive = 0;
@@ -2577,7 +2577,7 @@ async function runPersistentBarbaNavigationChecks() {
         });
       });
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       const timeOrigin = await page.evaluate(() => performance.timeOrigin);
       const header = await page.locator("[data-site-header]").elementHandle();
       assert(header, "Persistent header is missing");
@@ -2606,10 +2606,10 @@ async function runPersistentBarbaNavigationChecks() {
       });
 
       for (const destination of [
-        "/vi/residential/",
-        "/vi/commercial/",
-        "/vi/advertising-products/",
-        "/vi/residential/",
+        "/residential/",
+        "/commercial/",
+        "/advertising-products/",
+        "/residential/",
       ]) {
         await page.evaluate(() => {
           window.__ttOutgoingContainer = document.querySelector(
@@ -2816,8 +2816,8 @@ async function runPersistentBarbaNavigationChecks() {
       // About is a native document load (shell R6), so read the soft-route trace first.
       const trace = await page.evaluate(() => window.__ttRouteTrace || []);
       await openMenu(page);
-      const aboutLink = await findRouteLink(page, "#site-menu", "/vi/about/");
-      await clickRouteLink(page, aboutLink, "/vi/about/");
+      const aboutLink = await findRouteLink(page, "#site-menu", "/about/");
+      await clickRouteLink(page, aboutLink, "/about/");
       const aboutState = await page.evaluate(() => ({
         minHeight: Number.parseFloat(
           getComputedStyle(document.querySelector(".about-hero")).minHeight,
@@ -2867,10 +2867,10 @@ async function runEspacioRouteLogoTimingChecks() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "Espacio route logo destination timing",
-    { route: "/vi/", viewport },
+    { route: "/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.evaluate(() => {
         window.__ttEspacioRouteTrace = [];
         const channel = (value) =>
@@ -2903,9 +2903,9 @@ async function runEspacioRouteLogoTimingChecks() {
       const residentialLink = await findRouteLink(
         page,
         "[data-site-header]",
-        "/vi/residential/",
+        "/residential/",
       );
-      await clickRouteLink(page, residentialLink, "/vi/residential/");
+      await clickRouteLink(page, residentialLink, "/residential/");
       const ordinaryTrace = await page.evaluate(
         () => window.__ttEspacioRouteTrace || [],
       );
@@ -2968,9 +2968,9 @@ async function runEspacioRouteLogoTimingChecks() {
       const advertisingLink = await findRouteLink(
         page,
         "[data-site-header]",
-        "/vi/advertising-products/",
+        "/advertising-products/",
       );
-      await clickRouteLink(page, advertisingLink, "/vi/advertising-products/");
+      await clickRouteLink(page, advertisingLink, "/advertising-products/");
       const advertisingTrace = await page.evaluate(
         () => window.__ttEspacioAdvertisingTrace || [],
       );
@@ -3007,10 +3007,10 @@ async function runEspacioRouteLogoTimingChecks() {
   let delayedHeroReleased = false;
   await runPageCase(
     "Espacio route reveal does not wait for destination media",
-    { route: "/vi/", viewport },
+    { route: "/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       // Images load by AVIF/WebP srcset variant (media-delivery R3).
       await page.route(/tu-ao-canh-lua-phong-ngu(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, async (requestRoute) => {
         // Image slower than the whole route: veil covers for 0.75s, holds fully covered for at least 0.7s (logo-route-crossfade R2), then opens.
@@ -3021,9 +3021,9 @@ async function runEspacioRouteLogoTimingChecks() {
       const link = await findRouteLink(
         page,
         "[data-site-header]",
-        "/vi/residential/",
+        "/residential/",
       );
-      await clickRouteLink(page, link, "/vi/residential/");
+      await clickRouteLink(page, link, "/residential/");
       await page.waitForFunction(
         () => {
           const veil = document.querySelector(".route-veil");
@@ -3069,10 +3069,10 @@ async function runEspacioRouteLogoTimingChecks() {
 async function runEspacioScrollCueChecks() {
   await runPageCase(
     "scroll cue letters enter and exit with a uniform stagger",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       const timing = await page.evaluate(async () => {
         const gsap = window.gsap;
         if (!gsap) return null;
@@ -3157,7 +3157,7 @@ async function runEspacioScrollCueChecks() {
 
   const cases = [
     ...ROUTES,
-    ...ROUTES.map((route) => route.replace(/^\/vi\//, "/en/")),
+    ...ROUTES.map((route) => route.replace(/^\//, "/en/")),
   ];
   for (const route of cases) {
     const viewport = { width: 1440, height: 900 };
@@ -3204,7 +3204,7 @@ async function runEspacioScrollCueChecks() {
             Math.abs(state.wordSpacingRatio - 0.1) <= 0.01,
           `Scroll cue contract drifted on ${route}: ${JSON.stringify(state)}`,
         );
-        if (route === "/vi/advertising-products/") {
+        if (route === "/advertising-products/") {
           const pathname = new URL(page.url()).pathname;
           await page.evaluate(() =>
             document.querySelector("[data-scroll-cue]")?.click(),
@@ -3232,13 +3232,13 @@ async function runEspacioScrollCueChecks() {
   await runPageCase(
     "Espacio scroll cue responsive offsets",
     {
-      route: "/vi/advertising-products/",
+      route: "/advertising-products/",
       viewport: { width: 390, height: 844 },
       hasTouch: true,
       isMobile: true,
     },
     async (page) => {
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       const bottom = await page.locator("[data-scroll-cue]").evaluate((cue) => {
         const rect = cue.getBoundingClientRect();
         return innerHeight - rect.bottom;
@@ -3252,7 +3252,7 @@ async function runEspacioScrollCueChecks() {
 
   await runPageCase(
     "scroll cue cycle restarts after soft route and history",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
       const assertFreshCycle = async (label) => {
@@ -3275,15 +3275,15 @@ async function runEspacioScrollCueChecks() {
         });
       };
 
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       const homeCue = await page.locator("[data-scroll-cue]").elementHandle();
       const residentialLink = await findRouteLink(
         page,
         "[data-site-header]",
-        "/vi/residential/",
+        "/residential/",
       );
       await Promise.all([
-        waitForCanonicalPath(page, "/vi/residential/"),
+        waitForCanonicalPath(page, "/residential/"),
         residentialLink.click(),
       ]);
       await waitForReplacement(homeCue);
@@ -3293,7 +3293,7 @@ async function runEspacioScrollCueChecks() {
         .locator("[data-scroll-cue]")
         .elementHandle();
       await Promise.all([
-        waitForCanonicalPath(page, "/vi/"),
+        waitForCanonicalPath(page, "/"),
         page.goBack({ timeout: 15_000 }),
       ]);
       await waitForReplacement(residentialCue);
@@ -3306,7 +3306,7 @@ async function runEspacioScrollCueChecks() {
 async function runEspacioTypographyChecks() {
   const localizedRoutes = [
     ...ROUTES,
-    ...ROUTES.map((route) => route.replace(/^\/vi\//, "/en/")),
+    ...ROUTES.map((route) => route.replace(/^\//, "/en/")),
   ];
   for (const viewport of [
     { width: 390, height: 844 },
@@ -3432,7 +3432,7 @@ async function runEspacioTypographyChecks() {
               `Desktop nav cap-height drifted on ${route}: ${JSON.stringify(state.roles.nav)}`,
             );
           }
-          if (route === "/vi/" || route === "/en/") {
+          if (route === "/" || route === "/en/") {
             // Portal title size follows the card width (page-home R5): 1440px measures 37px cap-height.
             const portalRange =
               viewport.width === 1440 ? [35, 47] : [31, 46];
@@ -3472,11 +3472,11 @@ async function runBarbaFailureFallbackCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "Barba request failure hard fallback",
-    { route: "/vi/residential/", viewport },
+    { route: "/residential/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
       let failedBarbaRequest = false;
-      await page.route("**/vi/commercial/**", async (route) => {
+      await page.route("**/commercial/**", async (route) => {
         const isBarbaRequest = Boolean(route.request().headers()["x-barba"]);
         if (isBarbaRequest && !failedBarbaRequest) {
           failedBarbaRequest = true;
@@ -3485,19 +3485,19 @@ async function runBarbaFailureFallbackCheck() {
         }
         await route.continue();
       });
-      await gotoRoute(page, "/vi/residential/");
+      await gotoRoute(page, "/residential/");
       const timeOrigin = await page.evaluate(() => performance.timeOrigin);
       const link = await findRouteLink(
         page,
         "[data-site-header]",
-        "/vi/commercial/",
+        "/commercial/",
       );
-      await clickRouteLink(page, link, "/vi/commercial/");
+      await clickRouteLink(page, link, "/commercial/");
       const nextTimeOrigin = await page.evaluate(() => performance.timeOrigin);
       assert(failedBarbaRequest, "The Barba request was not intercepted");
       assert(nextTimeOrigin > timeOrigin, "Failed Barba navigation did not hard reload");
       const filteredFailures = diagnostics.requestFailures.filter(
-        (message) => !message.includes("/vi/commercial/"),
+        (message) => !message.includes("/commercial/"),
       );
       diagnostics.requestFailures = filteredFailures;
       diagnostics.consoleErrors = diagnostics.consoleErrors.filter(
@@ -3514,8 +3514,8 @@ async function runBarbaFailureFallbackCheck() {
 async function runHistoryNavigationChecks() {
   const viewport = { width: 390, height: 844 };
   for (const locale of ["vi", "en"]) {
-    const homeRoute = `/${locale}/`;
-    const residentialRoute = `/${locale}/residential/`;
+    const homeRoute = `${locale === "en" ? "/en" : ""}/`;
+    const residentialRoute = `${locale === "en" ? "/en" : ""}/residential/`;
     await runPageCase(
       `history restores navbar state ${locale}`,
       { route: homeRoute, viewport },
@@ -3673,8 +3673,8 @@ async function runHistoryNavigationChecks() {
   }
 
   for (const locale of ["vi", "en"]) {
-    const homeRoute = `/${locale}/`;
-    const commercialRoute = `/${locale}/commercial/`;
+    const homeRoute = `${locale === "en" ? "/en" : ""}/`;
+    const commercialRoute = `${locale === "en" ? "/en" : ""}/commercial/`;
     await runPageCase(
       `soft navigation releases persistent navbar focus ${locale}`,
       { route: homeRoute, viewport: { width: 1440, height: 900 } },
@@ -3728,10 +3728,10 @@ async function runBfcacheCleanupCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "persisted pageshow clears menu and route transition state",
-    { route: "/vi/", viewport },
+    { route: "/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.evaluate(() => {
         const dialog = document.querySelector("#site-menu");
         if (dialog && !dialog.open) dialog.showModal();
@@ -3806,7 +3806,7 @@ async function runRealBfcacheProbe() {
     await cdp.send("Page.enable");
     cdp.on("Page.backForwardCacheNotUsed", (event) => reasons.push(event));
 
-    await page.goto(pageUrl("/vi/residential/"), {
+    await page.goto(pageUrl("/residential/"), {
       waitUntil: "load",
       timeout: 20_000,
     });
@@ -3818,7 +3818,7 @@ async function runRealBfcacheProbe() {
     await page.goBack({ waitUntil: "commit", timeout: 20_000 });
     await page.waitForTimeout(1_000);
     assert(
-      canonicalPathname(page.url()) === "/vi/residential/",
+      canonicalPathname(page.url()) === "/residential/",
       `BFCache probe returned to ${page.url()}`,
     );
 
@@ -3876,7 +3876,7 @@ async function runFailOpenRealBfcacheProbe() {
     cdp.on("Page.backForwardCacheNotUsed", (event) => reasons.push(event));
     await page.route("**/*motion.js*", (route) => route.abort("failed"));
 
-    await page.goto(pageUrl("/vi/advertising-products/?bfcache=fail-open"), {
+    await page.goto(pageUrl("/advertising-products/?bfcache=fail-open"), {
       waitUntil: "load",
       timeout: 20_000,
     });
@@ -3892,7 +3892,7 @@ async function runFailOpenRealBfcacheProbe() {
     await page.goBack({ waitUntil: "commit", timeout: 20_000 });
     await page.waitForTimeout(1_000);
     assert(
-      canonicalPathname(page.url()) === "/vi/advertising-products/",
+      canonicalPathname(page.url()) === "/advertising-products/",
       `Fail-open BFCache probe returned to ${page.url()}`,
     );
     const state = await page.evaluate(() => ({
@@ -3930,7 +3930,7 @@ async function runInternalLinkCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "all internal links resolve to valid routes and targets",
-    { route: "/vi/", viewport },
+    { route: "/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
       const internalLinks = [];
@@ -4025,12 +4025,12 @@ async function runLanguagePersistenceCheck() {
   const viewport = { width: 390, height: 844 };
   await runPageCase(
     "VI EN contract changes and persists on all routes",
-    { route: "/vi/", viewport },
+    { route: "/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
       for (const route of ROUTES) {
-        const routeWithState = route === "/vi/" ? "/vi/?locale=test" : route;
-        const englishRoute = routeWithState.replace(/^\/vi\//, "/en/");
+        const routeWithState = route === "/" ? "/?locale=test" : route;
+        const englishRoute = routeWithState.replace(/^\//, "/en/");
         await gotoRoute(page, routeWithState);
         await page.waitForFunction(
           () => document.documentElement.lang === "vi",
@@ -4048,10 +4048,10 @@ async function runLanguagePersistenceCheck() {
             // The full menu splits small/large titles; a link's full name is the aria-label.
             projectLabels: [
               document
-                .querySelector('[data-site-header] a[href="/vi/advertising-products/"]')
+                .querySelector('[data-site-header] a[href="/advertising-products/"]')
                 ?.textContent,
               document
-                .querySelector('#site-menu .menu-group__title[href="/vi/advertising-products/"]')
+                .querySelector('#site-menu .menu-group__title[href="/advertising-products/"]')
                 ?.getAttribute("aria-label"),
             ].map((label) => label?.replace(/\s+/g, " ").trim()),
             title: document.title,
@@ -4127,7 +4127,7 @@ async function runLanguagePersistenceCheck() {
           translated.aria === translated.expectedAria,
           `${route}: aria-label did not translate`,
         );
-        if (route === "/vi/") {
+        if (route === "/") {
           const retainedState = await page.evaluate(() => ({ search: location.search, hash: location.hash }));
           assert(retainedState.search === "?locale=test" && retainedState.hash === "", `${route}: locale switch lost query or retained a fragment`);
         }
@@ -4164,7 +4164,7 @@ async function runLanguageScrollRetentionCheck() {
   const viewport = { width: 390, height: 844 };
   await runPageCase(
     "locale switch reloads the target page like F5: top, full intro, no history entry",
-    { route: "/vi/residential/?qa=scroll", viewport },
+    { route: "/residential/?qa=scroll", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
       // Owner 2026-11-08 (site-shell R5): switching language reruns all motion like F5, i.e. reloads the destination page.
@@ -4224,20 +4224,20 @@ async function runLanguageScrollRetentionCheck() {
         await page.waitForFunction(() => window.scrollY > 100);
       };
 
-      await gotoRoute(page, "/vi/residential/?qa=scroll");
+      await gotoRoute(page, "/residential/?qa=scroll");
       await scrollDown();
       await switchLocale("/en/residential/?qa=scroll");
       await scrollDown();
-      await switchLocale("/vi/residential/?qa=scroll");
+      await switchLocale("/residential/?qa=scroll");
 
       const routeTimeOrigin = await page.evaluate(() => performance.timeOrigin);
       const routeLink = await findRouteLink(
         page,
         "[data-site-header]",
-        "/vi/commercial/",
+        "/commercial/",
       );
       await Promise.all([
-        waitForPath(page, "/vi/commercial/"),
+        waitForPath(page, "/commercial/"),
         routeLink.evaluate((link) => link.click()),
       ]);
       assert(
@@ -4266,13 +4266,13 @@ async function runLocaleResponsivePreferenceChecks() {
     await runPageCase(
       `locale switch reloads like F5 ${testCase.label}`,
       {
-        route: "/vi/residential/?qa=locale-mode",
+        route: "/residential/?qa=locale-mode",
         viewport: testCase.viewport,
         reducedMotion: testCase.reducedMotion,
       },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/residential/?qa=locale-mode");
+        await gotoRoute(page, "/residential/?qa=locale-mode");
         if (testCase.viewport.width >= 981) {
           await page.mouse.move(
             Math.floor(testCase.viewport.width / 2),
@@ -4417,10 +4417,10 @@ async function runMenuChecks() {
   ]) {
     await runPageCase(
       `menu open close and route click ${viewport.width}x${viewport.height}`,
-      { route: "/vi/", viewport },
+      { route: "/", viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/?locale=test");
+        await gotoRoute(page, "/?locale=test");
         await restoreHeaderForMenu(page);
         await page.evaluate(() => {
           window.__menuLanguageOpacityTransitions = [];
@@ -4605,12 +4605,12 @@ async function runMenuChecks() {
             menuContract.childItemCount >= 20 &&
             menuContract.fragmentLinkCount === 0 &&
             JSON.stringify(menuContract.titles) === JSON.stringify([
-              "/vi/residential/",
-              "/vi/commercial/",
-              "/vi/projects/",
-              "/vi/advertising-products/",
-              "/vi/about/",
-              "/vi/about/?topic=contact",
+              "/residential/",
+              "/commercial/",
+              "/projects/",
+              "/advertising-products/",
+              "/about/",
+              "/about/?topic=contact",
             ]),
           `${viewport.width}x${viewport.height}: menu groups or non-fragment child routes do not match the contract`,
         );
@@ -4654,15 +4654,15 @@ async function runMenuChecks() {
         assert((await page.evaluate(() => `${location.search}${location.hash}`)) === "?locale=test", "menu locale control lost query or retained a fragment");
         await openMenu(page);
         await Promise.all([
-          waitForCanonicalPath(page, "/vi/"),
+          waitForCanonicalPath(page, "/"),
           page.locator('[data-language-option="vi"]').evaluate((link) => link.click()),
         ]);
         await waitForLoadedDocument(page);
         assert((await page.evaluate(() => document.documentElement.lang)) === "vi", "menu locale control did not navigate to Vietnamese");
         assert((await page.evaluate(() => `${location.search}${location.hash}`)) === "?locale=test", "menu locale control did not retain query or clear the fragment");
         await openMenu(page);
-        const routeLink = await findRouteLink(page, "#site-menu", "/vi/residential/");
-        await clickRouteLink(page, routeLink, "/vi/residential/");
+        const routeLink = await findRouteLink(page, "#site-menu", "/residential/");
+        await clickRouteLink(page, routeLink, "/residential/");
         await openMenu(page);
         const currentTitle = page.locator(
           '#site-menu .menu-group__title[aria-current="page"]',
@@ -4703,11 +4703,11 @@ async function runMenuChecks() {
         const crossRouteTitle = await findRouteLink(
           page,
           "#site-menu",
-          "/vi/commercial/",
+          "/commercial/",
         );
         await crossRouteTitle.focus();
         await Promise.all([
-          waitForCanonicalPath(page, "/vi/commercial/"),
+          waitForCanonicalPath(page, "/commercial/"),
           page.keyboard.press("Enter"),
         ]);
         await waitForLoadedDocument(page);
@@ -4815,10 +4815,10 @@ async function runAdvertisingFilterCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "advertising filter hides and reflows",
-    { route: "/vi/advertising-products/", viewport },
+    { route: "/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.waitForFunction(
         () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
         null,
@@ -5040,10 +5040,10 @@ async function runAdvertisingFilterCheck() {
   );
   await runPageCase(
     "advertising filter reduced motion is instant",
-    { route: "/vi/advertising-products/", viewport, reducedMotion: "reduce" },
+    { route: "/advertising-products/", viewport, reducedMotion: "reduce" },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.locator('[data-masonry-filter="mobile-retail"]').click();
       await page.waitForFunction(
         () => document.querySelector('[data-masonry-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
@@ -5067,10 +5067,10 @@ async function runAdvertisingFilterCheck() {
   );
   await runPageCase(
     "advertising scroll during filter motion catches up",
-    { route: "/vi/advertising-products/?category=mobile-retail", viewport: { width: 679, height: 900 } },
+    { route: "/advertising-products/?category=mobile-retail", viewport: { width: 679, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/advertising-products/?category=mobile-retail");
+      await gotoRoute(page, "/advertising-products/?category=mobile-retail");
       await page.waitForFunction(
         () => document.querySelector('[data-masonry-filter="mobile-retail"]')?.getAttribute("aria-current") === "true",
         null,
@@ -5132,7 +5132,7 @@ async function runPublicSelectionCheck({ advertisingOnly = false } = {}) {
       ];
   for (const locale of ["vi", "en"]) {
     for (const route of routeSuffixes) {
-      const pathname = `/${locale}${route.path}`;
+      const pathname = `${locale === "en" ? "/en" : ""}${route.path}`;
       await runPageCase(
         `${route.name} public text selection ${locale}`,
         { route: pathname, viewport: { width: 1440, height: 900 } },
@@ -5328,7 +5328,7 @@ async function runAdvertisingDependencyRecoveryChecks() {
 
   await runPageCase(
     "advertising retries a vendor that failed before readiness listeners",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       let requests = 0;
       await page.route(vendorPattern, async (route) => {
@@ -5337,7 +5337,7 @@ async function runAdvertisingDependencyRecoveryChecks() {
         const response = await route.fetch();
         return route.fulfill({ response });
       });
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await installFailedVendor(page);
       const diagnostics = monitorPage(page);
       const state = await page.evaluate(async () => {
@@ -5351,10 +5351,10 @@ async function runAdvertisingDependencyRecoveryChecks() {
 
   await runPageCase(
     "advertising rejects a failed existing vendor without hanging",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.route(vendorPattern, (route) => route.abort("failed"));
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await installFailedVendor(page);
       const state = await page.evaluate(async () => {
         const started = performance.now();
@@ -5439,10 +5439,10 @@ async function runAdvertisingNoOpScrollCheck() {
   for (const width of [1440, 390]) {
     await runPageCase(
       `advertising same-frontier scroll is a no-op ${width}px`,
-      { route: "/vi/advertising-products/", viewport: { width, height: 900 } },
+      { route: "/advertising-products/", viewport: { width, height: 900 } },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/advertising-products/");
+        await gotoRoute(page, "/advertising-products/");
         await page.waitForFunction(() => document.querySelectorAll(".masonry-card").length > 0);
         const state = await page.evaluate(async () => {
           const grid = document.querySelector("[data-project-grid]");
@@ -5503,7 +5503,7 @@ async function runAdvertisingRapidFilterCheck() {
   const artifact = buildAdvertisingArtifact({ categories: ADVERTISING_CATEGORIES, cards });
   await runPageCase(
     "advertising rapid filter continues from visual coordinates",
-    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    { route: "/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.addInitScript((injectedArtifact) => {
         Object.defineProperty(window, "__TT_ADVERTISING_ARTIFACT__", {
@@ -5517,7 +5517,7 @@ async function runAdvertisingRapidFilterCheck() {
       const { pinBrowseSeed } = await import("./harness.mjs");
       await pinBrowseSeed(page, process.env.TT_RAPID_SEED || "rapid-filter-1");
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.waitForFunction(
         () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0 &&
           document.querySelector('[data-masonry-filter="all"]')?.getAttribute("aria-current") === "true",
@@ -5683,13 +5683,13 @@ async function runAdvertisingRapidFilterCheck() {
 async function runAdvertisingDirectFailureCheck() {
   await runPageCase(
     "advertising direct persistent vendor failure settles without reload",
-    { route: "/vi/advertising-products/?direct-vendor-failure=1", viewport: { width: 1440, height: 900 } },
+    { route: "/advertising-products/?direct-vendor-failure=1", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.addInitScript(() => {
         window.name = String(Number(window.name || "0") + 1);
       });
       await page.route("**/assets/vendor/lazysizes-5.3.2.min.js", (route) => route.abort("failed"));
-      await gotoRoute(page, "/vi/advertising-products/?direct-vendor-failure=1");
+      await gotoRoute(page, "/advertising-products/?direct-vendor-failure=1");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
         null,
@@ -5717,7 +5717,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
   await runPageCase(
     "advertising hero text preserves the approved page-load sequence",
     {
-      route: "/vi/advertising-products/",
+      route: "/advertising-products/",
       viewport: { width: 1440, height: 900 },
     },
     async (page) => {
@@ -5780,7 +5780,7 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
           { once: true },
         );
       });
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.waitForFunction(
         () => Reflect.get(window, "__ttAdvertisingHeroTextTrace")?.done,
         null,
@@ -5861,13 +5861,13 @@ async function runProjectsProductsHeroEditorialCheck({ motionOnly = false } = {}
       await runPageCase(
         `projects editorial hero ${locale} ${viewport.width}x${viewport.height} ${reducedMotion}`,
         {
-          route: `/${locale}/advertising-products/`,
+          route: `${locale === "en" ? "/en" : ""}/advertising-products/`,
           viewport,
           reducedMotion,
         },
         async (page) => {
           const diagnostics = monitorPage(page);
-          await gotoRoute(page, `/${locale}/advertising-products/`);
+          await gotoRoute(page, `${locale === "en" ? "/en" : ""}/advertising-products/`);
           await page.waitForFunction(
             () =>
               [...document.querySelectorAll(".detail-index-hero .project-filter")].every(
@@ -6103,10 +6103,10 @@ async function runAdvertisingGridFocusedChecks() {
   for (const width of widths) {
     await runPageCase(
       `advertising grid ${width}px`,
-      { route: "/vi/advertising-products/", viewport: { width, height: 900 } },
+      { route: "/advertising-products/", viewport: { width, height: 900 } },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/advertising-products/");
+        await gotoRoute(page, "/advertising-products/");
         await page.waitForFunction(
           () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
           null,
@@ -6223,7 +6223,7 @@ async function runAdvertisingGridFocusedChecks() {
   for (const width of [751, 1201]) {
     await runPageCase(
       `advertising grid ${width}px with layout scrollbar`,
-      { route: "/vi/advertising-products/", viewport: { width, height: 900 } },
+      { route: "/advertising-products/", viewport: { width, height: 900 } },
       async (page) => {
         const diagnostics = monitorPage(page);
         await page.addInitScript((scrollbarWidth) => {
@@ -6245,7 +6245,7 @@ async function runAdvertisingGridFocusedChecks() {
           });
           observer.observe(document, { childList: true });
         }, 17);
-        await gotoRoute(page, "/vi/advertising-products/");
+        await gotoRoute(page, "/advertising-products/");
         await page.waitForFunction(() => {
           const grid = document.querySelector("[data-project-grid]");
           const index = grid?.closest(".masonry-section");
@@ -6284,7 +6284,7 @@ async function runAdvertisingGridFocusedChecks() {
 
   await runPageCase(
     "advertising legacy rank-v2 artifact fails before layout",
-    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    { route: "/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.addInitScript((injectedArtifact) => {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
@@ -6296,7 +6296,7 @@ async function runAdvertisingGridFocusedChecks() {
           return animate.call(this, keyframes, options);
         };
       }, { ...artifact, layoutAlgorithmVersion: "advertising-rank-v2" });
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
         null,
@@ -6313,7 +6313,7 @@ async function runAdvertisingGridFocusedChecks() {
 
   await runPageCase(
     "advertising empty v6 artifact fails before layout",
-    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    { route: "/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.addInitScript((injectedArtifact) => {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
@@ -6325,7 +6325,7 @@ async function runAdvertisingGridFocusedChecks() {
           return animate.call(this, keyframes, options);
         };
       }, { ...artifact, cards: [] });
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.waitForFunction(
         () => document.querySelector('[data-barba="container"]')?.dataset.masonryFallback === "failed",
         null,
@@ -6350,10 +6350,10 @@ async function runAdvertisingKeyboardVirtualizationCheck() {
 
   await runPageCase(
     "advertising keyboard crosses virtual frontiers",
-    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    { route: "/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0);
       const layoutViewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
       // Tab order follows the browse visit's random order (R4): rebuild with the same seed and pool as the runtime.
@@ -6457,7 +6457,7 @@ async function runAdvertisingMediaEntranceChecks() {
     .replace(/(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, ".webp");
 
   for (const locale of ["vi", "en"]) {
-    const route = `/${locale}/advertising-products/`;
+    const route = `${locale === "en" ? "/en" : ""}/advertising-products/`;
     await runPageCase(
       `advertising media entrance ${locale}`,
       { route, viewport: { width: 1440, height: 900 } },
@@ -6907,7 +6907,7 @@ async function runAdvertisingMediaFocusedChecks() {
 
   await runPageCase(
     `advertising ${expectedCardCount}-media lazy virtual window`,
-    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    { route: "/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
       const mediaRequestPaths = new Set();
@@ -6927,7 +6927,7 @@ async function runAdvertisingMediaFocusedChecks() {
         const previous = mediaResponseStatuses.get(pathname);
         mediaResponseStatuses.set(pathname, previous ? `${previous},${response.status()}` : String(response.status()));
       });
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.waitForFunction(
         () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
         null,
@@ -7003,7 +7003,7 @@ async function runAdvertisingMediaFocusedChecks() {
         assert(
           // A cluster has its own page so the URL is the cluster page path, no more ?category= (taxonomy R4).
           filtered.activeFilter === category.slug && filtered.categoryQuery === null &&
-            filtered.pathname === `/vi/advertising-products/${category.slugVi}/` &&
+            filtered.pathname === `/advertising-products/${category.slugVi}/` &&
             filtered.tiles.every((tile) => matchesFilter(artifact.cards.find(({ id }) => id === tile.id), category.slug)),
           `${category.slug} filter retained a wrong category or URL state`,
         );
@@ -7151,15 +7151,15 @@ async function runAdvertisingCompatibilityChecks() {
   const { ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES } = await import(pathToFileURL(path.join(SITE_ROOT, "advertising-products", "catalog.mjs")).href);
   const categoryTitles = new Map(ADVERTISING_LEGACY_CATEGORIES.map((category) => [category.slug, { vi: category.titleVi, en: category.titleEn }]));
   // The compatibility page redirects to the new cluster page by the locale's slug (taxonomy R4); EN mobile-retail is the cluster page itself.
-  const clusterPath = (slug, locale) => `/${locale}/advertising-products/${ADVERTISING_CATEGORIES.find((category) => category.legacySlug === slug)?.[locale === "en" ? "slugEn" : "slugVi"]}/`;
+  const clusterPath = (slug, locale) => `${locale === "en" ? "/en" : ""}/advertising-products/${ADVERTISING_CATEGORIES.find((category) => category.legacySlug === slug)?.[locale === "en" ? "slugEn" : "slugVi"]}/`;
   for (const locale of ["vi", "en"]) {
     for (const slug of ADVERTISING_CATEGORY_SLUGS) {
       await runPageCase(
         `advertising compatibility ${locale}/${slug}`,
-        { route: `/${locale}/advertising-products/${slug}/?photo=stale-photo&tag=stale-tag&category=stale-category`, viewport: { width: 390, height: 844 } },
+        { route: `${locale === "en" ? "/en" : ""}/advertising-products/${slug}/?photo=stale-photo&tag=stale-tag&category=stale-category`, viewport: { width: 390, height: 844 } },
         async (page) => {
           const diagnostics = monitorPage(page);
-          await gotoRoute(page, `/${locale}/advertising-products/${slug}/?photo=stale-photo&tag=stale-tag&category=stale-category`);
+          await gotoRoute(page, `${locale === "en" ? "/en" : ""}/advertising-products/${slug}/?photo=stale-photo&tag=stale-tag&category=stale-category`);
           const url = new URL(page.url());
           assert(
             url.origin === BASE_ORIGIN && canonicalPathname(url) === clusterPath(slug, locale) &&
@@ -7176,9 +7176,9 @@ async function runAdvertisingCompatibilityChecks() {
   for (const [locale, slug] of [["vi", "kiosk-posm"], ["en", "print-decals"]]) {
     await runPageCase(
       `advertising compatibility no-js fallback ${locale}/${slug}`,
-      { route: `/${locale}/advertising-products/${slug}/`, viewport: { width: 390, height: 844 } },
+      { route: `${locale === "en" ? "/en" : ""}/advertising-products/${slug}/`, viewport: { width: 390, height: 844 } },
       async (page) => {
-        const response = await page.request.get(pageUrl(`/${locale}/advertising-products/${slug}/`));
+        const response = await page.request.get(pageUrl(`${locale === "en" ? "/en" : ""}/advertising-products/${slug}/`));
         const html = await response.text();
         assert(response.ok() && html.includes(`<link rel="canonical" href="${clusterPath(slug, locale)}"`) && /<noscript[\s>]/i.test(html) && html.includes(`url=${clusterPath(slug, locale)}`) && html.replaceAll("&amp;", "&").includes(categoryTitles.get(slug)?.[locale]), `${locale}/${slug} raw localized fallback drifted`);
       },
@@ -7186,7 +7186,7 @@ async function runAdvertisingCompatibilityChecks() {
     const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 844 } });
     const noJsPage = await context.newPage();
     try {
-      await noJsPage.goto(pageUrl(`/${locale}/advertising-products/${slug}/`), { waitUntil: "domcontentloaded" });
+      await noJsPage.goto(pageUrl(`${locale === "en" ? "/en" : ""}/advertising-products/${slug}/`), { waitUntil: "domcontentloaded" });
       await noJsPage.waitForURL((url) => canonicalPathname(url) === clusterPath(slug, locale), { timeout: 5_000 });
     } finally { await context.close(); }
   }
@@ -7258,13 +7258,13 @@ async function runAdvertisingThreeThousandCardProbe() {
   const scrollInstant = (page, top) => page.evaluate((scrollTop) => window.scrollTo({ top: scrollTop, behavior: "instant" }), top);
   await runPageCase(
     "advertising 3000-card virtual window",
-    { route: "/vi/advertising-products/", viewport },
+    { route: "/advertising-products/", viewport },
     async (page) => {
       await page.addInitScript((injectedArtifact) => {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
       }, artifact);
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       await page.waitForFunction(
         () => document.querySelectorAll("[data-project-grid] .masonry-card").length > 0,
         null,
@@ -7386,13 +7386,13 @@ async function runAdvertisingLocaleLifecycleChecks() {
   const artifact = buildAdvertisingArtifact({ categories: ADVERTISING_CATEGORIES, cards: virtualizedCards });
   await runPageCase(
     "advertising locale SplitText and focused filter lifecycle",
-    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    { route: "/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
       await page.addInitScript((injectedArtifact) => {
         window.__TT_ADVERTISING_ARTIFACT__ = injectedArtifact;
       }, artifact);
-      await gotoRoute(page, "/vi/advertising-products/");
+      await gotoRoute(page, "/advertising-products/");
       const snapshot = () => page.evaluate(() => {
         const title = document.querySelector("#page-title");
         const lines = [...document.querySelectorAll("[data-motion-lines] .motion-line")];
@@ -7504,7 +7504,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         const image = card?.querySelector(".masonry-card__foreground");
         return { filter: document.querySelector('[data-masonry-filter="all"]')?.textContent?.trim(), title: card?.querySelector("figcaption.masonry-card__title")?.textContent, alt: image?.alt, href: link?.getAttribute("href") };
       });
-      assert(localizedViCard.filter === "Tất cả" && localizedViCard.title === "Gian hàng triển lãm" && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/vi/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or hover title did not survive remount: ${JSON.stringify(localizedViCard)}`);
+      assert(localizedViCard.filter === "Tất cả" && localizedViCard.title === "Gian hàng triển lãm" && localizedViCard.alt === "Gian hàng triển lãm do Trường Thịnh thực hiện" && localizedViCard.href === "/advertising-products/p/kiosk-posm-01/", `Vietnamese catalog locale or hover title did not survive remount: ${JSON.stringify(localizedViCard)}`);
 
       // Focus a tile removed by the filter (kiosk belongs to displays-booths); after reload, the first tile in the DOM depends on the scroll position.
       await page.locator('[data-masonry-card="kiosk-posm-01"] a').focus();
@@ -7543,10 +7543,10 @@ async function runResidentialHeroTextCheck() {
       const { viewport, reducedMotion = "no-preference" } = testCase;
       await runPageCase(
         `residential hero text ${locale} ${viewport.width}x${viewport.height} ${reducedMotion}`,
-        { route: `/${locale}/residential/`, viewport, reducedMotion },
+        { route: `${locale === "en" ? "/en" : ""}/residential/`, viewport, reducedMotion },
         async (page) => {
           const diagnostics = monitorPage(page);
-          await gotoRoute(page, `/${locale}/residential/`);
+          await gotoRoute(page, `${locale === "en" ? "/en" : ""}/residential/`);
           await page.waitForFunction(
             () => {
               const kicker = document.querySelector(".residential-hero .hero-kicker");
@@ -7713,10 +7713,10 @@ async function runCommercialHeroTextCheck() {
       const { viewport, reducedMotion = "no-preference" } = testCase;
       await runPageCase(
         `commercial hero text ${locale} ${viewport.width}x${viewport.height} ${reducedMotion}`,
-        { route: `/${locale}/commercial/`, viewport, reducedMotion },
+        { route: `${locale === "en" ? "/en" : ""}/commercial/`, viewport, reducedMotion },
         async (page) => {
           const diagnostics = monitorPage(page);
-          await gotoRoute(page, `/${locale}/commercial/`);
+          await gotoRoute(page, `${locale === "en" ? "/en" : ""}/commercial/`);
           await page.waitForFunction(
             () => {
               const kicker = document.querySelector(".commercial-hero .hero-kicker");
@@ -7880,10 +7880,10 @@ async function runGalleryCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "commercial gallery layout and mouse drag",
-    { route: "/vi/commercial/", viewport },
+    { route: "/commercial/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/commercial/");
+      await gotoRoute(page, "/commercial/");
       const track = page.locator("[data-gallery-track]");
       await track.scrollIntoViewIfNeeded();
       // R7: Swiper loads when the gallery is near the viewport.
@@ -8003,7 +8003,7 @@ async function runEarlyHeroAccessibilityCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "direct hero stays in early accessibility tree without a final-state flash",
-    { route: "/vi/residential/", viewport },
+    { route: "/residential/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
       let releaseMotion;
@@ -8014,7 +8014,7 @@ async function runEarlyHeroAccessibilityCheck() {
         await motionGate;
         await route.continue();
       });
-      const response = await page.goto(pageUrl("/vi/residential/"), {
+      const response = await page.goto(pageUrl("/residential/"), {
         waitUntil: "commit",
         timeout: 20_000,
       });
@@ -8086,12 +8086,12 @@ async function runDetailHeroEntryChecks() {
   const viewport = { width: 1440, height: 900 };
   for (const entry of [
     {
-      route: "/vi/advertising-products/",
+      route: "/advertising-products/",
       selector: "[data-motion-hero-wrapper-zoom]",
       label: "project hero wrapper",
     },
     {
-      route: "/vi/about/",
+      route: "/about/",
       selector: "[data-motion-hero-media]",
       label: "about hero media",
     },
@@ -8158,13 +8158,13 @@ async function runDetailHeroEntryChecks() {
     {
       label: "project hero wrapper",
       selector: "[data-motion-hero-wrapper-zoom]",
-      source: "/vi/",
-      destination: "/vi/advertising-products/",
+      source: "/",
+      destination: "/advertising-products/",
       trigger: async (page) => {
         const link = await findRouteLink(
           page,
           "[data-site-header]",
-          "/vi/advertising-products/",
+          "/advertising-products/",
         );
         await link.click();
       },
@@ -8406,8 +8406,8 @@ function assertHomeGeometryMatch(normal, fallback, label, skip = []) {
 
 async function runMotionAbortFailOpenChecks() {
   for (const fixture of [
-    { route: "/vi/", expected: 255, label: "dark home" },
-    { route: "/vi/advertising-products/", expected: 47, label: "ink projects" },
+    { route: "/", expected: 255, label: "dark home" },
+    { route: "/advertising-products/", expected: 47, label: "ink projects" },
   ]) {
     await runPageCase(
       `post-route-pin fallback restores header leaves on ${fixture.label}`,
@@ -8422,7 +8422,7 @@ async function runMotionAbortFailOpenChecks() {
         const routeSeen = new Promise((resolve) => {
           markRouteSeen = resolve;
         });
-        await page.route("**/vi/residential/**", async (route) => {
+        await page.route("**/residential/**", async (route) => {
           pendingRoute = route;
           markRouteSeen();
           await new Promise((resolve) => {
@@ -8434,7 +8434,7 @@ async function runMotionAbortFailOpenChecks() {
           const target = await findRouteLink(
             page,
             "[data-site-header]",
-            "/vi/residential/",
+            "/residential/",
           );
           await target.evaluate((element) => element.click());
           // Bounded: if the route never arrives, report the page state instead of hanging until the CI job timeout.
@@ -8454,7 +8454,7 @@ async function runMotionAbortFailOpenChecks() {
               boot: window.__ttMotionBoot,
             })).catch((error) => ({ evaluateError: error.message }));
             releaseRoute?.();
-            throw new Error(`Route /vi/residential/ was never requested after click: ${JSON.stringify(state)}`);
+            throw new Error(`Route /residential/ was never requested after click: ${JSON.stringify(state)}`);
           }
           await page.waitForFunction(() =>
             document.querySelector("[data-site-header]")?.classList.contains("is-route-pinned"),
@@ -8485,7 +8485,7 @@ async function runMotionAbortFailOpenChecks() {
           assertDiagnostics(diagnostics);
           await pendingRoute.abort("failed");
           releaseRoute();
-          await page.unroute("**/vi/residential/**");
+          await page.unroute("**/residential/**");
         } finally {
           releaseRoute?.();
         }
@@ -8499,13 +8499,13 @@ async function runMotionAbortFailOpenChecks() {
   ]) {
     await runPageCase(
       `motion abort matches settled home geometry ${viewport.width}x${viewport.height}`,
-      { route: "/vi/", viewport },
+      { route: "/", viewport },
       async (page) => {
-        await gotoRoute(page, "/vi/");
+        await gotoRoute(page, "/");
         await page.waitForTimeout(2_800);
         const normal = await homeFinalGeometry(page);
         await page.route("**/*motion.js*", (route) => route.abort("failed"));
-        await page.goto(pageUrl(`/vi/?motion-abort=${viewport.width}`), {
+        await page.goto(pageUrl(`/?motion-abort=${viewport.width}`), {
           waitUntil: "load",
           timeout: 20_000,
         });
@@ -8541,11 +8541,11 @@ async function runMotionAbortFailOpenChecks() {
   ]) {
     await runPageCase(
       `motion abort matches settled projects geometry ${viewport.width}x${viewport.height}`,
-      { route: "/vi/advertising-products/", viewport },
+      { route: "/advertising-products/", viewport },
       async (page) => {
         const pageErrors = [];
         page.on("pageerror", (error) => pageErrors.push(error.message));
-        await gotoRoute(page, "/vi/advertising-products/");
+        await gotoRoute(page, "/advertising-products/");
         await page.evaluate(() => document.fonts.ready);
         await page.waitForTimeout(2_800);
         const normal = await projectFinalGeometry(page);
@@ -8564,7 +8564,7 @@ async function runMotionAbortFailOpenChecks() {
         await page.route("**/*motion.js*", (route) => route.abort("failed"));
         const started = Date.now();
         const response = await page.goto(
-          pageUrl(`/vi/advertising-products/?motion-abort=${viewport.width}`),
+          pageUrl(`/advertising-products/?motion-abort=${viewport.width}`),
           { waitUntil: "load", timeout: 20_000 },
         );
         assert(response && response.status() < 400, "Project fail-open load failed");
@@ -8675,11 +8675,11 @@ async function runMotionAbortFailOpenChecks() {
 
   await runPageCase(
     "fallback locale links work in the full menu",
-    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    { route: "/", viewport: { width: 390, height: 844 } },
     async (page) => {
       await page.route("**/*motion.js*", (route) => route.abort("failed"));
       for (const route of ["", "advertising-products/"]) {
-        const viPath = `/vi/${route}`;
+        const viPath = `/${route}`;
         const enPath = `/en/${route}`;
         const expectFallbackScroll = async () => {
           await page.waitForFunction(() =>
@@ -8725,10 +8725,10 @@ async function runMotionAbortFailOpenChecks() {
 
   await runPageCase(
     "motion failure fails open without an opaque veil",
-    { route: "/vi/residential/", viewport: { width: 390, height: 844 } },
+    { route: "/residential/", viewport: { width: 390, height: 844 } },
     async (page) => {
       await page.route("**/*motion.js*", (route) => route.abort("failed"));
-      await page.goto(pageUrl("/vi/residential/"), { waitUntil: "load" });
+      await page.goto(pageUrl("/residential/"), { waitUntil: "load" });
       await page.waitForFunction(() =>
         document.documentElement.classList.contains("motion-fallback"),
       );
@@ -8757,14 +8757,14 @@ async function runMotionAbortFailOpenChecks() {
 
   await runPageCase(
     "slow motion keeps the route veil until the runtime claims",
-    { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+    { route: "/advertising-products/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.route("**/*motion.js*", async (route) => {
         const response = await route.fetch();
         await new Promise((resolve) => setTimeout(resolve, 3_400));
         await route.fulfill({ response });
       });
-      const navigation = page.goto(pageUrl("/vi/advertising-products/?slow-motion=1"), {
+      const navigation = page.goto(pageUrl("/advertising-products/?slow-motion=1"), {
         waitUntil: "load",
         timeout: 20_000,
       });
@@ -8922,14 +8922,14 @@ async function runDelayedDetailFallbackChecks() {
   ]) {
     await runPageCase(
       `delayed detail mounts filters once with failed or slow motion ${viewport.width}x${viewport.height}`,
-      { route: "/vi/advertising-products/", viewport },
+      { route: "/advertising-products/", viewport },
       async (page) => {
         await page.route(detailPattern, delayResponse(4_200));
         await page.route(motionPattern, (route) => route.abort("failed"));
         let abortedNavigationError;
         const abortedNavigation = page
           .goto(
-            pageUrl(`/vi/advertising-products/?delayed-detail-abort=${viewport.width}`),
+            pageUrl(`/advertising-products/?delayed-detail-abort=${viewport.width}`),
             { waitUntil: "load", timeout: 20_000 },
           )
           .catch((error) => {
@@ -8967,7 +8967,7 @@ async function runDelayedDetailFallbackChecks() {
         let delayedNavigationError;
         const delayedNavigation = page
           .goto(
-            pageUrl(`/vi/advertising-products/?delayed-detail-veil=${viewport.width}`),
+            pageUrl(`/advertising-products/?delayed-detail-veil=${viewport.width}`),
             { waitUntil: "load", timeout: 20_000 },
           )
           .catch((error) => {
@@ -9019,7 +9019,7 @@ async function runDelayedDetailFallbackChecks() {
 async function runSlowMotionBootCheck() {
   await runPageCase(
     "slow motion never fails open and reloads the switched locale after claim",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       await page.route("**/*motion.js*", async (route) => {
         const response = await route.fetch();
@@ -9028,7 +9028,7 @@ async function runSlowMotionBootCheck() {
       });
       let navigationError;
       const navigation = page
-        .goto(pageUrl("/vi/?claim-release=1"), {
+        .goto(pageUrl("/?claim-release=1"), {
           waitUntil: "load",
           timeout: 20_000,
         })
@@ -9142,7 +9142,7 @@ async function runSlowMotionBootCheck() {
 
 async function runHeroCarouselLifecycleCheck() {
   const viewport = { width: 1440, height: 900 };
-  for (const route of ["/vi/residential/", "/vi/commercial/"]) {
+  for (const route of ["/residential/", "/commercial/"]) {
     await runPageCase(
       `service hero runs the home slideshow ${route}`,
       { route, viewport },
@@ -9172,10 +9172,10 @@ async function runHeroCarouselLifecycleCheck() {
 
   await runPageCase(
     "about hero keeps the scroll cue without chapter tabs",
-    { route: "/vi/about/", viewport },
+    { route: "/about/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/about/");
+      await gotoRoute(page, "/about/");
       const state = await page.locator(".about-hero").evaluate((hero) => ({
         chapterCount: hero.querySelectorAll(".about-hero__chapters").length,
         scrollCueCount: hero.querySelectorAll("[data-scroll-cue]").length,
@@ -9193,10 +9193,10 @@ async function runHeroCrossFadeContinuityChecks() {
   // page-home R3, detail-pages R5: every slide is shuffled by Math.random. The first call (head script) picks slide floor(0.2n) as the
   // first image and preload; later calls are descending keys so the remaining slides are reversed. A DPR 1.75 phone checks that sizes does not deviate from preload.
   for (const [route, viewport] of [
-    ["/vi/", { width: 1440, height: 900 }],
-    ["/vi/", { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true }],
-    ["/vi/residential/", { width: 1440, height: 900 }],
-    ["/vi/commercial/", { width: 1440, height: 900 }],
+    ["/", { width: 1440, height: 900 }],
+    ["/", { width: 412, height: 823, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true }],
+    ["/residential/", { width: 1440, height: 900 }],
+    ["/commercial/", { width: 1440, height: 900 }],
   ]) {
     await runPageCase(
       `hero randomizes the first slide per load ${routeSlug(route)} ${viewport.width}`,
@@ -9246,10 +9246,10 @@ async function runHeroCrossFadeContinuityChecks() {
   }
 
   const cases = [
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
-    { route: "/vi/", viewport: { width: 390, height: 844 } },
-    { route: "/vi/residential/", viewport: { width: 1440, height: 900 } },
-    { route: "/vi/commercial/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 390, height: 844 } },
+    { route: "/residential/", viewport: { width: 1440, height: 900 } },
+    { route: "/commercial/", viewport: { width: 1440, height: 900 } },
   ];
 
   for (const testCase of cases) {
@@ -9380,7 +9380,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
   const cases = [
     {
       name: "home hero",
-      route: "/vi/?media-fallback=hero",
+      route: "/?media-fallback=hero",
       asset: heroAsset,
       surface: ".hero",
       image: ".hero-slide.is-active img",
@@ -9389,7 +9389,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     },
     {
       name: "home hero reduced motion",
-      route: "/vi/?media-fallback=hero-reduced",
+      route: "/?media-fallback=hero-reduced",
       asset: heroAsset,
       surface: ".hero",
       image: ".hero-slide.is-active img",
@@ -9399,7 +9399,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     },
     {
       name: "about hero",
-      route: "/vi/about/?media-fallback=about",
+      route: "/about/?media-fallback=about",
       asset: "**/tho-lap-thung-tu-go-xuong.webp",
       surface: ".about-hero",
       image: ".hero-photo img",
@@ -9408,7 +9408,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     },
     {
       name: "service portal",
-      route: "/vi/?media-fallback=portal",
+      route: "/?media-fallback=portal",
       asset: "**/tu-bep-nha-pho-gieng-troi.webp",
       surface: "#dich-vu .service-portal:first-child",
       image: "img",
@@ -9418,7 +9418,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     },
     {
       name: "detail CTA",
-      route: "/vi/commercial/?media-fallback=cta",
+      route: "/commercial/?media-fallback=cta",
       asset: "**/khao-sat-mat-bang-kinh-doanh.webp",
       surface: ".detail-cta",
       image: ":scope > img, :scope > picture > img",
@@ -9428,7 +9428,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     },
     {
       name: "legacy closer",
-      route: "/vi/?media-fallback=legacy",
+      route: "/?media-fallback=legacy",
       asset: "**/xuong-cnc-san-xuat-do-go.webp",
       surface: ".legacy-closer",
       image: ":scope > img, :scope > picture > img",
@@ -9568,7 +9568,7 @@ async function runHomeHeroTypesettingChecks() {
 
   for (const { locale, lines: expectedLines } of locales) {
     for (const viewport of viewports) {
-      const route = `/${locale}/?hero-typeset-check=1`;
+      const route = `${locale === "en" ? "/en" : ""}/?hero-typeset-check=1`;
       await runPageCase(
         `home hero copy and line gap ${locale} ${viewport.width}x${viewport.height}`,
         { route, viewport, reducedMotion: "reduce" },
@@ -9611,7 +9611,7 @@ async function runHomeHeroTypesettingChecks() {
 }
 
 async function runHomeHeroIntroReadabilityCheck() {
-  const route = "/vi/?hero-intro-check=1";
+  const route = "/?hero-intro-check=1";
   const viewport = { width: 768, height: 900 };
 
   await runPageCase(
@@ -9732,11 +9732,11 @@ async function runHomeHeroIntroReadabilityCheck() {
 
 async function runPhysicalWheelTransformChecks() {
   const cases = [
-    { name: "home hero", route: "/vi/", selector: ".hero-slides", axis: "y", limit: 12 },
-    { name: "residential hero", route: "/vi/residential/", selector: ".hero-slides", axis: "y", limit: 12 },
-    { name: "commercial hero", route: "/vi/commercial/", selector: ".hero-slides", axis: "y", limit: 12 },
-    { name: "about hero", route: "/vi/about/", selector: "[data-motion-hero-media]", axis: "y", limit: 12 },
-    { name: "home project strip", route: "/vi/", selector: ".blk-projects__track", axis: "x", limit: 1 },
+    { name: "home hero", route: "/", selector: ".hero-slides", axis: "y", limit: 12 },
+    { name: "residential hero", route: "/residential/", selector: ".hero-slides", axis: "y", limit: 12 },
+    { name: "commercial hero", route: "/commercial/", selector: ".hero-slides", axis: "y", limit: 12 },
+    { name: "about hero", route: "/about/", selector: "[data-motion-hero-media]", axis: "y", limit: 12 },
+    { name: "home project strip", route: "/", selector: ".blk-projects__track", axis: "x", limit: 1 },
   ];
 
   for (const testCase of cases) {
@@ -9819,9 +9819,9 @@ async function runNoScriptHeroCheck() {
   const viewport = { width: 390, height: 844 };
   await runPageCase(
     "hero remains visible without JavaScript",
-    { route: "/vi/residential/", viewport, javaScriptEnabled: false },
+    { route: "/residential/", viewport, javaScriptEnabled: false },
     async (page) => {
-      const response = await page.goto(pageUrl("/vi/residential/"), {
+      const response = await page.goto(pageUrl("/residential/"), {
         waitUntil: "load",
         timeout: 20_000,
       });
@@ -9928,10 +9928,10 @@ async function runHomeMotionRegressionCheck() {
   const viewport = { width: 1440, height: 900 };
   await runPageCase(
     "home masks and project hover preserve copy",
-    { route: "/vi/", viewport },
+    { route: "/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.evaluate(() => window.localStorage.setItem("tt-lang", "vi"));
       await page.reload({ waitUntil: "domcontentloaded" });
       await waitForLoadedDocument(page);
@@ -10257,7 +10257,7 @@ const BRAND_LOCKUP_ROUTE_CASES = ["vi", "en"].flatMap((locale) =>
       relativePath === "index.html"
         ? "/"
         : `/${relativePath.replace(/\/index\.html$/, "")}/`;
-    return { locale, route: `/${locale}${suffix}` };
+    return { locale, route: `${locale === "en" ? "/en" : ""}${suffix}` };
   }),
 );
 
@@ -10273,10 +10273,10 @@ async function runSharedMediaHoverPortalChecks() {
   for (const locale of ["vi", "en"]) {
     await runPageCase(
       `shared media-hover portal ${locale}`,
-      { route: `/${locale}/`, viewport: { width: 1440, height: 900 } },
+      { route: `${locale === "en" ? "/en" : ""}/`, viewport: { width: 1440, height: 900 } },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, `/${locale}/`);
+        await gotoRoute(page, `${locale === "en" ? "/en" : ""}/`);
         // Only linked portals zoom on hover; a portal without a link keeps its image still (owner 2026-11-22).
         const stillPortal = page.locator("#nang-luc .service-portal").first();
         await stillPortal.scrollIntoViewIfNeeded();
@@ -10367,7 +10367,7 @@ async function runSharedMediaHoverPortalChecks() {
       },
     );
   }
-  for (const route of ["/vi/residential/", "/vi/commercial/", "/vi/about/"]) {
+  for (const route of ["/residential/", "/commercial/", "/about/"]) {
     await runPageCase(
       `shared media-hover detail ${route}`,
       { route, viewport: { width: 1440, height: 900 } },
@@ -10583,10 +10583,10 @@ function assertBrandShellSourceContracts() {
 async function runResponsiveResizeRegressionChecks() {
   await runPageCase(
     "responsive resize clears the desktop scroll coordinate system",
-    { route: "/vi/", viewport: { width: 1199, height: 900 } },
+    { route: "/", viewport: { width: 1199, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.keyboard.press("End");
       await page.waitForTimeout(1_800);
       const desktop = await page.evaluate(() => {
@@ -10644,10 +10644,10 @@ async function runResponsiveResizeRegressionChecks() {
 async function runMenuResizeRegressionCheck() {
   await runPageCase(
     "menu resize does not restart background smooth scroll",
-    { route: "/vi/", viewport: { width: 1199, height: 900 } },
+    { route: "/", viewport: { width: 1199, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await openMenu(page);
       await page.setViewportSize({ width: 959, height: 900 });
       await page.waitForTimeout(700);
@@ -10930,10 +10930,10 @@ async function runBrandLockupRuntimeChecks() {
   for (const viewport of BRAND_SHELL_VIEWPORTS) {
     await runPageCase(
       "brand lockup true bbox " + viewport.width,
-      { route: "/vi/", viewport },
+      { route: "/", viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/");
+        await gotoRoute(page, "/");
         await waitForBrandFonts(page);
         await openMenu(page);
         await waitForBrandFonts(page);
@@ -10950,10 +10950,10 @@ async function runBrandLockupRuntimeChecks() {
 
   await runPageCase(
     "brand lockup English inherits Vietnamese character metrics",
-    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    { route: "/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await waitForBrandFonts(page);
       await openMenu(page);
       await waitForBrandFonts(page);
@@ -11014,7 +11014,7 @@ async function runBrandColorMotionCheck() {
     { locale: "vi", viewport: { width: 1440, height: 900 } },
     { locale: "en", viewport: { width: 1440, height: 900 } },
   ]) {
-    const route = `/${locale}/advertising-products/`;
+    const route = `${locale === "en" ? "/en" : ""}/advertising-products/`;
     await runPageCase(
       `direct white-surface header replays black to CMYK ${locale} ${viewport.width}`,
       { route, viewport },
@@ -11118,10 +11118,10 @@ async function runBrandColorMotionCheck() {
 
   await runPageCase(
     "direct heritage fragment resolves header mark to CMYK",
-    { route: "/vi/#tay-nghe", viewport: { width: 1440, height: 900 } },
+    { route: "/#tay-nghe", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/#tay-nghe");
+      await gotoRoute(page, "/#tay-nghe");
       await page.evaluate(() => {
         document.documentElement.style.overflow = "auto";
         window.location.hash = "tay-nghe";
@@ -11163,10 +11163,10 @@ async function runBrandColorMotionCheck() {
 
   await runPageCase(
     "hamburger brand enters with CMYK mark from first visible frame",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await waitForBrandFonts(page);
       const before = await page.evaluate(() => {
         const readTiming = (path) => ({ fill: getComputedStyle(path).fill });
@@ -11327,13 +11327,13 @@ async function runBrandColorMotionCheck() {
   await runPageCase(
     "reduced-motion hamburger mark starts CMYK",
     {
-      route: "/vi/",
+      route: "/",
       viewport: { width: 390, height: 844 },
       reducedMotion: "reduce",
     },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await openMenu(page);
       const reduced = await page.evaluate(() => {
         const brand = document.querySelector("#site-menu .menu-brand");
@@ -11367,7 +11367,7 @@ async function runBrandColorMotionCheck() {
 
   await runPageCase(
     "white-to-white soft route preserves CMYK mark",
-    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    { route: "/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
       const cmyk = [
@@ -11377,7 +11377,7 @@ async function runBrandColorMotionCheck() {
         "rgb(0, 160, 227)",
       ];
       const black = cmyk.map(() => "rgb(43, 42, 41)");
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
       await page.waitForFunction(
         () =>
@@ -11420,10 +11420,10 @@ async function runBrandColorMotionCheck() {
       const link = await findRouteLink(
         page,
         "[data-site-header]",
-        "/vi/advertising-products/",
+        "/advertising-products/",
       );
       await Promise.all([
-        waitForPath(page, "/vi/advertising-products/"),
+        waitForPath(page, "/advertising-products/"),
         link.evaluate((node) => node.click()),
       ]);
       await page.waitForTimeout(1_100);
@@ -11452,7 +11452,7 @@ async function runBrandColorMotionCheck() {
 
   await runPageCase(
     "interrupted mark flip rewinds in place back to CMYK",
-    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    { route: "/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
       const cmyk = [
@@ -11479,7 +11479,7 @@ async function runBrandColorMotionCheck() {
             ],
           };
         });
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
       // Wait for the flip to CMYK to fully finish: within the header beat there is no flip layer yet but the mark still holds the old color.
       await page.waitForFunction(
@@ -11542,7 +11542,7 @@ async function runBrandColorMotionCheck() {
 
   await runPageCase(
     "hamburger close preserves visible CMYK until hidden",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
       const cmyk = [
@@ -11551,7 +11551,7 @@ async function runBrandColorMotionCheck() {
         "rgb(229, 9, 127)",
         "rgb(0, 160, 227)",
       ];
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await openMenu(page);
       const before = await page.evaluate(() => [
         ...document.querySelectorAll(
@@ -11592,7 +11592,7 @@ async function runBrandColorMotionCheck() {
 
   await runPageCase(
     "direct dark load paints white mark without color motion",
-    { route: "/vi/", viewport: { width: 1440, height: 900 } },
+    { route: "/", viewport: { width: 1440, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
       await page.addInitScript(() => {
@@ -11606,7 +11606,7 @@ async function runBrandColorMotionCheck() {
           }
         });
       });
-      const response = await page.goto(pageUrl("/vi/"), {
+      const response = await page.goto(pageUrl("/"), {
         waitUntil: "domcontentloaded",
         timeout: 20_000,
       });
@@ -11636,7 +11636,7 @@ async function runBrandColorMotionCheck() {
 
   await runPageCase(
     "history white surfaces preserve CMYK without black replay",
-    { route: "/vi/", viewport: { width: 390, height: 844 } },
+    { route: "/", viewport: { width: 390, height: 844 } },
     async (page) => {
       const diagnostics = monitorPage(page);
       const cmyk = [
@@ -11679,7 +11679,7 @@ async function runBrandColorMotionCheck() {
           ].map((path) => getComputedStyle(path).fill),
           sawBlack: sessionStorage.getItem("tt-brand-history-saw-black") === "1",
         }));
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
       await page.waitForFunction(
         (expected) => {
@@ -11697,7 +11697,7 @@ async function runBrandColorMotionCheck() {
         cmyk,
         { timeout: 4_000 },
       );
-      const advertising = "/vi/advertising-products/";
+      const advertising = "/advertising-products/";
       await page.evaluate(() =>
         sessionStorage.removeItem("tt-brand-history-saw-black"),
       );
@@ -11715,7 +11715,7 @@ async function runBrandColorMotionCheck() {
       await page.evaluate(() =>
         sessionStorage.removeItem("tt-brand-history-saw-black"),
       );
-      await traverseHistory(page, "back", "/vi/");
+      await traverseHistory(page, "back", "/");
       await page.waitForTimeout(1_100);
       const back = await readState();
       assert(
@@ -11742,10 +11742,10 @@ async function runBrandHeaderBboxMatrixChecks() {
   for (const locale of ["vi", "en"]) {
     await runPageCase(
       `brand header narrow controls ${locale} 320px`,
-      { route: `/${locale}/`, viewport: { width: 320, height: 844 } },
+      { route: `${locale === "en" ? "/en" : ""}/`, viewport: { width: 320, height: 844 } },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, `/${locale}/`);
+        await gotoRoute(page, `${locale === "en" ? "/en" : ""}/`);
         await waitForBrandFonts(page);
         await page.waitForFunction(
           () => {
@@ -11783,10 +11783,10 @@ async function runBrandHeaderBboxMatrixChecks() {
     const viewport = { width: matrixCase.width, height: 900 };
     await runPageCase(
       "brand header bbox " + matrixCase.label,
-      { route: "/vi/", viewport },
+      { route: "/", viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/");
+        await gotoRoute(page, "/");
         await waitForBrandFonts(page);
         await page.waitForFunction(
           () => {
@@ -11894,10 +11894,10 @@ async function runBrandHeaderBboxMatrixChecks() {
   for (const scaleWidth of [1440, 390]) {
   await runPageCase(
     `brand header whole-lockup scale motion ${scaleWidth}px`,
-    { route: "/vi/", viewport: { width: scaleWidth, height: 900 } },
+    { route: "/", viewport: { width: scaleWidth, height: 900 } },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await waitForBrandFonts(page);
       await page.waitForFunction(
         () => {
@@ -12025,13 +12025,13 @@ async function runBrandHeaderBboxMatrixChecks() {
     await runPageCase(
       testCase.name,
       {
-        route: "/vi/",
+        route: "/",
         viewport: testCase.viewport,
         reducedMotion: testCase.reducedMotion,
       },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/");
+        await gotoRoute(page, "/");
         await waitForBrandFonts(page);
         await page.waitForFunction(
           () => {
@@ -12430,10 +12430,10 @@ async function runHeritageResponsiveClippingChecks() {
   for (const width of [959, 1199, 1440]) {
     await runPageCase(
       "homepage heritage clipping " + width,
-      { route: "/vi/", viewport: { width, height: 900 } },
+      { route: "/", viewport: { width, height: 900 } },
       async (page) => {
         const diagnostics = monitorPage(page);
-        await gotoRoute(page, "/vi/");
+        await gotoRoute(page, "/");
         await page.locator("#tay-nghe").scrollIntoViewIfNeeded();
         await page.waitForTimeout(2_500);
         const state = await readHeritageResponsiveState(page);
@@ -12454,7 +12454,7 @@ async function runBrandShellFocusedChecks() {
 async function runReducedMotionChecks() {
   const cases = [
     ...ROUTES.map((route) => ({ route, viewport: { width: 390, height: 844 } })),
-    { route: "/vi/", viewport: { width: 1024, height: 900 } },
+    { route: "/", viewport: { width: 1024, height: 900 } },
   ];
   for (const { route, viewport } of cases) {
     await runPageCase(
@@ -12475,7 +12475,7 @@ async function runReducedMotionChecks() {
           state.hiddenRevealCount === 0,
           `${state.hiddenRevealCount} reveal elements remained hidden with reduced motion`,
         );
-        if (route === "/vi/") {
+        if (route === "/") {
           const readCloseIcon = () => page.locator(".menu-close__icon").evaluate((icon) => {
             const style = getComputedStyle(icon);
             // A closed dialog is display:none, where the resolved transform is "none"; read the computed one.
@@ -12615,7 +12615,7 @@ async function runP13NavbarChecks() {
 
   for (const locale of ["vi", "en"]) {
     for (const slug of parentRoutes) {
-      const route = `/${locale}/${slug}/`;
+      const route = `${locale === "en" ? "/en" : ""}/${slug}/`;
       await runPageCase(
         `P1.3 current navbar returns ${route} to logical top`,
         { route, viewport },
@@ -12664,10 +12664,10 @@ async function runP13NavbarChecks() {
 
   await runPageCase(
     "P1.3 Advertising parent from a group returns to All and keeps native link behavior",
-    { route: "/vi/advertising-products/", viewport },
+    { route: "/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      const route = "/vi/advertising-products/?category=mobile-retail&campaign=retained";
+      const route = "/advertising-products/?category=mobile-retail&campaign=retained";
       await gotoRoute(page, route);
       await page.evaluate(() => {
         if (!window.TruongThinhMasonry?.replaceTag?.("use-sampling")) {
@@ -12744,21 +12744,21 @@ async function runP13NavbarChecks() {
 
   await runPageCase(
     "P1.3 Advertising menu option still changes category",
-    { route: "/vi/advertising-products/", viewport },
+    { route: "/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/advertising-products/?category=kiosk-posm");
+      await gotoRoute(page, "/advertising-products/?category=kiosk-posm");
       await openMenu(page);
       const historyLength = await page.evaluate(() => history.length);
       // The menu points straight to the cluster page (taxonomy R4).
       // The groups in the menu are the 5 groups with the most products per menu.json (#703), not a fixed mobile-retail.
       const link = page.locator(
-        '#site-menu .menu-option[href="/vi/advertising-products/in-an-decal/"]',
+        '#site-menu .menu-option[href="/advertising-products/in-an-decal/"]',
       ).first();
       assert(await link.count(), "Advertising menu has no printing-decals option");
       await link.click();
       await page.waitForFunction(
-        () => location.pathname === "/vi/advertising-products/in-an-decal/",
+        () => location.pathname === "/advertising-products/in-an-decal/",
       );
       await waitForNavigationCleanup(page);
       const state = await page.evaluate(() => ({
@@ -12778,10 +12778,10 @@ async function runP13NavbarChecks() {
 
   await runPageCase(
     "P1.3 Advertising photo navbar still returns through query navigation",
-    { route: "/vi/advertising-products/", viewport },
+    { route: "/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      const route = "/vi/advertising-products/?category=kiosk-posm&tag=use-sampling&photo=kiosk-posm-07";
+      const route = "/advertising-products/?category=kiosk-posm&tag=use-sampling&photo=kiosk-posm-07";
       await gotoRoute(page, route);
       await page.waitForFunction(
         () => document.querySelector("[data-detail-view]")?.dataset.detailId === "kiosk-posm-07",
@@ -12795,7 +12795,7 @@ async function runP13NavbarChecks() {
       );
       const after = await readNavigationState(page);
       assert(
-        new URL(after.url).pathname === "/vi/advertising-products/"
+        new URL(after.url).pathname === "/advertising-products/"
           && after.historyLength === before.historyLength + 1
           && after.timeOrigin === before.timeOrigin,
         `Photo navbar bypassed parent query navigation ${JSON.stringify({ before, after })}`,
@@ -12806,11 +12806,11 @@ async function runP13NavbarChecks() {
 
   await runPageCase(
     "P1.3 Advertising menu falls back when the catalog adapter is unavailable",
-    { route: "/vi/advertising-products/", viewport },
+    { route: "/advertising-products/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
       await page.route("**/masonry/runtime.mjs*", (request) => request.abort());
-      await gotoRoute(page, "/vi/advertising-products/?photo=kiosk-posm-07");
+      await gotoRoute(page, "/advertising-products/?photo=kiosk-posm-07");
       const unavailable = await page.evaluate(() => ({
         adapter: Boolean(window.TruongThinhMasonry?.getAdapter?.()),
         motion: Boolean(window.TruongThinhMotion),
@@ -12823,7 +12823,7 @@ async function runP13NavbarChecks() {
       const link = await findRouteLink(
         page,
         "#site-menu .menu-nav",
-        "/vi/advertising-products/",
+        "/advertising-products/",
       );
       await link.click();
       await page.waitForFunction(
@@ -12846,7 +12846,7 @@ async function runP13NavbarChecks() {
   await runPageCase(
     "P1.3 closed menu cannot cover the mobile photo primary",
     {
-      route: "/vi/advertising-products/",
+      route: "/advertising-products/",
       viewport: { width: 390, height: 844 },
       hasTouch: true,
       isMobile: true,
@@ -12855,7 +12855,7 @@ async function runP13NavbarChecks() {
       const diagnostics = monitorPage(page);
       await gotoRoute(
         page,
-        "/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07",
+        "/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07",
       );
       await page.waitForFunction(
         () => document.body.classList.contains("is-detail"),
@@ -12999,17 +12999,17 @@ async function runP13NavbarChecks() {
     await runPageCase(
       `P1.3 shared photo header matches Residential with ${input.label}`,
       {
-        route: "/vi/residential/",
+        route: "/residential/",
         viewport: input.viewport,
         hasTouch: input.touch,
         isMobile: input.touch,
       },
       async (page) => {
         const diagnostics = monitorPage(page);
-        const residential = await exercisePhysicalHeader(page, "/vi/residential/", input.touch);
+        const residential = await exercisePhysicalHeader(page, "/residential/", input.touch);
         const advertising = await exercisePhysicalHeader(
           page,
-          "/vi/advertising-products/p/kiosk-posm-07/",
+          "/advertising-products/p/kiosk-posm-07/",
           input.touch,
           true,
         );
@@ -13031,10 +13031,10 @@ async function runP13NavbarChecks() {
 
   await runPageCase(
     "P1.3 homepage logo remains the top-scroll control",
-    { route: "/vi/", viewport },
+    { route: "/", viewport },
     async (page) => {
       const diagnostics = monitorPage(page);
-      await gotoRoute(page, "/vi/");
+      await gotoRoute(page, "/");
       await setLogicalScroll(page, 700);
       const before = await readNavigationState(page);
       await page.locator("[data-site-header] .brand").click();
@@ -13159,10 +13159,10 @@ async function main() {
       await runDelayedDetailFallbackChecks();
     } else if (process.env.TT_E2E_FULL_FAILURES_ONLY === "1") {
       for (const testCase of [
-        { route: "/vi/commercial/", viewport: { width: 768, height: 900 } },
-        { route: "/vi/residential/", viewport: { width: 1024, height: 900 } },
-        { route: "/vi/residential/", viewport: { width: 1440, height: 900 } },
-        { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 } },
+        { route: "/commercial/", viewport: { width: 768, height: 900 } },
+        { route: "/residential/", viewport: { width: 1024, height: 900 } },
+        { route: "/residential/", viewport: { width: 1440, height: 900 } },
+        { route: "/advertising-products/", viewport: { width: 1440, height: 900 } },
       ]) {
         await runPageCase(
           `full-suite lazy image retry ${routeSlug(testCase.route)} ${testCase.viewport.width}`,

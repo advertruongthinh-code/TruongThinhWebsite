@@ -16,8 +16,8 @@
       (() => {
         const slides = /* hero-slides-data:residential */;
         const first = Math.floor(Math.random() * slides.length);
-        const [name, width] = slides[first];
-        const path = `/assets/content/projects/${name}`;
+        // [image URL without ".webp", width]: a repo path or a media origin URL (cms-plan part 2 K4); variants share the name rule.
+        const [path, width] = slides[first];
         document.documentElement.dataset.heroFirst = first;
         // Preload exactly the <picture> candidate that will be chosen: JXL if the browser can decode a 1x1 image, otherwise the img's WebP.
         // Phone (the first source media) only gets WebP up to 960, not the original (owner 2026-11-07).

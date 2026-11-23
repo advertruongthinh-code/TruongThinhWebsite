@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 import { buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { cardMedia, documentText, embedRest, mediaInput, IMAGE_BATCH, TEXT_BATCH } from "../../src/search/embed-input.mjs";
 import { encodeIndex, unavailableMeta } from "../../src/search/index-format.mjs";
+import { siblingSrc, variantKeyOf } from "../site/media-src.mjs";
 
 const PARALLEL = 4;
 const RETRY_MS = [1000, 2000, 4000];
@@ -17,6 +18,21 @@ async function resizedJpeg(file) {
   const { default: sharp } = await import("sharp");
   const jpeg = await sharp(file).resize({ width: 768, height: 768, fit: "inside" }).jpeg({ quality: 85 }).toBuffer();
   return jpeg.toString("base64");
+}
+
+// The model input of one media file. An R2 image (cms-plan part 2 K4) is downloaded at its 480 width (the full file when it is not
+// wider); a network error returns null with a warning, like a model error, so it never blocks a deploy.
+export async function mediaImage(file, width, { fetch, readImage }) {
+  if (!variantKeyOf(file)) return readImage(`src/site${file}`);
+  const url = (width ?? 0) > 480 ? siblingSrc(file, "-480", "webp") : file;
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(CALL_TIMEOUT_MS) });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await readImage(Buffer.from(await response.arrayBuffer()));
+  } catch (error) {
+    console.warn(`search:index skipped ${url}: ${error.message}`);
+    return null;
+  }
 }
 
 export async function run({
@@ -52,7 +68,9 @@ export async function run({
     for (const media of cardMedia(card)) {
       const file = media.kind === "video" ? media.posterSrc : media.src;
       if (!file) continue; // video without poster: indexed by the card text only
-      inputs.push(mediaInput(media, await readImage(`src/site${file}`)));
+      const image = await mediaImage(file, media.width, { fetch, readImage });
+      if (image === null) continue;
+      inputs.push(mediaInput(media, image));
       slots.push([cardIndex, mediaIndex++]);
     }
   }

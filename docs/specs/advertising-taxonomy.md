@@ -88,7 +88,7 @@ media-sản phẩm, embedding media); schema D1 thuộc [CMS](cms.md).
 ```gherkin
 Given dữ liệu chuyển tag "Kỷ niệm chương pha lê" thành sản phẩm riêng trong cụm "Biển văn phòng, bảng tên & kỷ niệm chương"
 When chạy pnpm prepare:site
-Then rail, trang /vi/advertising-products/bien-van-phong/<slug mới>/ và artifact có sản phẩm đó
+Then rail, trang /advertising-products/bien-van-phong/<slug mới>/ và artifact có sản phẩm đó
 And không file code render nào đổi
 ```
 
@@ -110,9 +110,9 @@ tĩnh cụm, sản phẩm hiện sẵn hàng chip. Đang lọc trên masonry mà
 quảng cáo" trên navbar hoặc menu thì về "Tất cả" ở đầu trang; từ photo thì vẫn về chỗ cũ trên masonry nguồn.
 
 ```gherkin
-Given /vi/advertising-products/ ở 1440px, runtime sẵn sàng
+Given /advertising-products/ ở 1440px, runtime sẵn sàng
 When bấm cụm "Bảng hiệu, chữ nổi & hộp đèn" rồi bấm chip "Chữ nổi"
-Then URL thành /vi/advertising-products/bang-hieu-quang-cao/chu-noi/ bằng replaceState
+Then URL thành /advertising-products/bang-hieu-quang-cao/chu-noi/ bằng replaceState
 And chỉ card thuộc sản phẩm đó còn trong masonry, không có request document
 And HTML tĩnh của trang gốc đã chứa link tới mọi cụm và sản phẩm đủ ngưỡng
 ```
@@ -124,7 +124,7 @@ Build sinh trang tĩnh cho mỗi locale:
 - `/{locale}/advertising-products/<cụm>/`
 - `/{locale}/advertising-products/<cụm>/<sản phẩm>/`
 
-Trang chỉ sinh cho cụm và sản phẩm đủ ngưỡng R5. Trang `/vi/` dùng slug VI không dấu, trang `/en/` dùng slug EN (R1); đoạn path `advertising-products` giữ nguyên
+Trang chỉ sinh cho cụm và sản phẩm đủ ngưỡng R5. Trang `/` dùng slug VI không dấu, trang `/en/` dùng slug EN (R1); đoạn path `advertising-products` giữ nguyên
 cho cả hai locale. Mỗi trang là trang masonry Advertising với filter đặt sẵn, có title, meta description, h1, đoạn giới thiệu riêng
 trong HTML tĩnh (h1 là tên trang có từ khóa, chính là title bỏ đuôi " — Trường Thịnh", ẩn khỏi mắt bằng `.sr-only` qua `pageNameHeading`, owner 2026-11-15; kicker vẫn là `p` ghi chữ cố định của trang gốc "Sản phẩm tiêu biểu" / "Our featured products", owner 2026-11-08; khẩu hiệu giữ hình nhưng là `p.hero-title`, owner 2026-10-15), canonical tuyệt đối trỏ chính nó, hreflang VI/EN, JSON-LD `CollectionPage` (30 card đầu của bộ lọc) và `BreadcrumbList`, ảnh share là ảnh bìa card đầu (SEO audit 2026-11-15; trang gốc cũng vậy). Sáu URL tương thích `/advertising-products/<slug cũ>/`
 ([phát hành tĩnh R7](static-release.md#r7-sáu-trang-tương-thích-advertising)) chuyển hướng tới trang cụm mới tương
@@ -137,7 +137,7 @@ cụm và sản phẩm như trên trang gốc.
 Given build xong
 When tải thẳng /en/advertising-products/printing-decals/office-printing/ không JavaScript
 Then HTML có h1, đoạn giới thiệu, canonical chính nó và link tới mọi cụm, sản phẩm
-And tải /vi/advertising-products/?category=print-decals thì URL thành /vi/advertising-products/in-an-decal/
+And tải /advertising-products/?category=print-decals thì URL thành /advertising-products/in-an-decal/
 ```
 
 [CẦN LÀM RÕ: trang không JavaScript hiện chỉ có link, chưa render card tĩnh; giữ như masonry R10 hay render tĩnh
@@ -170,13 +170,13 @@ Ràng buộc cho phase CMS (người dùng tự upload ảnh, gắn hoặc tạo
 Given sản phẩm "Menu" có 9 card và sản phẩm "In ấn văn phòng" có 11 card
 When build
 Then hàng chip cụm "In ấn, decal & menu" chỉ có chip "In ấn văn phòng", trỏ trang riêng của nó
-And không có trang /vi/advertising-products/in-an-decal/menu/, noscript không link tới nó
-And chip "In ấn văn phòng" trỏ /vi/advertising-products/in-an-decal/in-an-van-phong/
+And không có trang /advertising-products/in-an-decal/menu/, noscript không link tới nó
+And chip "In ấn văn phòng" trỏ /advertising-products/in-an-decal/in-an-van-phong/
 
-Given /vi/advertising-products/in-an-decal/, runtime sẵn sàng
+Given /advertising-products/in-an-decal/, runtime sẵn sàng
 When bấm chip "Menu"
-Then URL thành /vi/advertising-products/in-an-decal/?category=printing-decals%2Fmenus bằng replaceState, chỉ card Menu còn
-And canonical vẫn là /vi/advertising-products/in-an-decal/
+Then URL thành /advertising-products/in-an-decal/?category=printing-decals%2Fmenus bằng replaceState, chỉ card Menu còn
+And canonical vẫn là /advertising-products/in-an-decal/
 
 Given sản phẩm X chỉ có 2 ảnh
 When build

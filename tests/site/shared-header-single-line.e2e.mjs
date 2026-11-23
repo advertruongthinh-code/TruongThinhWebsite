@@ -39,7 +39,7 @@ try {
     for (const route of ["", "advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-07"]) {
       const page = await browser.newPage({ viewport: { width: 920, height: 910 }, reducedMotion: "reduce" });
       try {
-        await page.goto(`${origin}/${locale}/${route}`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${origin}${locale === "en" ? "/en" : ""}/${route}`, { waitUntil: "domcontentloaded" });
         await page.evaluate(() => document.fonts.ready);
         await page.waitForFunction(() => document.querySelector("#header-menu-items")?.dataset.navMeasured === "true", null, { timeout: 2000 });
         const narrow = await inspect(page);

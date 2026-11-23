@@ -32,11 +32,11 @@ const fixture = () => ({
     { id: "facts", type: "facts-grid", items: [{ label: t("Loại", "Type"), text: t("Căn hộ", "Apartment") }, { label: t("Khu vực", "Area"), text: t("Bến Tre", "Ben Tre") }] },
     { id: "contact", type: "contact-quick", title: t("Tư vấn", "Talk to us") },
     { id: "slider", type: "project-slider", projectIds: ["other"] },
-    { id: "cta", type: "cta-arrow", text: t("Xem công trình", "See projects"), hrefVi: "/vi/residential/", hrefEn: "/en/residential/" },
+    { id: "cta", type: "cta-arrow", text: t("Xem công trình", "See projects"), hrefVi: "/residential/", hrefEn: "/en/residential/" },
     { id: "quote", type: "quote", text: t("Trích", "Quote") },
     { id: "news", type: "news-cards", newsIds: ["other"] },
     { id: "beside", type: "media-text", image: photo, text: t("Cạnh ảnh.", "Beside.") },
-    { id: "banners", type: "banner-links", items: [{ title: t("Nhà ở", "Homes"), image: photo, hrefVi: "/vi/residential/", hrefEn: "/en/residential/" }] },
+    { id: "banners", type: "banner-links", items: [{ title: t("Nhà ở", "Homes"), image: photo, hrefVi: "/residential/", hrefEn: "/en/residential/" }] },
   ],
 });
 const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map([["other", other]]), news: new Map([["other", other]]) };
@@ -102,7 +102,7 @@ test("project hero tagline needs 1 to 3 lines, at most one italic part and no , 
     [[], /tagline: needs 1 to 3 lines/],
     [[t("a", "a"), t("b", "b"), t("c", "c"), t("d", "d")], /tagline: needs 1 to 3 lines/],
     [[t("*a* và *b*", "*a* and b")], /tagline\[0\]: at most one \*italic\* part/],
-    [[t("chữ *lẻ", "odd")], /tagline\[0\]: at most one \*italic\* part/],
+    [[t("chữ *lẻ", "odd")], /tagline\[0\]: "chữ \*lẻ": \* has no closing mark/],
     [[t("Tường vuông,", "Square walls"), t("gỗ *mềm*", "soft *wood*")], /tagline\[0\]: a line must not end with , \. or ;/],
     [[t("Gỗ mềm", "Soft wood.")], /tagline\[0\]: a line must not end with , \. or ;/],
   ]) {
@@ -151,7 +151,7 @@ test("strip and News blocks without ids pick their items at build", () => {
     projects: new Map(["a", "b", "c", "d"].map((id, index) => [id, project(id, index === 2 ? "commercial" : "residential")])),
     news: new Map([post("old-home", "nha-o", "2026-01-01"), post("new-trend", "xu-huong", "2026-03-01"), post("new-home", "nha-o", "2026-02-01"), post("self", "nha-o", "2026-04-01"), post("older-trend", "xu-huong", "2025-12-01")].map((item) => [item.id, item])),
   };
-  const links = (html) => [...html.matchAll(/href="\/vi\/(?:projects|news)\/([^/]+)\//g)].map((match) => match[1]);
+  const links = (html) => [...html.matchAll(/href="\/(?:projects|news)\/([^/]+)\//g)].map((match) => match[1]);
   // Project page: other projects of the same sector in data order.
   const page = { ...project("a", "residential"), blocks: [{ type: "project-slider" }] };
   assert.deepEqual(links(renderBlocks(page, auto)), ["b", "d"]);
@@ -182,4 +182,30 @@ test("strip and News blocks may omit ids", async () => {
 
 test("validateBlockPage without checkImage names the missing option instead of a TypeError", async () => {
   await assert.rejects(validateBlockPage(fixture(), {}), /validateBlockPage: checkImage is required/);
+});
+
+// Marked text in blocks (cms-plan part 2 E1, K2): every mark, both list kinds, and the plain path kept for unmarked text.
+test("marked text and lists render as leaf segments; unmarked text keeps the old HTML", async () => {
+  const page = fixture();
+  page.blocks[2].text = t("Gỗ **sồi** cho m^2^\n\n• một\n• *hai*\n\n2. ba\n3. [bốn](page:news/other)", "**Oak** wood per m^2^\n\n• one\n• *two*\n\n2. three\n3. [four](page:news/other)");
+  page.blocks[1].text = t("Tổng *quan*\ncông trình", "The *overview*\nof the project");
+  assert.deepEqual(await validateBlockPage(page, ctx), []);
+  const html = renderBlocks(page, ctx);
+  const s = (tag, vi, en, attributes = "") => `<${tag}${attributes} data-en="${en}" data-vi="${vi}" data-seg>${vi}</${tag}>`;
+  assert.ok(html.includes(`<p>${s("span", "Gỗ ", "")}${s("strong", "sồi", "Oak")}${s("span", " cho m", " wood per m")}${s("sup", "2", "2")}</p>`), html);
+  assert.ok(html.includes(`<ul><li>${s("span", "một", "one")}</li><li>${s("em", "hai", "two")}</li></ul>`));
+  assert.ok(html.includes(`<ol start="2"><li>${s("span", "ba", "three")}</li><li>${s("a", "bốn", "four", ' href="/news/khac/" data-en-href="/en/news/other/"')}</li></ol>`));
+  assert.ok(html.includes(`<h2 data-motion-lines>${s("span", "Tổng ", "The ")}${s("em", "quan", "overview")}<br>${s("span", "công trình", "of the project")}</h2>`));
+  assert.ok(html.includes('<p data-en="Beside.">Cạnh ảnh.</p>'), "unmarked text keeps the plain path");
+});
+
+test("mark errors carry the block field and the kind of text slot", async () => {
+  const page = fixture();
+  page.blocks[2].text = t("**sồi", "**oak**");
+  page.blocks[8].items[0].label = t("**Loại**", "**Type**");
+  page.blocks[11].text = t("Xem *thêm*", "See *more*");
+  const errors = await validateBlockPage(page, ctx);
+  assert.ok(errors.some((error) => error.startsWith("sample.blocks[2].text:") && error.includes("no closing mark")), errors.join("\n"));
+  assert.ok(errors.some((error) => error.startsWith("sample.blocks[8].items[0].label:") && error.includes("not allowed")), errors.join("\n"));
+  assert.ok(errors.some((error) => error.startsWith("sample.blocks[11].text:") && error.includes("not allowed")), errors.join("\n"));
 });

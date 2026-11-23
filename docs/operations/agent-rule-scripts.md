@@ -24,7 +24,8 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Dựng bản publish Design System | `node scripts/docs/stage-design-system.mjs` | Ghi `.tmp/design-system-publish/project/` và in danh sách file cho công cụ Artifact; fail nếu ảnh preview chưa có id upload trong `design-system.json`. Cách publish ở [Design System](../../design-system/README.md#overview). |
 | Chụp Advertising cho Design System | `node scripts/docs/capture-design-system.mjs [baseUrl]` | Cần `pnpm dev`; Playwright chụp DOM runtime Advertising vào `scripts/docs/captures/`, sau đó chạy lệnh sinh ở trên. Chạy lại khi đổi markup runtime Advertising hoặc khi `qa:docs` báo class không còn. `PLAYWRIGHT_EXECUTABLE_PATH` đổi browser. |
 | Related scroll emulator + Android | `pnpm qa:related-scroll [-- --skip-emulator|--skip-device|--cards 16,first|--rotate]` | Preview8792 tự bật nếu tắt; tap thật qua `adb shell input tap` sau một tap calibration. `--rotate` khóa landscape thật qua `settings put system user_rotation 1` rồi trả giá trị cũ khi thoát; agent tự chạy, phiên PC chặn đổi system setting thì kiểm landscape bằng CDP viewport emulation, không nhờ owner xoay máy. Raw ở `.tmp/site-media-card/related-scroll-*`. |
-| Dormant Worker contract | `pnpm qa:worker:static`, `pnpm qa:worker` | Chỉ sau owner gate mở CMS và có Worker runtime. |
+| Seed D1 của CMS | `pnpm cms:seed --out .tmp/cms/seed.sql [--content <thư mục>] [--force]` | Chỉ in file SQL từ nội dung repo; nạp lên D1 ở task S4 khi owner duyệt gate. `--force` chỉ dùng sau khi liệt kê bản ghi không do seed tạo vào PR hoặc card. |
+| Admin Worker contract | `pnpm qa:worker` (`pnpm qa:worker:security` chỉ phần xác thực) | Chạy trong Node với D1 giả, không cần Wrangler. |
 | Browser suite | `pnpm qa:site`, `pnpm qa:cross-browser` | Live server cần sẵn. |
 | Direct Playwright | `pwsh -File scripts/tooling/run-playwright.ps1 -Suite <full|smoke>` | Chỉ khi cần runner wrapper. |
 

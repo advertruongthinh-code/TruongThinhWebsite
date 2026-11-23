@@ -34,12 +34,13 @@ document.documentElement.classList.add("media-gate");
     if (frame) offscreen.unobserve(frame);
   };
   const isImage = (target) => target.tagName === "IMG";
+  const isContentSrc = (src) => /^(\/assets\/content\/|https:\/\/[^/]+\/v\/\w{32}\/)/.test(src || "");
   // The waiting frame is the parent of the content image (or of the picture), except grid, photo view, the Advertising "Xem lớn hơn" viewer and the client logo strip:
   // add the class when the image enters the DOM instead of a page-wide :has() selector, which made every style recalculation about 1/4 slower.
   // A [data-media-frame] ancestor opts any image in (any src, no exclusions); the nearest one is the frame.
   const markFrame = (image) => {
     const marked = image.closest("[data-media-frame]");
-    if (!marked && !image.getAttribute("src")?.startsWith("/assets/content/")) return;
+    if (!marked && !isContentSrc(image.getAttribute("src"))) return;
     const parent = image.parentElement;
     const frame = marked || (parent?.tagName === "PICTURE" ? parent.parentElement : parent);
     if (frame && (marked || !frame.closest("[data-project-grid], [data-detail-view], [data-detail-dialog], .client-logo-marquee"))) {
@@ -129,13 +130,15 @@ document.documentElement.classList.add("media-gate");
   // Progressive original (progressive-loading R2, R10): stream a JXL original and show a partial copy once the bytes received reach the build's threshold
   // for the tier on screen (from there the partial file is already sharper than that tier at its size), once more halfway to the end, then the file
   // whole (a blob too, so the file is requested only once whatever the cache headers). Resolves false before any request when there is no threshold
-  // (WebP, a tier without one); the caller then loads the whole file.
+  // (WebP, a tier without one, a cross-origin R2 file until E21 adds CORS); the caller then loads the whole file.
   let thresholds;
   const streamOriginal = async (original, shown, show) => {
     const tier = /-(\d+)\.jxl$/.exec(shown)?.[1];
     if (!tier || !original.endsWith(".jxl")) return false;
     thresholds ||= fetch("/assets/content/jxl-thresholds.json").then((response) => response.json()).catch(() => ({}));
-    const at = (await thresholds)[new URL(original, location.href).pathname.slice(1)]?.[tier];
+    const url = new URL(original, location.href);
+    if (url.origin !== location.origin) return false;
+    const at = (await thresholds)[url.pathname.slice(1)]?.[tier];
     if (!at) return false;
     const response = await fetch(original);
     if (!response.ok || !response.body) throw new Error(original);
@@ -219,7 +222,7 @@ document.documentElement.classList.add("media-gate");
   document.addEventListener("error", ({ target }) => {
     if (!isImage(target)) return;
     settle(target, true);
-    if (!target.getAttribute("src")?.startsWith("/assets/content/")) return;
+    if (!isContentSrc(target.getAttribute("src"))) return;
     retrying.add(target);
     if (!retryTimer) {
       retryTimer = setTimeout(retryFailed, retryDelay);

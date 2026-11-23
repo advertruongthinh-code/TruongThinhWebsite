@@ -11,7 +11,7 @@ const base = process.env.BASE_URL || "http://127.0.0.1:8787";
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
+  await page.goto(`${base}/advertising-products/`, { waitUntil: "load" });
   const link = page.locator("[data-masonry-card] > a").first();
   await link.waitFor();
   // Keep the primary image from arriving so the image-wait Flow stays on the frame during the check.
@@ -36,7 +36,7 @@ try {
   await page.close();
 
   const phone = await browser.newPage({ viewport: { width: 384, height: 800 }, isMobile: true, hasTouch: true });
-  await phone.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
+  await phone.goto(`${base}/advertising-products/`, { waitUntil: "load" });
   const card = phone.locator("[data-masonry-card] > a").first();
   await card.waitFor();
   await phone.route("**/assets/content/**", async (route) => {

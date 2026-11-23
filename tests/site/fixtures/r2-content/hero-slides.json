@@ -1,0 +1,61 @@
+{
+ "home": [
+  {
+   "id": "home-hero-office-reception-20261024",
+   "src": "https://media.test/v/c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3/m-hero.webp",
+   "width": 3072,
+   "height": 2048,
+   "altVi": "",
+   "altEn": "",
+   "focal": {
+    "x": 50,
+    "y": 50
+   },
+   "phoneMove": {
+    "kind": "zoom-out"
+   }
+  }
+ ],
+ "residential": [
+  {
+   "id": "residential-hero-kitchen-dining",
+   "src": "/assets/content/projects/tu-bep-chu-l-ban-an-go.webp",
+   "width": 3072,
+   "height": 2048,
+   "altVi": "Tủ bếp gỗ công nghiệp chữ L có đèn hắt, bàn ăn gỗ",
+   "altEn": "L-shaped laminated kitchen with under-cabinet lighting and a wooden dining table",
+   "focal": {
+    "x": 50,
+    "y": 50
+   },
+   "phoneMove": {
+    "kind": "zoom-out"
+   }
+  }
+ ],
+ "commercial": [
+  {
+   "id": "commercial-hero-cafe",
+   "src": "/assets/content/projects/quan-cafe-san-vuon-quay-bar.webp",
+   "width": 3072,
+   "height": 2048,
+   "altVi": "Quán cafe sân vườn về đêm, quầy bar đèn hắt, bàn ghế gỗ",
+   "altEn": "Garden cafe at night with an underlit bar counter and wooden seating",
+   "focal": {
+    "x": 50,
+    "y": 50
+   },
+   "phoneMove": {
+    "kind": "pan",
+    "from": {
+     "x": 45,
+     "y": 50
+    },
+    "to": {
+     "x": 65,
+     "y": 50
+    }
+   }
+  }
+ ]
+}

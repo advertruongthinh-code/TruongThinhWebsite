@@ -26,7 +26,7 @@ const VIEWS = [["PC 1440", VIEWPORTS.desktop, false], ["phone 390", VIEWPORTS.ph
 
 async function openCard(page, value) {
   await page.addInitScript((data) => { window.__TT_ADVERTISING_ARTIFACT__ = data; }, value);
-  await page.goto(`${BASE_URL}/vi/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);

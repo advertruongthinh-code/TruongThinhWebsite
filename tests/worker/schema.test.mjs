@@ -118,3 +118,10 @@ test("afterSelect runs after each standalone SELECT", async () => {
   await db.batch([db.prepare("SELECT 1")]);
   assert.deepEqual(seen, [1, 2]);
 });
+
+test("a write with RETURNING gives its rows and its change count", async () => {
+  const db = createD1(SCHEMA);
+  const result = await db.prepare("INSERT INTO settings (key, value) VALUES ('a', '1') RETURNING key").run();
+  assert.deepEqual(result.results, [{ key: "a" }]);
+  assert.equal(result.meta.changes, 1);
+});
