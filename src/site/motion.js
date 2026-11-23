@@ -3031,8 +3031,9 @@
       || link.hasAttribute("download")
     ) return;
     const destination = new URL(link.href, window.location.href);
-    // The rail points to a cluster page (taxonomy R4); the same /<locale>/advertising-products root still queues in-place filtering.
-    const advertisingRoot = (pathname) => pathname.split("/").slice(0, 3).join("/");
+    // The rail points to a cluster page (taxonomy R4); the same Advertising root (VI at /advertising-products, EN at /en/advertising-products,
+    // owner 2026-11-22) still queues in-place filtering.
+    const advertisingRoot = (pathname) => pathname.replace(/(\/advertising-products)(?:\/.*)?$/, "$1");
     if (
       destination.origin !== window.location.origin
       || advertisingRoot(destination.pathname) !== advertisingRoot(window.location.pathname)
