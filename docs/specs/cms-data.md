@@ -9,9 +9,11 @@ source:
   - .github/workflows/rollback.yml
 tests:
   - tests/cms/projection.test.mjs
+  - tests/tooling/fetch-snapshot.test.mjs
+  - tests/tooling/deploy-marker.test.mjs
   - tests/worker/schema.test.mjs
 notion: https://app.notion.com/p/420332849a0e81c9adfcf363d96fcde5
-updated: 2026-11-22
+updated: 2026-11-23
 ---
 
 # Dữ liệu và đường xuất bản của CMS
@@ -238,7 +240,7 @@ cho owner tới khi [editor](cms-editor.md) có panel Trạng thái, Nhật ký 
 | R2, R3 | chưa có; cần test khứ hồi `tests/cms/projection.test.mjs`, test redirect trong `tests/site/` |
 | R4 | `node --test tests/tooling/wrangler-config.test.mjs` |
 | R5 | chưa có; cần `tests/cms/build-variants.test.mjs`, `tests/worker/variants.test.mjs` |
-| R6 | chưa có; cần `tests/tooling/fetch-snapshot.test.mjs` và một lần đo thật trên CI |
+| R6 | `tests/tooling/fetch-snapshot.test.mjs` (bản chụp chia trang, 423, 500, bỏ qua bản trùng), `tests/tooling/deploy-marker.test.mjs` (khóa dấu deployment), `tests/tooling/wrangler-config.test.mjs` (bước chỉ cho staging); còn một lần đo thật trên CI |
 | R7 | chưa có; cần `pnpm qa:worker` |
 
 ## Gate còn mở
