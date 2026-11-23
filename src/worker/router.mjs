@@ -9,8 +9,13 @@ import list from "./commands/list.mjs";
 import purge from "./commands/purge.mjs";
 import restore from "./commands/restore.mjs";
 import save from "./commands/save.mjs";
+import mediaFile from "./commands/media-file.mjs";
+import mediaList from "./commands/media-list.mjs";
+import mediaOriginal from "./commands/media-original.mjs";
 import snapshot from "./commands/snapshot.mjs";
 import trash from "./commands/trash.mjs";
+import updateMedia from "./commands/update-media.mjs";
+import uploadMedia from "./commands/upload-media.mjs";
 
 // { method, owner?, service?, upload?, run(request, env, ctx, actor, url) }; later tasks add commands here.
 export const COMMANDS = {
@@ -19,11 +24,16 @@ export const COMMANDS = {
   create,
   get,
   list,
+  "media-file": mediaFile,
+  "media-list": mediaList,
+  "media-original": mediaOriginal,
   purge,
   restore,
   save,
   snapshot,
   trash,
+  "update-media": updateMedia,
+  "upload-media": uploadMedia,
 };
 
 export async function route(request, env, ctx) {

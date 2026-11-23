@@ -126,7 +126,7 @@ Then không trả 200
 ### R5. Media, crop và biến thể
 
 Media có hai nguồn: `repo` (file `.webp` trong `src/site/assets/content/`, trường `path`) và `r2` (bản gốc ở bucket
-private, key `originals/<mediaId>/original.<ext>`). Bản gốc giữ nguyên byte, không bao giờ phát ra ngoài; ảnh upload
+private, key `originals/<mediaId>/<writeId>.<ext>`, ghi ở `data.originalKey`; mỗi lần upload một key nên hai upload chạy đua không ghi đè nhau). Bản gốc giữ nguyên byte, không bao giờ phát ra ngoài; ảnh upload
 là JPEG, PNG, WebP, AVIF, tối đa 25 MB. Logo SVG (tối đa 200 KB, qua bộ kiểm an toàn) không cắt, không sinh biến thể:
 file ghi thẳng `v/<key>/<mediaId>.svg` ở bucket public kèm manifest, kích thước lấy từ `viewBox` làm tròn. Kích thước media là kích thước sau khi xoay theo EXIF; job
 biến thể xoay trước khi cắt. Chỗ đặt media trong nội dung là `{ mediaId, crop: [x, y, w, h] }`; Worker tự ghi `src`,
