@@ -2,7 +2,7 @@
 
 const $ = (id) => document.getElementById(id);
 const logEl = $('log');
-const buttons = [$('save1'), $('save10'), $('stale10'), $('uploadTest'), $('mediaReload')];
+const buttons = [$('save1'), $('save10'), $('stale10'), $('uploadTest'), $('mediaReload'), $('rebuild')];
 
 function log(line, out = logEl) {
   out.textContent += line + '\n';
@@ -75,6 +75,24 @@ $('save1').addEventListener('click', () => run(() => saveN(1)));
 $('save10').addEventListener('click', () => run(() => saveN(10)));
 $('stale10').addEventListener('click', () => run(() => staleN(10)));
 
+const TOKEN_WARN_MS = 14 * 86400000;
+
+// The two warning lines of CMS plan P4 item 4.
+function warnings(data) {
+  const lines = [];
+  const snapshotAt = data.deployments && data.deployments[0] && data.deployments[0].snapshotAt;
+  if (data.lastSaveAt && (!snapshotAt || data.lastSaveAt > snapshotAt)) lines.push('Site chậm hơn lần lưu cuối: lần dựng gần nhất chưa chứa nội dung mới.');
+  const expires = Date.parse(data.tokenExpiresAt);
+  if (data.runs === null) lines.push('Không đọc được GitHub: token thiếu, sai hoặc hết hạn. Đổi theo runbook.');
+  else if (expires - Date.now() < TOKEN_WARN_MS) lines.push('Token GitHub hết hạn ngày ' + data.tokenExpiresAt + ' (còn dưới 14 ngày): đổi theo runbook.');
+  return lines;
+}
+
+async function rebuild() {
+  await timed('rebuild', '/api/admin/rebuild', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+  await loadBuildStatus();
+}
+
 async function loadBuildStatus() {
   const el = $('buildStatus');
   try {
@@ -84,6 +102,7 @@ async function loadBuildStatus() {
       el.textContent = 'Lỗi ' + res.status + ': ' + (data && data.error);
       return;
     }
+    $('buildWarnings').textContent = warnings(data).join('\n');
     el.textContent = Object.entries(data).map(([k, v]) => k + ': ' + JSON.stringify(v)).join('\n') || '(trống)';
   } catch (e) {
     el.textContent = 'Không tải được trạng thái build.';
@@ -130,6 +149,7 @@ async function loadMediaList() {
 }
 
 $('uploadTest').addEventListener('click', () => run(uploadTest));
+$('rebuild').addEventListener('click', () => run(rebuild));
 $('mediaReload').addEventListener('click', () => run(loadMediaList));
 
 loadBuildStatus();

@@ -1,6 +1,6 @@
-// Workflow dispatch of the admin Worker (CMS plan Q8, P3). dispatchBuild stays a placeholder until P4.
+// Workflow dispatch of the admin Worker (CMS plan Q8, P3, P4).
 export const VARIANT_LOT = 8;
-const DISPATCHES = "https://api.github.com/repos/advertruongthinh-code/TruongThinhWebsite/actions/workflows";
+export const WORKFLOWS = "https://api.github.com/repos/advertruongthinh-code/TruongThinhWebsite/actions/workflows";
 const RETRY_MS = [1000, 2000, 4000];
 const wait = (ms) => (globalThis.scheduler?.wait ? scheduler.wait(ms) : new Promise((resolve) => setTimeout(resolve, ms)));
 
@@ -15,7 +15,7 @@ export async function dispatchWorkflow(env, file, inputs) {
     for (let attempt = 0; attempt <= RETRY_MS.length; attempt += 1) {
       if (attempt && !retriable(status)) break;
       if (attempt) await wait(RETRY_MS[attempt - 1]);
-      const response = await fetch(`${DISPATCHES}/${file}/dispatches`, {
+      const response = await fetch(`${WORKFLOWS}/${file}/dispatches`, {
         method: "POST",
         headers: { Authorization: `Bearer ${env.GITHUB_ACTIONS_TOKEN}`, Accept: "application/vnd.github+json", "User-Agent": "tt-cms" },
         body: JSON.stringify({ ref: "main", inputs }),
@@ -41,4 +41,14 @@ export async function dispatchVariants(env, keys) {
   await Promise.all(lots.map((lot) => dispatchWorkflow(env, "cms-variants.yml", { items: JSON.stringify(lot) })));
 }
 
-export async function dispatchBuild(_env) {}
+// Content build (Q8): paused publishing never calls GitHub and returns "paused"; after unpausing, press "Dựng lại" (runbook).
+export async function dispatchBuild(env) {
+  const paused = await env.DB.prepare("SELECT value FROM settings WHERE key = 'publish_paused'").first("value");
+  return paused === "1" ? "paused" : dispatchWorkflow(env, "ci.yml", { content: "true" });
+}
+
+// Cron calls this every 5 minutes: a failed ci.yml dispatch is repeated until it succeeds (success clears dispatch_error).
+export async function retryBuild(env) {
+  const error = await env.DB.prepare("SELECT value FROM settings WHERE key = ?").bind(dispatchErrorKey("ci.yml")).first("value");
+  if (error) await dispatchBuild(env);
+}

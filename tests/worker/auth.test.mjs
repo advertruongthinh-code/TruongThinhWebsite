@@ -72,7 +72,7 @@ test("a valid user JWT of an active account reaches a user command", async () =>
   const response = await call(env, "build-status", { jwt: await token({ email: "Staff@Example.test" }) });
   assert.equal(response.status, 200);
   assert.equal(response.headers.get("Cache-Control"), "no-store");
-  assert.deepEqual(await response.json(), { paused: false, backupAt: null });
+  assert.deepEqual(await response.json(), { paused: false, dispatchError: null, lastSaveAt: null, deployments: [], runs: null, rollbackRuns: [], tokenExpiresAt: null, backupAt: null });
 });
 
 test("a bad JWT is refused without an audit row", async () => {

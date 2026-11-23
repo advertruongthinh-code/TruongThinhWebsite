@@ -89,6 +89,16 @@ Owner làm một lần trên PC (agent không đăng ký thay):
 2. `rclone config`: remote tên `r2cms`, kiểu S3, provider Cloudflare, dán Access Key ID, Secret Access Key và endpoint của token đó; đặt mật khẩu cho file cấu hình (mục `s` của `rclone config`). Thư mục sao lưu trên PC và NAS chứa email tài khoản: không chia sẻ.
 3. `schtasks /create /tn "TruongThinh CMS backup" /sc weekly /d SUN /st 02:00 /tr "pwsh -NoProfile -File E:\TruongThinh-Website\scripts\cms\backup-pull.ps1 -NasPath <đường dẫn NAS>"`
 
+## Token dispatch GitHub (P4)
+
+Owner nhập một lần; agent không đọc giá trị. Admin Worker dùng token này để gọi `ci.yml` (lần dựng nội dung) và `cms-variants.yml`.
+
+1. GitHub, Settings, Developer settings, Personal access tokens, Fine-grained tokens, Generate new token: tên `tt-cms-dispatch`; Expiration 1 năm; Repository access: Only select repositories, chọn repo `TruongThinhWebsite`; Permissions, Repository permissions: Actions, Read and write. Generate, chép token.
+2. Cloudflare, Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets, Add: Type `Secret`, tên `GITHUB_ACTIONS_TOKEN`, dán token, Deploy.
+3. Cách khác trên PC: `pnpm demo:wrangler secret put GITHUB_ACTIONS_TOKEN --config wrangler.toml`, dán token khi được hỏi.
+4. Kiểm: mở `status.html`, `tokenExpiresAt` có ngày hết hạn và `runs` không phải `null`. Ghi ngày hết hạn vào bảng dưới; đổi token trước hạn bằng cùng các bước.
+5. Lúc tạm dừng xuất bản, các lần lưu không gọi dựng và Cron không gọi lại. Bỏ tạm dừng xong, bấm "Dựng lại" trên `status.html` để staging nhận nội dung đã lưu.
+
 ## Migration D1
 
 - Migration sau `0001` chỉ thêm (bảng, cột, index), không xóa, không đổi tên, không đổi kiểu, để Worker bản cũ vẫn chạy trên lược đồ mới.
@@ -106,3 +116,4 @@ Không ghi giá trị. Thread tạo credential điền dòng của nó; card Not
 | Token CI Cloudflare "Edit Cloudflare Workers" (environment `cloudflare-deploy`) | S4 bước 5 | Không hết hạn | Cloudflare, API Tokens |
 | Token export D1 (`tt-d1-export`, secret Worker `D1_EXPORT_TOKEN`) | S5 | 1 năm sau ngày tạo (ghi ngày khi tạo) | Cloudflare, API Tokens |
 | Token R2 chỉ đọc bucket private (rclone `r2cms` trên PC) | S5 | | R2, Manage API tokens |
+| Token GitHub fine-grained (`tt-cms-dispatch`, secret Worker `GITHUB_ACTIONS_TOKEN`) | P4 | 1 năm sau ngày tạo (ghi ngày khi tạo) | GitHub, Developer settings, Fine-grained tokens |

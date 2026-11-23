@@ -7,6 +7,7 @@ import create from "./commands/create.mjs";
 import get from "./commands/get.mjs";
 import list from "./commands/list.mjs";
 import purge from "./commands/purge.mjs";
+import rebuild from "./commands/rebuild.mjs";
 import restore from "./commands/restore.mjs";
 import save from "./commands/save.mjs";
 import mediaFile from "./commands/media-file.mjs";
@@ -28,6 +29,7 @@ export const COMMANDS = {
   "media-list": mediaList,
   "media-original": mediaOriginal,
   purge,
+  rebuild,
   restore,
   save,
   snapshot,
