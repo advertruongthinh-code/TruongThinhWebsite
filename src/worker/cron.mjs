@@ -1,6 +1,6 @@
 // One Cron Trigger "* * * * *" (CMS plan Q11). runCron picks the jobs by the UTC hour and minute of event.scheduledTime:
 // | UTC minute | Job                                                       |
-// | every      | settleVariants (P3), except daily job minutes; minutes divisible by 5 add retryBuild (P4) |
+// | every      | settleVariants (P3) and flushBuild (Q8: wanted content build; a failed dispatch retries at minutes divisible by 5), except daily job minutes |
 // | 18:00      | exportDatabase (S5)                                       |
 // | 18:05      | pruneBackups (S5), checkAccessDrift (P7)                  |
 // | 18:10      | purgeOldTrash (P8, part 2)                                |
@@ -8,7 +8,7 @@
 // | hh:33      | exportIfMissing (S5): retries the export until today's file exists |
 import { checkAccessDrift } from "./access.mjs";
 import { exportDatabase, exportIfMissing, pruneBackups } from "./backup.mjs";
-import { retryBuild } from "./dispatch.mjs";
+import { flushBuild } from "./dispatch.mjs";
 import { settleVariants } from "./variants.mjs";
 
 const DAILY = { "18:00": [exportDatabase], "18:05": [pruneBackups, checkAccessDrift] }; // later tasks add entries
@@ -18,10 +18,10 @@ const jobsAt = (time) => DAILY[time] ?? (time.endsWith(":33") ? [exportIfMissing
 export async function runCron(event, env, ctx) {
   const scheduled = new Date(event.scheduledTime);
   const time = scheduled.toISOString().slice(11, 16);
-  // A daily job minute skips settleVariants and retryBuild, so the export's fetches and the R2 reads never share one invocation's limits.
+  // A daily job minute skips settleVariants and flushBuild, so the export's fetches and the R2 reads never share one invocation's limits.
   const jobs = jobsAt(time);
   if (!jobs) ctx?.waitUntil(settleVariants(env, ctx).catch((error) => console.error("settleVariants", error)));
-  if (!jobs && scheduled.getUTCMinutes() % 5 === 0) ctx?.waitUntil(retryBuild(env).catch((error) => console.error("retryBuild", error)));
+  if (!jobs) ctx?.waitUntil(flushBuild(env, scheduled.getUTCMinutes()).catch((error) => console.error("flushBuild", error)));
   // String(error) keeps the message; Workers Logs showed only the stack of a logged Error.
   await Promise.all((jobs ?? []).map((job) => job(env).catch((error) => console.error(job.name, String(error)))));
 }

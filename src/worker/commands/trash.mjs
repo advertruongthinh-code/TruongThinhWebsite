@@ -1,6 +1,6 @@
 // POST /api/admin/trash (CMS plan P1, Q9, Q10): moves a list record to the trash after the cross-record checks.
 import { ID, OPEN_TYPES } from "../../cms/contract.mjs";
-import { dispatchBuild } from "../dispatch.mjs";
+import { wantBuild } from "../dispatch.mjs";
 import { auditStatement, HttpError, json, readJson } from "../http.mjs";
 import { contentRevStatement, FIXED_TYPES, guard, referencedBy, trashRefusal } from "../records.mjs";
 
@@ -23,7 +23,7 @@ export default {
       auditStatement(env, actor, "trash", type, id, "ok", { guard: G }),
     ]);
     if (update.meta.changes === 0) throw new HttpError(404, { error: "not-found" }, target);
-    if (row.status === "published") ctx?.waitUntil?.(dispatchBuild(env));
+    if (row.status === "published") ctx?.waitUntil?.(wantBuild(env));
     return json({ status: "trashed", referencedBy: await referencedBy(env, type, id) });
   },
 };

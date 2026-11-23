@@ -58,26 +58,65 @@ function setup({ status, headers = {}, runs = [] } = {}) {
     calls.length = 0;
     return call("save", { type: "news", id, version: got.body.version, data: got.body.data });
   };
-  return { env, calls, call, setting, put, cron, saveNews };
+  return { env, DB, calls, call, setting, put, cron, saveNews };
 }
 
-test("saving a published record dispatches ci.yml once with content true and a User-Agent", async () => {
-  const { saveNews, calls } = setup();
+test("a save never calls GitHub; the next cron minute dispatches ci.yml once with content true and a User-Agent", async () => {
+  const { saveNews, calls, cron } = setup();
   assert.equal((await saveNews()).status, 200);
+  assert.equal(calls.length, 0);
+  await cron("10:06");
   assert.equal(calls.length, 1);
   assert.match(calls[0].url, /\/workflows\/ci\.yml\/dispatches$/);
   assert.equal(calls[0].body, '{"ref":"main","inputs":{"content":"true"}}');
   assert.equal(calls[0].headers["User-Agent"], "tt-cms");
+  await cron("10:07");
+  assert.equal(calls.length, 1, "nothing new: no second dispatch");
 });
 
-test("GitHub 500 gives exactly four calls and a dispatch_error; a later success clears it", async () => {
-  const { saveNews, calls, setting, env } = setup({ status: 500 });
+test("ten quick saves give one content build; a draft save wants none", async () => {
+  const { call, calls, cron, DB } = setup();
+  const { id } = DB.sqlite.prepare("SELECT id FROM records WHERE type = 'news' AND status = 'published' ORDER BY position LIMIT 1").get();
+  for (let i = 0; i < 10; i += 1) {
+    const got = await call("get", undefined, `?type=news&id=${id}`);
+    assert.equal((await call("save", { type: "news", id, version: got.body.version, data: got.body.data })).status, 200);
+  }
+  await cron("10:06");
+  assert.equal(calls.filter(({ method }) => method === "POST").length, 1);
+  calls.length = 0;
+  const { body: { data } } = await call("get", undefined, `?type=news&id=${id}`);
+  const fresh = { ...data, id: "zz-nhap", slugVi: "zz-nhap", slugEn: "zz-draft", title: { vi: "", en: "" } };
+  assert.equal((await call("create", { type: "news", id: "zz-nhap", data: fresh })).status, 201);
+  const saved = await call("save", { type: "news", id: "zz-nhap", version: 1, data: fresh });
+  assert.equal(saved.body.status, "draft");
+  calls.length = 0;
+  await cron("10:07");
+  assert.equal(calls.length, 0);
+});
+
+test("GitHub 500 gives exactly four calls and a dispatch_error; the retry at minute 10 clears it", async () => {
+  const { saveNews, calls, setting, cron } = setup({ status: 500 });
   await saveNews();
+  await cron("10:06");
   assert.equal(calls.length, 4);
   assert.match(setting("dispatch_error:ci.yml"), /^\S+ ci\.yml 500$/);
-  globalThis.fetch = async () => new Response(null, { status: 204 });
-  assert.equal(await dispatchBuild(env), true);
+  globalThis.fetch = async (url) => { calls.push({ url: String(url) }); return new Response(null, { status: 204 }); };
+  calls.length = 0;
+  await cron("10:07");
+  assert.equal(calls.length, 0, "after a failure only minutes divisible by 5 retry");
+  await cron("10:10");
+  assert.equal(calls.length, 1);
   assert.equal(setting("dispatch_error:ci.yml"), undefined);
+  await cron("10:11");
+  assert.equal(calls.length, 1, "the wanted build was sent");
+});
+
+test("rebuild by hand also sends the wanted build, so cron does not dispatch it again", async () => {
+  const { saveNews, call, calls, cron } = setup();
+  await saveNews();
+  assert.equal((await call("rebuild", {})).status, 202);
+  await cron("10:06");
+  assert.equal(calls.filter(({ method }) => method === "POST").length, 1);
 });
 
 test("paused: snapshot 423, rebuild 409, save still 200 without a dispatch", async () => {

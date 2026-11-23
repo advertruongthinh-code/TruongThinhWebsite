@@ -97,7 +97,7 @@ Owner nhập một lần; agent không đọc giá trị. Admin Worker dùng tok
 2. Cloudflare, Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets, Add: Type `Secret`, tên `GITHUB_ACTIONS_TOKEN`, dán token, Deploy.
 3. Cách khác trên PC: `pnpm token:roll cms-dispatch`, dán token và ngày hết hạn khi được hỏi; lệnh đặt secret Worker và ghi hạn vào sổ.
 4. Kiểm: mở `status.html`, `tokenExpiresAt` có ngày hết hạn và `runs` không phải `null`. Ghi ngày hết hạn vào bảng dưới; đổi token trước hạn bằng cùng các bước.
-5. Lúc tạm dừng xuất bản, các lần lưu không gọi dựng và Cron không gọi lại. Bỏ tạm dừng xong, bấm "Dựng lại" trên `status.html` để staging nhận nội dung đã lưu.
+5. Lúc tạm dừng xuất bản, Cron không gọi dựng. Bỏ tạm dừng xong, phút Cron kế tiếp tự dựng nội dung đã lưu; bấm "Dựng lại" trên `status.html` nếu muốn dựng ngay.
 
 ## Tài khoản và Access (P7)
 

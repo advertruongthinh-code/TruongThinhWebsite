@@ -1,7 +1,7 @@
 // POST /api/admin/save (CMS plan P1, Q9, Q10; cms.md R4): optimistic version check, validation, one guarded batch.
 import { OPEN_TYPES, ID, SINGLETON_TYPES, fullErrors, recordName, recordSlugs, shapeErrors } from "../../cms/contract.mjs";
 import { materialize } from "../../cms/media-ref.mjs";
-import { dispatchBuild, dispatchVariants } from "../dispatch.mjs";
+import { dispatchVariants, wantBuildStatement } from "../dispatch.mjs";
 import { auditStatement, HttpError, isPlainObject, json, readJson } from "../http.mjs";
 import { contentRevStatement, FIXED_TYPES, guard, isUniqueSlug, lastSlide, mediaUses, slugStatements, validationContext } from "../records.mjs";
 
@@ -76,6 +76,8 @@ export default {
         ...writeStatements(env, { type, id, version: newVersion, status, text, usesJson: prepared.usesJson, now, actor, writeId, G }),
         ...slugRows,
         contentRevStatement(env, G),
+        // Q8: a published save without pending variants wants a content build; Cron dispatches it (no GitHub call here).
+        wantBuildStatement(env, { sql: "EXISTS (SELECT 1 FROM records WHERE type = ? AND id = ? AND write_id = ? AND status = 'published' AND pending = 0)", args: G.args }),
         auditStatement(env, actor, "save", type, id, "ok", { guard: G }),
         env.DB.prepare("SELECT pending FROM records WHERE type = ? AND id = ? AND write_id = ?").bind(type, id, writeId),
       ]);
@@ -91,7 +93,6 @@ export default {
     }
     const pending = results.at(-1).results[0]?.pending ?? 0;
     if (prepared.redo.length) ctx?.waitUntil?.(dispatchVariants(env, prepared.redo));
-    if (status === "published" && pending === 0) ctx?.waitUntil?.(dispatchBuild(env));
     return json({ version: newVersion, status, missing, pending });
   },
 };

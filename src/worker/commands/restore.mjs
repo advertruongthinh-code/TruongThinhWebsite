@@ -1,6 +1,6 @@
 // POST /api/admin/restore (CMS plan P1, Q3, Q9): back to the status before the trash; a live slug leaves the history.
 import { ID, OPEN_TYPES } from "../../cms/contract.mjs";
-import { dispatchBuild } from "../dispatch.mjs";
+import { wantBuild } from "../dispatch.mjs";
 import { auditStatement, HttpError, json, readJson } from "../http.mjs";
 import { contentRevStatement, FIXED_TYPES, guard, isUniqueSlug } from "../records.mjs";
 
@@ -34,7 +34,7 @@ export default {
       throw error;
     }
     if (update.meta.changes === 0) throw new HttpError(404, { error: "not-found" }, target);
-    if (status === "published") ctx?.waitUntil?.(dispatchBuild(env));
+    if (status === "published") ctx?.waitUntil?.(wantBuild(env));
     return json({ status });
   },
 };

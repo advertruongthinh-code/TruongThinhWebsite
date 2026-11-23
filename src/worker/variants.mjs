@@ -1,6 +1,6 @@
 // settleVariants (CMS plan P3, Q6 step 4): every Cron minute, marks pending variants ready once their manifest.json is in the
 // public bucket (error on a size mismatch, after 45 minutes for an image or 90 for a video), recounts pending of the records using them, and publishes.
-import { dispatchBuild } from "./dispatch.mjs";
+import { wantBuild } from "./dispatch.mjs";
 import { contentRevStatement } from "./records.mjs";
 
 const ALWAYS = { sql: "1", args: [] };
@@ -33,5 +33,5 @@ export async function settleVariants(env, _ctx) {
     // cms-data R2: this batch may write records, so content_rev rises with it.
     contentRevStatement(env, ALWAYS),
   ]);
-  if (written[3].meta.changes > 0) await dispatchBuild(env);
+  if (written[3].meta.changes > 0) await wantBuild(env);
 }

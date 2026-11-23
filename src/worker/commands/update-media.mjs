@@ -1,7 +1,7 @@
 // shortcut: at most 37 records per media are patched in one call (D1 Free allows 50 queries per invocation), page the patch when a media is used by more
 // POST /api/admin/update-media (CMS plan P2, Q9): alts and tags of a media; the alts are copied into the records that use it.
 import { ID } from "../../cms/contract.mjs";
-import { dispatchBuild, dispatchVariants } from "../dispatch.mjs";
+import { dispatchVariants, wantBuild } from "../dispatch.mjs";
 import { auditStatement, HttpError, json, readJson } from "../http.mjs";
 import { patchAlt } from "../media.mjs";
 import { contentRevStatement, guard } from "../records.mjs";
@@ -57,7 +57,7 @@ export default {
       if (current.version === version) throw new HttpError(409, { error: "retry" }, target);
       throw stale(current);
     }
-    if (patched.some((user) => user.status === "published")) ctx?.waitUntil?.(dispatchBuild(env));
+    if (patched.some((user) => user.status === "published")) ctx?.waitUntil?.(wantBuild(env));
     if (failed) ctx?.waitUntil?.(dispatchVariants(env, [failed.key]));
     return json({ version: newVersion, status, updatedRecords: patched.length });
   },
