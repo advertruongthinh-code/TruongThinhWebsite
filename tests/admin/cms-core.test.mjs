@@ -18,8 +18,8 @@ const FIXTURE = `<!doctype html><html><head><title>Gốc</title><meta name="desc
     <figure class="detail-gallery__item"><img src="/g1.webp" alt="G1"><figcaption data-en="One">Một</figcaption></figure>
     <figure class="detail-gallery__item"><img src="/g2.webp" alt="G2"><figcaption data-en="Two">Hai</figcaption></figure>
   </div>
-  <div class="marquee-line"><span>Chữ chạy</span></div>
-  <div class="marquee-line" aria-hidden="true"><span>Chữ chạy</span></div>
+  <div class="client-logo-marquee__group"><span>Chữ chạy</span></div>
+  <div class="client-logo-marquee__group" aria-hidden="true"><span>Chữ chạy</span></div>
 </main></body></html>`;
 
 let browser;
@@ -62,7 +62,7 @@ test("apply swaps text by language, keeps both versions, updates the marquee cop
       text: { t0: { vi: "Mới", en: "New" }, t3: { vi: "Chạy mới", en: "Run" }, title: { vi: "Tiêu đề", en: "Title" } },
     }, "en");
     const node = document.querySelector('[data-cms-key="t0"]');
-    return { text: node.textContent, vi: node.dataset.vi, title: document.title, mirror: document.querySelector('.marquee-line[aria-hidden="true"]').textContent };
+    return { text: node.textContent, vi: node.dataset.vi, title: document.title, mirror: document.querySelector('.client-logo-marquee__group[aria-hidden="true"]').textContent };
   });
   assert.deepEqual(result, { text: "New", vi: "Mới", title: "Title", mirror: "Run" });
 });

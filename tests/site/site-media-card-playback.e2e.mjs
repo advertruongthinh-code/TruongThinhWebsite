@@ -28,8 +28,8 @@ const families = [
   { route: "residential/", name: "residential-editorial", selector: ".editorial-item, .detail-duo figure, .service-portal" },
   { route: "commercial/", name: "commercial-gallery", selector: ".detail-gallery__item" },
   { route: "commercial/", name: "commercial-editorial", selector: ".editorial-item, .detail-duo figure, .service-portal" },
-  { route: "about/", name: "about-duo", selector: ".detail-duo figure" },
-  { route: "about/", name: "about-text-exclusion", selector: ".about-timeline__item, .about-commitments" },
+  { route: "about/", name: "about-editorial", selector: ".editorial-item, .service-portal" },
+  { route: "about/", name: "about-text-exclusion", selector: ".about-journey__item, .about-journey__sheet" },
   { route: "", name: "home-logo-montage-exclusion", selector: ".client-logo-slot, .heritage-image" },
 ];
 const results = [];
