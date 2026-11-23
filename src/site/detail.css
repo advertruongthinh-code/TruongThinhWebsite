@@ -115,13 +115,10 @@
   font-weight: 500;
 }
 
-.detail-intro,
 .detail-lead,
 .detail-note,
 .detail-media,
 .detail-heading,
-.detail-process,
-.detail-duo,
 .detail-places,
 .masonry-section,
 .detail-cta {
@@ -289,16 +286,6 @@
   }
 }
 
-.detail-intro {
-  display: grid;
-  min-height: 17.7rem;
-  padding: 3.5rem 0;
-  grid-template-columns: 1fr 2fr;
-  align-items: start;
-  gap: 70px;
-  border-top: 1px solid var(--line);
-}
-
 .detail-eyebrow {
   margin: 0;
   font-size: 0.8rem;
@@ -341,15 +328,6 @@
 .detail-breadcrumb a:hover,
 .detail-breadcrumb a:focus-visible {
   text-decoration-color: currentColor;
-}
-
-.detail-intro__copy {
-  max-width: 56rem;
-  margin: 0;
-  font-size: clamp(1.55rem, 2.2vw, 2.45rem);
-  letter-spacing: 0;
-  line-height: 1.4;
-  word-spacing: var(--word-spacing-body);
 }
 
 .detail-media {
@@ -513,83 +491,6 @@
   font-size: clamp(3rem, 5.8vw, 6.8rem);
   line-height: 1.1;
   text-wrap: balance;
-}
-
-.detail-process {
-  display: grid;
-  min-height: 28rem;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.process-step {
-  display: flex;
-  min-width: 0;
-  padding: 1.5rem;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.process-step + .process-step {
-  border-left: 1px solid var(--line);
-}
-
-.process-step > span {
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 400;
-}
-
-.process-step h3 {
-  margin: auto 0 1rem;
-  /* 5 columns: "Consultation" (~6.2em) must fit the narrowest column, at both 981px and the 1500px max frame. */
-  font-size: clamp(1.25rem, 2.9vw - 0.5rem, 2.2rem);
-  font-weight: 400;
-  letter-spacing: var(--tracking-display);
-  word-spacing: 0.08em;
-}
-
-.process-step p {
-  min-height: 4.3rem;
-  margin: 0;
-  color: var(--muted);
-}
-
-.process-step:first-child h3 {
-  color: var(--blue);
-}
-
-.process-step:last-child h3 {
-  color: var(--orange);
-}
-
-.detail-duo {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 35px;
-}
-
-.detail-duo figure {
-  position: relative;
-  overflow: hidden;
-}
-
-.detail-duo figure:first-child {
-  aspect-ratio: 3 / 2;
-}
-
-.detail-duo figure:last-child {
-  width: 60%;
-  aspect-ratio: 4 / 5;
-  justify-self: center;
-}
-
-.detail-duo img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .detail-cta {
@@ -935,37 +836,12 @@
 }
 
 @media (max-width: 1200px) {
-  .detail-intro {
-    gap: 25px;
-  }
-
   .project-grid {
     gap: 25px;
   }
 }
 
 @media (max-width: 980px) {
-  .detail-intro {
-    grid-template-columns: 1fr;
-  }
-
-  /* Five steps still in one row: the rail swipes horizontally. */
-  .detail-process {
-    grid-template-columns: none;
-    grid-auto-flow: column;
-    grid-auto-columns: min(72vw, 16rem);
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-  }
-
-  .process-step {
-    scroll-snap-align: center;
-  }
-
-  .process-step h3 {
-    font-size: 1.8rem;
-  }
-
   .project-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1005,16 +881,6 @@
     text-align: center;
   }
 
-  .detail-intro {
-    min-height: 0;
-    padding: 2rem 0;
-    gap: 2rem;
-  }
-
-  .detail-intro__copy {
-    font-size: 1.45rem;
-  }
-
   .detail-media {
     aspect-ratio: 16 / 9;
   }
@@ -1031,25 +897,6 @@
     margin-top: 1rem;
     /* Two tied last words ("finished home") fit the 384px column (hero-typography R7). */
     font-size: 3rem;
-  }
-
-  .process-step {
-    padding: 1.25rem 1rem;
-    gap: 1rem;
-  }
-
-  .detail-duo {
-    grid-template-columns: 1fr;
-    gap: 35px;
-  }
-
-  .detail-duo figure:first-child {
-    width: calc(100% + 2 * var(--gutter));
-    margin-left: calc(var(--gutter) * -1);
-  }
-
-  .detail-duo figure:last-child {
-    width: 60%;
   }
 
   .detail-cta {
@@ -1152,203 +999,297 @@
   text-align: left;
 }
 
-.about-opening {
-  min-height: 23rem;
-  align-items: center;
-}
-
-.about-opening .detail-intro__copy {
-  max-width: 61rem;
-}
-
-.about-media {
-  aspect-ratio: 16 / 8.6;
-}
-
-.about-timeline {
-  position: relative;
+/* About R9 journey: a 1220 x 2440 cabinet-panel nesting sheet (technical drawing, no wood grain) sticks on the left while six milestones
+   scroll on the right; each milestone cuts one more group of parts. Without the is-armed class (no JavaScript, reduced motion, below
+   981px) the sheet is drawn complete. Geometry is generated (Library thiet-ke-trang-gioi-thieu/nesting/build_svg.py), not hand edited. */
+.about-journey {
+  --about-journey-part: #f3f3f1;
+  --about-journey-faint: rgba(32, 33, 32, 0.3);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
+  column-gap: clamp(2rem, 5vw, 6rem);
   width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
-  padding: 6rem 0 2rem;
 }
 
-.about-timeline::before {
+.about-journey__sheet {
+  position: sticky;
+  /* containing block of the rail */
+  top: calc(var(--header-collapsed-row-height, 61px) + 24px);
+  align-self: start;
+  height: calc(100svh - var(--header-collapsed-row-height, 61px) - 48px);
+  margin: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.75rem;
+  padding-right: clamp(1.5rem, 3vw, 3rem);
+}
+
+.about-journey__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 1.5rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.about-journey__meta b {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.about-journey__svg {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.about-journey__svg--landscape {
+  display: none;
+}
+
+.about-journey__dims path {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2.4;
+}
+
+.about-journey__dims text {
+  fill: var(--muted);
+  font-family: inherit;
+  font-size: 34px;
+  font-weight: 600;
+}
+
+.about-journey__svg pattern path {
+  stroke: rgba(32, 33, 32, 0.35);
+  stroke-width: 2;
+}
+
+.about-journey__board {
+  fill: var(--paper);
+}
+
+.about-journey__edge {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 3.5;
+}
+
+.about-journey__hole,
+.about-journey__waste {
+  fill: url("#about-journey-hatch");
+}
+
+.about-journey__svg--landscape :is(.about-journey__hole, .about-journey__waste) {
+  fill: url("#about-journey-hatch-l");
+}
+
+.about-journey__part {
+  fill: var(--about-journey-part);
+  fill-rule: evenodd;
+  stroke: var(--ink);
+  stroke-width: 3.6;
+}
+
+.about-journey__groove {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+}
+
+/* Glass rebate on the back face: hidden line. */
+.about-journey__groove--back {
+  stroke-dasharray: 16 9;
+}
+
+.about-journey__drill {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.6;
+}
+
+.about-journey__drill-axis {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.about-journey__tool {
+  display: none;
+  fill: none;
+  stroke: var(--orange-accent);
+  stroke-width: 4;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+}
+
+.about-journey__rail {
   position: absolute;
-  top: 6rem;
-  bottom: 2rem;
-  left: 54%;
-  width: 1px;
-  content: "";
+  top: 2rem;
+  right: 0;
+  bottom: 0;
+  width: 2px;
   background: var(--line);
 }
 
-.about-timeline__item {
-  position: relative;
-  display: grid;
-  min-height: 22rem;
-  grid-template-columns: 1.15fr 0.62fr 0.95fr;
-  align-items: center;
-  gap: 2rem;
-}
-
-.about-timeline__item::before {
+.about-journey__rail-fill {
   position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 54%;
-  width: 0.55rem;
-  height: 0.55rem;
-  content: "";
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: var(--blue);
-}
-
-.about-timeline__item:last-child::before {
+  inset: 0 0 auto;
+  height: calc(var(--about-journey-progress, 1) * 100%);
   background: var(--orange-accent);
+  transition: height 0.6s ease;
 }
 
-.about-timeline__marker {
-  grid-column: 2;
-  margin: 0;
-  /* Floor lets the tied last two words share a line in the 768px column (hero-typography R7). */
-  font-size: clamp(2rem, 4.5vw, 5.4rem);
-  font-weight: 400;
-  letter-spacing: var(--tracking-display);
-  line-height: 0.95;
-  word-spacing: var(--word-spacing-display);
+.about-journey__node {
+  position: absolute;
+  left: -5px;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--orange-accent);
+  background: var(--orange-accent);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.about-timeline__copy {
-  max-width: 29rem;
+.about-journey__node:nth-of-type(1) { top: 0; }
+.about-journey__node:nth-of-type(2) { top: calc(20% - 2.4px); }
+.about-journey__node:nth-of-type(3) { top: calc(40% - 4.8px); }
+.about-journey__node:nth-of-type(4) { top: calc(60% - 7.2px); }
+.about-journey__node:nth-of-type(5) { top: calc(80% - 9.6px); }
+.about-journey__node:nth-of-type(6) { top: calc(100% - 12px); }
+
+.about-journey__list {
   margin: 0;
-  grid-column: 3;
-  font-size: clamp(1.25rem, 1.75vw, 1.8rem);
-  letter-spacing: 0;
-  line-height: 1.45;
+  padding: 18vh 0 38vh;
+  list-style: none;
+  display: grid;
+  gap: clamp(8rem, 30vh, 18rem);
+}
+
+.about-journey__year {
+  margin: 0 0 1.1rem;
+  font-size: clamp(3rem, 6.4vw, 5.75rem);
+  font-weight: 500;
+  /* Room for the digits' ink and Vietnamese stacked marks ("Hôm nay"). */
+  line-height: 1.22;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.about-journey__copy {
+  max-width: 34rem;
+  margin: 0;
+  font-size: clamp(1.125rem, 1.35vw, 1.375rem);
+  line-height: 1.55;
   word-spacing: var(--word-spacing-body);
 }
 
-.about-timeline__copy strong {
-  font-weight: inherit;
+.about-journey__copy strong {
+  font-weight: 600;
 }
 
-.about-chapter-lead {
-  display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1500px);
-  min-height: 20rem;
-  padding: 3.5rem 0;
-  margin-inline: auto;
-  grid-template-columns: 1fr 2fr;
-  align-items: start;
-  gap: 70px;
-  border-top: 1px solid var(--line);
+/* Armed (detail.js, from 981px with motion): uncut parts are dashed outlines, the cutting group runs an orange toolpath, then fills. */
+.about-journey.is-armed .about-journey__item {
+  transition: color 0.4s ease;
 }
 
-.about-chapter-lead p:last-child {
-  max-width: 57rem;
-  margin: 0;
-  font-size: clamp(1.6rem, 2.35vw, 2.7rem);
-  letter-spacing: 0;
-  line-height: 1.4;
-  word-spacing: var(--word-spacing-body);
+.about-journey.is-armed .about-journey__item:not(.is-current) {
+  color: rgba(32, 33, 32, 0.2);
 }
 
-.about-process-note {
-  display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1500px);
-  min-height: 15rem;
-  padding-top: 2rem;
-  margin-inline: auto;
-  grid-template-columns: 1fr 2fr;
-  gap: 70px;
-  border-top: 1px solid var(--line);
+.about-journey.is-armed .about-journey__node:not(.is-on) {
+  border-color: var(--about-journey-faint);
+  background: var(--paper);
 }
 
-.about-process-note p:last-child {
-  max-width: 54rem;
-  margin: 0;
-  font-size: clamp(1.45rem, 2vw, 2.1rem);
-  letter-spacing: 0;
-  line-height: 1.4;
-  word-spacing: var(--word-spacing-body);
+.about-journey.is-armed .about-journey__svg--portrait .about-journey__tool {
+  display: inline;
+  opacity: 0;
 }
 
-.about-commitments {
-  display: grid;
-  width: min(calc(100% - 2 * var(--gutter)), 1500px);
-  min-height: 25rem;
-  margin-inline: auto;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+.about-journey.is-armed .about-journey__svg--portrait .is-drawn .about-journey__tool {
+  animation: about-journey-cut 1.4s ease-out both;
 }
 
-.about-commitment {
-  display: flex;
-  min-width: 0;
-  padding: 1.5rem;
-  flex-direction: column;
-  justify-content: space-between;
+.about-journey.is-armed .about-journey__svg--portrait :is(.about-journey__part, .about-journey__groove, .about-journey__drill) {
+  transition: fill 0.35s ease 1.1s, stroke 0.35s ease 1.1s, stroke-width 0s 1.1s, stroke-dasharray 0s 1.1s;
 }
 
-.about-commitment + .about-commitment {
-  border-left: 1px solid var(--line);
+.about-journey.is-armed .about-journey__svg--portrait :is(.about-journey__hole, .about-journey__waste, .about-journey__drill-axis) {
+  transition: opacity 0.4s ease 1.1s;
 }
 
-.about-commitment > span {
-  color: var(--muted);
-  font-size: 0.8rem;
-  font-weight: 400;
+.about-journey.is-armed .about-journey__svg--portrait :not(.is-drawn) > .about-journey__part {
+  fill: transparent;
+  stroke: var(--about-journey-faint);
+  stroke-width: 1.6;
+  stroke-dasharray: 14 8;
 }
 
-.about-commitment h3 {
-  /* Wide enough for the two tied last words ("through handover", hero-typography R7). */
-  max-width: 16ch;
-  margin: auto 0 1rem;
-  font-size: clamp(2rem, 3vw, 3.7rem);
-  font-weight: 400;
-  letter-spacing: var(--tracking-display);
-  line-height: 1;
-  word-spacing: 0.1em;
+.about-journey.is-armed .about-journey__svg--portrait :not(.is-drawn) > :is(.about-journey__groove, .about-journey__drill) {
+  fill: transparent;
+  stroke: rgba(32, 33, 32, 0.22);
+  stroke-width: 1.4;
 }
 
-.about-commitment p {
-  max-width: 24rem;
-  min-height: 4.3rem;
-  margin: 0;
-  color: var(--muted);
+.about-journey.is-armed .about-journey__svg--portrait :is(.about-journey__hole, .about-journey__waste):not(.is-drawn),
+.about-journey.is-armed .about-journey__svg--portrait :not(.is-drawn) > .about-journey__drill-axis {
+  opacity: 0;
 }
 
-.about-commitment:first-child h3 {
-  color: var(--blue);
+@keyframes about-journey-cut {
+  0% { opacity: 1; stroke-dashoffset: 1; }
+  80% { opacity: 1; stroke-dashoffset: 0; }
+  100% { opacity: 0; stroke-dashoffset: 0; }
 }
 
-.about-commitment:last-child h3 {
-  color: var(--orange);
+@media (max-width: 980px) {
+  .about-journey {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 3rem;
+  }
+
+  .about-journey__sheet {
+    position: static;
+    height: auto;
+    padding-right: 0;
+  }
+
+  .about-journey__svg--portrait,
+  .about-journey__rail {
+    display: none;
+  }
+
+  .about-journey__svg--landscape {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  .about-journey__dims text {
+    font-size: 64px;
+  }
+
+  .about-journey__list {
+    padding: 0;
+    gap: 3.5rem;
+  }
+
+  .about-journey__year {
+    margin-bottom: 0.6rem;
+    white-space: normal;
+  }
 }
 
 @media (max-width: 980px) {
   .about-page .about-hero .hero-content {
     top: auto;
-  }
-
-  .about-commitment h3,
-  .about-timeline__marker,
-  .about-timeline__copy {
-    min-width: 0;
-    max-width: 100%;
-    overflow-wrap: anywhere;
-  }
-
-  /* Three narrow columns until 680px: the two tied last words ("through handover") fit (hero-typography R7). */
-  .about-commitment h3 {
-    font-size: 1.35rem;
-  }
-
-  .about-chapter-lead p:last-child,
-  .about-process-note p:last-child {
-    overflow-wrap: anywhere;
   }
 
   .detail-page .service-portal {
@@ -1374,24 +1315,6 @@
   .detail-page .motion-line-mask {
     overflow: visible !important;
   }
-
-  .about-timeline::before {
-    left: 47%;
-  }
-
-  .about-timeline__item {
-    grid-template-columns: 0.8fr 0.65fr 1fr;
-  }
-
-  .about-timeline__item::before {
-    left: 47%;
-  }
-
-  .about-chapter-lead,
-  .about-process-note {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
 }
 
 @media (max-width: 680px) {
@@ -1411,86 +1334,6 @@
     top: 46%;
   }
 
-  .about-opening {
-    min-height: 24rem;
-  }
-
-  .about-media {
-    width: 100%;
-    aspect-ratio: 4 / 5;
-  }
-
-  .about-timeline {
-    padding-top: 3rem;
-  }
-
-  .about-timeline::before {
-    top: 3rem;
-    bottom: 0;
-    left: 0.25rem;
-  }
-
-  .about-timeline__item {
-    min-height: 21rem;
-    padding-left: 2rem;
-    grid-template-columns: minmax(0, 1fr);
-    align-content: center;
-    gap: 2rem;
-  }
-
-  .about-timeline__item::before {
-    top: 50%;
-    left: 0.25rem;
-  }
-
-  .about-timeline__marker,
-  .about-timeline__copy {
-    grid-column: 1;
-  }
-
-  .about-timeline__marker {
-    font-size: 3.35rem;
-  }
-
-  .about-timeline__copy {
-    font-size: 1.35rem;
-  }
-
-  .about-chapter-lead {
-    min-height: 23rem;
-    padding: 2rem 0;
-  }
-
-  .about-chapter-lead p:last-child {
-    font-size: 1.6rem;
-  }
-
-  .about-process-note {
-    min-height: 18rem;
-    padding-top: 1.5rem;
-  }
-
-  .about-process-note p:last-child {
-    font-size: 1.45rem;
-  }
-
-  .about-commitments {
-    grid-template-columns: 1fr;
-  }
-
-  .about-commitment {
-    min-height: 18rem;
-    padding: 1.25rem 0;
-  }
-
-  .about-commitment + .about-commitment {
-    border-top: 1px solid var(--line);
-    border-left: 0;
-  }
-
-  .about-commitment h3 {
-    font-size: 2.4rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3500,7 +3343,6 @@ body.is-masonry-browse .floating-cta {
 @media (max-width: 980px) {
   .detail-heading h2,
   .detail-gallery__item figcaption,
-  .process-step h3,
   .detail-process-editorial .editorial-item p,
   .detail-cta__copy h2 {
     overflow-wrap: anywhere;
@@ -3613,8 +3455,7 @@ body.is-masonry-browse .floating-cta {
 }
 
 body.is-detail .detail-index-hero,
-body.is-detail .masonry-section,
-body.is-detail .detail-process {
+body.is-detail .masonry-section {
   display: none;
 }
 
@@ -5230,8 +5071,6 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 
 .detail-lead__copy,
 .detail-note p,
-.detail-intro__copy,
-.about-chapter-lead p:last-child,
 .blk-paragraph p,
 .blk-quote p {
   font-size: var(--espacio-body);

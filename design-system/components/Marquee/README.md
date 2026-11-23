@@ -2,7 +2,7 @@
 
 Nguồn: CSS `.capability-marquee`, `.marquee-line`, `.client-logo-marquee`; spec [ba trang con R10](../../../docs/specs/detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng), [trang chủ R9](../../../docs/specs/page-home.md#r9-closer-và-marquee-khách-hàng).
 
-Hai dải chạy ngang vô tận. Preview: dải chữ năng lực của Residential, rồi dải logo khách hàng của trang chủ.
+Dải chạy ngang vô tận. Preview: dải logo khách hàng của trang chủ; About dùng lại cùng partial `client-logos` ngay trên CTA. Dải chữ năng lực không còn trang nào dùng (CSS giữ lại).
 
 ## Dải chữ
 

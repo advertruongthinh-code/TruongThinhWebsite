@@ -14,8 +14,8 @@
       [".detail-gallery__slides", ".detail-gallery__item", "Gallery công trình"],
     ],
     about: [
-      [".about-timeline", ".about-timeline__item", "Dòng thời gian"],
-      [".about-commitments", ".about-commitment", "Cam kết"],
+      [".about-journey__list", ".about-journey__item", "Dòng thời gian"],
+      ["#nguyen-tac .service-portals", ".service-portal", "Cam kết"],
     ],
   };
   LISTS.commercial = LISTS.residential;
