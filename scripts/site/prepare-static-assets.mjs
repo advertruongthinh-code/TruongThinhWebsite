@@ -17,6 +17,7 @@ import { KINDS, PROJECT_FILTERS, PROJECT_TYPES, SECTORS, newsListPages, newsList
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
+import { tieOrphans } from "./tie-orphans.mjs";
 import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, localePrefix, phonePacksScript, projectRoot, readJson, routeLocale, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
@@ -525,28 +526,6 @@ const responsivePictures = (html) =>
     const phoneSet = set("webp", WEBP_WIDTHS, intrinsic <= WEBP_WIDTHS.at(-1));
     return `<picture>${phone(`${srcset}="${phoneSet}" sizes="${sizes}"`)}<source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
   });
-
-// No orphan word (hero-typography R7): text-wrap: pretty does not always move a long last word, so every plain-text
-// bilingual element (paragraph, label, caption or inline part of a title) ties its last two words with a no-break
-// space in VI, EN and the rendered text. A two-word label stays on one line; a separator such as "·" stays with the
-// word after it. A heading that ends with an italic part ties that part to the word before it.
-// Segments of marked text (data-seg) tie their own last words when they are built (inline-marks.mjs), so they are skipped here.
-const TIE_BLOCK = /<([a-z][\w-]*)\b(?![^>]*\bdata-seg\b)([^>]*\bdata-en="[^"]*"[^>]*)>([^<]*)<\/\1>/g;
-const TIE_ITALIC_TAIL = /(<\/span>)\s+(<(i|em)\b(?![^>]*\bdata-seg\b)[^>]*>[^<]*<\/\3>\s*<\/h[1-6]>)/g;
-const tieLastWord = (text) => {
-  const [, lead, body, trail] = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
-  const words = body.split(/\s+/);
-  if (words.length < 2) return text;
-  let glued = words.pop();
-  while (words.length > 1 && !/[\p{L}\p{N}]/u.test(words.at(-1))) glued = `${words.pop()}\u00a0${glued}`;
-  glued = `${words.pop()}\u00a0${glued}`;
-  return `${lead}${[...words, glued].join(" ")}${trail}`;
-};
-const tieElement = (_match, name, attributes, content) =>
-  `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`;
-// Page copy only: <head>, header and menu labels stay as written (exact strings for title, nav and their tests).
-const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/, (_match, open, body, close) =>
-  open + body.replace(TIE_BLOCK, tieElement).replace(TIE_ITALIC_TAIL, "$1\u00a0$2") + close);
 
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;

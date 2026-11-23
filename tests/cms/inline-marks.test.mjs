@@ -117,3 +117,11 @@ test("advisor E1: escapes render without backslash; a blank line only splits par
   assert.deepEqual(codes(marksErrors("a\n\nb", "a\n\nb", "title")), ["mark-not-allowed", "mark-not-allowed"]);
   assert.deepEqual(marksErrors("a\n\nb", "c\n\nd", "quote"), []);
 });
+
+test("tieOrphans of the build leaves marked segments alone and still ties a plain leaf (reviewer E1)", async () => {
+  const { tieOrphans } = await import("../../scripts/site/tie-orphans.mjs");
+  const marked = `<p>${markedInner("Gỗ **sồi đẹp** giữa câu dài", "**Oak wood** in a long line", ctx)}</p>`;
+  const page = (inner) => `<main>${inner}</main>`;
+  assert.equal(tieOrphans(page(marked)), page(marked));
+  assert.equal(tieOrphans(page('<p data-en="one two three">một hai ba</p>')), page('<p data-en="one two three">một hai ba</p>'));
+});
