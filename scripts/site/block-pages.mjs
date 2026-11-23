@@ -4,6 +4,7 @@ import { NEWS_GROUPS, bilingualPicks, newsTeaser, renderBlocks } from "./blocks.
 import { absoluteSrc } from "./media-src.mjs";
 import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, localePrefix, routeLocale } from "./lib-pure.mjs";
 import { layoutErrors } from "../../src/cms/layouts.mjs";
+import { LINK, resolveLink } from "../../src/cms/links.mjs";
 
 export { NEWS_GROUPS };
 
@@ -291,18 +292,26 @@ export const PROJECT_TYPES = {
 export const projectTypeHref = (type, locale) => `${localePrefix(locale)}/projects/${type}/`;
 const FILTER_SLUGS = [...Object.values(PROJECT_FILTERS), ...Object.keys(PROJECT_TYPES)];
 
-// Featured items of the site menu (content/menu.json, CMS-editable): projects in the chosen order; advertising
-// product groups follow the chosen list, an empty list picks the group with the most cards (ties go by slug A-Z, so a
-// card-count change elsewhere cannot flip tied groups via catalog order).
-export const menuFeatured = (menu, { projects, categories, cards }) => {
-  const count = (slug) => cards.filter((card) => card.category === slug).length;
-  const groups = menu.featuredProductGroups.length ? menu.featuredProductGroups : categories.map((category) => category.slug).toSorted((left, right) => count(right) - count(left) || left.localeCompare(right));
-  return {
-    projects: menu.featuredProjects.map((id) => projects.find((project) => project.id === id)),
-    productGroups: groups.map((slug) => categories.find((category) => category.slug === slug)),
-  };
+// Site menu (content/menu.json, cms-content R7, K8): exactly 6 groups { title, aria?, link, items }, at most 12 items
+// each; an item's label may be empty only on a project or news link (the record title is used).
+export const MENU_GROUPS = 6;
+export const MENU_ITEMS = 12;
+const isLabel = (value) => value !== null && typeof value === "object" && [value.vi, value.en].every((text) => typeof text === "string" && text.trim());
+export const menuShapeErrors = (menu, at) => {
+  if (!Array.isArray(menu?.groups) || menu.groups.length !== MENU_GROUPS) return [`${at}: menu phải có đúng ${MENU_GROUPS} nhóm`];
+  return menu.groups.flatMap((group, index) => {
+    const where = `${at}: nhóm ${index + 1}`;
+    if (!isLabel(group?.title) || !LINK.test(group?.link ?? "") || (group.aria !== undefined && !isLabel(group.aria))) return [`${where} cần title VI/EN, link đúng cú pháp, aria VI/EN nếu có`];
+    if (!Array.isArray(group.items) || group.items.length > MENU_ITEMS) return [`${where} có tối đa ${MENU_ITEMS} mục con`];
+    return group.items.flatMap((entry, itemIndex) => (LINK.test(entry?.link ?? "") && (isLabel(entry.label) || (entry.label === undefined && /^page:(project|news)\//.test(entry.link)))
+      ? [] : [`${where}, mục ${itemIndex + 1} cần link đúng cú pháp và label VI/EN (bỏ trống được khi trỏ công trình hay tin)`]));
+  });
 };
-export const menuErrors = (menu, { projects, categories }, at) => [
-  ...menu.featuredProjects.filter((id, index, ids) => !projects.some((project) => project.id === id) || ids.indexOf(id) !== index).map((id) => `${at}: featuredProjects ${id} không có trong projects.json hoặc bị lặp`),
-  ...menu.featuredProductGroups.filter((slug, index, slugs) => !categories.some((category) => category.slug === slug) || slugs.indexOf(slug) !== index).map((slug) => `${at}: featuredProductGroups ${slug} không phải nhóm Advertising hoặc bị lặp`),
-];
+// ctx as resolveLink takes it; contact links are left out (an empty channel renders a disabled item).
+export const menuLinkErrors = (menu, ctx, at) => (menu?.groups ?? []).flatMap((group, index) => [group, ...(group?.items ?? [])]
+  .filter(({ link } = {}) => typeof link === "string" && !link.startsWith("contact:") && resolveLink(link, ctx) === null)
+  .map(({ link }) => `${at}: nhóm ${index + 1}: ${link} trỏ trang không còn`));
+export const menuErrors = (menu, ctx, at) => {
+  const shape = menuShapeErrors(menu, at);
+  return shape.length ? shape : menuLinkErrors(menu, ctx, at);
+};

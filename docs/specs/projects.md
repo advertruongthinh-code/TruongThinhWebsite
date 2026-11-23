@@ -69,9 +69,9 @@ trùng slug lọc. Loại con (owner 2026-11-08, cho menu site): `nha-pho`, `can
 `quan-cafe`, `nha-hang`, `showroom-cua-hang`, `van-phong` thuộc Kinh doanh (`cafe-nha-hang` tách 2026-11-15, đường dẫn cũ 301 về `quan-cafe`); mỗi loại một trang lọc `/<locale>/projects/<loại>/`
 luôn có để link menu không 404, loại chưa có công trình hiện "đang cập nhật" và `noindex`. Hàng lọc gồm Tất cả rồi các loại, nhãn và thứ tự theo kicker trang Nhà ở và Kinh doanh: Nhà phố, Căn hộ, Homestay, Cafe, Nhà hàng, Showroom, Văn phòng (owner 2026-11-15); trang mảng `nha-o`, `kinh-doanh` vẫn còn nhưng không có chip. Hàng lọc chỉ hiện bộ lọc có công
 trình, cộng bộ lọc của trang đang xem. Mảng, loại, nhãn lấy từ `PROJECT_TYPES` của `scripts/site/block-pages.mjs`; khung trang lấy qua `readPageSource` (menu dựng lúc build, không nằm trong HTML nguồn).
-Công trình tiêu biểu trên menu site đọc `src/site/content/menu.json` (`featuredProjects`, thứ tự hiển thị; CMS sửa được);
-cùng file giữ `featuredProductGroups` cho nhóm sản phẩm quảng cáo tiêu biểu, rỗng thì lấy nhóm nhiều thẻ nhất, bằng số thẻ thì xếp theo slug A-Z (`menuFeatured`).
-`scripts/ci/content-contract.mjs` báo id không tồn tại hoặc lặp.
+Công trình và nhóm sản phẩm quảng cáo tiêu biểu trên menu site là mục con trong `src/site/content/menu.json` (nhóm 03 và 04,
+thứ tự hiển thị; CMS sửa được; dạng ở [nội dung CMS R7](cms-content.md#r7-menu-liên-hệ-và-cta)).
+`scripts/ci/content-contract.mjs` báo link trỏ trang không còn.
 
 ```gherkin
 Given có 40 công trình, 25 nhà ở

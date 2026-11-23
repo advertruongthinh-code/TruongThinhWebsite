@@ -116,7 +116,8 @@ test("menu: a VI-only project is a VI-only option with no EN href", async () => 
   const { renderMenuNav } = await import("../../scripts/site/sync-site-menu.mjs");
   const { projects } = loadBlockContent(siteRoot);
   const project = { ...structuredClone(projects[0]), noEn: true };
-  const nav = renderMenuNav({ projects: [project], productGroups: [] });
+  const menu = { groups: [{ title: { vi: "Công trình", en: "Projects" }, link: "page:projects", items: [{ link: `page:project/${project.id}` }] }] };
+  const nav = renderMenuNav(menu, { projects: new Map([[project.id, project]]) });
   const option = nav.match(new RegExp(`<a class="menu-option" href="/projects/${project.slugVi}/"[^>]*>`))?.[0];
   assert.ok(option, nav);
   assert.match(option, /data-vi-only/);

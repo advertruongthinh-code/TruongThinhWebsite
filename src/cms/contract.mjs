@@ -1,7 +1,7 @@
 // Shared record contract of the CMS (cms-plan Q1, Q5, Q10): record types, names and slugs, and the two error levels the
 // Worker and the build both use. Pure module: must not import catalog.mjs (it drags the 733 KB card manifest into the Worker).
 import { BLOCK_TYPES, blockEmptyEnHrefs, blockMarksErrors, blockTextFields, validateBlockPage } from "../../scripts/site/blocks.mjs";
-import { kindFieldErrors, menuErrors } from "../../scripts/site/block-pages.mjs";
+import { PROJECT_TYPES, kindFieldErrors, menuLinkErrors, menuShapeErrors } from "../../scripts/site/block-pages.mjs";
 import { heroSlideErrors } from "../../scripts/site/hero-slides.mjs";
 import { validateHomeProjects } from "../../scripts/site/home-projects.mjs";
 import { validateAdvertisingCardMedia } from "../../src/site/advertising-products/media-contract.mjs";
@@ -124,6 +124,8 @@ export async function shapeErrors(type, data, ctx = {}) {
   if (type === "advertising-card" && !ADVERTISING_PRODUCTS.some(({ id }) => id === data.productIds?.[0])) errors.push(shape(`${at}: a card needs a known main product (productIds[0])`, "card-product"));
   if (type === "page-copy") errors.push(...pageCopyErrors(data, at));
   if (type === "contact") errors.push(...contactErrors(data));
+  // Menu (cms-content R7): 6 groups, item and link shape; a deleted group is a 400.
+  if (type === "menu") errors.push(...menuShapeErrors(data, "menu").map((message) => shape(message, "menu-shape")));
   const mediaById = ctx.mediaById ?? new Map();
   for (const ref of mediaRefs(type, data)) {
     // legacySrc keeps seeded fields as is, so it must not let a client keep its own src (Q6: legacySrc equals the seeded src).
@@ -160,10 +162,9 @@ export function enMissing(type, data) {
   ];
 }
 
-// ctx: { checkImage, projects, news (Maps id -> published data), categories }.
+// ctx: { checkImage, projects, news (Maps id -> published data) }.
 export async function fullErrors(type, data, ctx = {}) {
   const at = data?.id ?? type;
-  const categories = ctx.categories ?? ADVERTISING_CLUSTERS.map(({ id }) => ({ slug: id }));
   const projects = ctx.projects ?? new Map();
   let messages = [];
   let layout = [];
@@ -185,7 +186,9 @@ export async function fullErrors(type, data, ctx = {}) {
       ...(HERO_PAGES.includes(data.page) ? [] : [`${at}: page must be ${HERO_PAGES.join(", ")}`]),
     ];
   } else if (type === "home-projects") messages = validateHomeProjects(data.ids, projects);
-  else if (type === "menu") messages = menuErrors(data, { projects: [...projects.values()], categories }, "menu");
+  else if (type === "menu") messages = menuShapeErrors(data, "menu").length ? [] : menuLinkErrors(data, {
+    projects, news: ctx.news ?? new Map(), clusters: ADVERTISING_CLUSTERS.map(({ id }) => ({ slug: id })), projectTypes: Object.keys(PROJECT_TYPES),
+  }, "menu");
   else if (type === "advertising-card") {
     const card = deriveCard(data);
     if (!card.tagIds.length) messages.push(`${at}: a card needs tagIds`);

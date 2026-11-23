@@ -34,7 +34,9 @@ test("snapshotToFiles drops gone project ids, prefixes R2 srcs and requires sing
   snapshot.records.news[0].cover.src = "/v/0123456789abcdef0123456789abcdef/x.webp";
   const files = snapshotToFiles(snapshot, { mediaOrigin: "https://media.example" });
   assert.ok(!files["home-projects.json"].includes("can-ho-go-soi"));
-  assert.ok(!files["menu.json"].featuredProjects.includes("can-ho-go-soi"));
+  const links = files["menu.json"].groups.flatMap(({ items }) => items.map(({ link }) => link));
+  assert.ok(!links.includes("page:project/can-ho-go-soi") && links.includes("page:project/nha-gieng-troi"));
+  assert.equal(files["menu.json"].groups.length, 6, "a group keeps its place when its items go");
   assert.equal(files["news.json"][0].cover.src, "https://media.example/v/0123456789abcdef0123456789abcdef/x.webp");
   delete snapshot.records.contact;
   assert.throws(() => snapshotToFiles(snapshot), /snapshot: missing contact/);

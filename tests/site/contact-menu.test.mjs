@@ -8,10 +8,12 @@ import test from "node:test";
 import { renderBlocks } from "../../scripts/site/blocks.mjs";
 import { CTA_KEYS, fillContact } from "../../scripts/site/slots.mjs";
 import { SHELL_PAGES } from "../../scripts/site/shell.mjs";
+import { renderDesktopList, renderMenuNav } from "../../scripts/site/sync-site-menu.mjs";
 import { fullErrors, shapeErrors } from "../../src/cms/contract.mjs";
 
 const root = path.resolve(new URL("../../", import.meta.url).pathname);
 const contact = JSON.parse(readFileSync(path.join(root, "src/site/content/contact.json"), "utf8"));
+const menu = JSON.parse(readFileSync(path.join(root, "src/site/content/menu.json"), "utf8"));
 const walk = (dir, skip = []) => readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
   const file = path.join(dir, entry.name);
   if (skip.includes(path.relative(root, file))) return [];
@@ -86,15 +88,54 @@ test("contact contract: six channels, fixed cta keys, safe href; a button on an 
   assert.equal((await fullErrors("contact", empty)).length, Object.values(contact.cta).filter(({ channel }) => channel === "zalo").length);
 });
 
-test("the build points every data-cta button to the Zalo link of contact.json in the content dir", { timeout: 300_000 }, (t) => {
+test("menu: 5 or 7 groups is a shape error (400); a link to a trashed project is missing; the seed menu is clean", async () => {
+  for (const groups of [menu.groups.slice(0, 5), [...menu.groups, menu.groups[5]]]) {
+    assert.deepEqual((await shapeErrors("menu", { groups })).map(({ code }) => code), ["menu-shape"]);
+  }
+  assert.deepEqual(await shapeErrors("menu", menu), []);
+  const projects = new Map(menu.groups[2].items.filter(({ link }) => link.startsWith("page:project/")).map(({ link }) => [link.slice(13), {}]));
+  assert.deepEqual(await fullErrors("menu", menu, { projects }), []);
+  projects.delete("tiem-banh-ngot");
+  assert.deepEqual((await fullErrors("menu", menu, { projects })).map(({ level, message }) => [level, message]), [["missing", "menu: nhóm 3: page:project/tiem-banh-ngot trỏ trang không còn"]]);
+});
+
+test("menu render: navbar is the first four groups; items resolve links, take the project title, drop a gone project, keep disabled channels", () => {
+  const project = { id: "p", slugVi: "nha-p", slugEn: "house-p", title: { vi: "Nhà P", en: "House P" } };
+  const ctx = { projects: new Map([["p", project]]), news: new Map(), clusters: [], projectTypes: [], contact: copy({ channels: { ...contact.channels, tiktok: { href: "https://tiktok.com/@tt" } } }) };
+  const test = { groups: [
+    { title: { vi: "Một", en: "One" }, aria: { vi: "Nhóm một", en: "Group one" }, link: "page:residential", items: [{ link: "page:project/p" }, { link: "page:project/gone" }] },
+    { title: { vi: "Hai", en: "Two" }, link: "page:commercial", items: [] },
+    { title: { vi: "Ba", en: "Three" }, link: "page:projects", items: [] },
+    { title: { vi: "Bốn", en: "Four" }, link: "page:advertising", items: [] },
+    { title: { vi: "Năm", en: "Five" }, link: "page:about", items: [] },
+    { title: { vi: "Sáu", en: "Six" }, link: "page:about/contact", items: [{ label: { vi: "Facebook", en: "Facebook" }, link: "contact:facebook" }, { label: { vi: "TikTok", en: "TikTok" }, link: "contact:tiktok" }] },
+  ] };
+  const desktop = renderDesktopList(test, ctx, "");
+  assert.deepEqual([...desktop.matchAll(/<a href="([^"]+)" data-vi="([^"]+)"/g)].map((match) => [match[1], match[2]]), [["/residential/", "Nhóm một"], ["/commercial/", "Hai"], ["/projects/", "Ba"], ["/advertising-products/", "Bốn"]]);
+  const nav = renderMenuNav(test, ctx);
+  assert.equal((nav.match(/class="menu-group"/g) ?? []).length, 6);
+  assert.match(nav, /<a class="menu-option" href="\/projects\/nha-p\/" data-en-href="\/en\/projects\/house-p\/" data-en="House P">Nhà P<\/a>/);
+  assert.ok(!nav.includes("gone"));
+  assert.match(nav, /<a class="menu-option" role="link" aria-disabled="true" tabindex="-1">Facebook<\/a>/);
+  assert.match(nav, /<a class="menu-option" href="https:\/\/tiktok.com\/@tt" target="_blank" rel="noreferrer">TikTok<\/a>/);
+});
+
+test("the build reads contact.json and menu.json of the content dir: every data-cta button gets the new Zalo link, the menu its edits", { timeout: 300_000 }, (t) => {
   const dir = mkdtempSync(path.join(tmpdir(), "contact-"));
   const out = mkdtempSync(path.join(root, ".site-output-r2-"));
   t.after(() => { rmSync(dir, { recursive: true, force: true }); rmSync(out, { recursive: true, force: true }); });
   cpSync(path.join(root, "src/site/content"), dir, { recursive: true });
   const zalo = "https://zalo.me/0900000000";
   writeFileSync(path.join(dir, "contact.json"), JSON.stringify(copy({ channels: { ...contact.channels, zalo: { href: zalo }, hotline: { href: "tel:+84900000001", text: "+84 900 000 001" } } })));
+  const edited = structuredClone(menu);
+  edited.groups[0].title = { vi: "Nhà ở mới", en: "New homes" };
+  edited.groups[4].items = edited.groups[4].items.filter(({ link }) => link !== "page:news");
+  writeFileSync(path.join(dir, "menu.json"), JSON.stringify(edited));
   const result = spawnSync(process.execPath, ["scripts/site/prepare-static-assets.mjs"], { cwd: root, env: { ...process.env, TT_CONTENT_DIR: dir, TT_SITE_OUT: out }, encoding: "utf8" });
   assert.equal(result.status, 0, result.stderr);
+  const home = readFileSync(path.join(out, "index.html"), "utf8");
+  assert.match(home, /<span data-vi="Nhà ở mới" data-en="New homes">Nhà ở mới<\/span>/, "the menu reads menu.json of the content dir");
+  assert.ok(!home.includes('<a class="menu-option" href="/news/"'), "a removed item leaves the menu");
   for (const page of ["index.html", "en/index.html", "residential/index.html", "about/index.html", "advertising-products/index.html", "404.html"]) {
     const html = readFileSync(path.join(out, page), "utf8");
     const buttons = [...html.matchAll(/<a\b[^>]*data-cta="[^"]+"[^>]*>/g)].map(([tag]) => tag);

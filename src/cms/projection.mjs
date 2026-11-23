@@ -75,7 +75,8 @@ export function snapshotToFiles(snapshot, { mediaOrigin = "" } = {}) {
     if (SINGLETON_TYPES.includes(type) && !rows.length) throw new Error(`snapshot: missing ${type}`);
     if (type === "hero-slide") files[FILES[type]] = Object.fromEntries(HERO_PAGES.map((page) => [page, rows.filter((slide) => slide.page === page).map(({ page: _, ...slide }) => slide)]));
     else if (type === "home-projects") files[FILES[type]] = rows[0].ids.filter((id) => projectIds.has(id));
-    else if (type === "menu") files[FILES[type]] = { ...rows[0], featuredProjects: rows[0].featuredProjects.filter((id) => projectIds.has(id)) };
+    // An item on a trashed project leaves the menu file too; the group stays (cms-plan part 2 K8).
+    else if (type === "menu") files[FILES[type]] = { ...rows[0], groups: rows[0].groups.map((group) => ({ ...group, items: group.items.filter(({ link }) => !link.startsWith("page:project/") || projectIds.has(link.slice(13))) })) };
     else if (type === "page-copy") files[FILES[type]] = Object.fromEntries(rows.map(({ id, ...data }) => [id, data]));
     else if (type === "contact") files[FILES[type]] = rows[0];
     else if (type === "advertising-card") {

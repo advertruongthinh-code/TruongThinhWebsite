@@ -1,120 +1,87 @@
 // Full-menu nav and navbar list (site-shell R4) rendered at build time from content/menu.json and put in place of the
 // <!-- menu-nav --> and <!-- desktop-nav --> markers of the source pages: nothing is written back into src/site.
-// Featured projects and advertising groups come from content/menu.json via menuFeatured (editable by the CMS later).
+// menu.json holds the 6 groups and their items (cms-plan part 2 K8); every link goes through resolveLink.
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
-import { PROJECT_TYPES, SECTOR_LABEL, menuFeatured, pageHref, projectTypeHref } from "./block-pages.mjs";
+import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
+import { PROJECT_TYPES } from "./block-pages.mjs";
 import { contentDirOf, loadBlockContent } from "./content-files.mjs";
 import { escapeHtml, siteRoot } from "./lib.mjs";
-import { hrefAttrs } from "../../src/cms/links.mjs";
+import { hrefAttrs, resolveLink } from "../../src/cms/links.mjs";
 import { renderShell } from "./shell.mjs";
 import { fillContact } from "./slots.mjs";
 
 export const MENU_PAGES = ["index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "about/index.html", "404.html"];
 const navMarker = /( *)<!-- menu-nav -->/;
 const desktopMarker = /( *)<!-- desktop-nav -->/;
-// Navbar (site-shell R4): four main items in the exact order of menu groups 01-04.
-const DESKTOP_LINKS = [
-  { href: "/residential/", vi: "Không gian Nhà ở", en: "Residential spaces" },
-  { href: "/commercial/", vi: "Không gian Kinh doanh", en: "Commercial spaces" },
-  { href: "/projects/", vi: "Công trình", en: "Projects" },
-  { href: "/advertising-products/", vi: "Sản phẩm Quảng cáo", en: "Advertising products" },
-];
-const FEATURED_PRODUCT_GROUPS = 5;
-// Menu labels are longer than the taxonomy rail labels; a new group without a menu label uses its rail label.
-const PRODUCT_GROUP_LABELS = {
-  "displays-booths": { vi: "Kiosk & POSM", en: "Kiosk & POSM" },
-  "mobile-retail": { vi: "Xe bán hàng", en: "Mobile retail" },
-  signage: { vi: "Bảng hiệu & chữ nổi", en: "Signage & raised letters" },
-  "office-signs": { vi: "Biển văn phòng & chỉ dẫn", en: "Office signs & wayfinding" },
-  "led-displays": { vi: "LED, màn hình & hộp đèn", en: "LED, displays & light boxes" },
-  "printing-decals": { vi: "In nhanh & decal", en: "Quick print & decals" },
-};
-// Social links do not exist yet: the item is off like the footer, fill them in here once they exist.
-const SOCIAL = [
-  { label: "Facebook", href: null },
-  { label: "TikTok", href: null },
-  { label: "YouTube", href: null },
-];
+// Navbar (site-shell R4): the first four menu groups, named by their aria (full name) or title.
+const DESKTOP_GROUPS = 4;
 
 // A VI-to-EN route that only changes the prefix is swapped by the runtime itself; a different slug needs data-en-href.
 // viOnly: a project without EN (cms-content R2) shows in the VI menu only; localeHtml drops it from EN pages.
 const option = ({ vi, en, label, viOnly = false }) => `<a class="menu-option" ${hrefAttrs(vi, viOnly ? undefined : en)}${viOnly ? " data-vi-only" : ""} data-en="${escapeHtml(label.en ?? "")}">${escapeHtml(label.vi)}</a>`;
-const typeOption = (type) => option({ vi: projectTypeHref(type, "vi"), en: projectTypeHref(type, "en"), label: PROJECT_TYPES[type].label });
-const typesOf = (sector) => Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === sector);
+// Outside links (https, contact channels) open in a new tab; a contact channel without a link stays as a disabled item.
+const outside = (href, label) => {
+  const en = label.en && label.en !== label.vi ? ` data-en="${escapeHtml(label.en)}"` : "";
+  if (!href) return `<a class="menu-option" role="link" aria-disabled="true" tabindex="-1"${en}>${escapeHtml(label.vi)}</a>`;
+  return `<a class="menu-option" href="${escapeHtml(href)}"${href.startsWith("https://") ? ' target="_blank" rel="noreferrer"' : ""}${en}>${escapeHtml(label.vi)}</a>`;
+};
 
-const group = (number, { title, aria, href, options }) => [
-  '          <div class="menu-group">',
-  `            <span class="menu-group__number">${String(number).padStart(2, "0")}</span>`,
-  // aria-label keeps the full name when the title is only a short group name.
-  `            <a class="menu-group__title" ${hrefAttrs(href.vi, href.en)}${aria ? ` aria-label="${escapeHtml(aria.vi)}" data-en-aria-label="${escapeHtml(aria.en)}"` : ""}>`,
-  `              <span data-vi="${escapeHtml(title.vi)}" data-en="${escapeHtml(title.en)}">${escapeHtml(title.vi)}</span>`,
-  "            </a>",
-  '            <div class="menu-group__links">',
-  ...options.map((markup) => `              ${markup}`),
-  "            </div>",
-  "          </div>",
-].join("\n");
+// The record a page:project/<id> or page:news/<id> link points to: its title is the label an item may leave empty.
+const recordOf = (link, ctx) => {
+  const [, kind, id] = link.match(/^page:(project|news)\/(.+)$/) ?? [];
+  return kind ? (kind === "project" ? ctx.projects : ctx.news).get(id) : undefined;
+};
+const item = ({ label, link }, ctx) => {
+  const target = resolveLink(link, ctx);
+  if (link.startsWith("contact:") || link.startsWith("https://")) return outside(target?.vi, label);
+  // A link whose target is gone (trashed project, unknown page) drops the item; the group stays.
+  if (!target) return null;
+  const record = recordOf(link, ctx);
+  return option({ vi: target.vi, en: target.en, label: label ?? record.title, viOnly: Boolean(record?.noEn) });
+};
 
-export const renderMenuNav = ({ projects, productGroups }) => {
-  const groups = [
-    {
-      title: SECTOR_LABEL.residential, aria: { vi: "Không gian Nhà ở", en: "Residential spaces" }, href: { vi: "/residential/" },
-      options: [option({ vi: "/residential/", label: { vi: "Thiết kế không gian nhà ở", en: "Residential interior design" } }), ...typesOf("residential").map(typeOption)],
-    },
-    {
-      title: SECTOR_LABEL.commercial, aria: { vi: "Không gian Kinh doanh", en: "Commercial spaces" }, href: { vi: "/commercial/" },
-      options: [option({ vi: "/commercial/", label: { vi: "Thiết kế không gian kinh doanh", en: "Commercial interior design" } }), ...typesOf("commercial").map(typeOption)],
-    },
-    {
-      title: { vi: "Công trình", en: "Projects" }, href: { vi: "/projects/" },
-      options: [
-        option({ vi: "/projects/", label: { vi: "Các công trình của chúng tôi", en: "Our projects" } }),
-        ...projects.map((project) => option({ vi: pageHref("projects", "vi", project), en: pageHref("projects", "en", project), label: project.title, viOnly: project.noEn })),
-      ],
-    },
-    {
-      title: { vi: "Quảng cáo", en: "Advertising" }, aria: { vi: "Sản phẩm Quảng cáo", en: "Advertising products" }, href: { vi: "/advertising-products/" },
-      options: [
-        option({ vi: "/advertising-products/", label: { vi: "Các sản phẩm của chúng tôi", en: "Our products" } }),
-        ...productGroups.slice(0, FEATURED_PRODUCT_GROUPS).map((category) => option({
-          vi: `/advertising-products/${category.slugVi}/`, en: `/en/advertising-products/${category.slugEn}/`,
-          label: PRODUCT_GROUP_LABELS[category.slug] ?? { vi: category.titleVi, en: category.titleEn },
-        })),
-      ],
-    },
-    {
-      title: { vi: "Về chúng tôi", en: "About us" }, href: { vi: "/about/" },
-      options: [
-        ["heritage", "Di sản", "Heritage"], ["process", "Cách làm", "How we work"], ["commitment", "Cam kết", "Commitment"],
-      ].map(([topic, vi, en]) => option({ vi: `/about/?topic=${topic}`, label: { vi, en } })).concat(option({ vi: "/news/", label: { vi: "Tin tức", en: "News" } })),
-    },
-    {
-      title: { vi: "Liên hệ", en: "Contact" }, href: { vi: "/about/?topic=contact" },
-      options: SOCIAL.map(({ label, href }) => href
-        ? `<a class="menu-option" href="${href}" target="_blank" rel="noreferrer">${label}</a>`
-        : `<a class="menu-option" role="link" aria-disabled="true" tabindex="-1">${label}</a>`),
-    },
-  ];
+const group = (number, { title, aria, link, items }, ctx) => {
+  const target = resolveLink(link, ctx);
   return [
-    '<nav\n          class="menu-nav"\n          aria-label="Menu toàn trang"\n          data-en-aria-label="Full-site menu"\n        >',
-    ...groups.map((entry, index) => group(index + 1, entry)),
-    "        </nav>",
+    '          <div class="menu-group">',
+    `            <span class="menu-group__number">${String(number).padStart(2, "0")}</span>`,
+    // aria-label keeps the full name when the title is only a short group name.
+    `            <a class="menu-group__title"${target ? ` ${hrefAttrs(target.vi, target.en)}` : ""}${aria ? ` aria-label="${escapeHtml(aria.vi)}" data-en-aria-label="${escapeHtml(aria.en)}"` : ""}>`,
+    `              <span data-vi="${escapeHtml(title.vi)}" data-en="${escapeHtml(title.en)}">${escapeHtml(title.vi)}</span>`,
+    "            </a>",
+    '            <div class="menu-group__links">',
+    ...items.map((entry) => item(entry, ctx)).filter(Boolean).map((markup) => `              ${markup}`),
+    "            </div>",
+    "          </div>",
   ].join("\n");
 };
+
+export const renderMenuNav = (menu, ctx) => [
+  '<nav\n          class="menu-nav"\n          aria-label="Menu toàn trang"\n          data-en-aria-label="Full-site menu"\n        >',
+  ...menu.groups.map((entry, index) => group(index + 1, entry, ctx)),
+  "        </nav>",
+].join("\n");
+
+export const renderDesktopList = (menu, ctx, indent) => [
+  "<ul>",
+  ...menu.groups.slice(0, DESKTOP_GROUPS).map(({ title, aria, link }) => {
+    const { vi, en } = aria ?? title;
+    return `${indent}  <li><a href="${resolveLink(link, ctx)?.vi ?? "#"}" data-vi="${escapeHtml(vi)}" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</a></li>`;
+  }),
+  `${indent}</ul>`,
+].join("\n");
 
 const menu = JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "menu.json"), "utf8"));
 // Contact links and CTA buttons (K8): every page source fills them from contact.json here, so block pages get them too.
 export const contact = JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "contact.json"), "utf8"));
-const { projects } = loadBlockContent(siteRoot);
-export const renderDesktopList = (indent) => [
-  "<ul>",
-  ...DESKTOP_LINKS.map(({ href, vi, en }) => `${indent}  <li><a href="${href}" data-vi="${escapeHtml(vi)}" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</a></li>`),
-  `${indent}</ul>`,
-].join("\n");
-
-const nav = renderMenuNav(menuFeatured(menu, { projects, categories: ADVERTISING_CATEGORIES, cards: ADVERTISING_CARDS }));
+const { projects, news } = loadBlockContent(siteRoot);
+const linkContext = {
+  projects: new Map(projects.map((page) => [page.id, page])), news: new Map(news.map((page) => [page.id, page])),
+  clusters: ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn }) => ({ slug: id, slugVi, slugEn })), projectTypes: Object.keys(PROJECT_TYPES), contact,
+};
+const nav = renderMenuNav(menu, linkContext);
+const desktop = (indent) => renderDesktopList(menu, linkContext, indent);
 
 // Source page (path relative to src/site) with the shell, menu and navbar list rendered in place of their markers.
 export const readPageSource = (relativePath) => {
@@ -127,5 +94,5 @@ export const readPageSource = (relativePath) => {
   const markCurrent = (list) => section ? list.replace(`<li><a href="/${section}/"`, `<li class="selected"><a href="/${section}/" aria-current="page"`) : list;
   return source
     .replace(navMarker, (_match, indent) => `${indent}${current}`)
-    .replace(desktopMarker, (_match, indent) => `${indent}${markCurrent(renderDesktopList(indent))}`);
+    .replace(desktopMarker, (_match, indent) => `${indent}${markCurrent(desktop(indent))}`);
 };

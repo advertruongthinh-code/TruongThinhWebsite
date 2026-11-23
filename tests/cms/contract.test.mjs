@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { fullErrors, recordName, recordSlugs, shapeErrors } from "../../src/cms/contract.mjs";
@@ -46,7 +47,8 @@ test("crop outside the image, unknown media, bad id and unknown block are shape 
   assert.ok(codes.includes("media-unknown"));
   assert.ok(codes.some((text) => text.includes("differs from record id")));
   assert.ok(codes.some((text) => text.includes("unknown block type nope")));
-  assert.deepEqual(await shapeErrors("menu", { id: "main", featuredProjects: [], featuredProductGroups: [] }), [{ message: "menu: a single record has no id field", level: "shape" }]);
+  const menu = JSON.parse(readFileSync(new URL("../../src/site/content/menu.json", import.meta.url), "utf8"));
+  assert.deepEqual(await shapeErrors("menu", { id: "main", ...menu }), [{ message: "menu: a single record has no id field", level: "shape" }]);
   assert.deepEqual(await shapeErrors("news", { id: "draft-post", layout: "news-2-5" }), [], "a draft may lack optional fields");
 });
 
