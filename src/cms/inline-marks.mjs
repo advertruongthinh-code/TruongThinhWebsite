@@ -103,7 +103,7 @@ function tieTokens(tokens) {
   const replace = new Map();
   for (const word of glue) {
     let at = words[word].start - 1;
-    replace.set(at, " ");
+    replace.set(at, "\u00a0");
     while (at > 0 && /[ \t\n]/.test(chars[at - 1].character)) replace.set((at -= 1), "");
   }
   const parts = tail.map((token) => [...token.s]);

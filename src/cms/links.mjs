@@ -31,5 +31,5 @@ export function resolveLink(link, ctx = {}) {
   return record ? both(`${base}/${record.slugVi}/`, `${base}/${record.slugEn}/`) : null;
 }
 
-// href of a VI page, plus data-en-href only when the EN path is not just the prefixed VI path (localeHtml adds the prefix).
-export const hrefAttrs = (vi, en) => `href="${vi}"${en && en !== `${localePrefix("en")}${vi}` ? ` data-en-href="${en}"` : ""}`;
+// href of a VI page, plus data-en-href only when EN differs from both the VI href and the prefixed VI path (localeHtml adds the prefix).
+export const hrefAttrs = (vi, en) => `href="${vi}"${en && en !== vi && en !== `${localePrefix("en")}${vi}` ? ` data-en-href="${en}"` : ""}`;
