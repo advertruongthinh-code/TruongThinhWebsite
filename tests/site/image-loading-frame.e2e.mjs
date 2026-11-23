@@ -351,6 +351,7 @@ try {
     // The virtual window may mount more cards once the page is idle (on a slow runner after this sample): compare the cards both samples hold.
     const sampledIds = new Set(duringLoad.cards.map(([id]) => id));
     const settledIds = new Set(loaded.cards.map(([id]) => id));
+    assert.deepEqual([...sampledIds].filter((id) => !settledIds.has(id)), [], `${viewport.width}px: no card unmounts while images load`);
     assert.deepEqual({ ...loaded, cards: loaded.cards.filter(([id]) => sampledIds.has(id)) },
       { ...duringLoad, cards: duringLoad.cards.filter(([id]) => settledIds.has(id)) },
       `${viewport.width}px: grid, CTA, footer and filters keep geometry while images load`);

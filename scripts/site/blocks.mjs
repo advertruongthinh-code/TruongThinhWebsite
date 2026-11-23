@@ -21,7 +21,7 @@ const marked = (tag, text, attributes, ctx) => {
 // hero-typography R7: the orphan tie keeps the last two words on one line; at the 40px phone title a pair over 15 characters
 // ("wardrobe measured?") is wider than the 354px column, so such a title gets a smaller phone size instead.
 const LONG_TAIL_CHARS = 15;
-const hasLongTail = (text) => [text.vi, text.en ?? ""].some((value) => value.trim().split(/\s+/).slice(-2).join(" ").length > LONG_TAIL_CHARS);
+const hasLongTail = (text) => [text.vi, text.en ?? ""].some((value) => plainText(value).trim().split(/\s+/).slice(-2).join(" ").length > LONG_TAIL_CHARS);
 // lists: a body paragraph whose every line starts with "• " or "<n>. " becomes <ul> or <ol>.
 const localizedParagraphs = (text, ctx, { lists = false } = {}) => {
   const vi = paragraphs(text.vi);
