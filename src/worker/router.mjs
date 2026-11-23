@@ -1,13 +1,29 @@
 // Admin API dispatch (docs/specs/cms.md R1, R2, R4; CMS plan Q7, Q9). Every non-GET refusal writes one audit row.
 import { hasAllowedOrigin, requireActor } from "./auth.mjs";
 import { auditStatement, HttpError, json } from "./http.mjs";
+import auditLog from "./commands/audit-log.mjs";
 import buildStatus from "./commands/build-status.mjs";
+import create from "./commands/create.mjs";
+import get from "./commands/get.mjs";
+import list from "./commands/list.mjs";
+import purge from "./commands/purge.mjs";
+import restore from "./commands/restore.mjs";
+import save from "./commands/save.mjs";
 import snapshot from "./commands/snapshot.mjs";
+import trash from "./commands/trash.mjs";
 
 // { method, owner?, service?, upload?, run(request, env, ctx, actor, url) }; later tasks add commands here.
 export const COMMANDS = {
+  "audit-log": auditLog,
   "build-status": buildStatus,
+  create,
+  get,
+  list,
+  purge,
+  restore,
+  save,
   snapshot,
+  trash,
 };
 
 export async function route(request, env, ctx) {

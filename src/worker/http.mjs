@@ -34,8 +34,15 @@ export async function readJson(request) {
   }
 }
 
-export function auditStatement(env, actor, command, type, id, result, { detail = null } = {}) {
+// guard = { sql, args } (records.mjs guard()): the row is written only when that condition holds inside the same batch.
+export function auditStatement(env, actor, command, type, id, result, { detail = null, guard = null } = {}) {
+  const values = [new Date().toISOString(), actor.email, command, type, id, result, detail];
+  if (!guard) {
+    return env.DB
+      .prepare("INSERT INTO audit_log (at, email, command, type, id, result, detail) VALUES (?, ?, ?, ?, ?, ?, ?)")
+      .bind(...values);
+  }
   return env.DB
-    .prepare("INSERT INTO audit_log (at, email, command, type, id, result, detail) VALUES (?, ?, ?, ?, ?, ?, ?)")
-    .bind(new Date().toISOString(), actor.email, command, type, id, result, detail);
+    .prepare(`INSERT INTO audit_log (at, email, command, type, id, result, detail) SELECT ?, ?, ?, ?, ?, ?, ? WHERE ${guard.sql}`)
+    .bind(...values, ...guard.args);
 }
