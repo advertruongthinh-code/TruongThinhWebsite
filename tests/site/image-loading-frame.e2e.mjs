@@ -528,7 +528,9 @@ try {
         settled: frame.classList.contains("is-media-settled"), offscreen: frame.classList.contains("is-media-offscreen") };
     }, id);
     await add("frame-visible", 0);
-    await page.evaluate(() => document.getElementById("frame-visible").scrollIntoView());
+    // Pinned in the viewport: a native scrollIntoView is undone by the smooth scroll's logical position, which made the frame flip
+    // back off screen on CI.
+    await page.evaluate(() => { document.getElementById("frame-visible").style.cssText = "position:fixed;top:120px;left:0;width:200px;height:100px"; });
     await page.waitForFunction(() => { const frame = document.getElementById("frame-visible"); return frame.classList.contains("media-frame") && !frame.classList.contains("is-media-offscreen"); });
     assert.deepEqual(await state("frame-visible"), { marked: true, sweep: "media-sweep", settled: false, offscreen: false }, "data-media-frame frame outside /assets/content/ shows the sweep");
     await add("frame-far", 8000);
