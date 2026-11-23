@@ -6567,6 +6567,7 @@ async function runAdvertisingMediaEntranceChecks() {
         const fading = trace.find((sample) => sample.intersectsViewport && sample.imageReady &&
           sample.imageOpacity < 0.98 && sample.opacityAnimations.length > 0);
         const final = trace.at(-1);
+        const firstReady = trace.find((sample) => sample.imageReady);
         // 0.6s rhythm (design-system motion.md, image in card): the image shows 0.13s to 0.39s, cubic-bezier(0.65, 0, 0.35, 1).
         const fade = fading?.opacityAnimations[0];
         // progressive-loading R9: the image waits hidden under its Flow frame, never blurred, then shows within the 0.6s reveal: through the frosted
@@ -6575,9 +6576,12 @@ async function runAdvertisingMediaEntranceChecks() {
           targetImageDelayed && final?.imageReady && final.imageOpacity >= 0.999 && !final.blur &&
             final.currentSrc && final.complete && final.naturalWidth > 0 &&
             trace.every((sample) => !sample.blur) &&
+            trace.filter((sample) => !sample.imageReady).every((sample) => sample.imageOpacity === 0) &&
             ((fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
               fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)") ||
-              trace.some((sample) => sample.intersectsViewport && sample.imageReady && sample.frosted)) &&
+              // Frosted: the still turns transparent as the image is shown, and the frame stays until the glass clears (0.6s).
+              (firstReady && trace.some((sample) => sample.intersectsViewport && sample.imageReady && sample.frosted
+                && sample.elapsed - firstReady.elapsed <= 600))) &&
             trace.every((sample) => sample.shellOpacity >= 0.999),
           `${locale} fresh deep card skipped the 0.6s reveal (frosted or image fade): ${JSON.stringify(trace)}`,
         );

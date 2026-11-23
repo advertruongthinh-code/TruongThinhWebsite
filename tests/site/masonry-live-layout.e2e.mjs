@@ -492,7 +492,8 @@ try {
         if (!records.flatMap((record) => [...record.addedNodes]).some((node) => node.dataset?.masonryCard && !before.has(node.dataset.masonryCard))) return;
         observer.disconnect();
         requestAnimationFrame(() => {
-          // A build attaches its new cards over several frames (mount budget): record every new card in the first frame it shows, for 500ms.
+          // New cards past the first become real cards at their target over the next frames' budget (masonry-live-layout R7, advertising-masonry
+          // R7): record every new card in the first frame it shows, for 500ms.
           const added = new Map();
           let mediaFades = 0;
           const start = performance.now();

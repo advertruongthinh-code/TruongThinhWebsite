@@ -210,8 +210,7 @@ Trước đó apt treo cũng đã làm một job `media-card` mất 20 phút mà
 
 ### R12. Harness test trình duyệt
 
-`tests/site/harness.mjs` là helper duy nhất cho test trình duyệt viết bằng ESM; tên không chứa `.e2e.` hay `.test.` nên
-runner không nhặt nó làm test, và nó nằm trong `shared` của manifest nên đổi nó chạy mọi bộ ([R3](#r3-chọn-bộ-theo-file-pr-sửa)).
+`tests/site/harness.mjs` là helper duy nhất cho test trình duyệt viết bằng ESM; tên không chứa `.e2e.` hay `.test.` nên runner không nhặt nó làm test, và nó nằm trong `shared` của manifest nên đổi nó chạy mọi bộ ([R3](#r3-chọn-bộ-theo-file-pr-sửa)).
 Export đúng các tên sau:
 
 | Export | Việc |
@@ -223,6 +222,7 @@ Export đúng các tên sau:
 | `openPage(browser, viewport, contextOptions)` | Tách `width`, `height` khỏi option thiết bị của viewport, mở context và trang; trả `{ context, page }` |
 | `frames(page, count = 2)` | Chờ `count` lần `requestAnimationFrame` |
 | `settleTransitions(page)` | Chờ hai frame rồi chờ tới khi không còn CSS transition đang chạy |
+| `holdCardSlideshow(context)` | Giữ slideshow card ([media-card R4](media-card.md), owner 2026-11-13) đứng yên cho test đổi media bằng tay; slideshow có test riêng (`site-media-card-slideshow.e2e.mjs`) |
 | `mouseDrag(page, from, to, steps = 12)` | Kéo chuột thật (`page.mouse`) giữa hai điểm viewport `{ x, y }` |
 | `touchSwipe(page, from, to, steps = 12)` | Vuốt bằng touch event CDP; context cần `hasTouch` |
 | `trackMotion(page, selector, act, ms = 1500)` | Đo hình hộp phần tử mỗi frame trong lúc `act` chạy; trả `jump`: bước lớn nhất giữa hai frame chia cho toàn biên độ (đổi tức thì là 1, morph nhỏ hơn nhiều) |

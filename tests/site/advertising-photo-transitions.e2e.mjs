@@ -1284,7 +1284,10 @@ try {
     // this step checks; a busy runner swaps the order of those two events (issue #507). Hold the image until the card carries the skeleton.
     // A's own files load; file names carry the SEO slug, not the card id (media-seo, owner 2026-11-22), so match every variant of A's media.
     const stems = ADVERTISING_CATALOG_ARTIFACT.cards.find(({ id }) => id === A).mediaItems.map(({ src }) => src.replace(/\.\w+$/, ""));
-    const ownMedia = (url) => stems.some((stem) => /^[-.]/.test(new URL(url).pathname.slice(stem.length)) && new URL(url).pathname.startsWith(stem));
+    const ownMedia = (url) => {
+      const { pathname } = new URL(url);
+      return stems.some((stem) => pathname.startsWith(stem) && /^(?:-\d+)?\.\w+$/.test(pathname.slice(stem.length)));
+    };
     const heldMedia = [];
     let mediaReleased = false;
     const mediaPattern = "**/assets/content/**";
