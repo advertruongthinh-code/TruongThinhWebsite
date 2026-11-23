@@ -33,17 +33,24 @@ export default {
         throw new HttpError(502, { error: "access" }, target);
       }
     }
-    // The audit row is written after Access answers, so a lock that could not reach Access says so.
-    await env.DB.prepare("UPDATE accounts SET role = ?, status = ?, updated_at = ?, updated_by = ? WHERE email = ?")
-      .bind(role, status, new Date().toISOString(), actor.email, email).run();
+    // The guard sits in the UPDATE itself, so two owners demoting each other at once cannot leave zero active owners.
+    const keepsOwner = role === "owner" && status === "active" ? 1 : 0;
+    const now = new Date().toISOString();
+    const [updated] = await env.DB.batch([
+      env.DB.prepare(`UPDATE accounts SET role = ?, status = ?, updated_at = ?, updated_by = ? WHERE email = ?
+        AND (? = 1 OR EXISTS (SELECT 1 FROM accounts WHERE role = 'owner' AND status = 'active' AND email != ?))`)
+        .bind(role, status, now, actor.email, email, keepsOwner, email),
+      auditStatement(env, actor, "account-update", "account", email, "ok", { detail: `${role} ${status}`, guard: { sql: "EXISTS (SELECT 1 FROM accounts WHERE email = ? AND updated_at = ? AND updated_by = ?)", args: [email, now, actor.email] } }),
+    ]);
+    if (updated.meta.changes !== 1) throw new HttpError(409, { error: "last-owner" }, target);
     let accessSynced = true;
     if (status === "locked") {
       accessSynced = await removePolicyEmail(env, email).then(() => true, (error) => {
         console.error("account-update access", error.message);
         return false;
       });
+      if (!accessSynced) await auditStatement(env, actor, "account-update", "account", email, "access-not-synced").run();
     }
-    await auditStatement(env, actor, "account-update", "account", email, accessSynced ? "ok" : "ok access-not-synced", { detail: `${role} ${status}` }).run();
     return json({ email, role, status, accessSynced });
   },
 };

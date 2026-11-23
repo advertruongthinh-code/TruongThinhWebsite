@@ -107,7 +107,7 @@ test("lock writes D1 first, then removes the email from the policy; an Access er
   assert.equal(result.status, 200);
   assert.equal(result.body.accessSynced, false);
   assert.deepEqual(failing.rows(), ["a@example.com owner active", "s@example.com staff locked"]);
-  assert.deepEqual(failing.audits(), ["account-update s@example.com ok access-not-synced"]);
+  assert.deepEqual(failing.audits(), ["account-update s@example.com ok", "account-update s@example.com access-not-synced"]);
 });
 
 test("reopen adds to Access first; an Access error answers 502 and keeps the lock", async () => {
@@ -141,4 +141,14 @@ test("account-list returns rows, the caller and the stored drift", async () => {
   const synced = setup();
   await checkAccessDrift(synced.env);
   assert.equal((await synced.call("account-list")).body.accessDrift, null);
+});
+
+test("two owners demoting each other at once leave one active owner", async () => {
+  const t = setup({ accounts: [["a@example.com", "owner", "active"], ["b@example.com", "owner", "active"]] });
+  const results = await Promise.all([
+    t.call("account-update", { email: "a@example.com", role: "staff" }),
+    t.call("account-update", { email: "b@example.com", role: "staff" }),
+  ]);
+  assert.deepEqual(results.map((result) => result.status).sort(), [200, 409]);
+  assert.equal(t.rows().filter((row) => row.endsWith("owner active")).length, 1);
 });
