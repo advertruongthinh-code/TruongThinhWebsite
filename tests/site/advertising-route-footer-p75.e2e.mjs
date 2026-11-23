@@ -13,11 +13,11 @@ try {
     seed: window.TruongThinhMasonry.getBrowseState().seed,
     gap: document.querySelector("footer.site-footer").getBoundingClientRect().top - document.querySelector("[data-masonry-grid-cta]").getBoundingClientRect().bottom,
   });
-  await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/advertising-products/`, { waitUntil: "networkidle" });
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   await page.waitForTimeout(1500);
   const direct = await page.evaluate(read);
-  await page.goto(`${base}/vi/`, { waitUntil: "networkidle" });
+  await page.goto(`${base}/`, { waitUntil: "networkidle" });
   await page.locator('.desktop-nav a[href*="advertising-products"]').click();
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   await page.waitForTimeout(2000);

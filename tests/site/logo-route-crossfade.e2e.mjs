@@ -89,10 +89,10 @@ const cyan = "rgb(0, 160, 227)";
 // (veil still covering) text tweens to the destination tone and the mark flips to the destination color; no minimum covered time.
 // texts: the colors the text settles on, in order (tween frames in between are allowed).
 const scenarios = [
-  { name: "home to residential", from: "/vi/", link: 'a[href="/vi/residential/"]', texts: [white, ink, white], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-inverse" },
-  { name: "home to advertising", from: "/vi/", link: 'a[href="/vi/advertising-products/"]', texts: [white, ink], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-color" },
-  { name: "advertising to home", from: "/vi/advertising-products/", link: 'a[href="/vi/"]', texts: [ink, white], flip: { front: white, back: cyan, rate: -1 }, final: "is-brand-inverse" },
-  { name: "advertising to projects", from: "/vi/advertising-products/", link: 'a[href="/vi/projects/"]', texts: [ink], flip: null, final: "is-brand-color" },
+  { name: "home to residential", from: "/", link: 'a[href="/residential/"]', texts: [white, ink, white], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-inverse" },
+  { name: "home to advertising", from: "/", link: 'a[href="/advertising-products/"]', texts: [white, ink], flip: { front: white, back: cyan, rate: 1 }, final: "is-brand-color" },
+  { name: "advertising to home", from: "/advertising-products/", link: 'a[href="/"]', texts: [ink, white], flip: { front: white, back: cyan, rate: -1 }, final: "is-brand-inverse" },
+  { name: "advertising to projects", from: "/advertising-products/", link: 'a[href="/projects/"]', texts: [ink], flip: null, final: "is-brand-color" },
 ];
 // One frame: the GSAP callback may run before or after the recorder's read within the same frame.
 const frame = 40;
@@ -148,12 +148,12 @@ try {
 
   // R5: click a link while the mark is mid-flip (scroll just changed color); at click the mark is unchanged so the running flip continues.
   {
-    const { context, page } = await open({ width: 1440, height: 900 }, "no-preference", "/vi/");
+    const { context, page } = await open({ width: 1440, height: 900 }, "no-preference", "/");
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
     await page.waitForFunction(() => document.querySelector("#header-logo .brand-lockup__mark-flip"));
     const state = await page.evaluate(() => {
       const root = document.querySelector("#header-logo .brand-lockup__mark-flip");
-      document.querySelector('a[href="/vi/residential/"]').click();
+      document.querySelector('a[href="/residential/"]').click();
       const after = document.querySelector("#header-logo .brand-lockup__mark-flip");
       return {
         same: after === root,
@@ -169,8 +169,8 @@ try {
 
   // R6: reduced motion switches immediately, no color tween, no grow.
   {
-    const { context, page } = await open({ width: 412, height: 915 }, "reduce", "/vi/");
-    const record = await go(page, 'a[href="/vi/residential/"]');
+    const { context, page } = await open({ width: 412, height: 915 }, "reduce", "/");
+    const record = await go(page, 'a[href="/residential/"]');
     assert.deepEqual({ rises: record.rises, tweens: record.tweens, final: record.final }, { rises: 0, tweens: 0, final: "is-brand-inverse" }, "reduced motion");
     assert.equal(record.logoMin, 1, "reduced motion: logo never fades");
     console.log("PASS reduced motion: colour changes at once, logo stays");

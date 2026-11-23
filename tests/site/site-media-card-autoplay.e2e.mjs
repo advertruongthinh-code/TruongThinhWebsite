@@ -56,7 +56,7 @@ async function open({ width = 1440, height = 900, touch = false, reducedMotion =
       headers: { "accept-ranges": "bytes", "content-range": `bytes ${start}-${end}/${body.length}` } });
   });
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(playlist));
-  await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${base}/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.waitForFunction(() => document.querySelectorAll("[data-masonry-card] video").length >= 4);

@@ -125,7 +125,7 @@ Then trang chủ hiện bài đó trong khối News và hamburger menu có mục
 
 ### R5. Đường dẫn và đổi ngôn ngữ
 
-Đường dẫn dạng `/vi/news/<slug>/` và `/en/news/<slug>/` theo kiểu site hiện tại. Bài hai ngôn ngữ có hreflang hai chiều;
+Đường dẫn dạng `/news/<slug>/` và `/en/news/<slug>/` theo kiểu site hiện tại. Bài hai ngôn ngữ có hreflang hai chiều;
 bài một ngôn ngữ không có, và nút đổi ngôn ngữ dẫn về trang News của ngôn ngữ kia. Đổi slug sau khi đăng thì tạo redirect 301
 từ slug cũ. `[CẦN LÀM RÕ: chữ "news" trong đường dẫn giữ tiếng Anh cho cả hai ngôn ngữ hay đổi theo từ khóa, chốt cùng
 Keyword Planner]`

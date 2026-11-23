@@ -21,12 +21,12 @@ const cases = ["vi", "en"].flatMap((locale) => [
   // switched: a detail page has different slugs in the two languages; clicking to switch language must land on the other slug.
   { route: pageHref("projects", locale, projects[0]), locale, switched: pageHref("projects", otherLocale(locale), projects[0]) },
   { route: pageHref("news", locale, news[0]), locale, switched: pageHref("news", otherLocale(locale), news[0]) },
-  { route: `/${locale}/news/`, locale, link: pageHref("news", locale, news.toSorted((a, b) => b.published.localeCompare(a.published) || a.id.localeCompare(b.id))[0]) },
-  { route: `/${locale}${projectListPages(projects)[0].path}`, locale, link: pageHref("projects", locale, projects[0]), captions: true },
-  { route: `/${locale}/${projects[0].sector}/`, locale, link: pageHref("projects", locale, projects[0]) },
+  { route: `${locale === "en" ? "/en" : ""}/news/`, locale, link: pageHref("news", locale, news.toSorted((a, b) => b.published.localeCompare(a.published) || a.id.localeCompare(b.id))[0]) },
+  { route: `${locale === "en" ? "/en" : ""}${projectListPages(projects)[0].path}`, locale, link: pageHref("projects", locale, projects[0]), captions: true },
+  { route: `${locale === "en" ? "/en" : ""}/${projects[0].sector}/`, locale, link: pageHref("projects", locale, projects[0]) },
   // Type page of the first project and an empty type page (if any): the site menu leads to all six types.
   ...projectListPages(projects).filter((listPage) => listPage.filter.type === projects[0].type || (listPage.filter.type && !listPage.projects.length)).slice(0, 2)
-    .map((listPage) => ({ route: `/${locale}${listPage.path}`, locale, link: listPage.projects.length ? pageHref("projects", locale, projects[0]) : undefined, empty: !listPage.projects.length })),
+    .map((listPage) => ({ route: `${locale === "en" ? "/en" : ""}${listPage.path}`, locale, link: listPage.projects.length ? pageHref("projects", locale, projects[0]) : undefined, empty: !listPage.projects.length })),
 ]);
 
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
@@ -166,12 +166,12 @@ try {
   for (const viewport of [{ width: 1440, height: 900 }, { width: 1366, height: 650 }, { width: 970, height: 900 }]) {
     const context = await browser.newContext({ viewport });
     const page = await context.newPage();
-    const at = `/vi/news/ sticky ${viewport.width}x${viewport.height}`;
+    const at = `/news/ sticky ${viewport.width}x${viewport.height}`;
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
     try {
-      await page.goto(`${origin}/vi/news/`, { waitUntil: "load" });
+      await page.goto(`${origin}/news/`, { waitUntil: "load" });
       const smooth = viewport.width >= 981;
       if (smooth) await page.waitForSelector("html.has-scroll-init", { state: "attached", timeout: 8000 });
       const measure = () => page.evaluate(() => {

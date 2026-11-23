@@ -17,7 +17,7 @@ test("taxonomy R4, R5: one page per cluster and per product that meets the thres
   assert.equal(ADVERTISING_PAGES.filter(({ filter }) => !filter.includes("/")).length, 6);
   for (const page of ADVERTISING_PAGES) {
     for (const locale of ["vi", "en"]) {
-      assert.ok(existsSync(new URL(`../../.site-output/${locale}/advertising-products/${page[locale]}/index.html`, import.meta.url)), `${locale} ${page.filter}`);
+      assert.ok(existsSync(new URL(`../../.site-output${locale === "en" ? "/en" : ""}/advertising-products/${page[locale]}/index.html`, import.meta.url)), `${locale} ${page.filter}`);
     }
   }
 });
@@ -28,8 +28,8 @@ test("taxonomy R4: the EN product page has title, meta, canonical, hreflang, an 
   assert.match(html, /<title[^>]*>Business cards, flyers and catalogues — Trường Thịnh<\/title>/);
   assert.match(html, /<meta\s+name="description"\s+content="Business cards, flyers, brochures, catalogues/);
   assert.match(html, /<link rel="canonical" href="https:\/\/truongthinhads.vn\/en\/advertising-products\/printing-decals\/office-printing\/"/);
-  assert.match(html, /<link rel="alternate" hreflang="vi" href="https:\/\/truongthinhads.vn\/vi\/advertising-products\/in-an-decal\/in-an-van-phong\/" \/>/);
-  assert.match(html, /<link rel="alternate" hreflang="x-default" href="https:\/\/truongthinhads.vn\/vi\/advertising-products\/in-an-decal\/in-an-van-phong\/" \/>/);
+  assert.match(html, /<link rel="alternate" hreflang="vi" href="https:\/\/truongthinhads.vn\/advertising-products\/in-an-decal\/in-an-van-phong\/" \/>/);
+  assert.match(html, /<link rel="alternate" hreflang="x-default" href="https:\/\/truongthinhads.vn\/advertising-products\/in-an-decal\/in-an-van-phong\/" \/>/);
   const noscript = html.match(/<noscript>([\s\S]*?)<\/noscript>/)[1];
   assert.match(noscript, /<p[^>]*>Business cards, flyers, brochures, catalogues/);
   for (const page of ADVERTISING_PAGES) assert.match(noscript, new RegExp(`href="/en/advertising-products/${page.en}/"`), page.filter);
@@ -42,16 +42,16 @@ test("taxonomy R4: the EN product page has title, meta, canonical, hreflang, an 
 });
 
 test("taxonomy R4: the root page rail links to cluster pages by the locale's slug", async () => {
-  const [vi, en] = await Promise.all([read("vi/advertising-products/index.html"), read("en/advertising-products/index.html")]);
+  const [vi, en] = await Promise.all([read("advertising-products/index.html"), read("en/advertising-products/index.html")]);
   for (const { slug, slugVi, slugEn } of ADVERTISING_CATEGORIES) {
-    assert.match(vi, new RegExp(`href="/vi/advertising-products/${slugVi}/"[^>]*data-masonry-filter="${slug}"`));
+    assert.match(vi, new RegExp(`href="/advertising-products/${slugVi}/"[^>]*data-masonry-filter="${slug}"`));
     assert.match(en, new RegExp(`href="/en/advertising-products/${slugEn}/"[^>]*data-masonry-filter="${slug}"`));
   }
 });
 
 test("taxonomy R3, R5: each product at the card threshold has a chip and its own page, a product under it or alone in its cluster has neither", async () => {
   assert.equal(ADVERTISING_PRODUCT_THRESHOLD, 5);
-  const html = await read("vi/advertising-products/index.html");
+  const html = await read("advertising-products/index.html");
   const count = (id) => artifact.cards.filter((card) => card.productIds.includes(id)).length;
   const chips = [...html.matchAll(/<a class="rail-chip" href="([^"]+)" data-en-href="([^"]+)" data-masonry-product="([^"]+)"/g)]
     .map(([, vi, en, id]) => ({ vi, en, id }));
@@ -63,21 +63,21 @@ test("taxonomy R3, R5: each product at the card threshold has a chip and its own
   for (const { vi, en, id } of chips) {
     const page = ADVERTISING_PAGES.find(({ filter }) => filter === id);
     assert.ok(page, `${id}: every chip has its own page`);
-    assert.equal(vi, `/vi/advertising-products/${page.vi}/`, id);
+    assert.equal(vi, `/advertising-products/${page.vi}/`, id);
     assert.equal(en, `/en/advertising-products/${page.en}/`, id);
   }
   // The 2026-11-10 placeholders are gone; their three products each keep one owner-approved card with three media (taxonomy R5).
   assert.equal(artifact.cards.filter((card) => card.media.sourceId.startsWith("placeholder:")).length, 0);
   assert.deepEqual(["kiosk-posm-74", "print-decals-37", "office-signs-wayfinding-56"]
     .map((id) => artifact.cards.find((card) => card.id === id)?.mediaItems?.length), [3, 3, 4]);
-  const clusterPage = await read("vi/advertising-products/in-an-decal/index.html");
-  assert.match(clusterPage, /<link rel="canonical" href="https:\/\/truongthinhads.vn\/vi\/advertising-products\/in-an-decal\/"/);
+  const clusterPage = await read("advertising-products/in-an-decal/index.html");
+  assert.match(clusterPage, /<link rel="canonical" href="https:\/\/truongthinhads.vn\/advertising-products\/in-an-decal\/"/);
   // noscript links only generated pages: a product under the threshold has no dead link
-  for (const [, href] of clusterPage.match(/<noscript>([\s\S]*?)<\/noscript>/)[1].matchAll(/href="(\/vi\/advertising-products\/[^"]*)"/g)) {
+  for (const [, href] of clusterPage.match(/<noscript>([\s\S]*?)<\/noscript>/)[1].matchAll(/href="(\/advertising-products\/[^"]*)"/g)) {
     assert.ok(existsSync(new URL(`../../.site-output${href}index.html`, import.meta.url)), `noscript ${href}`);
   }
   assert.equal((html.match(/data-masonry-chips="[^"]+" hidden/g) || []).length, ADVERTISING_CATEGORIES.length, "the root page hides every chip row");
-  const page = await read("vi/advertising-products/bang-hieu-quang-cao/chu-noi/index.html");
+  const page = await read("advertising-products/bang-hieu-quang-cao/chu-noi/index.html");
   assert.match(page, /data-masonry-chips="signage">/);
   assert.equal((page.match(/data-masonry-product="signage\/raised-letters" aria-current="true"/g) || []).length, 1);
 });
@@ -85,17 +85,17 @@ test("taxonomy R3, R5: each product at the card threshold has a chip and its own
 test("taxonomy R4: the filter comes from the path, ?category= wins; a filter with a page writes the path", () => {
   const schema = { cards: artifact.cards, categories: artifact.categories, pages: artifact.pages };
   const parse = (href) => parseBrowseLocation(`https://local.test${href}`, schema).category;
-  assert.equal(parse("/vi/advertising-products/in-an-decal/"), "printing-decals");
+  assert.equal(parse("/advertising-products/in-an-decal/"), "printing-decals");
   assert.equal(parse("/en/advertising-products/printing-decals/office-printing/"), "printing-decals/office-printing");
-  assert.equal(parse("/vi/advertising-products/in-an-decal/?category=signage"), "signage");
-  assert.equal(parse("/vi/advertising-products/khong-co/"), "all");
+  assert.equal(parse("/advertising-products/in-an-decal/?category=signage"), "signage");
+  assert.equal(parse("/advertising-products/khong-co/"), "all");
   const serialize = (href, category) => {
     const url = serializeBrowseLocation(`https://local.test${href}`, { category }, artifact.categories, artifact.pages);
     return `${url.pathname}${url.search}`;
   };
-  assert.equal(serialize("/vi/advertising-products/in-an-decal/", "printing-decals"), "/vi/advertising-products/in-an-decal/");
+  assert.equal(serialize("/advertising-products/in-an-decal/", "printing-decals"), "/advertising-products/in-an-decal/");
   assert.equal(serialize("/en/advertising-products/printing-decals/office-printing/?utm=a", "signage"), "/en/advertising-products/signage/?utm=a");
-  assert.equal(serialize("/vi/advertising-products/?utm=a", "printing-decals/office-printing"), "/vi/advertising-products/in-an-decal/in-an-van-phong/?utm=a");
+  assert.equal(serialize("/advertising-products/?utm=a", "printing-decals/office-printing"), "/advertising-products/in-an-decal/in-an-van-phong/?utm=a");
   assert.equal(serialize("/en/advertising-products/signage/", "all"), "/en/advertising-products/");
 });
 
@@ -121,8 +121,8 @@ test("taxonomy R7: related of the Kỷ niệm chương photo puts the Kỷ niệ
 test("taxonomy R5: a URL whose page is gone under a cluster page falls into the cluster's 404.html, canonical and redirects back to the cluster page", async () => {
   for (const page of ADVERTISING_PAGES.filter(({ filter, cluster }) => filter === cluster)) {
     for (const locale of ["vi", "en"]) {
-      const html = await read(`${locale}/advertising-products/${page[locale]}/404.html`);
-      assert.match(html, new RegExp(`<link rel="canonical" href="/${locale}/advertising-products/${page[locale]}/"`), `${locale} ${page.filter}`);
+      const html = await read(`${locale === "en" ? "en/" : ""}advertising-products/${page[locale]}/404.html`);
+      assert.match(html, new RegExp(`<link rel="canonical" href="${locale === "en" ? "/en" : ""}/advertising-products/${page[locale]}/"`), `${locale} ${page.filter}`);
       assert.match(html, /location\.replace\(target\.href\)/);
     }
   }

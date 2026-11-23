@@ -32,8 +32,8 @@ Sitemap, schema và link nội bộ chỉ dùng path này, nên Google Hình ả
 
 ```gherkin
 Given card signage-raised-letters-02
-When mở /vi/advertising-products/p/signage-raised-letters-02/
-Then detail của card mở, canonical là https://truongthinhads.vn/vi/advertising-products/p/signage-raised-letters-02/
+When mở /advertising-products/p/signage-raised-letters-02/
+Then detail của card mở, canonical là https://truongthinhads.vn/advertising-products/p/signage-raised-letters-02/
 And bấm một card related ghi path của card đó, history thêm đúng một entry
 ```
 

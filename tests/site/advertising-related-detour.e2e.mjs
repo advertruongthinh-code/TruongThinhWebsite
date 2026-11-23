@@ -67,7 +67,7 @@ const besideToBelow = ({ before, after, primaryBefore, primaryAfter }) => Object
   before[id] && before[id].x >= primaryBefore.right - 1 && after[id].y >= primaryAfter.bottom - 1).length;
 
 const openDetail = async (page, locale, hero) => {
-  await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true"
     && !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"),
   null, { timeout: 20000 });
@@ -94,7 +94,7 @@ const assertSettled = async (page, label) => {
 const browser = await chromium.launch({ headless: true });
 try {
   const probe = await browser.newPage({ viewport: { width: 1569, height: 912 } });
-  await probe.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+  await probe.goto(`${baseUrl}/advertising-products/`, { waitUntil: "domcontentloaded" });
   await probe.waitForSelector("[data-masonry-card]");
   const heroes = (await probe.$$eval("[data-masonry-card]", (nodes) => nodes.map((node) => node.dataset.masonryCard))).slice(0, heroLimit);
   await probe.close();

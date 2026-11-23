@@ -54,7 +54,7 @@ try {
     };
     requestAnimationFrame(tick);
   });
-  await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${base}/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
   await page.waitForTimeout(1500);
   const { limit, viewport } = await page.evaluate(() => ({ limit: document.documentElement.scrollHeight - innerHeight, viewport: innerHeight }));

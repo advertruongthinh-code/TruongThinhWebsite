@@ -184,7 +184,7 @@ const swipe = async direction => {
   await pause(850); actions.push({ kind: "native-touch", direction, utc: new Date().toISOString() });
   return sample(`after-${direction}`);
 };
-const routes = option("--routes", "vi/,vi/residential/,vi/commercial/,vi/about/,vi/advertising-products/,vi/advertising-products/standee-ke-trung-bay/,vi/advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37").split(",");
+const routes = option("--routes", ",residential/,commercial/,about/,advertising-products/,advertising-products/standee-ke-trung-bay/,advertising-products/standee-ke-trung-bay/?photo=kiosk-posm-37").split(",");
 const navigate = async (route, reload = false) => {
   const origin = await evaluate("performance.timeOrigin");
   const result = await call(reload ? "Page.reload" : "Page.navigate", reload ? { ignoreCache: true } : { url: `${base}/${route}` });
@@ -221,7 +221,7 @@ try {
   }
   for(const file of sourceFiles)metadata.sourceHashes[`src/site/${file}`]=hash(await readFile(`src/site/${file}`));
   for (let routeIndex = 0; routeIndex < routes.length; routeIndex++) {
-    const route = routes[routeIndex]; assert.match(route, /^(vi|en)\//);
+    const route = routes[routeIndex]; assert.match(route, /^(en\/)?[a-z0-9/-]*$/);
     await navigate(route);
     await pause(1600);
     const initial = await sample(`${route}-initial`); assert.equal(initial.hidden, false, "Chrome foreground");

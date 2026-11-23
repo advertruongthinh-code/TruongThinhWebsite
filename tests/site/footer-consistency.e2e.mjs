@@ -41,7 +41,7 @@ try {
     await page.route(/\.(?:avif|gif|jpe?g|jxl|mp4|png|webm|webp)(?:\?.*)?$/i, route => route.abort());
     for (const locale of ["vi", "en"]) {
       for (const route of [...routes, "advertising-products/?category=kiosk-posm&photo=kiosk-posm-06", ...detailRoutes]) {
-        await page.goto(`${baseUrl}/${locale}/${route}`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/${route}`, { waitUntil: "domcontentloaded" });
         await page.waitForSelector(".footer-contact");
         // The detail route redirects to the canonical Advertising route; wait for its runtime state.
         await page.waitForFunction(() => !location.pathname.includes("/advertising-products/")
@@ -127,7 +127,7 @@ try {
     }
     // 404 fits one screen: the floating CTA hides when the footer enters the viewport so it does not cover footer content.
     for (const locale of ["vi", "en"]) {
-      await page.goto(`${baseUrl}/${locale}/khong-co-trang-nay/`, { waitUntil: "load" });
+      await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/khong-co-trang-nay/`, { waitUntil: "load" });
       await page.waitForSelector(".footer-contact");
       await page.waitForTimeout(1200);
       const hits = await page.evaluate(() => {
@@ -150,7 +150,7 @@ try {
   // The pause button exists only without reduced motion. The two child pages share the same CSS so only VI is checked.
   for (const [width, height] of [[320, 568], [360, 800], [390, 844], [430, 932], [750, 912], [568, 320], [667, 375], [844, 390], [1024, 600], [1280, 632], [1440, 900]]) {
     const page = await browser.newPage({ viewport: { width, height } });
-    for (const path of ["vi/", "en/", "vi/residential/", "vi/commercial/"]) {
+    for (const path of ["", "en/", "residential/", "commercial/"]) {
       await page.goto(`${baseUrl}/${path}`, { waitUntil: "load" });
       await page.waitForFunction(() => document.querySelector(".floating-cta.show")
         && document.querySelector("[data-motion-toggle]:not([hidden])")?.getClientRects().length);

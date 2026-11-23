@@ -123,8 +123,8 @@ pnpm qa:static
 pnpm qa:site
 ```
 
-`pnpm qa:worker:security` chỉ cần khi Worker source bị tác động; `qa:worker:static`
-và full Worker contract thuộc CMS gate. Browser evidence phải ghi route,
+`pnpm qa:worker` chỉ cần khi Worker source bị tác động; deploy admin Worker
+thuộc CMS gate. Browser evidence phải ghi route,
 viewport, console/network và accessibility theo [tests README](../tests/README.md).
 
 ## Canonical documents

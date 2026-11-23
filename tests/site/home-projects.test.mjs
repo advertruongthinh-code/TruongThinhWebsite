@@ -19,11 +19,11 @@ test("accepts the real list and rejects unknown, duplicate ids and counts outsid
 
 test("built home page links one card per id, in order, and a see-all line", async () => {
   for (const locale of ["vi", "en"]) {
-    const html = await readFile(new URL(`../../.site-output/${locale}/index.html`, import.meta.url), "utf8");
+    const html = await readFile(new URL(`../../.site-output${locale === "en" ? "/en" : ""}/index.html`, import.meta.url), "utf8");
     assert.doesNotMatch(html, /project-strip|project-reel/);
     const track = html.match(/<div class="blk-projects__track">[\s\S]*?<\/div>/)[0];
     const hrefs = [...track.matchAll(/<a class="project-card[^"]*" href="([^"]+)"/g)].map((match) => match[1]);
-    assert.deepEqual(hrefs, ids.map((id) => `/${locale}/projects/${locale === "vi" ? projects.get(id).slugVi : projects.get(id).slugEn}/`), locale);
-    assert.match(html, new RegExp(`class="blk-cta__link" href="/${locale}/projects/"`), locale);
+    assert.deepEqual(hrefs, ids.map((id) => `${locale === "en" ? "/en" : ""}/projects/${locale === "vi" ? projects.get(id).slugVi : projects.get(id).slugEn}/`), locale);
+    assert.match(html, new RegExp(`class="blk-cta__link" href="${locale === "en" ? "/en" : ""}/projects/"`), locale);
   }
 });

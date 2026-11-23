@@ -22,7 +22,7 @@ try {
     for (const slug of slugs) {
       const page = await context.newPage();
       try {
-        await page.goto(`${origin}/vi/projects/${slug}/`, { waitUntil: "load" });
+        await page.goto(`${origin}/projects/${slug}/`, { waitUntil: "load" });
         await page.locator(".blk-gallery").scrollIntoViewIfNeeded();
         await page.waitForSelector(".blk-gallery [data-gallery-track].swiper-initialized");
         const gap = await page.$eval(".blk-gallery", (section) => {

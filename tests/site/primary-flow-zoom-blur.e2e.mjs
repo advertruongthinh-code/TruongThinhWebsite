@@ -48,7 +48,7 @@ test("advertising-detail R9 PC 1440: the loading Flow fits the media box and the
     await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, slowArtifact());
     // A narrow frame leaves spare area on both sides of the media whatever its ratio.
     await page.setViewportSize({ width: 1440, height: 520 });
-    await page.goto(`${BASE_URL}/vi/advertising-products/?category=signage-raised-letters&photo=${fixtureId}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/advertising-products/?category=signage-raised-letters&photo=${fixtureId}`, { waitUntil: "domcontentloaded" });
     await page.locator("[data-detail-view]").waitFor({ state: "visible" });
     await page.waitForFunction(() => document.querySelector("[data-detail-view] .detail-view__hero-frame > .masonry-grid__cta-frame.is-entry-ready"),
       null, { timeout: 5_000 });

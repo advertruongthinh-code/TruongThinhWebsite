@@ -90,7 +90,7 @@ trạng thái trên màn hình (owner 2026-11-17). Thanh nổi đẩy Floating C
 chữ gợi ý, thông báo có bản EN. Không cuộn ngang ở 384, 768, 1024, 1280, 1440, 1920px.
 
 ```gherkin
-Given trang /vi/advertising-products/ ở 1440px, khách đã tìm "hộp đèn"
+Given trang /advertising-products/ ở 1440px, khách đã tìm "hộp đèn"
 When khách cuộn xuống giữa lưới
 Then thanh nổi rộng 760px, có hàng chip các sản phẩm có kết quả, nhiều card trước, bấm "Chữ nổi" thì lưới chỉ còn kết quả Chữ nổi, ô chữ vẫn là "hộp đèn"
 
@@ -137,7 +137,7 @@ Then thanh vào khe và bề rộng đi dần từ bề rộng nổi tới bề 
 
 ### R8. Chỉ trang gốc có thanh
 
-Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/vi/advertising-products/`, `/en/advertising-products/`). Trang Công trình và mọi trang
+Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/advertising-products/`, `/en/advertising-products/`). Trang Công trình và mọi trang
 con (trang nhóm, trang sản phẩm, trang chi tiết card) không có thanh, không có khe; hero và CTA giữ bố cục như trước khi có thanh (link "Trao đổi ý tưởng" cách
 tiêu đề một khoảng lưới). Muốn tìm thì về trang gốc.
 

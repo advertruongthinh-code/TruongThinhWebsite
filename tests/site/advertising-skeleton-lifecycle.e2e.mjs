@@ -84,7 +84,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
   page.on("console", msg => { if (msg.type() === "error" || /too many.*webgl|INVALID_OPERATION/i.test(msg.text())) errors.push(msg.text()); });
   page.on("pageerror", error => errors.push(error.message));
   try {
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "networkidle" });
     await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     await page.locator("[data-masonry-cta-frame]").first().evaluate(node => {
       const target = window.scrollY + node.getBoundingClientRect().top - 120;
@@ -259,7 +259,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     await page.waitForFunction(() => scrollY === 0 && document.querySelector('#header-logo').getBoundingClientRect().top >= 0);
     await page.locator('#header-logo').click();
     await page.waitForFunction(() => document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "home"
-      && location.pathname === "/vi/" && !window.barba.transitions.isRunning);
+      && location.pathname === "/" && !window.barba.transitions.isRunning);
     assert.equal((await ledger()).running, 0, "non-catalog route has no running Flow");
     await page.goBack({waitUntil:"domcontentloaded"});
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
@@ -278,7 +278,7 @@ for (const engine of (process.env.LIFECYCLE_ENGINES || "chromium,firefox,webkit"
     assert.deepEqual(errors, [], "no renderer/runtime error");
     const entryLive = (await ledger()).live;
     const entry = await page.evaluate(() => ({seed:window.TruongThinhMasonry.getBrowseState().seed, timeOrigin:performance.timeOrigin,nativeDisposals:window.__flowLedger.nativeDisposals}));
-    await page.goto(base + "/vi/", {waitUntil:"networkidle"});
+    await page.goto(base + "/", {waitUntil:"networkidle"});
     await page.goBack({waitUntil:"domcontentloaded"});
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
       && document.querySelector('[data-masonry-cta-skeleton]')?.dataset.masonryCtaReady === "true");

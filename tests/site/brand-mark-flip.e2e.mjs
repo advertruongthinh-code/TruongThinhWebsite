@@ -107,7 +107,7 @@ try {
     const context = await browser.newContext({ viewport: { width, height }, reducedMotion });
     const page = await context.newPage();
     const label = `${width}px ${reducedMotion}`;
-    await page.goto(`${base}/vi/`, { waitUntil: "load" });
+    await page.goto(`${base}/`, { waitUntil: "load" });
     await page.waitForTimeout(1500);
     await page.evaluate(watchPhases);
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));

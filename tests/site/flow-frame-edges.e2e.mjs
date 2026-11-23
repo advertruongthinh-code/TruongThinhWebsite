@@ -15,7 +15,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 1 });
   await page.route("**/assets/content/**", () => {});
-  await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${base}/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForTimeout(1500);
   await page.evaluate(() => window.scrollBy({ top: 500, behavior: "instant" }));
   await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] .masonry-grid__cta-frame.is-entry-ready").length >= 3

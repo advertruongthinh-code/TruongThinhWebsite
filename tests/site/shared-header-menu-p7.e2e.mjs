@@ -137,7 +137,7 @@ try {
       await page.route(/\.(?:avif|gif|jpe?g|jxl|mp4|png|webm|webp)(?:\?.*)?$/i, route => route.abort());
 
       try {
-        await page.goto(`${baseUrl}/${locale}/`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/`, { waitUntil: "domcontentloaded" });
         await settle(page);
         const transparent = {
           header: await box(page, "[data-site-header]"),
@@ -248,7 +248,7 @@ try {
         await page.keyboard.press("Escape");
         await page.waitForFunction(() => !document.querySelector("#site-menu")?.open);
 
-        await page.goto(`${baseUrl}/${locale}/advertising-products/`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/`, { waitUntil: "domcontentloaded" });
         await settle(page);
         const detailInk = {
           logo: await box(page, "[data-site-header] .brand"),

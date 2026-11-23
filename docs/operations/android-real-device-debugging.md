@@ -28,7 +28,7 @@ nghiệm thu giao diện. Owner yêu cầu local trước, sau phát hành mới
 4. Khi có prompt cho phép máy tính debug qua USB, chọn Cho phép. Prompt có thể
    chỉ xuất hiện sau khi host bắt đầu discovery; chưa có prompt không là FAIL.
 5. Sau khi host nối cổng local ở mục dưới, trong Chrome điện thoại mở
-   [Advertising local](http://localhost:8790/vi/advertising-products/).
+   [Advertising local](http://localhost:8790/advertising-products/).
    Server hiện tại không map `/`; nhập chỉ `localhost:8790` sẽ báo Not found.
 
 Nguồn: [Android developer options](https://developer.android.com/studio/debug/dev-options)
@@ -86,7 +86,7 @@ ADB reverse qua USB; kiểm server đúng checkout đang nghe trước, rồi:
 & $androidAdb -s $androidSerial reverse --list
 ```
 
-Mở phone `http://localhost:8790/vi/advertising-products/`. Cổng8790 là nội dung;
+Mở phone `http://localhost:8790/advertising-products/`. Cổng8790 là nội dung;
 cổng9223 là CDP. [ADB manual](https://android.googlesource.com/platform/packages/modules/adb/+/refs/heads/main/docs/user/adb.1.md)
 sở hữu `reverse` và `--no-rebind`. Khi rút/cắm lại USB, mapping có thể mất;
 đọc `forward --list`/`reverse --list`, chỉ tạo lại mapping thiếu. Không ghi đè

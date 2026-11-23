@@ -11,7 +11,7 @@ const near = (a, b, label) => assert.ok(Math.abs(a - b) <= 1, `${label}: ${a} !=
 try {
   for (const locale of ['vi', 'en']) {
     const page = await browser.newPage({ viewport: { width: 1567, height: 910 }, reducedMotion: 'reduce' });
-    await page.goto(`${base}/${locale}/`);
+    await page.goto(`${base}${locale === "en" ? "/en" : ""}/`);
     await page.evaluate(() => document.fonts.ready);
     await page.waitForFunction(() => document.documentElement.classList.contains('motion-ready') || document.documentElement.classList.contains('motion-fallback'));
     const closedBefore = await page.locator('.site-header').boundingBox();
@@ -63,7 +63,7 @@ try {
     const page = await browser.newPage({ viewport:{ width:390, height:844 }, hasTouch:true });
     const errors = []; page.on('pageerror', e => errors.push(e.message));
     for (const route of ['', 'residential/', 'commercial/', 'advertising-products/', 'about/']) {
-      await page.goto(`${base}/${locale}/${route}`);
+      await page.goto(`${base}${locale === "en" ? "/en" : ""}/${route}`);
       await page.waitForFunction(() => document.documentElement.classList.contains('motion-ready') || document.documentElement.classList.contains('motion-fallback'));
       await page.locator('[data-menu-open]').click();
       await page.waitForFunction(() => Number(getComputedStyle(document.querySelector('.menu-brand')).opacity) > .99 && Number(getComputedStyle(document.querySelector('.menu-nav')).opacity) > .99);

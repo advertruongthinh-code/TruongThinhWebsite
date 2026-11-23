@@ -18,7 +18,7 @@ test("media-card R7: one card name, the detail description follows the media sho
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   try {
-    await page.goto(`${BASE_URL}/vi/advertising-products/?category=${category}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}/advertising-products/?category=${category}`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), cardId);

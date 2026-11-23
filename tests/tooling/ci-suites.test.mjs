@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 import { manifest, select, timingTable } from "../../scripts/ci/suites.mjs";
+import { plan } from "../../scripts/ci/red-before.mjs";
 
 const all = Object.keys(manifest.suites).filter((id) => manifest.suites[id].tests.length);
 const commands = Object.values(manifest.suites).flatMap((suite) => suite.tests);
@@ -43,4 +44,15 @@ test("select suites by the files a PR changes", () => {
 test("the job summary timing table has one row per command", () => {
   const table = timingTable([{ suite: "home", cmd: "node a.mjs", seconds: 12, status: 0 }, { suite: "home", cmd: "node b.mjs", seconds: 3, status: 1 }]);
   assert.deepEqual(table.split("\n").slice(2), ["| home | 12 | PASS | `node a.mjs` |", "| home | 3 | FAIL | `node b.mjs` |"]);
+});
+
+test("red-before (R13) applies to a PR with src/site/ and test changes, unless the PR says why not", () => {
+  const tests = ["tests/site/advertising-search.e2e.mjs", "tests/site/harness-input.test.mjs"];
+  assert.deepEqual(plan(["src/site/search/index.mjs", ...tests, "tests/site/harness.mjs", "docs/specs/search-bar.md"]), { tests });
+  assert.ok(plan(["src/site/search/index.mjs"]).skip);
+  assert.ok(plan(["src/site/a.mjs", "tests/site/advertising-continuation.e2e.mjs"]).skip, "a manual test is run by hand");
+  assert.ok(plan(["tests/site/advertising-search.e2e.mjs", "scripts/ci/suites.mjs"]).skip);
+  assert.ok(plan(["src/site/a.mjs", tests[0]], "Before:\nTest đỏ trước: không áp dụng - chỉ dời code\n").skip);
+  // The unfilled template line does not exempt.
+  assert.deepEqual(plan(["src/site/a.mjs", tests[0]], "Test đỏ trước: không áp dụng - <lý do>"), { tests: [tests[0]] });
 });

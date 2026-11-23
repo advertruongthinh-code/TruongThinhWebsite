@@ -105,7 +105,7 @@ lúc đang mở card thì lưới ẩn chưa đo, đo khi đóng card. Mỗi d�
 cũ trong cùng lượt duyệt ra đúng lưới cũ.
 
 ```gherkin
-Given trang /vi/advertising-products/ ở 1440px, Worker xếp chậm
+Given trang /advertising-products/ ở 1440px, Worker xếp chậm
 When người xem bấm chip Biển hiệu
 Then lưới cũ giữ nguyên, chip mang aria-busy="true", khi Worker trả card đặt một lần và aria-busy mất
 ```

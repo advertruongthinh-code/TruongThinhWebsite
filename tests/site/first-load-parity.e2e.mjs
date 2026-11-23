@@ -103,11 +103,11 @@ const recordDelayed = async (viewport, route, pattern, delay) => {
 };
 
 const cases = [
-  { route: "/vi/", from: "/vi/about/" },
-  { route: "/vi/residential/", from: "/vi/" },
-  { route: "/vi/commercial/", from: "/vi/" },
-  { route: "/vi/about/", from: "/vi/" },
-  { route: "/vi/advertising-products/", from: "/vi/" },
+  { route: "/", from: "/about/" },
+  { route: "/residential/", from: "/" },
+  { route: "/commercial/", from: "/" },
+  { route: "/about/", from: "/" },
+  { route: "/advertising-products/", from: "/" },
 ];
 const viewports = [{ width: 1440, height: 900 }, { width: 390, height: 844 }];
 
@@ -133,10 +133,10 @@ try {
     }
   }
   const desktop = viewports[0];
-  const lateFont = await recordDelayed(desktop, "/vi/residential/", "**/*.woff2", 1000);
+  const lateFont = await recordDelayed(desktop, "/residential/", "**/*.woff2", 1000);
   console.log("late font", JSON.stringify(lateFont));
   if (!(lateFont.reveal >= 1000)) failures.push(`font delayed 1s: veil opened at ${lateFont.reveal}ms, before the font arrived`);
-  const lateHero = await recordDelayed(desktop, "/vi/residential/", "**/assets/content/**", 3000);
+  const lateHero = await recordDelayed(desktop, "/residential/", "**/assets/content/**", 3000);
   console.log("late hero", JSON.stringify(lateHero));
   if (!(lateHero.reveal < 3000)) failures.push(`hero image delayed 3s: veil opened at ${lateHero.reveal}ms, while waiting for the image`);
 } finally {
