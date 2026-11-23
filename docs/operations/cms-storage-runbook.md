@@ -18,6 +18,8 @@ Ghi lại cách dựng D1, R2, Access và Worker admin `truong-thinh-admin` củ
 
 Trong lúc làm bước 5 tới hết bước 9 không chạy `release.yml`.
 
+Environment `cloudflare-deploy` chỉ giữ được token deploy khi hai secret mức repo cùng tên đã xóa ở bước 9; trước đó workflow của nhánh nào cũng đọc được bản mức repo. `CMS_ACCESS_CLIENT_ID`, `CMS_ACCESS_CLIENT_SECRET` đang ở mức repo (người đẩy được nhánh trong repo đọc được); P5 chuyển hai secret này vào environment chỉ nhánh `main` khi workflow dựng nội dung dùng chúng.
+
 ## Kiểm
 
 | Kiểm | Kết quả |

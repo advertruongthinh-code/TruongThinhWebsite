@@ -107,7 +107,26 @@ test("a snapshot that never stops changing fails after three tries", async () =>
 
 test("a bad page query answers 400", async () => {
   const env = seed();
-  for (const query of ["type=&page=0", "type=news&page=-1", "type=news&page=x"]) {
+  for (const query of ["type=&page=0", "type=news&page=-1", "type=news&page=x", "type=news&page=1e3", "type=news", "page=1"]) {
     await assert.rejects(snapshot.run(new Request(`https://x/api/admin/snapshot?${query}`), env), (error) => error instanceof HttpError && error.status === 400);
   }
+});
+
+test("a write that leaves updated_at alone still restarts the reader through content_rev", async () => {
+  const env = seed();
+  let moved = 0;
+  // A reorder of a type already read: only the final index can see it.
+  const body = await collectSnapshot(getter(env, (query) => {
+    if (query === "type=news&page=0" && moved++ === 0) {
+      env.DB.sqlite.exec("UPDATE records SET position = 5 WHERE id = 'a'; INSERT INTO settings VALUES ('content_rev', '1') ON CONFLICT(key) DO UPDATE SET value = value + 1;");
+    }
+  }));
+  assert.equal(moved, 2);
+  assert.deepEqual(body.records.news.map((news) => news.id), ["b", "a"]);
+});
+
+test("the reader refuses an index without paging fields or a type that came back short", async () => {
+  await assert.rejects(collectSnapshot(async () => ({ records: {} })), /no stamp/);
+  const short = async (query) => (query ? { stamp: "s", records: [] } : { stamp: "s", pageSize: 40, types: { news: 2 }, redirects: [], held: [] });
+  await assert.rejects(collectSnapshot(short), /news: 0 records, index says 2/);
 });

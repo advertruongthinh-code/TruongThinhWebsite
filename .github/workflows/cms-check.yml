@@ -3,9 +3,6 @@ name: CMS check
 # Reads the paged admin snapshot with the CMS service token (cms-plan S4, Q12 CPU check: read CPU per call in Workers Logs).
 on:
   workflow_dispatch:
-  # Also runs on a PR that changes this file: dispatch only works once the file is on main (first run is S4's own PR).
-  pull_request:
-    paths: [.github/workflows/cms-check.yml]
 
 permissions:
   contents: read
@@ -31,6 +28,7 @@ jobs:
           for round in 1 2 3; do
             get ""
             cp body.json index.json
+            jq -e '(.stamp | type == "string") and .pageSize > 0 and (.types | type == "object")' index.json > /dev/null
             size=$(jq .pageSize index.json)
             for type in $(jq -r '.types | keys[]' index.json); do
               count=$(jq --arg t "$type" '.types[$t]' index.json)
