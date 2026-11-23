@@ -152,8 +152,10 @@ jobs:
           case "${{ needs.red-before.result }}" in success|skipped) ;; *) exit 1 ;; esac
 
   # Deploy demo runs only on main (push or Automerge dispatch) when static-release, i.e. the fast suite, is green; the nightly run does not deploy.
+  # Deploy only when the fast suite ran (code changed) and static-release is green. Without !cancelled() a skipped job anywhere
+  # upstream (red-before always skips off a PR) skips the deploy too.
   deploy-demo:
-    needs: static-release
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true
+    needs: [select, static-release]
+    if: ${{ !cancelled() && needs.static-release.result == 'success' && needs.select.outputs.suites != '[]' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true }}
     uses: ./.github/workflows/deploy-demo.yml
     secrets: inherit
