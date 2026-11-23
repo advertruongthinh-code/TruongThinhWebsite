@@ -22,6 +22,7 @@
     ".github/workflows/cms-variants.yml",
     ".github/workflows/rollback.yml",
     ".github/workflows/cms-parity.yml",
+    ".github/workflows/cms-pull.yml",
     ".claude/**",
     ".impeccable/**"
   ],
