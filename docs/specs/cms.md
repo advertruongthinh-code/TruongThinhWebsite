@@ -173,9 +173,8 @@ Then trả 415, không phiên bản nào được tạo
 
 ### R6. Xuất bản và rollback
 
-Lần lưu `published` gọi `workflow_dispatch` của `ci.yml` trên `main` (`ci.yml` gọi `Deploy demo`, workflow này chỉ có
-`workflow_call`); gọi lỗi thì admin Worker thử lại 3 lần rồi gọi lại mỗi 5 phút, trong lúc đó admin hiện "site chậm hơn lần lưu cuối" (so thời điểm deploy cuối với lần lưu cuối) kèm nút
-"dựng lại". Không
+Lần lưu `published` không tự gọi GitHub: nó đánh dấu cần dựng trong cùng batch ghi, và Cron mỗi phút của admin Worker gọi `workflow_dispatch` của `ci.yml` trên `main` nhiều nhất một lần khi có dấu mới (`ci.yml` gọi `Deploy demo`, workflow này chỉ có `workflow_call`), nên nhiều lần lưu trong một phút thành một lần dựng và staging chậm thêm tối đa khoảng một phút (owner 2026-11-23: "Giữ Free, tối ưu lệnh lưu", "CMS không cần cập nhật ngay nội dung trên site"; để CPU lệnh lưu dưới hạn Workers Free). Cron chết (owner 2026-11-23: "nếu dùng cron thì phải có fallback, kiểm tra khi cron chết"): mỗi phút Cron ghi `cron_at`; quá 5 phút thì lần lưu `published` và lần mở trang trạng thái tự gọi dựng, trang trạng thái cảnh báo, và lượt CI đêm đỏ (job `cms-cron`) nên có card Notion.
+Gọi lỗi thì thử lại 3 lần rồi gọi lại mỗi 5 phút, trong lúc đó admin hiện "site chậm hơn lần lưu cuối" (so thời điểm deploy cuối với lần lưu cuối) kèm nút "dựng lại". Không
 có hàng đợi riêng: nhóm `concurrency` của `ci.yml` và `Deploy demo` giữ một run chạy và một run chờ, run chờ mới thay run
 chờ cũ, và job deploy lấy bản chụp lúc bắt đầu, nên lưu dồn dập được gom (hành vi dự kiến, kiểm ở slice Publishing).
 Lần dựng nội dung dựng trên commit đang chạy trên site ([dữ liệu CMS R6](cms-data.md#r6-đường-dựng-trong-ci)).

@@ -1,7 +1,7 @@
 // shortcut: at most 37 records per media are patched in one call (D1 Free allows 50 queries per invocation), page the patch when a media is used by more
 // POST /api/admin/update-media (CMS plan P2, Q9): alts and tags of a media; the alts are copied into the records that use it.
 import { ID } from "../../cms/contract.mjs";
-import { dispatchBuild, dispatchVariants } from "../dispatch.mjs";
+import { dispatchVariants, wantBuildStatement } from "../dispatch.mjs";
 import { auditStatement, HttpError, json, readJson } from "../http.mjs";
 import { patchAlt } from "../media.mjs";
 import { contentRevStatement, guard } from "../records.mjs";
@@ -48,6 +48,7 @@ export default {
       ...patched.map((user) => env.DB.prepare(`UPDATE records SET data = ?, write_id = ? WHERE type = ? AND id = ? AND ${G.sql}`).bind(user.text, writeId, user.type, user.id, ...G.args)),
       ...(failed ? [env.DB.prepare(`UPDATE variants SET status = 'pending', error = NULL, created_at = ? WHERE key = ? AND status = 'error' AND ${G.sql}`).bind(now, failed.key, ...G.args)] : []),
       contentRevStatement(env, G),
+      ...(patched.some((user) => user.status === "published") ? [wantBuildStatement(env, G)] : []),
       auditStatement(env, actor, "update-media", "media", id, "ok", { guard: G }),
     ]);
     if (update.meta.changes !== 1) {
@@ -57,7 +58,6 @@ export default {
       if (current.version === version) throw new HttpError(409, { error: "retry" }, target);
       throw stale(current);
     }
-    if (patched.some((user) => user.status === "published")) ctx?.waitUntil?.(dispatchBuild(env));
     if (failed) ctx?.waitUntil?.(dispatchVariants(env, [failed.key]));
     return json({ version: newVersion, status, updatedRecords: patched.length });
   },

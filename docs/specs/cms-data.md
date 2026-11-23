@@ -43,7 +43,7 @@ Database `truong-thinh-cms` (vùng `apac`, binding `DB`), một migration `src/d
 | `record_media` | `type`, `id`, `media_id`, `variant_key` | Media và biến thể mà phiên bản mới nhất của bản ghi dùng |
 | `slug_history` | `type`, `locale`, `slug` | `id`, `changed_at` |
 | `audit_log` | `seq` | `at`, `email`, `command`, `type`, `id`, `result`, `detail` (JSON phiên bản cuối, chỉ lệnh `purge`) |
-| `settings` | `key` | `value`; khóa `publish_paused`, `dispatch_error`, `access_drift`, `orphan_cursor`, `cms_live` |
+| `settings` | `key` | `value`; khóa `publish_paused`, `dispatch_error`, `build_wanted`, `build_sent` (Cron gọi dựng khi hai giá trị khác nhau, [CMS R6](cms.md#r6-xuất-bản-và-rollback)), `cron_at` (nhịp tim Cron), `access_drift`, `orphan_cursor`, `cms_live` |
 
 `records.type` là một trong `media`, `news`, `project`, `advertising-card`, `hero-slide`, `client-logo`,
 `home-projects`, `menu`, `contact`, `page-copy`; kiểu đơn có đúng một dòng `id = 'main'`, không tạo, không xóa.
@@ -175,7 +175,7 @@ tên run `CMS content build`, chỉ deploy lên staging, và dựng trên commit
 lần deploy staging, job ghi dấu `deploys/<khóa>.json` (version id, commit, `snapshotId`, thời điểm) vào bucket public; admin đọc
 10 dấu gần nhất để hiện trạng thái và cho rollback. Workflow rollback hủy lần deploy đang chạy để chạy ngay. Token deploy
 của CI nằm trong environment GitHub `cloudflare-deploy` chỉ nhánh `main` dùng được, không có quyền D1; migration áp
-bằng tay ở gate. Lần dispatch dựng lỗi thì Cron của admin Worker gọi lại mỗi 5 phút.
+bằng tay ở gate. Cron của admin Worker gọi dispatch dựng mỗi phút khi có lần lưu cần dựng; lần dispatch lỗi thì Cron gọi lại mỗi 5 phút.
 
 Phát hành (phần 2): lệnh `release` gọi `release.yml` với input `commit`, `snapshot_id`. Workflow checkout `commit`, lấy bản chụp, tính `snapshotId`; khác input thì dừng trước khi build với dòng `snapshot changed`; bằng thì chạy cùng bước kiểm và build như staging, deploy đích `production`, ghi dấu `releases/<khóa>.json` cùng dạng dấu deployment. `rollback` đích `production` chỉ nhận id trong 10 dấu phát hành gần nhất và không đặt cờ tạm dừng. Phần 2 mở thêm kiểu `client-logo`, `contact` và `page-copy` (bốn bản ghi cố định `home`, `residential`, `commercial`, `about`).
 
