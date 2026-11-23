@@ -4,7 +4,7 @@
 <script>addEventListener("click", (event) => { if (event.target.closest("a[href]")) event.preventDefault(); }, true);</script>
 <script>document.documentElement.lang = "vi"; document.documentElement.classList.add("motion-fallback", "motion-ready");</script>
 <section class="legacy-closer section-gap" data-header-tone="inverse">
-          <img
+          <img data-slot="legacy-closer.image-1"
             src="../../preview-media/xuong-cnc-san-xuat-do-go.webp"
             width="3072"
             height="2048"
@@ -16,18 +16,18 @@
           <div class="legacy-copy">
             <h2>
               <span class="line-mask"
-                ><span><span data-en="Keep the craft">Giữ nghề</span></span></span
+                ><span><span data-slot="legacy-closer.text-1" data-en="Keep the craft">Giữ nghề</span></span></span
               >
               <span class="line-mask"
                 ><span
-                  ><span data-en="Always">Không ngừng</span>
-                  <em><span data-en="evolving">làm mới</span></em></span
+                  ><span data-slot="legacy-closer.text-2" data-en="Always">Không ngừng</span>
+                  <em><span data-slot="legacy-closer.text-3" data-en="evolving">làm mới</span></em></span
                 ></span
               >
             </h2>
             <p>
               <a class="legacy-link" href="/about/"
-                ><span class="portal-subtitle" data-en="ABOUT US">VỀ CHÚNG TÔI</span></a
+                ><span data-slot="legacy-closer.text-4" class="portal-subtitle" data-en="ABOUT US">VỀ CHÚNG TÔI</span></a
               >
             </p>
           </div>

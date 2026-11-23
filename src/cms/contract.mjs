@@ -9,10 +9,13 @@ import { IMAGE_SRC } from "../../scripts/site/lib-pure.mjs";
 import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS } from "../../src/site/advertising-products/taxonomy.mjs";
 import { layoutErrors } from "./layouts.mjs";
 import { mediaRefs } from "./media-ref.mjs";
+import { SLOTS } from "./slots.generated.mjs";
+import { marksErrors } from "./inline-marks.mjs";
+import { SLOT_PAGES } from "../../scripts/site/slots.mjs";
 
 export const TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu", "client-logo", "contact", "page-copy"];
-export const SINGLETON_TYPES = ["home-projects", "menu", "contact", "page-copy"];
-export const OPEN_TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu"];
+export const SINGLETON_TYPES = ["home-projects", "menu", "contact"];
+export const OPEN_TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu", "page-copy"];
 export const ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
 export const HERO_PAGES = ["home", "residential", "commercial"];
 
@@ -64,6 +67,22 @@ export function deriveCard(data, { products = ADVERTISING_PRODUCTS, clusters = A
   return { ...data, category, productKey, tagIds: data.tagIds?.length ? [`group-${category}`, ...tags, ...framing] : [] };
 }
 
+// Page copy (cms-plan part 2 K7): one record per standard page; every key is a slot of that page, text checked by its kind's
+// marks, media by the placement rules below. An empty slot is valid (the page shows a placeholder).
+function pageCopyErrors(data, at) {
+  if (!Object.hasOwn(SLOT_PAGES, data.id)) return [shape(`${at}: page-copy id must be ${Object.keys(SLOT_PAGES).join(", ")}`, "page-id")];
+  if (!isObject(data.slots)) return [shape(`${at}: slots must be an object`)];
+  const errors = [];
+  for (const [key, value] of Object.entries(data.slots)) {
+    const slot = SLOTS[data.id]?.[key];
+    if (!slot) errors.push(shape(`${at}: ${key} is not a slot of this page`, "slot-unknown"));
+    else if (!isObject(value)) errors.push(shape(`${at}: ${key} must be an object`));
+    else if (slot.kind === "text") errors.push(...marksErrors(value.vi, value.en, slot.marks).map((error) => ({ ...error, message: `${at}: ${key}: ${error.message}` })));
+    else if (["vi", "en"].some((side) => Object.hasOwn(value, side))) errors.push(shape(`${at}: ${key} is an image slot`));
+  }
+  return errors;
+}
+
 // ctx: { id, mediaById }. mediaById holds media that are not trashed, so a trashed id reads as unknown.
 export async function shapeErrors(type, data, ctx = {}) {
   if (!isObject(data)) return [shape(`${type}: data must be an object`)];
@@ -82,6 +101,7 @@ export async function shapeErrors(type, data, ctx = {}) {
     errors.push(...blockMarksErrors(data, at));
   }
   if (type === "advertising-card" && !ADVERTISING_PRODUCTS.some(({ id }) => id === data.productIds?.[0])) errors.push(shape(`${at}: a card needs a known main product (productIds[0])`, "card-product"));
+  if (type === "page-copy") errors.push(...pageCopyErrors(data, at));
   const mediaById = ctx.mediaById ?? new Map();
   for (const ref of mediaRefs(type, data)) {
     // legacySrc keeps seeded fields as is, so it must not let a client keep its own src (Q6: legacySrc equals the seeded src).

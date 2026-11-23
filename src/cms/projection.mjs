@@ -3,7 +3,7 @@
 import { HERO_PAGES, OPEN_TYPES, SINGLETON_TYPES } from "./contract.mjs";
 import { mediaRefs } from "./media-ref.mjs";
 
-const FILES = { news: "news.json", project: "projects.json", "advertising-card": "advertising-cards.json", "hero-slide": "hero-slides.json", "home-projects": "home-projects.json", menu: "menu.json" };
+const FILES = { news: "news.json", project: "projects.json", "advertising-card": "advertising-cards.json", "hero-slide": "hero-slides.json", "home-projects": "home-projects.json", menu: "menu.json", "page-copy": "page-copy.json" };
 // Media id = file name without extension, cut to the 80-character id limit (a few Advertising audit files are longer).
 const stem = (path) => path.split("/").pop().replace(/\.[^.]+$/, "").slice(0, 80).replace(/-+$/, "");
 
@@ -15,6 +15,7 @@ export function filesToRecords(files, fileFacts = new Map()) {
     project: files["projects.json"] ?? [],
     "advertising-card": files.cards ?? [],
     "hero-slide": HERO_PAGES.flatMap((page) => (files["hero-slides.json"]?.[page] ?? []).map((slide) => ({ ...slide, page }))),
+    "page-copy": Object.entries(files["page-copy.json"] ?? {}).map(([id, data]) => ({ id, ...data })),
   };
   const records = [];
   const mediaByPath = new Map();
@@ -37,7 +38,8 @@ export function filesToRecords(files, fileFacts = new Map()) {
         }
         ref.mediaId = media.id;
         // Seeded placements kept byte for byte (Q6): project card crops, reused files with another alt, decorative hero slides.
-        const legacy = type === "project" && data.card?.media?.includes(ref) || decorative || ref.altVi !== media.altVi || ref.altEn !== media.altEn;
+        // Image slots of standard pages are seeded as they are (K7).
+        const legacy = type === "page-copy" || type === "project" && data.card?.media?.includes(ref) || decorative || ref.altVi !== media.altVi || ref.altEn !== media.altEn;
         if (legacy) ref.legacySrc = ref.src;
         else ref.crop = [0, 0, media.width, media.height];
       }
@@ -73,6 +75,7 @@ export function snapshotToFiles(snapshot, { mediaOrigin = "" } = {}) {
     if (type === "hero-slide") files[FILES[type]] = Object.fromEntries(HERO_PAGES.map((page) => [page, rows.filter((slide) => slide.page === page).map(({ page: _, ...slide }) => slide)]));
     else if (type === "home-projects") files[FILES[type]] = rows[0].ids.filter((id) => projectIds.has(id));
     else if (type === "menu") files[FILES[type]] = { ...rows[0], featuredProjects: rows[0].featuredProjects.filter((id) => projectIds.has(id)) };
+    else if (type === "page-copy") files[FILES[type]] = Object.fromEntries(rows.map(({ id, ...data }) => [id, data]));
     else if (type === "advertising-card") {
       // sourceOrder follows records.position within each category, from 0 (cms-plan part 2 K6).
       const next = new Map();

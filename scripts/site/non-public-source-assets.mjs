@@ -11,6 +11,7 @@ export const nonPublicSourceAssets = [
   "content/home-projects.json",
   "content/projects.json",
   "content/news.json",
+  "content/page-copy.json",
   "content/menu.json",
   "head-inline.js",
   "partials",

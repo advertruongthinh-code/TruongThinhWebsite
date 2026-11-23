@@ -72,9 +72,8 @@
           <div class="hero-shade" aria-hidden="true"></div>
 
           <div class="hero-content">
-            <p
+            <p data-slot="hero.label"
               class="hero-kicker"
-              data-cms="hero.kicker"
               data-motion-hero-kicker
               data-en="TOWNHOUSES · APARTMENTS · HOMESTAYS"
             >
@@ -82,7 +81,7 @@
             </p>
             <h1 id="page-title" data-motion-words data-motion-hero-title>
               <span class="detail-hero-line-mask">
-                <span
+                <span data-slot="hero.text-1"
                   class="detail-title__quiet"
                   data-motion-word-source
                   data-en="A place to"
@@ -94,7 +93,7 @@
                 <span
                   class="detail-title__strong"
                   data-motion-word-source
-                ><em data-en="recharge">năng lượng sống</em></span>
+                ><em data-slot="hero.text-2" data-en="recharge">năng lượng sống</em></span>
               </span>
             </h1>
           </div>
@@ -116,7 +115,7 @@
             </svg>
           </button>
 
-          <button
+          <button data-slot="hero.link"
             class="scroll-cue"
             type="button"
             data-scroll-cue
@@ -136,11 +135,11 @@
           data-header-tone="ink"
           aria-labelledby="intro-title"
         >
-          <h2 class="detail-lead__title" id="intro-title" data-motion-lines>
+          <h2 data-slot="tong-quan.title" class="detail-lead__title" id="intro-title" data-motion-lines>
             <span data-en="Spaces for">Không gian để</span>
             <i data-en="living">sống</i>
           </h2>
-          <p class="detail-lead__copy">
+          <p data-slot="tong-quan.body" class="detail-lead__copy">
             <span
               data-en="Every family lives in its own way. We start by listening to how you live, store things and spend time together, so your home is both beautiful and genuinely easy to live in."
             >
@@ -153,7 +152,7 @@
           class="detail-media section-gap"
           data-header-tone="ink"
         >
-          <img
+          <img data-slot="media.image-1"
             src="/assets/content/projects/tu-ao-canh-lua-phong-ngu.webp"
             width="3072"
             height="2048"
@@ -169,14 +168,14 @@
           data-header-tone="ink"
           aria-labelledby="daily-proof-title"
         >
-          <h2
+          <h2 data-slot="note.title"
             class="sr-only"
             id="daily-proof-title"
             data-en="A home proven by daily life"
           >
             Một ngôi nhà được kiểm chứng mỗi ngày
           </h2>
-          <p>
+          <p data-slot="note.body">
             <span
               data-en="Handover is only the beginning. We advise you carefully from the start and build every detail with care, so years later your home still looks and works as well as on day one."
             >
@@ -192,7 +191,7 @@
           data-header-tone="ink"
           aria-labelledby="gallery-title"
         >
-          <h2 id="gallery-title" data-motion-lines>
+          <h2 data-slot="cong-trinh.title" id="gallery-title" data-motion-lines>
             <span data-en="A home, in">Một ngôi nhà, nhiều</span>
             <i data-en="layers">lớp</i>
           </h2>
@@ -207,7 +206,7 @@
             <div class="detail-gallery__slides">
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-1"
                     src="/assets/content/projects/thiet-ke-noi-that-nha-ong.webp"
                     width="3072"
                     height="2048"
@@ -217,11 +216,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Tube house · Overview">Nhà ống · Toàn cảnh</figcaption>
+                <figcaption data-slot="cong-trinh.caption-1" data-en="Tube house · Overview">Nhà ống · Toàn cảnh</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-2"
                     src="/assets/content/projects/loi-vao-nha-ong-tu-giay.webp"
                     width="2048"
                     height="3072"
@@ -231,11 +230,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Tube house · Entry">Nhà ống · Lối vào</figcaption>
+                <figcaption data-slot="cong-trinh.caption-2" data-en="Tube house · Entry">Nhà ống · Lối vào</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-3"
                     src="/assets/content/projects/tu-bep-go-soi-nha-ong.webp"
                     width="2048"
                     height="3072"
@@ -245,11 +244,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Tube house · Kitchen">Nhà ống · Bếp</figcaption>
+                <figcaption data-slot="cong-trinh.caption-3" data-en="Tube house · Kitchen">Nhà ống · Bếp</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-4"
                     src="/assets/content/projects/phong-ngu-nha-pho-go-soi.webp"
                     width="3072"
                     height="2048"
@@ -259,11 +258,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Tube house · Bedroom">Nhà ống · Phòng ngủ</figcaption>
+                <figcaption data-slot="cong-trinh.caption-4" data-en="Tube house · Bedroom">Nhà ống · Phòng ngủ</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-5"
                     src="/assets/content/projects/phong-thay-do-go-soi.webp"
                     width="2048"
                     height="3072"
@@ -273,11 +272,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Tube house · Wardrobe">Nhà ống · Tủ áo</figcaption>
+                <figcaption data-slot="cong-trinh.caption-5" data-en="Tube house · Wardrobe">Nhà ống · Tủ áo</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-6"
                     src="/assets/content/projects/phong-tam-tu-lavabo-go-soi.webp"
                     width="2304"
                     height="3072"
@@ -287,11 +286,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Tube house · Bathroom">Nhà ống · Phòng tắm</figcaption>
+                <figcaption data-slot="cong-trinh.caption-6" data-en="Tube house · Bathroom">Nhà ống · Phòng tắm</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-7"
                     src="/assets/content/projects/tu-go-soi-bac-travertine.webp"
                     width="3072"
                     height="2304"
@@ -301,11 +300,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Tube house · Finishing detail">Nhà ống · Chi tiết hoàn thiện</figcaption>
+                <figcaption data-slot="cong-trinh.caption-7" data-en="Tube house · Finishing detail">Nhà ống · Chi tiết hoàn thiện</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-8"
                     src="/assets/content/projects/noi-that-nha-pho-gieng-troi.webp"
                     width="3072"
                     height="2048"
@@ -315,11 +314,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Single-storey light-well house · Overview">Nhà giếng trời 1 tầng · Toàn cảnh</figcaption>
+                <figcaption data-slot="cong-trinh.caption-8" data-en="Single-storey light-well house · Overview">Nhà giếng trời 1 tầng · Toàn cảnh</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-9"
                     src="/assets/content/projects/tu-giay-ke-tran-loi-vao.webp"
                     width="2048"
                     height="3072"
@@ -329,11 +328,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Single-storey light-well house · Entry">Nhà giếng trời 1 tầng · Lối vào</figcaption>
+                <figcaption data-slot="cong-trinh.caption-9" data-en="Single-storey light-well house · Entry">Nhà giếng trời 1 tầng · Lối vào</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-10"
                     src="/assets/content/projects/bep-go-oc-cho-gieng-troi.webp"
                     width="2048"
                     height="3072"
@@ -343,11 +342,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Single-storey light-well house · Kitchen">Nhà giếng trời 1 tầng · Bếp</figcaption>
+                <figcaption data-slot="cong-trinh.caption-10" data-en="Single-storey light-well house · Kitchen">Nhà giếng trời 1 tầng · Bếp</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-11"
                     src="/assets/content/projects/phong-ngu-vach-go-oc-cho.webp"
                     width="3072"
                     height="2048"
@@ -357,11 +356,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Single-storey light-well house · Bedroom">Nhà giếng trời 1 tầng · Phòng ngủ</figcaption>
+                <figcaption data-slot="cong-trinh.caption-11" data-en="Single-storey light-well house · Bedroom">Nhà giếng trời 1 tầng · Phòng ngủ</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-12"
                     src="/assets/content/projects/tu-ao-go-toi-mau.webp"
                     width="2048"
                     height="3072"
@@ -371,11 +370,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Single-storey light-well house · Wardrobe">Nhà giếng trời 1 tầng · Tủ áo</figcaption>
+                <figcaption data-slot="cong-trinh.caption-12" data-en="Single-storey light-well house · Wardrobe">Nhà giếng trời 1 tầng · Tủ áo</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-13"
                     src="/assets/content/projects/phong-tam-lavabo-go-oc-cho.webp"
                     width="2304"
                     height="3072"
@@ -385,11 +384,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Single-storey light-well house · Bathroom">Nhà giếng trời 1 tầng · Phòng tắm</figcaption>
+                <figcaption data-slot="cong-trinh.caption-13" data-en="Single-storey light-well house · Bathroom">Nhà giếng trời 1 tầng · Phòng tắm</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-14"
                     src="/assets/content/projects/tu-tivi-go-oc-cho.webp"
                     width="3072"
                     height="2304"
@@ -399,11 +398,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Single-storey light-well house · Finishing detail">Nhà giếng trời 1 tầng · Chi tiết hoàn thiện</figcaption>
+                <figcaption data-slot="cong-trinh.caption-14" data-en="Single-storey light-well house · Finishing detail">Nhà giếng trời 1 tầng · Chi tiết hoàn thiện</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-15"
                     src="/assets/content/projects/thiet-ke-homestay-nha-vuon.webp"
                     width="3072"
                     height="2048"
@@ -413,11 +412,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Canal-side homestay · Exterior">Homestay bên rạch · Ngoại thất</figcaption>
+                <figcaption data-slot="cong-trinh.caption-15" data-en="Canal-side homestay · Exterior">Homestay bên rạch · Ngoại thất</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-16"
                     src="/assets/content/projects/phong-sinh-hoat-homestay-sofa-may.webp"
                     width="3072"
                     height="2048"
@@ -427,11 +426,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Canal-side homestay · Lounge">Homestay bên rạch · Sinh hoạt chung</figcaption>
+                <figcaption data-slot="cong-trinh.caption-16" data-en="Canal-side homestay · Lounge">Homestay bên rạch · Sinh hoạt chung</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-17"
                     src="/assets/content/projects/hien-go-homestay-ven-rach.webp"
                     width="3072"
                     height="1725"
@@ -441,11 +440,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Canal-side homestay · Canal deck">Homestay bên rạch · Hiên nhìn ra rạch</figcaption>
+                <figcaption data-slot="cong-trinh.caption-17" data-en="Canal-side homestay · Canal deck">Homestay bên rạch · Hiên nhìn ra rạch</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-18"
                     src="/assets/content/projects/thiet-ke-homestay-bep-an.webp"
                     width="2048"
                     height="3072"
@@ -455,11 +454,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Canal-side homestay · Family kitchen">Homestay bên rạch · Bếp gia đình</figcaption>
+                <figcaption data-slot="cong-trinh.caption-18" data-en="Canal-side homestay · Family kitchen">Homestay bên rạch · Bếp gia đình</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-19"
                     src="/assets/content/projects/phong-ngu-homestay-vach-may.webp"
                     width="3072"
                     height="2304"
@@ -469,11 +468,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Canal-side homestay · Guest room">Homestay bên rạch · Phòng ngủ</figcaption>
+                <figcaption data-slot="cong-trinh.caption-19" data-en="Canal-side homestay · Guest room">Homestay bên rạch · Phòng ngủ</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-20"
                     src="/assets/content/projects/tu-ao-go-canh-may.webp"
                     width="2048"
                     height="3072"
@@ -483,11 +482,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Canal-side homestay · Wardrobe">Homestay bên rạch · Tủ áo</figcaption>
+                <figcaption data-slot="cong-trinh.caption-20" data-en="Canal-side homestay · Wardrobe">Homestay bên rạch · Tủ áo</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-21"
                     src="/assets/content/projects/phong-tam-homestay-gach-nung.webp"
                     width="2048"
                     height="3072"
@@ -497,11 +496,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Canal-side homestay · Bathroom">Homestay bên rạch · Phòng tắm</figcaption>
+                <figcaption data-slot="cong-trinh.caption-21" data-en="Canal-side homestay · Bathroom">Homestay bên rạch · Phòng tắm</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-22"
                     src="/assets/content/projects/tu-go-canh-may-homestay.webp"
                     width="3072"
                     height="2048"
@@ -511,11 +510,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Canal-side homestay · Finishing detail">Homestay bên rạch · Chi tiết hoàn thiện</figcaption>
+                <figcaption data-slot="cong-trinh.caption-22" data-en="Canal-side homestay · Finishing detail">Homestay bên rạch · Chi tiết hoàn thiện</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-23"
                     src="/assets/content/projects/bep-nha-pho-tu-xanh-xam.webp"
                     width="2048"
                     height="3072"
@@ -525,11 +524,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Three-storey townhouse · Kitchen">Nhà phố ba tầng · Bếp</figcaption>
+                <figcaption data-slot="cong-trinh.caption-23" data-en="Three-storey townhouse · Kitchen">Nhà phố ba tầng · Bếp</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-24"
                     src="/assets/content/projects/cau-thang-go-soi-tu-gam.webp"
                     width="2048"
                     height="3072"
@@ -539,11 +538,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Three-storey townhouse · Staircase">Nhà phố ba tầng · Cầu thang</figcaption>
+                <figcaption data-slot="cong-trinh.caption-24" data-en="Three-storey townhouse · Staircase">Nhà phố ba tầng · Cầu thang</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-25"
                     src="/assets/content/projects/phong-khach-nha-pho-tu-tivi.webp"
                     width="3072"
                     height="2048"
@@ -553,11 +552,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Three-storey townhouse · Living room">Nhà phố ba tầng · Phòng khách</figcaption>
+                <figcaption data-slot="cong-trinh.caption-25" data-en="Three-storey townhouse · Living room">Nhà phố ba tầng · Phòng khách</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-26"
                     src="/assets/content/projects/phong-ngu-vach-tu-xanh-xam.webp"
                     width="3072"
                     height="2048"
@@ -567,11 +566,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Three-storey townhouse · Bedroom">Nhà phố ba tầng · Phòng ngủ</figcaption>
+                <figcaption data-slot="cong-trinh.caption-26" data-en="Three-storey townhouse · Bedroom">Nhà phố ba tầng · Phòng ngủ</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-27"
                     src="/assets/content/projects/tu-ao-kich-tran-xanh-xam.webp"
                     width="2048"
                     height="3072"
@@ -581,11 +580,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Three-storey townhouse · Wardrobe">Nhà phố ba tầng · Tủ áo</figcaption>
+                <figcaption data-slot="cong-trinh.caption-27" data-en="Three-storey townhouse · Wardrobe">Nhà phố ba tầng · Tủ áo</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-28"
                     src="/assets/content/projects/tu-lavabo-treo-tuong-go-soi.webp"
                     width="2304"
                     height="3072"
@@ -595,7 +594,7 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Three-storey townhouse · Bathroom">Nhà phố ba tầng · Phòng tắm</figcaption>
+                <figcaption data-slot="cong-trinh.caption-28" data-en="Three-storey townhouse · Bathroom">Nhà phố ba tầng · Phòng tắm</figcaption>
               </figure>
             </div>
             <div class="detail-gallery__pagination" data-gallery-pagination aria-hidden="true"></div>
@@ -608,7 +607,7 @@
           data-header-tone="ink"
           aria-labelledby="process-title"
         >
-          <p
+          <p data-slot="quy-trinh.label"
             class="detail-eyebrow"
             data-motion-fade
             data-en="ONE CONTINUOUS PROCESS"
@@ -617,12 +616,12 @@
           </p>
           <h2 id="process-title" data-motion-lines>
             <span class="detail-line">
-              <span data-motion-line-source data-en="From daily habits">
+              <span data-slot="quy-trinh.text-1" data-motion-line-source data-en="From daily habits">
                 Từ nếp sống
               </span>
             </span>
             <span class="detail-line">
-              <span data-motion-line-source data-en="to a finished home">
+              <span data-slot="quy-trinh.text-2" data-motion-line-source data-en="to a finished home">
                 đến ngôi nhà hoàn thiện
               </span>
             </span>
@@ -645,28 +644,28 @@
           </svg>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 514 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-1" /></svg>
-            <span class="editorial-media"><img src="/assets/content/projects/khao-sat-do-dac-nha-o.webp" width="2048" height="3072" loading="lazy" decoding="async" alt="Kỹ thuật viên khảo sát nhà ở bằng máy đo laser trên chân máy" data-en-alt="Technician surveying a bare home interior with a tripod-mounted laser meter" /></span>
-            <div><h3 data-en="Survey">Khảo sát</h3><p data-en="We visit your home to survey it and listen to what the whole family needs.">Đến tận nhà khảo sát và lắng nghe nhu cầu của cả gia đình.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-1" src="/assets/content/projects/khao-sat-do-dac-nha-o.webp" width="2048" height="3072" loading="lazy" decoding="async" alt="Kỹ thuật viên khảo sát nhà ở bằng máy đo laser trên chân máy" data-en-alt="Technician surveying a bare home interior with a tripod-mounted laser meter" /></span>
+            <div><h3 data-slot="editorial-strip.title-1" data-en="Survey">Khảo sát</h3><p data-slot="editorial-strip.body-1" data-en="We visit your home to survey it and listen to what the whole family needs.">Đến tận nhà khảo sát và lắng nghe nhu cầu của cả gia đình.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 489 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-2" /></svg>
-            <span class="editorial-media"><img src="/assets/content/shared/tu-van-vat-lieu-noi-that.webp" width="2048" height="3072" loading="lazy" decoding="async" alt="Tư vấn chọn mẫu gỗ và vật liệu hoàn thiện bên bản vẽ nhà" data-en-alt="Choosing wood and finish samples over a floor plan during consultation" /></span>
-            <div><h3 data-en="Consultation">Tư vấn</h3><p data-en="We advise on layout, materials and budget until you are fully satisfied.">Tư vấn bố trí, vật liệu và ngân sách cho đến khi bạn thật sự hài lòng.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-2" src="/assets/content/shared/tu-van-vat-lieu-noi-that.webp" width="2048" height="3072" loading="lazy" decoding="async" alt="Tư vấn chọn mẫu gỗ và vật liệu hoàn thiện bên bản vẽ nhà" data-en-alt="Choosing wood and finish samples over a floor plan during consultation" /></span>
+            <div><h3 data-slot="editorial-strip.title-2" data-en="Consultation">Tư vấn</h3><p data-slot="editorial-strip.body-2" data-en="We advise on layout, materials and budget until you are fully satisfied.">Tư vấn bố trí, vật liệu và ngân sách cho đến khi bạn thật sự hài lòng.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 505 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-3" /></svg>
-            <span class="editorial-media"><img src="/assets/content/shared/xuong-lap-rap-thung-tu-go.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Thợ lắp đợt kệ vào thùng tủ gỗ công nghiệp tại xưởng CNC" data-en-alt="Craftsman fitting a shelf into a laminated board cabinet in the workshop" /></span>
-            <div><h3 data-en="Production">Sản xuất</h3><p data-en="Everything is made in our workshop on CNC machines and checked carefully before delivery.">Sản xuất tại xưởng bằng máy CNC, kiểm tra kỹ từng chi tiết trước khi giao.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-3" src="/assets/content/shared/xuong-lap-rap-thung-tu-go.webp" width="1536" height="1024" loading="lazy" decoding="async" alt="Thợ lắp đợt kệ vào thùng tủ gỗ công nghiệp tại xưởng CNC" data-en-alt="Craftsman fitting a shelf into a laminated board cabinet in the workshop" /></span>
+            <div><h3 data-slot="editorial-strip.title-3" data-en="Production">Sản xuất</h3><p data-slot="editorial-strip.body-3" data-en="Everything is made in our workshop on CNC machines and checked carefully before delivery.">Sản xuất tại xưởng bằng máy CNC, kiểm tra kỹ từng chi tiết trước khi giao.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 540 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-4" /></svg>
-            <span class="editorial-media"><img src="/assets/content/shared/lap-dat-tu-go-nha-o.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ cân chỉnh chân tủ gỗ bằng máy cân bằng laser khi lắp đặt" data-en-alt="Installer levelling a wooden cabinet base with a laser level on site" /></span>
-            <div><h3 data-en="Installation and handover">Lắp đặt và bàn giao</h3><p data-en="We install with care, clean up thoroughly and hand over only when everything is complete.">Lắp đặt cẩn thận, dọn dẹp sạch sẽ và chỉ bàn giao khi mọi thứ đã hoàn chỉnh.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-4" src="/assets/content/shared/lap-dat-tu-go-nha-o.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ cân chỉnh chân tủ gỗ bằng máy cân bằng laser khi lắp đặt" data-en-alt="Installer levelling a wooden cabinet base with a laser level on site" /></span>
+            <div><h3 data-slot="editorial-strip.title-4" data-en="Installation and handover">Lắp đặt và bàn giao</h3><p data-slot="editorial-strip.body-4" data-en="We install with care, clean up thoroughly and hand over only when everything is complete.">Lắp đặt cẩn thận, dọn dẹp sạch sẽ và chỉ bàn giao khi mọi thứ đã hoàn chỉnh.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 498 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#residential-digit-5" /></svg>
-            <span class="editorial-media"><img src="/assets/content/shared/bao-tri-tu-bep-go.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ chỉnh bản lề tủ bếp gỗ khi bảo trì sau bàn giao" data-en-alt="Technician adjusting a kitchen cabinet hinge during after-sales maintenance" /></span>
-            <div><h3 data-en="After-sales">Hậu mãi</h3><p data-en="We are always ready to maintain and help whenever your family needs us.">Luôn sẵn sàng bảo trì và hỗ trợ bất cứ khi nào gia đình cần.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-5" src="/assets/content/shared/bao-tri-tu-bep-go.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ chỉnh bản lề tủ bếp gỗ khi bảo trì sau bàn giao" data-en-alt="Technician adjusting a kitchen cabinet hinge during after-sales maintenance" /></span>
+            <div><h3 data-slot="editorial-strip.title-5" data-en="After-sales">Hậu mãi</h3><p data-slot="editorial-strip.body-5" data-en="We are always ready to maintain and help whenever your family needs us.">Luôn sẵn sàng bảo trì và hỗ trợ bất cứ khi nào gia đình cần.</p></div>
           </article>
         </section>
 
@@ -676,7 +675,7 @@
           data-header-tone="ink"
           aria-labelledby="materials-title"
         >
-          <p
+          <p data-slot="vat-lieu.label"
             class="detail-eyebrow"
             data-motion-fade
             data-en="MATERIALS AND HARDWARE"
@@ -685,13 +684,13 @@
           </p>
           <h2 id="materials-title" data-motion-lines>
             <span class="detail-line">
-              <span data-motion-line-source data-en="Materials and hardware">
+              <span data-slot="vat-lieu.text-1" data-motion-line-source data-en="Materials and hardware">
                 Vật liệu và phụ kiện
               </span>
             </span>
             <span class="detail-line">
               <span
-                ><em data-motion-line-source data-en="that work with us"
+                ><em data-slot="vat-lieu.text-2" data-motion-line-source data-en="that work with us"
                   >đi cùng chúng tôi</em
                 ></span
               >
@@ -704,7 +703,7 @@
           data-header-tone="ink"
           aria-labelledby="materials-title"
         >
-          <p>
+          <p data-slot="note-2.body">
             <span
               data-en="Panels, surfaces and furniture hardware come from suppliers we have worked with for years: moisture-resistant boards for kitchens and bathrooms, soft-close hinges and runners for every door and drawer. Each one is chosen for the way you use it every day."
             >
@@ -754,7 +753,7 @@
           data-header-tone="ink"
           aria-labelledby="typologies-title"
         >
-          <h2
+          <h2 data-slot="loai-hinh.title-1"
             class="sr-only"
             id="typologies-title"
             data-en="Three residential typologies"
@@ -763,7 +762,7 @@
           </h2>
           <div class="service-portals">
             <article class="service-portal">
-              <img
+              <img data-slot="loai-hinh.image-1"
                 src="/assets/content/shared/noi-that-nha-pho-lien-thong.webp"
                 width="3072"
                 height="2048"
@@ -773,17 +772,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Townhouse">Nhà phố</h3>
+                <h3 data-slot="loai-hinh.title-2" class="commitment-title" data-en="Townhouse">Nhà phố</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="A brighter, airier">Nhà ống sáng hơn</span><span class="portal-line" data-en="narrow house">và thoáng gió hơn</span></p
+                  ><span data-slot="loai-hinh.text-1" class="portal-line" data-en="A brighter, airier">Nhà ống sáng hơn</span><span data-slot="loai-hinh.text-2" class="portal-line" data-en="narrow house">và thoáng gió hơn</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Furniture follows the lightwell and the flow across floors, with built-in storage under the stairs and along narrow walls so the house stays tidy yet open.">Nội thất bố trí theo giếng trời và luồng đi qua các tầng, tủ âm tường tận dụng gầm cầu thang và vách hẹp để nhà gọn mà vẫn rộng.</span></p
+                  ><span data-slot="loai-hinh.text-3" class="portal-subtitle" data-en="Furniture follows the lightwell and the flow across floors, with built-in storage under the stairs and along narrow walls so the house stays tidy yet open.">Nội thất bố trí theo giếng trời và luồng đi qua các tầng, tủ âm tường tận dụng gầm cầu thang và vách hẹp để nhà gọn mà vẫn rộng.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="loai-hinh.image-2"
                 src="/assets/content/projects/tu-am-tuong-khu-an.webp"
                 width="3072"
                 height="2048"
@@ -793,17 +792,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Apartment">Căn hộ</h3>
+                <h3 data-slot="loai-hinh.title-3" class="commitment-title" data-en="Apartment">Căn hộ</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Every metre">Gọn gàng</span><span class="portal-line" data-en="put to good use">từng mét vuông</span></p
+                  ><span data-slot="loai-hinh.text-4" class="portal-line" data-en="Every metre">Gọn gàng</span><span data-slot="loai-hinh.text-5" class="portal-line" data-en="put to good use">từng mét vuông</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Ceiling-high cabinets, multi-use furniture and storage measured to what you own, so a small apartment stays tidy, flexible and personal.">Tủ kịch trần, nội thất đa năng và khoang lưu trữ đo theo đồ thật, để căn hộ nhỏ vẫn gọn gàng, linh hoạt và mang dấu ấn gia chủ.</span></p
+                  ><span data-slot="loai-hinh.text-6" class="portal-subtitle" data-en="Ceiling-high cabinets, multi-use furniture and storage measured to what you own, so a small apartment stays tidy, flexible and personal.">Tủ kịch trần, nội thất đa năng và khoang lưu trữ đo theo đồ thật, để căn hộ nhỏ vẫn gọn gàng, linh hoạt và mang dấu ấn gia chủ.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="loai-hinh.image-3"
                 src="/assets/content/projects/homestay-nha-vuon-phong-sinh-hoat.webp"
                 width="3072"
                 height="2048"
@@ -815,10 +814,10 @@
               <div class="portal-copy commitment-copy">
                 <h3 class="commitment-title">Homestay</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="A place with">Bản sắc riêng</span><span class="portal-line" data-en="its own character">để khách quay lại</span></p
+                  ><span data-slot="loai-hinh.text-7" class="portal-line" data-en="A place with">Bản sắc riêng</span><span data-slot="loai-hinh.text-8" class="portal-line" data-en="its own character">để khách quay lại</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Furniture tells the story of the place, with moisture-resistant materials that clean easily between guests and last through year-round stays.">Nội thất kể câu chuyện của vùng đất, vật liệu chịu ẩm, dễ vệ sinh giữa các lượt khách và đủ bền cho nhịp lưu trú quanh năm.</span></p
+                  ><span data-slot="loai-hinh.text-9" class="portal-subtitle" data-en="Furniture tells the story of the place, with moisture-resistant materials that clean easily between guests and last through year-round stays.">Nội thất kể câu chuyện của vùng đất, vật liệu chịu ẩm, dễ vệ sinh giữa các lượt khách và đủ bền cho nhịp lưu trú quanh năm.</span></p
                 >
               </div>
             </article>
@@ -831,7 +830,7 @@
           data-header-tone="ink"
           aria-labelledby="items-title"
         >
-          <h2
+          <h2 data-slot="hang-muc.title-1"
             class="sr-only"
             id="items-title"
             data-en="Three residential cabinet items"
@@ -840,7 +839,7 @@
           </h2>
           <div class="service-portals">
             <article class="service-portal">
-              <img
+              <img data-slot="hang-muc.image-1"
                 src="/assets/content/projects/placeholder-doc.webp"
                 width="2048"
                 height="3072"
@@ -850,17 +849,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Kitchens">Tủ bếp</h3>
+                <h3 data-slot="hang-muc.title-2" class="commitment-title" data-en="Kitchens">Tủ bếp</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="An easy kitchen">Bếp gọn tay</span><span class="portal-line" data-en="for daily cooking">nấu ăn nhẹ nhàng</span></p
+                  ><span data-slot="hang-muc.text-1" class="portal-line" data-en="An easy kitchen">Bếp gọn tay</span><span data-slot="hang-muc.text-2" class="portal-line" data-en="for daily cooking">nấu ăn nhẹ nhàng</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Counter height and the wash, cook, store flow are set for the person who cooks; moisture-resistant boards, soft-close runners and surfaces that wipe clean after every meal.">Chiều cao mặt bếp, luồng rửa, nấu, cất được tính theo người đứng bếp; ván chịu ẩm, ray giảm chấn và bề mặt dễ lau sau mỗi bữa.</span></p
+                  ><span data-slot="hang-muc.text-3" class="portal-subtitle" data-en="Counter height and the wash, cook, store flow are set for the person who cooks; moisture-resistant boards, soft-close runners and surfaces that wipe clean after every meal.">Chiều cao mặt bếp, luồng rửa, nấu, cất được tính theo người đứng bếp; ván chịu ẩm, ray giảm chấn và bề mặt dễ lau sau mỗi bữa.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="hang-muc.image-2"
                 src="/assets/content/projects/placeholder-doc.webp"
                 width="2048"
                 height="3072"
@@ -870,17 +869,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Wardrobes">Tủ áo</h3>
+                <h3 data-slot="hang-muc.title-3" class="commitment-title" data-en="Wardrobes">Tủ áo</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Zones planned">Chia khoang</span><span class="portal-line" data-en="to what you own">theo đồ thật</span></p
+                  ><span data-slot="hang-muc.text-4" class="portal-line" data-en="Zones planned">Chia khoang</span><span data-slot="hang-muc.text-5" class="portal-line" data-en="to what you own">theo đồ thật</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="We measure what you own before planning the inside: long and short hanging, drawers, shoe shelves, with lighting and vents so the wardrobe stays dry and easy to search.">Đo đồ đang có trước khi chia ngăn: treo dài, treo ngắn, ngăn kéo, kệ giày, thêm đèn và khe thoáng để tủ luôn khô, dễ tìm.</span></p
+                  ><span data-slot="hang-muc.text-6" class="portal-subtitle" data-en="We measure what you own before planning the inside: long and short hanging, drawers, shoe shelves, with lighting and vents so the wardrobe stays dry and easy to search.">Đo đồ đang có trước khi chia ngăn: treo dài, treo ngắn, ngăn kéo, kệ giày, thêm đèn và khe thoáng để tủ luôn khô, dễ tìm.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="hang-muc.image-3"
                 src="/assets/content/projects/placeholder-doc.webp"
                 width="2048"
                 height="3072"
@@ -890,12 +889,12 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Finishing">Hoàn thiện</h3>
+                <h3 data-slot="hang-muc.title-4" class="commitment-title" data-en="Finishing">Hoàn thiện</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Care taken">Chỉn chu</span><span class="portal-line" data-en="to every edge">đến từng cạnh tủ</span></p
+                  ><span data-slot="hang-muc.text-7" class="portal-line" data-en="Care taken">Chỉn chu</span><span data-slot="hang-muc.text-8" class="portal-line" data-en="to every edge">đến từng cạnh tủ</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Machine edge banding, recessed pulls, soft-close hinges and even gaps, so the cabinets look right on handover day and last for years.">Dán cạnh bằng máy, tay nắm âm, bản lề giảm chấn và khe hở đều nhau, để tủ đẹp ngay ngày bàn giao và bền qua nhiều năm.</span></p
+                  ><span data-slot="hang-muc.text-9" class="portal-subtitle" data-en="Machine edge banding, recessed pulls, soft-close hinges and even gaps, so the cabinets look right on handover day and last for years.">Dán cạnh bằng máy, tay nắm âm, bản lề giảm chấn và khe hở đều nhau, để tủ đẹp ngay ngày bàn giao và bền qua nhiều năm.</span></p
                 >
               </div>
             </article>
@@ -910,7 +909,7 @@
           data-header-tone="inverse"
           aria-labelledby="cta-title"
         >
-          <img
+          <img data-slot="tu-van.image-1"
             class="media-hover-zoom"
             src="/assets/content/projects/do-dac-hien-trang-phong-trong.webp"
             width="1536"
@@ -921,10 +920,10 @@
             data-motion-media
           />
           <div class="detail-cta__copy">
-            <p data-motion-fade data-motion-delay="0.3" data-en="HAVE A HOME?">
+            <p data-slot="tu-van.body" data-motion-fade data-motion-delay="0.3" data-en="HAVE A HOME?">
               CÓ MỘT NGÔI NHÀ?
             </p>
-            <h2 id="cta-title" data-motion-lines>
+            <h2 data-slot="tu-van.title" id="cta-title" data-motion-lines>
               <span data-en="Let us take a look">Mời chúng tôi đến xem</span>
             </h2>
             <a
@@ -937,7 +936,7 @@
               aria-label="Gọi Zalo để đặt lịch khảo sát nhà"
               data-en-aria-label="Book a home survey on Zalo"
             >
-              <span class="portal-subtitle" data-en="Talk on Zalo">Gọi Zalo tư vấn</span>
+              <span data-slot="tu-van.text" class="portal-subtitle" data-en="Talk on Zalo">Gọi Zalo tư vấn</span>
             </a>
           </div>
         </section>

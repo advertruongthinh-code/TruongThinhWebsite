@@ -23,6 +23,8 @@ export function mediaRefs(type, data) {
   ];
   if (type === "advertising-card") return [...(isObject(data.media) ? [data.media] : []), ...list(data.mediaItems)];
   if (type === "hero-slide") return [data];
+  // Image slots of a standard page: the slot objects that are not text (K7).
+  if (type === "page-copy") return Object.values(isObject(data.slots) ? data.slots : {}).filter((slot) => isObject(slot) && !Object.hasOwn(slot, "vi"));
   return [];
 }
 

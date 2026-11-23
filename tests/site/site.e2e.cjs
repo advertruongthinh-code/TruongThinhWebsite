@@ -390,13 +390,15 @@ function assertPersistentNavigationContracts() {
     ),
     "Media must never be selectable, draggable or open the long-press menu site-wide",
   );
-  const homeSource = readPageSource("index.html");
+  // CMS slot keys (cms-plan part 2 K7) are not copy: the copy checks below read the pages without them.
+  const withoutSlots = (html) => html.replace(/ data-slot="[^"]*"/g, "");
+  const homeSource = withoutSlots(readPageSource("index.html"));
   const brandCss = styleSource.match(/\.brand\s*\{[\s\S]*?\n\}/)?.[0];
   const detailSource = fs.readFileSync(path.join(root, "detail.js"), "utf8");
   const detailCss = fs.readFileSync(path.join(root, "detail.css"), "utf8");
   const aboutSource = readPageSource("about/index.html");
-  const residentialSource = readPageSource("residential/index.html");
-  const commercialSource = readPageSource("commercial/index.html");
+  const residentialSource = withoutSlots(readPageSource("residential/index.html"));
+  const commercialSource = withoutSlots(readPageSource("commercial/index.html"));
   const projectsSource = readPageSource("advertising-products/index.html");
   const storyArrowWrapperCss = styleSource.match(/\.story-arrow\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
   const storyArrowCss = styleSource.match(/\.story-link svg\s*\{[\s\S]*?\n\}/)?.[0] ?? "";
@@ -4041,7 +4043,7 @@ async function runLanguagePersistenceCheck() {
         const initial = await page.evaluate(() => {
           const leaf = [...document.querySelectorAll("main [data-en]")].find(
             (element) =>
-              !element.closest("[data-cms], [data-motion-words], [data-motion-lines]") &&
+              !element.closest(".hero-kicker, [data-motion-words], [data-motion-lines]") &&
               !element.matches(".hero-word"),
           );
           return {
@@ -4075,7 +4077,7 @@ async function runLanguagePersistenceCheck() {
           const meta = document.querySelector('meta[name="description"][data-en-content]');
           const text = [...document.querySelectorAll("main [data-en]")].find(
             (element) =>
-              !element.closest("[data-cms], [data-motion-words], [data-motion-lines]") &&
+              !element.closest(".hero-kicker, [data-motion-words], [data-motion-lines]") &&
               !element.matches(".hero-word"),
           );
           const image = document.querySelector("img[data-en-alt]");
@@ -4361,7 +4363,7 @@ async function runSsrCmsHydrationCheck(cases = SSR_CMS_HYDRATION_CASES) {
             sourceTitle: title?.dataset.en,
             description: description?.getAttribute("content"),
             sourceDescription: description?.dataset.enContent,
-            kicker: normalize(hero?.querySelector("[data-cms=\"hero.kicker\"]")?.textContent || ""),
+            kicker: normalize(hero?.querySelector(".hero-kicker")?.textContent || ""),
             heroTitle: normalize(hero?.querySelector("h1")?.textContent || ""),
             motto: normalize(hero?.querySelector("[data-cms=\"hero.motto\"]")?.textContent || ""),
             headerLabel: navigationLabel("[data-site-header] a[href]"),
