@@ -16,9 +16,10 @@ try {
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       const card = page.locator(detail ? "[data-masonry-related-card]" : "[data-masonry-card]").first();
       await card.scrollIntoViewIfNeeded();
-      const image = card.locator("img");
+      // A card with several media keeps its other layers hidden (media-card R5); the shown layer is the one under test.
+      const image = card.locator("img:not([hidden])");
       await page.waitForFunction(selector => {
-        const image = document.querySelector(selector)?.querySelector("img");
+        const image = document.querySelector(selector)?.querySelector("img:not([hidden])");
         return image?.complete && image.naturalWidth > 0;
       }, detail ? "[data-masonry-related-card]" : "[data-masonry-card]");
       await image.evaluate(image => image.decode());
@@ -73,11 +74,11 @@ try {
     const card = page.locator(selector).first();
     await card.scrollIntoViewIfNeeded();
     await page.waitForFunction(selector => {
-      const image = document.querySelector(selector)?.querySelector("img");
+      const image = document.querySelector(selector)?.querySelector("img:not([hidden])");
       return image?.complete && image.naturalWidth > 0;
     }, selector);
     assert.equal(await page.evaluate(() => matchMedia("(hover: hover) and (pointer: fine)").matches), false);
-    assert.equal(await card.locator("img").evaluate(e => new DOMMatrixReadOnly(getComputedStyle(e).transform).a), 1);
+    assert.equal(await card.locator("img:not([hidden])").evaluate(e => new DOMMatrixReadOnly(getComputedStyle(e).transform).a), 1);
     // Touch has no hover (owner 2026-11-10, media-card R3): a clean image, no name and no shade.
     assert.deepEqual(await card.evaluate((tile) => {
       const titles = [...tile.querySelectorAll(".masonry-card__title")];

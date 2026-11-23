@@ -5189,10 +5189,12 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
     { locale: "en", viewport: { width: 390, height: 844 } },
   ];
   for (const testCase of cases) {
-    const destination = `/${testCase.locale}/advertising-products/`;
+    // Vietnamese lives at the root, English under /en (owner 2026-11-22).
+    const home = testCase.locale === "vi" ? "/" : `/${testCase.locale}/`;
+    const destination = `${home}advertising-products/`;
     await runPageCase(
       `fresh Home to Advertising Barba readiness ${testCase.locale} ${testCase.viewport.width}px`,
-      { route: `/${testCase.locale}/`, viewport: testCase.viewport },
+      { route: home, viewport: testCase.viewport },
       async (page) => {
         const diagnostics = monitorPage(page);
         let vendorIntercepted = false;
@@ -5204,7 +5206,7 @@ async function runAdvertisingFreshBarbaReadinessChecks({ expectedCardCount = nul
             await route.fulfill({ response });
           });
         }
-        await gotoRoute(page, `/${testCase.locale}/`);
+        await gotoRoute(page, home);
         assert(
           await page.evaluate(() => !window.lazySizes),
           "fresh Home unexpectedly carried Advertising LazySizes before public navigation",
@@ -5365,8 +5367,9 @@ async function runAdvertisingHistoryRemountChecks() {
     { locale: "en", viewport: { width: 390, height: 844 } },
   ];
   for (const testCase of cases) {
-    const home = `/${testCase.locale}/`;
-    const advertising = `/${testCase.locale}/advertising-products/`;
+    // Vietnamese lives at the root, English under /en (owner 2026-11-22).
+    const home = testCase.locale === "vi" ? "/" : `/${testCase.locale}/`;
+    const advertising = `${home}advertising-products/`;
     await runPageCase(
       `advertising Home history remount ${testCase.locale} ${testCase.viewport.width}px`,
       { route: advertising, viewport: testCase.viewport },
@@ -6960,7 +6963,8 @@ async function runAdvertisingMediaFocusedChecks() {
         await page.waitForFunction(
           (expected) =>
             document.documentElement.lang === expected &&
-            location.pathname === `/${expected}/advertising-products/` &&
+            // Vietnamese lives at the root, English under /en (owner 2026-11-22).
+            location.pathname === (expected === "vi" ? "/" : `/${expected}/`) + "advertising-products/" &&
             !document.querySelector("#site-menu")?.hasAttribute("open") &&
             // Wait for the language-switch page change to finish: the page is still scaling and the menu does not accept clicks yet.
             !document.body.classList.contains("is-transitioning"),
@@ -7434,7 +7438,7 @@ async function runAdvertisingLocaleLifecycleChecks() {
         await page
           .waitForFunction(
             (expected) => document.documentElement.lang === expected &&
-              location.pathname.startsWith(`/${expected}/advertising-products/`) &&
+              location.pathname.startsWith((expected === "vi" ? "/" : `/${expected}/`) + "advertising-products/") &&
               window.TruongThinhMasonry?.getBrowseState &&
               // Page just loaded: the filter rail finishes showing (entrance) before the test scrolls down to the grid.
               [...document.querySelectorAll("[data-masonry-filter]")].every((filter) => getComputedStyle(filter).visibility === "visible") &&

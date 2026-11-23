@@ -5,6 +5,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import streamedOriginal from "./streamed-original.cjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const outputDirectory = process.env.AD_P14_OUTPUT_DIR
@@ -83,6 +84,7 @@ function attachDiagnostics(page) {
   page.on("requestfailed", (request) => {
     // Images and videos aborted when a card is removed from the DOM or srcset/src changes are normal browser behavior.
     if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
+    if (streamedOriginal.isStreamedOriginalAbort(request)) return;
     if (new URL(request.url()).origin === baseOrigin || ["font", "stylesheet", "script"].includes(request.resourceType())) {
       issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
     }

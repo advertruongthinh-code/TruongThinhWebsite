@@ -6,6 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { matchesFilter } from "../../src/site/masonry/layout.mjs";
+import streamedOriginal from "./streamed-original.cjs";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -1088,7 +1089,7 @@ try {
       stage(`${scenario.locale}-${scenario.width}-${scenario.input}-${scenario.reduced ? "reduced" : "motion"}`);
       await page.setViewportSize({ width: scenario.width, height: 912 });
       await page.emulateMedia({ reducedMotion: scenario.reduced ? "reduce" : "no-preference" });
-      await page.goto(href(`/${scenario.locale}/advertising-products/?category=${scenario.category}&photo=${scenario.category}-${scenario.from}`));
+      await page.goto(href(`${scenario.locale === "vi" ? "" : "/" + scenario.locale}/advertising-products/?category=${scenario.category}&photo=${scenario.category}-${scenario.from}`));
       await ready(page, `${scenario.category}-${scenario.from}`);
       const link = page.locator(`[data-masonry-related-card="${id}"] > a`);
       // The related order is seeded and virtualized; scan down then up again until the target card mounts.
@@ -1590,6 +1591,7 @@ try {
     page.on("requestfailed", (request) => {
       // Chromium cancels the fetches of lazy images or videos being replaced (srcset/variant/src change, unmount); not a load error.
       if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
+      if (streamedOriginal.isStreamedOriginalAbort(request)) return;
       networkFailures.push({ url: request.url(), error: request.failure()?.errorText });
     });
     page.on("response", (response) => {
@@ -1598,7 +1600,9 @@ try {
     for (const locale of ["en", "vi"]) {
       networkFailures.length = 0;
       stage(locale + "-offscreen-grid-fixture");
-      await page.goto(href("/" + locale + "/advertising-products/?category=signage-raised-letters"), { waitUntil: "domcontentloaded" });
+      // Vietnamese lives at the root, English under /en (owner 2026-11-22).
+      const base = (locale === "vi" ? "" : "/" + locale) + "/advertising-products/";
+      await page.goto(href(base + "?category=signage-raised-letters"), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
       let initial = null;
@@ -1675,7 +1679,7 @@ try {
       assert.equal(backState.focusId, id, locale + ": Back lost card focus");
       assert.equal(forwardState.length, initial.length + 1, locale + ": click created wrong history length");
       assert.equal(backState.length, forwardState.length, locale + ": traversal added history entry");
-      assert.ok(new URL(page.url()).pathname.startsWith("/" + locale + "/advertising-products/"), locale + ": locale changed");
+      assert.ok(new URL(page.url()).pathname.startsWith(base), locale + ": locale changed");
       assert.deepEqual(networkFailures, [], locale + ": fixture/network failure");
       evidence.push({ locale, clickedY, detailY, grid, forward, back, forwardState, backState, networkFailures: [] });
     }
