@@ -21,7 +21,7 @@ Giao diện `/admin/` để owner và nhân viên tạo, sửa, xóa mọi nội
 
 Trạng thái (2026-11-22): code `src/admin/` hiện có là bản chạy local theo contract cũ (khóa `t<n>` theo thứ tự nguồn, bảng `page_edits`, `PUT /api/admin/content`). Dock, overlay chọn chỗ, sửa chữ tại chỗ, kéo thả media giữ lại; đường lưu, khóa và nguồn dữ liệu viết lại theo spec này ở phần 2 của plan CMS. Cho tới khi task đó merge, test trong frontmatter kiểm code cũ. Đường lưu `PUT /api/admin/content/<page>` và bảng `page_edits` đã gỡ (S2); đường lưu mới theo [CMS R5](cms.md), nên editor cũ hiện "Chưa nối lưu trữ".
 
-Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.html` liệt kê bản ghi theo kiểu và trạng thái, sửa `data` dạng JSON rồi gọi `save`, `create`, `trash`, `restore`, `purge`, xem `audit-log`; `/admin/status.html` là trang vận hành của plan P1 (in `build-status`, nút "Lưu thử" đo CPU). Hai trang không dùng Design System, bị editor E12 tới E19 thay. Editor Dockview `/admin/` nhúng `records.html?embed=1` thành bảng "Nội dung", mở sẵn cạnh "Xem trước".
+Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.html` liệt kê bản ghi theo kiểu và trạng thái, sửa `data` dạng JSON rồi gọi `save`, `create`, `trash`, `restore`, `purge`, xem `audit-log`; `/admin/status.html` là trang vận hành của plan P1 (in `build-status`, nút "Lưu thử" đo CPU). Hai trang không dùng Design System, bị editor E12 tới E19 thay.
 
 ## Hành vi
 
