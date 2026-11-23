@@ -95,7 +95,9 @@ của nó: redirect luôn được theo kể cả khi có trang trùng path, nê
 sử. Build: `slugRedirects(redirects, content)` trong `scripts/site/redirects.mjs` sinh một dòng 301 từ mỗi slug cũ tới
 slug hiện tại của bài còn trong file chiếu; bài trong thùng rác không có redirect và rơi về 404 tĩnh. `redirectsFile`
 dừng build khi quá 1.900 dòng (giới hạn 2.000 redirect tĩnh của Workers static assets); Worker trả 409
-`slug-history-full` cho lần đổi slug khi `slug_history` đã có 1.200 dòng.
+`slug-history-full` cho lần đổi slug khi `slug_history` đã có 1.200 dòng. Mỗi dòng lịch sử sinh đúng một dòng
+redirect: slug cũ không có bản `/vi/…` riêng (path `/vi/` đã bỏ trước khi CMS chạy; `/vi/*` chung bỏ tiền tố rồi tới
+dòng slug), nên 1.200 dòng cộng phần cố định vẫn dưới 1.900.
 
 ```gherkin
 Given bài news đang published đổi slugVi từ "a" sang "b" rồi sang "c"
