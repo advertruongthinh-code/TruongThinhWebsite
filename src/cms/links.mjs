@@ -30,7 +30,8 @@ export function resolveLink(link, ctx = {}) {
   const records = page === "project" ? ctx.projects : page === "news" ? ctx.news : null;
   const record = records?.get(key);
   const base = page === "project" ? "/projects" : "/news";
-  return record ? both(`${base}/${record.slugVi}/`, `${base}/${record.slugEn}/`) : null;
+  // A record without EN (cms-content R2) has no EN page: the EN link goes to the EN list of its kind.
+  return record ? both(`${base}/${record.slugVi}/`, record.noEn ? `${base}/` : `${base}/${record.slugEn}/`) : null;
 }
 
 // href of a VI page, plus data-en-href only when EN differs from both the VI href and the prefixed VI path (localeHtml adds the prefix).

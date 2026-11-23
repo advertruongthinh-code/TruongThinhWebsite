@@ -90,7 +90,9 @@ export const buildProjectArtifact = (projects, colors = {}) => {
     const { id: _id, kind: _kind, ...media } = mediaItems[0];
     return {
       id: project.id, category, sourceOrder, clusterIds: [project.type], titleVi: project.title.vi, titleEn: project.title.en,
-      href: { vi: pageHref("projects", "vi", project), en: pageHref("projects", "en", project) },
+      // A project without EN (cms-content R2) has no EN href; the runtime leaves its card out on EN pages.
+      href: { vi: pageHref("projects", "vi", project), ...(project.noEn ? {} : { en: pageHref("projects", "en", project) }) },
+      ...(project.noEn ? { noEn: true } : {}),
       ...(colors[project.id] ? { color: colors[project.id] } : {}),
       media, mediaItems, coverMediaId: project.id,
     };
@@ -114,7 +116,8 @@ const srcset = ({ src, width }) => {
 // Static cards in noscript like the Advertising page: without JavaScript projects and links are still visible (SEO); the filter intro
 // rides in the same noscript like the Advertising cluster intro, so crawlers and AI search read it without a visible layout change.
 const noscriptCard = (project) => [
-  `<figure class="masonry-static-card"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="masonry-static-card__media">`,
+  project.noEn ? `<figure class="masonry-static-card" data-vi-only><a href="${pageHref("projects", "vi", project)}"><div class="masonry-static-card__media">`
+    : `<figure class="masonry-static-card"><a href="${pageHref("projects", "vi", project)}" data-en-href="${pageHref("projects", "en", project)}"><div class="masonry-static-card__media">`,
   `<img src="${project.cover.src}" srcset="${srcset(project.cover)}" sizes="(max-width: 960px) 50vw, 25vw" width="${project.cover.width}" height="${project.cover.height}" loading="lazy" decoding="async" alt="${escapeHtml(project.cover.altVi)}" data-en-alt="${escapeHtml(project.cover.altEn)}" />`,
   "</div></a></figure>",
 ].join("");

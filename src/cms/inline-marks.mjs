@@ -175,6 +175,8 @@ export function sideMarksErrors(text, allowed) {
 // Errors of a VI and EN pair: syntax, allowed marks, and the same mark sequence on both sides (per paragraph and list item).
 export function marksErrors(vi, en, allowed) {
   const kinds = typeof allowed === "string" ? MARKS_BY_KIND[allowed] : allowed;
+  // Empty EN (optional EN, cms-content R2): only VI is checked; whether EN is required is the caller's rule.
+  if (!String(en ?? "").trim()) return !String(vi ?? "").trim() ? [] : marksErrors(vi, vi, kinds).filter((error, index, list) => list.findIndex(({ message }) => message === error.message) === index);
   const lists = kinds.includes("list");
   const errors = [];
   const pair = (viText, enText) => {

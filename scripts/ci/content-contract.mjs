@@ -147,8 +147,9 @@ export async function checkSiteContent(siteRoot) {
   const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
   for (const [kind, list] of Object.entries(pages)) {
     errors.push(...duplicatePageFields(list, `content/${kind}.json`));
-    for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`));
-    for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}` }));
+    // EN is optional for News and projects (cms-content R2): a page without it builds in VI only.
+    for (const page of list) errors.push(...kindFieldErrors(kind, page, `content/${kind}.json:${page.id}`, { en: "optional" }));
+    for (const page of list) errors.push(...await validateBlockPage(page, { ...ctx, at: `content/${kind}.json:${page.id}`, en: "optional" }));
   }
   errors.push(...ownImageReuse(siteRoot, "news", pages.news, "News"), ...ownImageReuse(siteRoot, "projects", pages.projects, "Project"));
   const homeProjectsFile = path.join(contentDir, "home-projects.json");
