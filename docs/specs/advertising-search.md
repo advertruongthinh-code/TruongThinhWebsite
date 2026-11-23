@@ -147,8 +147,12 @@ Then lưới có card khớp cả hai ảnh trước, rồi card hai nhóm xen k
 
 Gửi tìm thì gọi `setPending(true)`. Câu chữ: trình duyệt tính K ngay. Worker trả trong 0,8 giây thì `setResults` theo R5.
 Quá 0,8 giây, lỗi, 429 hoặc chỉ mục `unavailable` mà có card K từ `keywordMin` (0,6) thì `setResults` các card đó xếp theo K; điểm vector về muộn mà khách chưa cuộn, chạm hay bấm phím từ lúc đó thì `setResults` luôn kết quả R5 (cùng câu ra cùng lưới dù mạng nhanh hay chậm, rà soát 2026-11-18); khách đã thao tác thì `offerResults`. Không card nào có K từ `keywordMin` mà Worker còn đang chạy thì giữ `setPending(true)` tới khi điểm
-vector về hoặc tới 3 giây, rồi theo R9. Có ảnh: chờ tới 3 giây, quá thì báo "Tìm bằng ảnh đang chậm" kèm nút thử lại.
-Hết hạn mức hoặc mất mạng: chữ chạy bằng K, thanh báo tạm nghỉ ([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)), không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
+vector về hoặc tới 3 giây, rồi coi như máy chủ lỗi (dưới đây). Có ảnh: chờ tới 3 giây, quá thì báo "Tìm bằng ảnh đang chậm" kèm nút thử lại;
+điểm về sau đó mà khách đã cuộn, chạm hay bấm phím từ lúc báo chậm thì `offerResults`, chưa thì `setResults` (owner 2026-11-23).
+Máy chủ lỗi (lỗi, 429, chỉ mục `unavailable`, mất mạng, owner 2026-11-23): có card K thì vẫn `setResults` các card đó; thanh báo
+"Lỗi tìm kiếm" / "Search error", có ảnh thì "Lỗi tìm ảnh" / "Image error", kèm nút "Thử lại" gửi lại đúng câu và ảnh đó
+([Thanh tìm kiếm R3](search-bar.md#r3-chữ-gợi-ý-ảnh-và-thông-báo)); không card K thì theo R9 nhưng thanh báo lỗi đó thay cho "Chưa thấy mẫu phù hợp",
+vì không có kết quả lúc này là do máy chủ, không phải chữ khách gõ. Không hiện lỗi kỹ thuật. Sửa chữ, thêm hoặc bỏ ảnh khi
 đang tìm thì huỷ request cũ (`AbortController`), lần mới nhất thắng; bỏ bớt ảnh sau khi có kết quả thì tự tìm lại sau 0,4
 giây. Bấm tìm khi chưa có chữ và ảnh thì chỉ đưa con trỏ vào ô chữ.
 
@@ -158,6 +162,11 @@ When khách tìm "bảng hiệu"
 Then sau 0,8 giây lưới hiện kết quả theo K
 And khi điểm vector về mà khách chưa thao tác, lưới đổi sang kết quả R5
 And khách đã cuộn thì nút "Có thêm kết quả gợi ý" hiện, bấm mới xếp lại
+
+Given Worker trả 503
+When khách tìm "hộp đèn", rồi tìm "zzqxw"
+Then lần đầu lưới hiện kết quả theo K và thanh báo "Lỗi tìm kiếm" kèm "Thử lại"
+And lần sau trang đứng yên, thanh báo "Lỗi tìm kiếm" kèm "Thử lại", không báo "Chưa thấy mẫu phù hợp"
 ```
 
 ### R7. Thanh tìm kiếm
@@ -256,7 +265,7 @@ Thanh và CTA theo mock owner duyệt 2026-11-22 (link ở R7), audit theo [Than
 | R3, R4 | `node --test tests/search/worker.test.mjs` (dạng phản hồi, số lần gọi model, 400, 413, 429, 503, không log); CPU p99 xem Metrics trên Cloudflare sau deploy |
 | R5, R6 | R5: `node --test tests/search/rank.test.mjs`; R6: `node tests/site/advertising-search.e2e.mjs` (Worker giả qua route Playwright) |
 | R7, R9, R10 (chữ) | `node tests/site/advertising-search.e2e.mjs`: khe đầu trang, nổi, khe CTA (vị trí, chữ 16px) ở 1440 và 384px, cùng một khối ở ba chỗ, bề rộng 560 và 760px, hàng chip lọc trong kết quả, khoảng trống CTA bằng nhau, link CTA dưới thanh, chữ gợi ý đổi, phím di con trỏ không cuộn trang, không cuộn ngang ở 6 bề rộng, dòng "Chưa thấy mẫu phù hợp", `#q=` và `#tim=`, đổi ngôn ngữ, Esc, rail lọc trong kết quả, chuyển trang mềm |
-| R8, R4 (ảnh ở trình duyệt), R6 (ảnh chậm) | `node tests/site/advertising-search.e2e.mjs`: 1 ảnh (ảnh mới thay ảnh cũ, thumbnail ở chỗ nút ảnh, thanh không cao thêm), không còn khối EXIF trong body, SVG và video bị từ chối, dán ảnh, bỏ ảnh thì tìm lại, chờ 3 giây rồi Thử lại |
+| R8, R4 (ảnh ở trình duyệt), R6 (ảnh chậm, máy chủ lỗi) | `node tests/site/advertising-search.e2e.mjs`: 1 ảnh (ảnh mới thay ảnh cũ, thumbnail ở chỗ nút ảnh, thanh không cao thêm), không còn khối EXIF trong body, SVG và video bị từ chối, dán ảnh, bỏ ảnh thì tìm lại, chờ 3 giây rồi Thử lại, ảnh về muộn sau khi cuộn thì thành nút gợi ý; máy chủ lỗi: kết quả K kèm "Lỗi tìm kiếm" và Thử lại, không K thì đứng yên, ảnh thì "Lỗi tìm ảnh", chữ vừa thanh ở 384px |
 | R10 (ảnh) | chưa có test (P8) |
 | R11 | `node --test tests/search/calibrate.test.mjs`; `pnpm search:calibrate` trên máy có token. `expect`: id sản phẩm hoặc card; bộ trộn có đích riêng mỗi input, đạt khi mọi input vào top 5; thêm loại `image` (crop mỗi sản phẩm) |
 
