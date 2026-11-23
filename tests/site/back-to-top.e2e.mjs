@@ -117,3 +117,39 @@ for (const [name, viewport] of [["portrait", VIEWPORTS.phone], ["landscape", { w
     }
   });
 }
+
+// Owner 2026-11-23 (search-bar R5): on a phone, portrait and landscape, the floating search bar and the button share one row lined
+// up with the grid: bar from the grid's left edge, 10px gap, button on the grid's right edge, input row and button bottoms equal.
+for (const [name, viewport] of [["portrait", VIEWPORTS.phone], ["landscape", { width: VIEWPORTS.phone.height, height: VIEWPORTS.phone.width }]]) {
+  test(`phone ${name} Advertising root: the button shares the floating bar's row, lined up with the grid`, async () => {
+    const browser = await launchBrowser();
+    const { context, page } = await openPage(browser, viewport, { hasTouch: true, isMobile: true });
+    try {
+      await page.goto(`${BASE_URL}/advertising-products/`, { waitUntil: "load" });
+      await page.waitForFunction(() => document.querySelector("[data-masonry-item]"));
+      await page.waitForFunction(() => {
+        scrollTo({ top: innerHeight * 3, behavior: "instant" });
+        return document.querySelector(".back-to-top").classList.contains("show") && document.body.dataset.searchPlace === "float";
+      }, null, { polling: 500, timeout: 10_000 });
+      await page.waitForTimeout(1200);
+      const box = await page.evaluate(() => {
+        const rect = (selector) => document.querySelector(selector).getBoundingClientRect();
+        const grid = rect("[data-project-grid]");
+        const shell = rect(".search-host .search-bar__shell");
+        const button = rect(".back-to-top");
+        const hit = document.elementFromPoint(button.left + 25, button.top + 25)?.closest(".back-to-top") !== null;
+        return { barLeft: shell.left - grid.left, gap: button.left - shell.right, buttonRight: button.right - grid.right,
+          shellBottom: shell.bottom - button.bottom, hit };
+      });
+      for (const key of ["barLeft", "gap", "buttonRight", "shellBottom"]) box[key] = Math.round(box[key]);
+      assert.equal(box.barLeft, 0, `bar on the grid's left edge: ${JSON.stringify(box)}`);
+      assert.equal(box.gap, 10, `10px between bar and button: ${JSON.stringify(box)}`);
+      assert.equal(box.buttonRight, 0, `button on the grid's right edge: ${JSON.stringify(box)}`);
+      assert.equal(box.shellBottom, 0, `same bottom: ${JSON.stringify(box)}`);
+      assert(box.hit, "the button takes taps");
+    } finally {
+      await context.close();
+      await browser.close();
+    }
+  });
+}

@@ -241,11 +241,11 @@ a {
 }
 
 /* Keep the touch and drag rail usable without exposing a horizontal scrollbar. */
-:where(.editorial-strip, .detail-process, .detail-gallery__track, .project-filters) {
+:where(.editorial-strip, .detail-gallery__track, .project-filters) {
   scrollbar-color: transparent transparent;
 }
 
-:where(.editorial-strip, .detail-process, .detail-gallery__track, .project-filters)::-webkit-scrollbar:horizontal {
+:where(.editorial-strip, .detail-gallery__track, .project-filters)::-webkit-scrollbar:horizontal {
   height: 0;
 }
 
@@ -365,6 +365,11 @@ html.route-enter .site-header {
 
 /* Phone: transform follows the finger so the transform transition is removed (phone-header-scroll R3). */
 .site-header.is-follow {
+  transition: none;
+}
+
+/* PC Advertising detail: the header scrolls away with the page, so no transition while it is partly off (site-shell R3). */
+.site-header.is-scroll-away {
   transition: none;
 }
 
@@ -2335,36 +2340,6 @@ em {
   object-fit: contain;
 }
 
-.marquee-line {
-  display: flex;
-  min-width: max-content;
-  align-items: center;
-  gap: 2.8rem;
-  /* leave exactly one gap at the end so the join of the two repeated lines is evenly spaced */
-  padding-inline-end: 2.8rem;
-  animation: marquee 25s linear infinite;
-  font-size: clamp(1.5rem, 2.8vw, 3.2rem);
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  text-transform: uppercase;
-  word-spacing: var(--word-spacing-body);
-}
-
-.marquee-line i {
-  width: 0.6rem;
-  height: 0.6rem;
-  border-radius: 50%;
-  background: var(--blue);
-}
-
-.marquee-line i:nth-of-type(even) {
-  background: var(--orange-accent);
-}
-
-.motion-paused .marquee-line {
-  animation-play-state: paused;
-}
-
 .motion-paused .client-logo-marquee__track {
   animation-play-state: paused;
 }
@@ -3100,11 +3075,6 @@ em {
 
   .capability-marquee--clients {
     --client-logo-slot-width: clamp(8rem, 42vw, 10rem);
-  }
-
-  .marquee-line {
-    gap: 1.5rem;
-    padding-inline-end: 1.5rem;
   }
 
   .footer-intro {

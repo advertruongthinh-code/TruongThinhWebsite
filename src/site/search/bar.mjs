@@ -1,14 +1,16 @@
 // Search bar markup (search-bar R1 to R5, mock approved 2026-11-22): one white block in the three places. No visible status line
 // (owner 2026-11-17): results show on the grid, the outcome is announced to screen readers; short notices take the input's place.
-// Tips and phone notices stay within 28 characters so they fit the phone input (search-bar R3).
+// Tips and notices fit the phone field beside the back-to-top button: 157px at 360px, 107px next to the retry icon (search-bar R3);
+// the group note with its "Search all" button takes the whole row (search-bar R8).
 export const COPY = {
   vi: {
     label: "Tìm sản phẩm quảng cáo",
     placeholder: "Tìm biển hiệu, hộp đèn, chữ nổi...",
-    tips: ["Tìm hộp đèn, chữ nổi, kệ…", "Thử: chữ nổi inox", "Mẹo: tìm bằng một ảnh mẫu", "Gõ không dấu cũng được", "Thử: kệ trưng bày mỹ phẩm"],
-    imageHint: "Thêm chữ để tìm sát hơn",
+    tips: ["Tìm hộp đèn, chữ nổi", "Thử: chữ nổi inox", "Mẹo: tìm bằng ảnh", "Gõ không dấu được", "Thử: kệ mỹ phẩm"],
+    imageHint: "Thêm chữ để lọc",
     chips: "Lọc kết quả",
     showAll: (n) => `Hiện tất cả (${n})`,
+    showLess: "Thu gọn",
     clearText: "Xóa chữ",
     image: "Tìm bằng ảnh",
     replaceImage: "Đổi ảnh tìm",
@@ -19,24 +21,28 @@ export const COPY = {
     drop: "Thả ảnh vào đây để tìm",
     dropNote: "Một ảnh mỗi lần",
     videoOnly: "Chỉ tìm bằng ảnh",
-    unsupported: "Chưa dùng được file này",
-    tooLarge: "Ảnh quá lớn, dưới 25 MB",
-    unreadable: "Ảnh chưa đọc được, thử JPG",
-    slow: "Tìm bằng ảnh đang chậm",
+    unsupported: "File chưa hỗ trợ",
+    tooLarge: "Ảnh cần dưới 25 MB",
+    unreadable: "Ảnh lỗi, thử JPG",
+    slow: "Tìm ảnh chậm",
     retry: "Thử lại",
-    paused: "Tìm bằng ảnh tạm nghỉ",
+    trouble: "Lỗi tìm kiếm",
+    imageTrouble: "Lỗi tìm ảnh",
     searching: "Đang tìm...",
     results: (n, text) => `${n} kết quả cho “${text}”`,
-    empty: "Chưa thấy mẫu phù hợp",
+    empty: "Chưa thấy mẫu nào",
+    notInGroup: "Nhóm này chưa có",
+    searchAll: "Tìm tất cả",
     more: "Có thêm kết quả gợi ý",
   },
   en: {
     label: "Search advertising products",
     placeholder: "Search signs, lightboxes, raised letters...",
-    tips: ["Search lightboxes, letters…", "Try: steel letters", "Tip: search with a photo", "Typos are fine", "Try: cosmetics display"],
-    imageHint: "Add words to narrow it down",
+    tips: ["Search lightboxes…", "Try: steel letters", "Tip: search by photo", "Typos are fine", "Try: display shelves"],
+    imageHint: "Add a few words",
     chips: "Filter results",
     showAll: (n) => `Show all (${n})`,
+    showLess: "Show less",
     clearText: "Clear text",
     image: "Search by image",
     replaceImage: "Change search image",
@@ -47,25 +53,30 @@ export const COPY = {
     drop: "Drop an image here to search",
     dropNote: "One image at a time",
     videoOnly: "Images only",
-    unsupported: "This file cannot be used",
-    tooLarge: "Image too large, under 25 MB",
-    unreadable: "Unreadable image, try JPG",
-    slow: "Image search is slow",
+    unsupported: "File not supported",
+    tooLarge: "Image over 25 MB",
+    unreadable: "Bad image, try JPG",
+    slow: "Image is slow",
     retry: "Try again",
-    paused: "Image search is paused",
+    trouble: "Search error",
+    imageTrouble: "Image error",
     searching: "Searching...",
     results: (n, text) => `${n} results for “${text}”`,
-    empty: "No matching work yet",
+    empty: "No match yet",
+    notInGroup: "None in this group",
+    searchAll: "Search all",
     more: "More suggested results",
   },
 };
 
 const ICON = {
+  chevron: '<path d="m6 15 6-6 6 6"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  retry: '<path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/>',
   image: '<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3.5"/>',
   search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/>',
 };
-const icon = (name) => `<svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
+export const icon = (name) => `<svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
 const escape = (text) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 // Markup string, shared by the page and the Design System preview (scripts/docs/build-design-system.mjs). `place`: the preview's

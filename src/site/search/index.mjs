@@ -2,7 +2,7 @@
 // detail.js mounts it after the grid.
 import artifact from "/advertising-products/catalog-artifact.mjs";
 import css from "./search.css";
-import { COPY, createBar } from "./bar.mjs";
+import { COPY, createBar, icon } from "./bar.mjs";
 import { createClient } from "./client.mjs";
 import { mountDock } from "./dock.mjs";
 import { hashOf, prepareImage } from "./images.mjs";
@@ -43,13 +43,15 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   document.body.append(host);
 
   const announce = (text) => { liveNode.textContent = text; };
-  // Notices take the input's place for 4 seconds (search-bar R3); slow and paused stay, with "Try again", until the visitor acts.
+  // Notices take the input's place for 4 seconds (search-bar R3); slow and error notes stay, with "Try again", until the visitor acts.
   let noteTimer;
+  let noteTurn = 0; // a note shown during the fade-out of the last one stays: the late fade end must not hide it
   const notice = (text, action) => {
     clearTimeout(noteTimer);
+    const turn = ++noteTurn;
     if (!text) {
       if (noteNode.hidden) return;
-      const done = () => { noteNode.hidden = true; noteNode.replaceChildren(); bar.classList.remove("has-note"); syncHint(); };
+      const done = () => { if (turn !== noteTurn) return; noteNode.hidden = true; noteNode.replaceChildren(); bar.classList.remove("has-note", "has-wide-note"); syncHint(); };
       if (reduced()) return done();
       noteNode.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(-60%)", opacity: 0 }], { duration: 450, easing: "cubic-bezier(0.16, 1, 0.3, 1)" })
         .finished.then(done, done);
@@ -58,12 +60,18 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     announce(text);
     noteNode.replaceChildren(Object.assign(document.createElement("span"), { textContent: text }));
     if (action) {
-      const button = Object.assign(document.createElement("button"), { type: "button", textContent: action.label });
+      // Retry is an icon, so the notice keeps room beside it in the phone field (search-bar R3, owner 2026-11-23); a text action
+      // ("Search all", R8) takes the whole row instead.
+      const button = action.text
+        ? Object.assign(document.createElement("button"), { type: "button", className: "search-bar__action", textContent: action.label })
+        : Object.assign(document.createElement("button"), { type: "button", className: "search-bar__tool", title: action.label, innerHTML: icon("retry") });
+      if (!action.text) button.setAttribute("aria-label", action.label);
       button.addEventListener("click", () => { notice(""); action.onClick(); });
       noteNode.append(button);
     }
     noteNode.hidden = false;
     bar.classList.add("has-note");
+    bar.classList.toggle("has-wide-note", Boolean(action?.text));
     if (!reduced()) noteNode.animate([{ transform: "translateY(60%)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 450, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
     if (!action) noteTimer = setTimeout(() => notice(""), 4000);
   };
@@ -148,35 +156,46 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   }, { signal });
 
   // Floating chip row (search-bar R2): the products with results, mirrored from the page's chips, which own the filter and its counts.
-  // Most cards first (owner 2026-11-23). When the row overflows, "Show all (N)" stays pinned at its right end and opens every product
-  // in a panel above the bar.
+  // Most cards first (owner 2026-11-23). When the row overflows, a chevron stays pinned at its right end and opens every product in a
+  // panel joined to the top of the bar, one frame that grows up and shrinks back with the bar's morph (owner 2026-11-23).
   const shell = bar.querySelector(".search-bar__shell");
   const railRoot = container.querySelector("[data-masonry-filter]")?.closest(".detail-index-hero, section") ?? container;
   const allFilter = () => container.querySelector('[data-masonry-filter="all"]');
   const countOf = (product) => Number.parseInt(product.querySelector("sup")?.textContent ?? "", 10) || 0;
-  const panel = Object.assign(document.createElement("div"), { className: "search-bar__all", hidden: true, id: "search-bar-all" });
+  // Closed, the panel stays in the layout at no height so it can morph; inert keeps it out of Tab and screen readers.
+  const panel = Object.assign(document.createElement("div"), { className: "search-bar__all", id: "search-bar-all", inert: true });
   panel.setAttribute("role", "group");
   panel.setAttribute("aria-label", copy.chips);
+  // The fold is the panel's one grid row (0fr closed, 1fr open); the list inside it scrolls and keeps its padding.
+  const fold = Object.assign(document.createElement("div"), { className: "search-bar__fold" });
+  const list = Object.assign(document.createElement("div"), { className: "search-bar__list" });
+  fold.append(list);
+  panel.append(fold);
   shell.append(panel);
-  const more = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip search-bar__more", hidden: true });
+  const more = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip search-bar__more", hidden: true, innerHTML: icon("chevron") });
   more.setAttribute("aria-controls", panel.id);
-  more.setAttribute("aria-expanded", "false");
+  let total = 0;
+  const isOpen = () => panel.hasAttribute("data-open");
   const setPanel = (open) => {
-    panel.hidden = !open;
+    panel.toggleAttribute("data-open", open);
+    panel.inert = !open;
     more.setAttribute("aria-expanded", String(open));
+    more.title = open ? copy.showLess : copy.showAll(total);
+    more.setAttribute("aria-label", more.title);
     if (open) panelFade();
   };
-  more.addEventListener("click", () => setPanel(panel.hidden), { signal });
+  setPanel(false);
+  more.addEventListener("click", () => setPanel(!isOpen()), { signal });
   // Esc closes the panel from the panel or from its button.
   for (const node of [panel, more]) node.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || panel.hidden) return;
+    if (event.key !== "Escape" || !isOpen()) return;
     event.stopPropagation();
     setPanel(false);
     more.focus();
   }, { signal });
-  const panelFade = () => panel.toggleAttribute("data-more", panel.scrollTop + panel.clientHeight < panel.scrollHeight - 1);
-  panel.addEventListener("scroll", panelFade, { passive: true, signal });
-  document.addEventListener("pointerdown", (event) => !panel.hidden && !shell.contains(event.target) && setPanel(false), { signal });
+  const panelFade = () => list.toggleAttribute("data-more", list.scrollTop + list.clientHeight < list.scrollHeight - 1);
+  list.addEventListener("scroll", panelFade, { passive: true, signal });
+  document.addEventListener("pointerdown", (event) => isOpen() && !shell.contains(event.target) && setPanel(false), { signal });
   const chipFor = (product) => {
     const button = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip" });
     const pressed = product.getAttribute("aria-current") === "true";
@@ -185,6 +204,8 @@ export function mount(container, { signal, softNavigation = false } = {}) {
       Object.assign(document.createElement("sup"), { textContent: product.querySelector("sup")?.textContent ?? "" }));
     // Again on the chip in use: back to all results, the query stays.
     button.addEventListener("click", () => {
+      // A pick from the panel by keyboard keeps focus on the bar: the panel turns inert and its chips are rebuilt.
+      if (panel.contains(document.activeElement)) more.focus();
       setPanel(false);
       (pressed ? allFilter() : product)?.click();
     });
@@ -235,6 +256,8 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     const row = entry.target;
     more.hidden = true;
     more.hidden = row.scrollWidth <= row.clientWidth + 1;
+    // No button, no way to close: a panel left open when the row stops overflowing closes with it.
+    if (more.hidden && isOpen()) setPanel(false);
     // The chip in use stays in sight, clear of the pinned button (a pick from the panel may sit far right).
     const pressed = row.querySelector("[aria-pressed=true]");
     if (pressed) {
@@ -247,11 +270,11 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   signal?.addEventListener("abort", () => rowObserver.disconnect(), { once: true });
   let chipsQueued = false;
   // The group picked on the hero sets which products the row offers; picking one of them keeps the whole row (owner 2026-11-23), so
-  // the scope is read only while no product is picked.
+  // while searching the scope is read only while no product is picked. A search started on a product keeps its group's row (R8).
   let scope = container;
   function syncChips() {
     chipsQueued = false;
-    if (!container.querySelector("[data-masonry-product][aria-current=\"true\"]")) {
+    if (!client.active || !container.querySelector("[data-masonry-product][aria-current=\"true\"]")) {
       const cluster = [...container.querySelectorAll("[data-masonry-filter][aria-current=\"true\"]")].find((node) => node.dataset.masonryFilter !== "all");
       scope = (cluster && container.querySelector(`[data-masonry-chips="${cluster.dataset.masonryFilter}"]`)) || container;
     }
@@ -259,9 +282,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     products.sort((a, b) => countOf(b) - countOf(a)); // stable: equal counts keep the rail order
     const row = Object.assign(document.createElement("div"), { className: "search-bar__chiprow" });
     row.append(...products.map(chipFor));
-    panel.replaceChildren(...products.map(chipFor));
-    if (!products.length) setPanel(false);
-    more.textContent = copy.showAll(products.length);
+    list.replaceChildren(...products.map(chipFor));
+    total = products.length;
+    setPanel(isOpen() && total > 0);
     const scrollLeft = chips.querySelector(".search-bar__chiprow")?.scrollLeft ?? 0;
     chips.replaceChildren(row, more);
     row.scrollLeft = scrollLeft;
@@ -310,6 +333,8 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   // The floating buttons stand above the floating bar; the phone's back-to-top sits on its own row above the block (search-bar R5).
   const syncOffset = () => {
     const floating = !dock?.docked && !dock?.off;
+    // Out of the floating place the chip rows hide: the panel closes too, so the bar comes back without it.
+    if (!floating && isOpen()) setPanel(false);
     document.body.dataset.searchPlace = dock?.off ? "off" : dock?.place ?? "float";
     document.body.style.setProperty("--search-bar-offset", `${floating ? bar.offsetHeight + 12 : 0}px`);
     if (!floating) return;

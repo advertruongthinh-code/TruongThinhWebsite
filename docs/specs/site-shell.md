@@ -31,21 +31,13 @@ updated: 2026-11-23
 
 ## Mục đích
 
-Shell là phần chung của năm trang VI/EN: header, brand lockup, full menu, footer, floating CTA, đổi
-ngôn ngữ, route veil, smooth scroll, scrollbar, layout mobile toàn site (`src/site/motion.js`,
-`src/site/style.css`). Markup shell chỉ có một bản trong `src/site/partials/` (R1); file HTML, motion nội dung trang và
-Advertising thuộc spec trang; build, vendor thuộc [phát hành tĩnh](static-release.md). Spec con của shell:
-[cảm giác cuộn](scroll-feel.md), [header đi theo ngón tay](phone-header-scroll.md), [logo đổi màu khi chuyển trang](logo-route-crossfade.md),
-[mở trực tiếp giống chuyển trang](first-load-parity.md), [chữ hero](hero-typography.md).
+Shell là phần chung của năm trang VI/EN: header, brand lockup, full menu, footer, floating CTA, đổi ngôn ngữ, route veil, smooth scroll, scrollbar, layout mobile toàn site (`src/site/motion.js`, `src/site/style.css`). Markup shell chỉ có một bản trong `src/site/partials/` (R1); file HTML, motion nội dung trang và Advertising thuộc spec trang; build, vendor thuộc [phát hành tĩnh](static-release.md). Spec con của shell: [cảm giác cuộn](scroll-feel.md), [header đi theo ngón tay](phone-header-scroll.md), [logo đổi màu khi chuyển trang](logo-route-crossfade.md), [mở trực tiếp giống chuyển trang](first-load-parity.md), [chữ hero](hero-typography.md).
 
 ## Hành vi
 
 ### R1. Markup chung và thứ tự lớp
 
-Mỗi trang có `header.site-header[data-site-header]` (link `#header-logo.brand` chứa `svg.brand-lockup` inline, `nav#header-menu-items` ba link, nút `[data-menu-open]`), `.route-veil`, `a.floating-cta`, `dialog#site-menu` có nút `[data-menu-close]`, và footer trong container Barba. Markup này nằm một bản trong `src/site/partials/` (`head.html` favicon và font preload, `boot.html` script khởi động, `styles.html` stylesheet, `route-veil.html`, `header.html`, `floating-cta.html`, `menu.html`, `footer.html`, `scripts.html` script cuối trang; ngoài khung, `client-logos.html` là dải logo khách hàng dùng chung, [trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)). 6 trang nguồn chỉ giữ mốc `<!-- shell:<tên> -->`; `renderShell` (`scripts/site/shell.mjs`, gọi trong `readPageSource`) thay mốc bằng partial lúc build và điền tham số của trang từ bảng `SHELL_PAGES`: nhãn navbar, chữ `sr-only` của logo, chữ và nhãn nút Zalo nổi, route hai link đổi ngôn ngữ, script thêm (Advertising thêm masonry, lazysizes sau SplitText). Title, description, script hero, thẻ `<body>` và `<style>` riêng vẫn ở trang. Thứ tự script giữ nguyên vì script khởi động theo dõi lỗi tải `motion.js`.
-Thiếu header, veil, menu hoặc hai nút thì `motion.js` dừng trước khi claim nên trang vào fallback (R7). Lớp từ trên xuống: menu (top layer), thumb `.c-scrollbar`, header, route veil, floating CTA,
-nội dung. Header, floating CTA và menu tồn tại qua route mềm (R6).
-Toàn site, media (`img`, `picture`, `video`, `canvas`, `svg`) không bôi đen khi kéo, nhấp đúp, Ctrl+A hay giữ lâu, không kéo ra ảnh ma, không mở menu ảnh trên phone: một khối `:where(...)` specificity 0 cạnh `::selection` trong `style.css`; chữ quanh media vẫn chọn được.
+Mỗi trang có `header.site-header[data-site-header]` (link `#header-logo.brand` chứa `svg.brand-lockup` inline, `nav#header-menu-items` ba link, nút `[data-menu-open]`), `.route-veil`, `a.floating-cta`, `dialog#site-menu` có nút `[data-menu-close]`, và footer trong container Barba. Markup này nằm một bản trong `src/site/partials/` (`head.html` favicon và font preload, `boot.html` script khởi động, `styles.html` stylesheet, `route-veil.html`, `header.html`, `floating-cta.html`, `menu.html`, `footer.html`, `scripts.html` script cuối trang; ngoài khung, `client-logos.html` là dải logo khách hàng dùng chung, [trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)). 6 trang nguồn chỉ giữ mốc `<!-- shell:<tên> -->`; `renderShell` (`scripts/site/shell.mjs`, gọi trong `readPageSource`) thay mốc bằng partial lúc build và điền tham số của trang từ bảng `SHELL_PAGES`: nhãn navbar, chữ `sr-only` của logo, chữ và nhãn nút Zalo nổi, route hai link đổi ngôn ngữ, script thêm (Advertising thêm masonry, lazysizes sau SplitText). Title, description, script hero, thẻ `<body>` và `<style>` riêng vẫn ở trang. Thứ tự script giữ nguyên vì script khởi động theo dõi lỗi tải `motion.js`. Thiếu header, veil, menu hoặc hai nút thì `motion.js` dừng trước khi claim nên trang vào fallback (R7). Lớp từ trên xuống: menu (top layer), thumb `.c-scrollbar`, header, route veil, floating CTA, nội dung. Header, floating CTA và menu tồn tại qua route mềm (R6). Toàn site, media (`img`, `picture`, `video`, `canvas`, `svg`) không bôi đen khi kéo, nhấp đúp, Ctrl+A hay giữ lâu, không kéo ra ảnh ma, không mở menu ảnh trên phone: một khối `:where(...)` specificity 0 cạnh `::selection` trong `style.css`; chữ quanh media vẫn chọn được.
 
 ```gherkin
 Given trang 1440px đã cuộn, header và floating CTA đang hiện
@@ -77,10 +69,16 @@ ngay. Đang chuyển route, menu mở hoặc `pageshow` thì header hiện. Chu�
 và `any-pointer: fine`) lên vùng 350px trên cùng màn hình thì header hiện; focus trong header cũng
 giữ hiện. Điện thoại cảm ứng chạy [header đi theo ngón tay](phone-header-scroll.md) thay cho R3.
 
+Trang chi tiết Advertising (`body.is-detail`, owner 2026-11-23) bỏ vùng giữa: máy có hover thì header trôi theo trang như nội dung (`translateY(-scrollY)`, `is-scroll-away`, không transition), trôi hết chiều cao thì `is-hidden`, cuộn lên giữa trang không hiện, chuột lên vùng 350px vẫn hiện; màn cảm ứng không hover giữ hành vi chung (owner 2026-11-23 16:25: điện thoại vẫn [đi theo ngón tay](phone-header-scroll.md)).
+
 ```gherkin
 Given trang dài đã cuộn quá nửa cửa sổ và header đang ẩn
 When cuộn tới cách cuối trang chưa tới 1,25 lần chiều cao cửa sổ
 Then header hiện; cuộn ngược về giữa trang rồi xuống quá 150px thì header ẩn lại; cuộn lên trong vùng giữa thì vẫn ẩn
+
+Given /advertising-products/p/signage-raised-letters-33/ ở 1440×900 với chuột, cuộn 30px rồi quá chiều cao header
+When đưa chuột lên mép trên màn hình; cùng trang ở điện thoại cuộn 600px
+Then header lệch đúng 30px rồi is-hidden, chuột ở mép trên thì hiện; điện thoại header lệch hết chiều cao theo ngón tay
 ```
 
 ### R4. Full menu
@@ -186,7 +184,7 @@ Then logical scroll bằng giới hạn cuộn (sai số 1px); ở 390px không 
 ### R10. Floating CTA và footer
 
 Floating CTA (Zalo, href `https://zalo.me/0949131050`) có `.show` khi `scrollY` tới một chiều cao cửa sổ, trượt vào từ phải; cuối trang không hiện lại vì đã có nút Zalo của trang (lời mời, `.detail-cta`); từ 750px trở xuống
-là nút vuông chỉ icon; Advertising browse ẩn nó. Nút về đầu trang `button.back-to-top` (owner 2026-11-13; một kiểu từ 2026-11-22) chỉ có trên điện thoại (`(hover: none) and (pointer: coarse)`, PC không có, owner 2026-11-22) ở trang có masonry (`[data-masonry-item]`): `.show` khi trang đã cuộn quá mức đầu masonry (đầu lưới cách đáy header một lề `--masonry-outer`, owner 2026-11-23, như [search-bar R9](search-bar.md#r9-tìm-xong-về-đầu-lưới)), đúng góc phải dưới floating CTA vừa rời (cách phải 16px), ô 50px nền `paper`, viền 1px `ink`, bóng như khối tìm kiếm, chỉ icon (mũi tên lên, có `aria-label`); trượt vào từ phải; bấm thì trượt 600ms `--ease-card` về đầu masonry (owner 2026-11-23), reduced motion nhảy thẳng. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
+là nút vuông chỉ icon; Advertising browse ẩn nó. Nút về đầu trang `button.back-to-top` (owner 2026-11-13; một kiểu từ 2026-11-22) chỉ có trên điện thoại (`(hover: none) and (pointer: coarse)`, PC không có, owner 2026-11-22) ở trang có masonry (`[data-masonry-item]`): `.show` khi trang đã cuộn quá mức đầu masonry (đầu lưới cách đáy header một lề `--masonry-outer`, owner 2026-11-23, như [search-bar R9](search-bar.md#r9-tìm-xong-về-đầu-lưới)), đúng góc phải dưới floating CTA vừa rời (cách phải 16px; trang gốc Advertising khi thanh tìm kiếm nổi thì chung hàng với thanh, thẳng mép phải lưới, [search-bar R5](search-bar.md#r5-nút-về-đầu-trang-phone-và-chuyển-động)), ô 50px nền `paper`, viền 1px `ink`, bóng như khối tìm kiếm, chỉ icon (mũi tên lên, có `aria-label`); trượt vào từ phải; bấm thì trượt 600ms `--ease-card` về đầu masonry (owner 2026-11-23), reduced motion nhảy thẳng. Footer `#lien-he` (`data-header-tone="ink"`) giống hệt ở năm trang, icon thay nhãn chữ, không logo, không dòng bản quyền:
 Hotline Zalo đứng trước Văn phòng, cùng độ đậm 500, dạng `+84` link `tel:` màu `ink`, chữ số tabular, hover không motion ([PRODUCT](../../PRODUCT.md)); địa chỉ; ba icon
 Facebook, TikTok, YouTube chưa có URL nên `role="link"`, `aria-disabled="true"`, `tabindex="-1"`, không `href`. Viền trên tràn mép, không viền dưới. CTA ẩn khi footer lọt vào
 viewport (404) nên footer không chừa làn nút: đệm dọc rộng, bốn cột giãn đều giữa hai biên `gutter`: địa chỉ (cùng cỡ chữ hai số), Hotline, Văn phòng, mạng xã hội xếp ngang (751-1023px Văn phòng xếp dưới Hotline); kéo chuột bôi đen copy được số. Khoảng trên là `--footer-top-gap`; gọn từ 750px trở xuống ([CTA giữa viewport](advertising-cta-center-parallax.md)).
