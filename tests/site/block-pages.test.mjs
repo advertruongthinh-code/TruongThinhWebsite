@@ -165,24 +165,22 @@ test("Projects SEO: every filter page has its own title and a meta of at most 15
   assert.match(renderRedirectPage("/projects/homestay-khach-san/"), /<meta http-equiv="refresh" content="0; url=\/projects\/homestay-khach-san\/">/);
 });
 
-test("menu featured: chosen projects in order; product groups chosen or by card count; unknown ids reported", async () => {
-  const { menuErrors, menuFeatured } = await import("../../scripts/site/block-pages.mjs");
-  const data = {
-    projects: [{ id: "a" }, { id: "b" }],
-    categories: [{ slug: "x" }, { slug: "y" }, { slug: "z" }],
-    cards: [{ category: "y" }, { category: "y" }, { category: "z" }],
-  };
-  const auto = menuFeatured({ featuredProjects: ["b", "a"], featuredProductGroups: [] }, data);
-  assert.deepEqual(auto.projects.map((project) => project.id), ["b", "a"]);
-  assert.deepEqual(auto.productGroups.map((group) => group.slug), ["y", "z", "x"]);
-  assert.deepEqual(menuFeatured({ featuredProjects: [], featuredProductGroups: ["x"] }, data).productGroups.map((group) => group.slug), ["x"]);
-  const tied = { ...data, categories: [{ slug: "q" }, { slug: "p" }], cards: [{ category: "q" }, { category: "p" }] };
-  assert.deepEqual(menuFeatured({ featuredProjects: [], featuredProductGroups: [] }, tied).productGroups.map((group) => group.slug), ["p", "q"]);
-  assert.deepEqual(menuErrors({ featuredProjects: ["a", "a", "c"], featuredProductGroups: ["w"] }, data, "m"), [
-    "m: featuredProjects a không có trong projects.json hoặc bị lặp",
-    "m: featuredProjects c không có trong projects.json hoặc bị lặp",
-    "m: featuredProductGroups w không phải nhóm Advertising hoặc bị lặp",
-  ]);
+test("menu: exactly 6 groups, at most 12 items, labels and links checked; a link to a gone page is reported", async () => {
+  const { MENU_ITEMS, menuErrors } = await import("../../scripts/site/block-pages.mjs");
+  const menu = JSON.parse(readFileSync(new URL("../../src/site/content/menu.json", import.meta.url), "utf8"));
+  const ctx = { projects: new Map([["nha-gieng-troi", {}]]), news: new Map(), clusters: [{ slug: "signage" }], projectTypes: ["nha-pho"] };
+  const groups = (list) => ({ groups: list });
+  assert.deepEqual(menuErrors(groups(menu.groups.slice(0, 5)), ctx, "m"), ["m: menu phải có đúng 6 nhóm"]);
+  assert.deepEqual(menuErrors(groups([...menu.groups, menu.groups[0]]), ctx, "m"), ["m: menu phải có đúng 6 nhóm"]);
+  const one = (group) => groups([group, ...menu.groups.slice(1)]);
+  const item = { label: { vi: "A", en: "A" }, link: "page:residential" };
+  assert.deepEqual(menuErrors(one({ ...menu.groups[0], items: Array(MENU_ITEMS + 1).fill(item) }), ctx, "m"), ["m: nhóm 1 có tối đa 12 mục con"]);
+  assert.deepEqual(menuErrors(one({ ...menu.groups[0], items: [{ link: "page:residential" }] }), ctx, "m").length, 1, "a page link needs a label");
+  assert.deepEqual(menuErrors(one({ ...menu.groups[0], items: [{ ...item, link: "/residential/" }] }), ctx, "m").length, 1, "a link uses the link syntax");
+  assert.deepEqual(menuErrors(one({ ...menu.groups[0], title: { vi: "Nhà ở" } }), ctx, "m").length, 1);
+  const gone = menuErrors(menu, ctx, "m");
+  assert.ok(gone.includes("m: nhóm 3: page:project/can-ho-go-soi trỏ trang không còn"));
+  assert.ok(!gone.some((message) => message.includes("nha-gieng-troi") || message.includes("contact:")));
 });
 
 test("Projects page: artifact JSON cannot close its script; empty type chips hidden except on their own page", async () => {

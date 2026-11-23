@@ -10,7 +10,8 @@ import { resolveVideoRungs } from "../site/media-src.mjs";
 import { validateHomeProjects } from "../site/home-projects.mjs";
 import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { LINE_END_PUNCT } from "../../src/cms/inline-marks.mjs";
-import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
+import { PROJECT_TYPES, kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
+import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 
 // Skip `$`: paths built in inline scripts (`${name}`) are not files.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
@@ -160,11 +161,11 @@ export async function checkSiteContent(siteRoot) {
   errors.push(...ownImageReuse(siteRoot, "news", pages.news, "News"), ...ownImageReuse(siteRoot, "projects", pages.projects, "Project"));
   const homeProjectsFile = path.join(contentDir, "home-projects.json");
   if (existsSync(homeProjectsFile)) errors.push(...validateHomeProjects(JSON.parse(readFileSync(homeProjectsFile, "utf8")), ctx.projects));
-  // Site menu featured items: project ids and Advertising group slugs must exist.
+  // Site menu (cms-content R7): 6 groups, item shape, and every page link points to a page that exists.
   const menuFile = path.join(contentDir, "menu.json");
   if (existsSync(menuFile)) {
-    const { ADVERTISING_CATEGORIES } = await import("../../src/site/advertising-products/catalog.mjs");
-    errors.push(...menuErrors(JSON.parse(readFileSync(menuFile, "utf8")), { projects: pages.projects, categories: ADVERTISING_CATEGORIES }, "content/menu.json"));
+    const clusters = ADVERTISING_CLUSTERS.map(({ id }) => ({ slug: id }));
+    errors.push(...menuErrors(JSON.parse(readFileSync(menuFile, "utf8")), { ...ctx, clusters, projectTypes: Object.keys(PROJECT_TYPES) }, "content/menu.json"));
   }
   return errors;
 }

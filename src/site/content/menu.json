@@ -1,4 +1,70 @@
 {
-  "featuredProjects": ["can-ho-go-soi", "nha-gieng-troi", "van-phong-lam-viec-chung", "tiem-banh-ngot"],
-  "featuredProductGroups": []
+  "groups": [
+    {
+      "title": { "vi": "Nhà ở", "en": "Residential" },
+      "aria": { "vi": "Không gian Nhà ở", "en": "Residential spaces" },
+      "link": "page:residential",
+      "items": [
+        { "label": { "vi": "Thiết kế không gian nhà ở", "en": "Residential interior design" }, "link": "page:residential" },
+        { "label": { "vi": "Nhà phố", "en": "Townhouses" }, "link": "page:project-type/nha-pho" },
+        { "label": { "vi": "Căn hộ", "en": "Apartments" }, "link": "page:project-type/can-ho" },
+        { "label": { "vi": "Homestay", "en": "Homestays" }, "link": "page:project-type/homestay-khach-san" }
+      ]
+    },
+    {
+      "title": { "vi": "Kinh doanh", "en": "Commercial" },
+      "aria": { "vi": "Không gian Kinh doanh", "en": "Commercial spaces" },
+      "link": "page:commercial",
+      "items": [
+        { "label": { "vi": "Thiết kế không gian kinh doanh", "en": "Commercial interior design" }, "link": "page:commercial" },
+        { "label": { "vi": "Cafe", "en": "Cafes" }, "link": "page:project-type/quan-cafe" },
+        { "label": { "vi": "Nhà hàng", "en": "Restaurants" }, "link": "page:project-type/nha-hang" },
+        { "label": { "vi": "Showroom", "en": "Showrooms" }, "link": "page:project-type/showroom-cua-hang" },
+        { "label": { "vi": "Văn phòng", "en": "Offices" }, "link": "page:project-type/van-phong" }
+      ]
+    },
+    {
+      "title": { "vi": "Công trình", "en": "Projects" },
+      "link": "page:projects",
+      "items": [
+        { "label": { "vi": "Các công trình của chúng tôi", "en": "Our projects" }, "link": "page:projects" },
+        { "link": "page:project/can-ho-go-soi" },
+        { "link": "page:project/nha-gieng-troi" },
+        { "link": "page:project/van-phong-lam-viec-chung" },
+        { "link": "page:project/tiem-banh-ngot" }
+      ]
+    },
+    {
+      "title": { "vi": "Quảng cáo", "en": "Advertising" },
+      "aria": { "vi": "Sản phẩm Quảng cáo", "en": "Advertising products" },
+      "link": "page:advertising",
+      "items": [
+        { "label": { "vi": "Các sản phẩm của chúng tôi", "en": "Our products" }, "link": "page:advertising" },
+        { "label": { "vi": "Kiosk & POSM", "en": "Kiosk & POSM" }, "link": "page:advertising/displays-booths" },
+        { "label": { "vi": "Biển văn phòng & chỉ dẫn", "en": "Office signs & wayfinding" }, "link": "page:advertising/office-signs" },
+        { "label": { "vi": "Bảng hiệu & chữ nổi", "en": "Signage & raised letters" }, "link": "page:advertising/signage" },
+        { "label": { "vi": "In nhanh & decal", "en": "Quick print & decals" }, "link": "page:advertising/printing-decals" },
+        { "label": { "vi": "LED, màn hình & hộp đèn", "en": "LED, displays & light boxes" }, "link": "page:advertising/led-displays" }
+      ]
+    },
+    {
+      "title": { "vi": "Về chúng tôi", "en": "About us" },
+      "link": "page:about",
+      "items": [
+        { "label": { "vi": "Di sản", "en": "Heritage" }, "link": "page:about/heritage" },
+        { "label": { "vi": "Cách làm", "en": "How we work" }, "link": "page:about/process" },
+        { "label": { "vi": "Cam kết", "en": "Commitment" }, "link": "page:about/commitment" },
+        { "label": { "vi": "Tin tức", "en": "News" }, "link": "page:news" }
+      ]
+    },
+    {
+      "title": { "vi": "Liên hệ", "en": "Contact" },
+      "link": "page:about/contact",
+      "items": [
+        { "label": { "vi": "Facebook", "en": "Facebook" }, "link": "contact:facebook" },
+        { "label": { "vi": "TikTok", "en": "TikTok" }, "link": "contact:tiktok" },
+        { "label": { "vi": "YouTube", "en": "YouTube" }, "link": "contact:youtube" }
+      ]
+    }
+  ]
 }
