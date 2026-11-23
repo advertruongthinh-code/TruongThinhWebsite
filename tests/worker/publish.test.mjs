@@ -115,9 +115,10 @@ test("build-status: staff has no accessDrift, owner has null; GitHub failure kee
 test("build-status reads runs, token expiry, deployments, dispatchError and lastSaveAt", async () => {
   const run = { id: 7, status: "completed", conclusion: "success", event: "workflow_dispatch", display_title: "CMS content build", created_at: "t", html_url: "u" };
   const { call, env, put } = setup({ runs: [{ ...run, extra: 1 }], headers: { "github-authentication-token-expiration": "2027-01-01 00:00:00 UTC" } });
-  // Key order (a, b) differs from upload order: the newest upload comes first.
-  await env.MEDIA_PUBLIC.put("deploys/b.json", JSON.stringify({ versionId: "b" }), { uploaded: new Date("2026-11-02") });
-  await env.MEDIA_PUBLIC.put("deploys/a.json", JSON.stringify({ versionId: "a" }), { uploaded: new Date("2026-11-01") });
+  // Q6 keys: 9999999999999 - epoch ms, so the newer marker (b) sorts first.
+  const key = (at) => `deploys/${9999999999999 - Date.parse(at)}-1.json`;
+  await env.MEDIA_PUBLIC.put(key("2026-11-01"), JSON.stringify({ versionId: "a" }));
+  await env.MEDIA_PUBLIC.put(key("2026-11-02"), JSON.stringify({ versionId: "b" }));
   put("dispatch_error:ci.yml", "t ci.yml 401");
   const { body } = await call("build-status", undefined);
   assert.deepEqual(body.runs, [run]);

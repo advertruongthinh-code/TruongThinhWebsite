@@ -5,11 +5,10 @@ import { json } from "../http.mjs";
 
 const RUN_FIELDS = ["id", "status", "conclusion", "event", "display_title", "created_at", "html_url"];
 
-// Newest deploy markers first by upload time (the key format does not sort by time); one list plus at most ten gets keep the Free subrequest budget.
+// Q6 key deploys/<9999999999999 - epoch ms, 13 digits>-<run id>.json lists newest first; one list plus at most ten gets keep the Free subrequest budget.
 async function readDeployments(env) {
-  const { objects } = await env.MEDIA_PUBLIC.list({ prefix: "deploys/" });
-  const newest = objects.sort((a, b) => b.uploaded - a.uploaded).slice(0, 10);
-  const markers = await Promise.all(newest.map(async ({ key }) => (await env.MEDIA_PUBLIC.get(key))?.json().catch(() => null)));
+  const { objects } = await env.MEDIA_PUBLIC.list({ prefix: "deploys/", limit: 10 });
+  const markers = await Promise.all(objects.map(async ({ key }) => (await env.MEDIA_PUBLIC.get(key))?.json().catch(() => null)));
   return markers.filter(Boolean);
 }
 
