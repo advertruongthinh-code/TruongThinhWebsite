@@ -132,7 +132,15 @@ Bấm một chữ trên preview thì chữ đó thành ô sửa tại chỗ (`co
 | Không tách dòng | dấu cách không ngắt (U+00A0) giữa các từ | giữ cụm trên một dòng |
 | Danh sách | dòng bắt đầu bằng "• " hoặc "1. " | `<ul>`, `<ol>` (chỉ khối `paragraph` và slot cho phép) |
 
-Dữ liệu là chuỗi thuần kèm các dấu trên; một hàm thuần `inlineMarks` dùng chung cho build, preview và validator đổi dấu thành thẻ và thoát mọi ký tự HTML khác, nên không HTML, CSS hay script thô nào tới được trang. Đoạn mới trong khối `paragraph` là một dòng trống như dữ liệu hiện có. Mỗi chỗ có đúng một kiểu đoạn do khối hoặc slot quyết định; người soạn không chọn cỡ, màu, font. Bộ kiểm chữ (chữ mồ côi, dòng ngắt chủ ý kết thúc bằng dấu câu) chạy khi rời ô và hiện gạch chân vàng kèm lý do; `save` vẫn từ chối theo validator.
+Dữ liệu là chuỗi thuần kèm các dấu trên; một hàm thuần `inlineMarks` dùng chung cho build, preview và validator đổi dấu thành thẻ và thoát mọi ký tự HTML khác, nên không HTML, CSS hay script thô nào tới được trang. Đoạn mới trong khối `paragraph` là một dòng trống như dữ liệu hiện có. Mỗi chỗ có đúng một kiểu đoạn do khối hoặc slot quyết định; người soạn không chọn cỡ, màu, font. Dấu `\` đứng trước `*`, `^`, `[`, `\` biến ký tự đó thành chữ thường; dấu không lồng nhau; dấu mở thiếu dấu đóng trên cùng dòng là lỗi. VI và EN của một chỗ phải có cùng dãy dấu và ngắt dòng, vì site ghép từng đoạn VI với đoạn EN tương ứng. Bộ kiểm chữ (chữ mồ côi, dòng ngắt chủ ý kết thúc bằng dấu câu) chạy khi rời ô và hiện gạch chân vàng kèm lý do; `save` vẫn từ chối theo validator.
+
+| Kiểu chỗ chữ | Dấu nhận |
+| --- | --- |
+| `title`: tiêu đề mục trong khối, slot tiêu đề | Nghiêng, xuống dòng, không tách dòng |
+| `body`: khối `paragraph`, slot thân bài | Đậm, nghiêng, chỉ số trên, link, xuống dòng, không tách dòng, danh sách |
+| `quote` | Đậm, nghiêng, xuống dòng, không tách dòng |
+| `small`: ô `facts-grid`, chú thích, slot nhãn, link, chữ ngắn | Chỉ số trên, không tách dòng |
+| `plain`: tiêu đề, mô tả, tiêu đề SEO của bài News và công trình; alt, slug, tên | Không dấu nào |
 
 ```gherkin
 Given đang sửa một khối paragraph của bài News
@@ -144,7 +152,7 @@ Then chỉ chữ thuần được dán, không thẻ nào vào dữ liệu
 
 ### R6. Trang chuẩn
 
-Trang chủ, Nhà ở, Kinh doanh, Giới thiệu sửa theo slot ([nội dung CMS R6](cms-content.md#r6-trang-chuẩn)). Mỗi chỗ sửa được trong `<main>` của bốn trang mang thuộc tính `data-slot="<id>"` viết sẵn trong HTML nguồn; `id` có dạng `<section>.<tên>` (ví dụ `hero.title-1`, `intro.body`, `process.step-3.image`), duy nhất trong trang và không đổi khi HTML quanh nó đổi. Khóa `t<n>`, `i<n>` theo thứ tự nguồn của bản cũ và hook `data-cms` bỏ. Kiểu `page-copy` có đúng bốn bản ghi cố định `home`, `residential`, `commercial`, `about`, mỗi bản ghi là `{ slots: { <id>: { vi, en } } }` cho chữ và `{ slots: { <id>: { mediaId, crop } } }` cho media; slot không có trong bản ghi thì trang giữ nội dung viết sẵn trong HTML. Hàm thuần `fillSlots(html, record, locale)` dùng chung cho build và preview điền slot.
+Trang chủ, Nhà ở, Kinh doanh, Giới thiệu sửa theo slot ([nội dung CMS R6](cms-content.md#r6-trang-chuẩn)). Mỗi chỗ sửa được trong `<main>` của bốn trang mang thuộc tính `data-slot="<id>"` viết sẵn trong HTML nguồn; `id` có dạng `<section>.<tên>` (ví dụ `hero.title-1`, `intro.body`, `process.step-3.image`), duy nhất trong trang và không đổi khi HTML quanh nó đổi. Khóa `t<n>`, `i<n>` theo thứ tự nguồn của bản cũ và hook `data-cms` bỏ. Kiểu `page-copy` có đúng bốn bản ghi cố định `home`, `residential`, `commercial`, `about`, mỗi bản ghi là `{ slots: { <id>: { vi, en } } }` cho chữ và `{ slots: { <id>: { mediaId, crop } } }` cho media; slot không có trong bản ghi thì trang giữ nội dung viết sẵn trong HTML. Hàm thuần `fillSlots(html, record, locale)` dùng chung cho build và preview điền slot. Một slot chữ là một phần tử khối (tiêu đề, đoạn, chú thích, mục danh sách, nút đứng riêng): phần nghiêng trong tiêu đề là dấu của cùng slot, không phải slot riêng; khối có chữ con gắn chuyển động riêng thì mỗi chữ con là một slot `small`. Tên theo thẻ: `h1` tới `h6` là `title`, đoạn là `body`, còn lại `label`, `caption`, `link`, `text`.
 
 Overlay vẽ viền khi rê chuột lên một slot, viền đậm khi chọn; chữ sửa theo R5, media theo khung crop. Xóa hết chữ của một slot thì slot hiện chữ mẫu, xóa media thì hiện `placeholder-ngang` hoặc `placeholder-doc` theo khung; lưu được, site hiện đúng chữ mẫu đó, và editor ghi ở đầu Thuộc tính "n chỗ đang hiện chữ mẫu trên site" kèm link tới từng slot. Số mục của một cụm (portal, bước quy trình, mốc thời gian, cam kết, ảnh gallery) là layout: bản đầu không thêm, không bớt. Header, menu, footer, floating CTA nằm ngoài `<main>` nên không chọn được trên preview; chúng sửa ở R7.
 
@@ -210,7 +218,7 @@ Then bài lên version 6 với nội dung của nhân viên, nhật ký có đ�
 ```gherkin
 Given pnpm cms:dev đang chạy
 When GET /admin/ và một file module trong /admin/
-Then 200; GET /vi/ của site public không chứa file nào của admin
+Then 200; GET / của site public không chứa file nào của admin
 ```
 
 ## Giao diện và dữ liệu
