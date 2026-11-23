@@ -41,7 +41,7 @@ Task là dài khi estimate trong plan, hoặc diff thực tế trước merge, k
 | `LOC` (định nghĩa ở [Notion](notion.md#rule)) | từ 400 |
 | File source/test bị sửa, thêm, xóa | từ 8 |
 | File nóng ([routing](agent-rule-model-routing.md#bảng-mặc-định)) | từ 2 |
-| Vùng bị chạm: `src/site/`, CMS (`src/worker/`, `src/admin/`, `src/db/`), `scripts/` và `.github/workflows/`, `design-system/` | từ 2 vùng |
+| Vùng bị chạm: `src/site/`, CMS (`src/worker/`, `src/admin/`, `src/db/`), `scripts/` và `.github/workflows/`, `design-system/` (không tính file sinh từ site: `bundle.css`, `bundle.js`, `preview.html`; Markdown vẫn tính) | từ 2 vùng |
 
 Lý do (suy luận): task từ `200 LOC` đã phải ghi estimate trên card; 400 là gấp đôi, cũng là mức một lần review còn đọc kỹ được. Task dưới ngưỡng giữ self-review five-axis, `ponytail-review` và gọi [vai kiểm tra](agent-rule-verification-roles.md#tầng-rủi-ro-gọi-vai-nào) theo tầng.
 

@@ -1,7 +1,7 @@
 // POST /api/admin/purge (CMS plan P1, Q9; cms.md R5): owner only, deletes a record for good, from the trash or directly.
 // A record still live goes through the same cross-record rules as trash. R2 objects stay for P8.
 import { ID, OPEN_TYPES } from "../../cms/contract.mjs";
-import { dispatchBuild } from "../dispatch.mjs";
+import { wantBuildStatement } from "../dispatch.mjs";
 import { HttpError, json, readJson } from "../http.mjs";
 import { FIXED_TYPES, referencedBy, trashRefusal } from "../records.mjs";
 
@@ -24,9 +24,9 @@ export default {
       env.DB.prepare(`INSERT INTO audit_log (at, email, command, type, id, result, detail) SELECT ?, ?, 'purge', ?, ?, 'ok', ? WHERE ${gone}`)
         .bind(new Date().toISOString(), actor.email, type, id, row.data, type, id),
       env.DB.prepare(`INSERT INTO settings (key, value) SELECT 'content_rev', '1' WHERE ${gone} ON CONFLICT (key) DO UPDATE SET value = CAST(CAST(value AS INTEGER) + 1 AS TEXT)`).bind(type, id),
+      ...(row.status === "published" ? [wantBuildStatement(env, { sql: gone, args: [type, id] })] : []),
     ]);
     if (deleted.meta.changes !== 1) throw new HttpError(409, { error: "changed" }, target);
-    if (row.status === "published") ctx?.waitUntil?.(dispatchBuild(env));
     return json({ referencedBy: await referencedBy(env, type, id) });
   },
 };

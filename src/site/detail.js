@@ -275,13 +275,16 @@
     const years = items.map((item) => item.querySelector(".about-journey__year"));
     const arts = items.map((_, index) => journey.querySelector(`[data-journey-art="${index + 1}"]`));
     const nodes = [...journey.querySelectorAll(".about-journey__node")];
-    const fill = journey.querySelector(".about-journey__rail-fill");
+    const rail = journey.querySelector(".about-journey__rail");
+    const fill = rail.querySelector(".about-journey__rail-fill");
+    const list = journey.querySelector(".about-journey__list");
     const forward = 1500;
     const rewind = 800;
     // A forward drawing starts below 0: it stays plain white while the previous one fades out (owner 2026-11-23: white first frame).
     const lead = -0.15;
     const pageY = () => window.TruongThinhMotion?.getLogicalScroll?.() ?? window.scrollY;
     let marks = [];
+    let centers = [];
     let target = -1;
     let shown = 0;
     let p = 0;
@@ -317,16 +320,27 @@
       target = next;
       items.forEach((item, index) => item.classList.toggle("is-current", index === Math.max(target, 0)));
       nodes.forEach((node, index) => node.classList.toggle("is-on", index <= target));
-      fill.style.setProperty("--about-journey-progress", (Math.max(target, 0) / (items.length - 1)).toFixed(3));
+      paintRail();
       if (reduceMotion) swap(Math.max(target, 0), 1);
       else if (!frame) {
         last = performance.now();
         frame = window.requestAnimationFrame(tick);
       }
     };
+    // The rail runs from the first year's centre to the last; the fill ends at the current year's node.
+    const paintRail = () => {
+      const span = centers.at(-1) - centers[0];
+      fill.style.setProperty("--about-journey-progress", (span > 0 ? (centers[Math.max(target, 0)] - centers[0]) / span : 0).toFixed(3));
+    };
     const measure = () => {
       const y = pageY();
-      marks = years.map((year) => year.getBoundingClientRect().top + y);
+      const top = list.getBoundingClientRect().top;
+      const boxes = years.map((year) => year.getBoundingClientRect());
+      marks = boxes.map((box) => box.top + y);
+      centers = boxes.map((box) => box.top + box.height / 2 - top);
+      rail.style.setProperty("--about-journey-rail-top", `${centers[0].toFixed(1)}px`);
+      rail.style.setProperty("--about-journey-rail-height", `${(centers.at(-1) - centers[0]).toFixed(1)}px`);
+      paintRail();
       update();
     };
     arts.forEach((_, index) => setP(index, reduceMotion ? 1 : 0));

@@ -3949,6 +3949,15 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   align-self: end;
 }
 
+/* Pinned rows: a CTA without eyebrow (About, owner 2026-11-24) keeps the title at the centre. */
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy > h2 {
+  grid-row: 2;
+}
+
+.detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy > a {
+  grid-row: 3;
+}
+
 /* The title box is already at center; shift the whole group so the visible glyphs (capital top to baseline) sit at the block center (owner 17/10).
    Factors measured with Playwright: unsplit text sits 0.1em low; the split route lifts the line 0.1em after reveal (detail.js). */
 .detail-cta:not([data-masonry-grid-cta]) .detail-cta__copy {
@@ -4401,7 +4410,7 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 /* About R9 journey: a pinned stage on the left shows one line drawing per milestone (machine or product; 2020 is the cabinet
-   nesting sheet) while eight milestones scroll on the right. From 981px with motion (is-armed) each milestone is a stage: when its year
+   nesting sheet) while nine milestones scroll on the right. From 981px with motion (is-armed) each milestone is a stage: when its year
    passes the line its drawing plays on its own (--p 0 to 1 over time, detail.js), scrolling back rewinds it, never stopping halfway.
    Every path has pathLength 1 and its own window (--a start, --b length) on --p; colour is painted by brush passes. Curved surfaces
    are shaded by gradients, with no line where they turn. Without is-armed (no JavaScript, reduced motion) --p stays 1: drawings
@@ -4413,16 +4422,18 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   --about-journey-faint: rgba(32, 33, 32, 0.3);
   /* The expanded header (scroll up shows it full height) must never cover the stage. */
   --about-journey-top: calc(35px + var(--header-row-height, 68px) + 24px);
+  --about-journey-gap: clamp(2rem, 5vw, 6rem);
+  --about-journey-year: clamp(3rem, 6.4vw, 5.75rem);
+  --about-journey-era: clamp(2.25rem, 3.6vw, 3.4rem);
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr);
-  column-gap: clamp(2rem, 5vw, 6rem);
+  column-gap: var(--about-journey-gap);
   width: min(calc(100% - 2 * var(--gutter)), 1500px);
   margin-inline: auto;
 }
 
 .about-journey__aside {
   position: sticky;
-  /* containing block of the rail */
   top: var(--about-journey-top);
   align-self: start;
   height: calc(100svh - var(--about-journey-top) - 24px);
@@ -4498,6 +4509,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .about-journey__ln--fm { fill: #f283bf; }
 .about-journey__ln--fy { fill: #fff27f; }
 .about-journey__ln--fk { fill: #2b2a29; }
+.about-journey__ln--fg { fill: #8fd19e; }
+.about-journey__ln--fn { fill: #8a8b8d; }
 .about-journey__ln--accent-fill { fill: var(--art-accent); }
 .about-journey__ln--thin,
 .about-journey__ln--thin-closed {
@@ -4538,6 +4551,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .about-journey__brush--fm { stroke: #f283bf; }
 .about-journey__brush--fy { stroke: #fff27f; }
 .about-journey__brush--fk { stroke: #2b2a29; }
+.about-journey__brush--fg { stroke: #8fd19e; }
+.about-journey__brush--fn { stroke: #8a8b8d; }
 .about-journey__brush--accent-fill { stroke: var(--art-accent); }
 
 .about-journey__sheet-svg pattern path {
@@ -4602,12 +4617,14 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   stroke-dasharray: 1 1;
 }
 
+/* The rail and its nodes scroll with the milestones (owner 2026-11-24): the rail sits in the column gap, from the first year's
+   centre to the last (detail.js measures them); each node is beside its year. */
 .about-journey__rail {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
+  top: var(--about-journey-rail-top, 0);
+  left: calc(-1 * var(--about-journey-gap) - 2px);
   width: 2px;
+  height: var(--about-journey-rail-height, 100%);
   background: var(--line);
 }
 
@@ -4622,8 +4639,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
 .about-journey__node {
   position: absolute;
-  top: calc(var(--i) / 7 * (100% - 12px));
-  left: -5px;
+  top: calc(var(--about-journey-year) * 0.61 - 6px);
+  left: calc(-1 * var(--about-journey-gap) - 7px);
   width: 12px;
   height: 12px;
   border: 2px solid var(--orange-accent);
@@ -4632,15 +4649,20 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 }
 
 .about-journey__list {
+  position: relative;
   margin: 0;
   padding: 18vh 0 45vh;
   display: grid;
   gap: clamp(10rem, 42vh, 24rem);
 }
 
+.about-journey__item {
+  position: relative;
+}
+
 .about-journey__year {
   margin: 0 0 1.1rem;
-  font-size: clamp(3rem, 6.4vw, 5.75rem);
+  font-size: var(--about-journey-year);
   font-weight: 500;
   /* Room for the digits' ink and Vietnamese stacked marks ("Hôm nay"). */
   line-height: 1.22;
@@ -4650,7 +4672,16 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 
 /* A decade label ("Những năm 2000") is twice as long as a year: smaller so it stays on one line in the column. */
 .about-journey__year--era {
-  font-size: clamp(2.25rem, 3.6vw, 3.4rem);
+  font-size: var(--about-journey-era);
+}
+
+.about-journey__year--era + .about-journey__node {
+  top: calc(var(--about-journey-era) * 0.61 - 6px);
+}
+
+/* Without detail.js the rail is not measured. */
+.about-journey:not(.is-armed) .about-journey__rail {
+  display: none;
 }
 
 .about-journey__copy {
@@ -4739,6 +4770,11 @@ html.motion-fallback .site-menu.is-active .menu-inner {
     overflow: hidden;
     opacity: 0;
     pointer-events: none;
+  }
+
+  .about-journey__rail,
+  .about-journey__node {
+    display: none;
   }
 
   .about-journey__thumb {
