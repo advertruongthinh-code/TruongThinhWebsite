@@ -217,6 +217,10 @@ nằm ở [Chuỗi ảnh một không gian](agent-rule-image-series.md).
   phục hồi sinh chữ.
 - Chọn ảnh theo file site build thật tham chiếu (`.site-output` từ
   `scripts/site/prepare-static-assets.mjs`), không theo file trong thư mục assets.
+- Thêm card Advertising hoặc thay ảnh của card: sửa bản ghi trong `src/site/content/advertising-cards.json`
+  (đủ tên, mô tả, alt, `productIds`, `tagIds`, `source`, `sha256`, `provenance` của từng media), card gộp
+  ghi trong `advertising-merged.json` (id gộp vào trỏ tới id card bìa). `media-manifest.mjs` chỉ đọc hai
+  file này, không còn bảng dữ liệu (CMS phần 2 E5, 2026-11-23).
 - Xóa metadata ảnh từ runninghub.ai (có thể chứa token owner), rồi chấm lại đúng SHA-256 mới.
 - Ảnh phóng to đã duyệt giữ làm bản gốc ở `source-assets\upscale-da-duyet` trên ổ E và
   chép sang ổ D; ảnh gốc từng card ở `source-assets\anh-goc-theo-the`, tên `<số card>-<tên>`.

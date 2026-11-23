@@ -62,6 +62,8 @@ export function snapshotToFiles(snapshot, { mediaOrigin = "" } = {}) {
   const records = structuredClone(snapshot.records ?? {});
   for (const type of Object.keys(records)) for (const data of records[type]) for (const ref of mediaRefs(type, data)) {
     if (typeof ref.src === "string" && ref.src.startsWith("/v/")) ref.src = mediaOrigin + ref.src;
+    // The card artifact copies media fields as they are; the placement fields are CMS-only.
+    if (type === "advertising-card") { delete ref.mediaId; delete ref.crop; }
   }
   const files = {};
   const projectIds = new Set((records.project ?? []).map(({ id }) => id));
@@ -71,7 +73,15 @@ export function snapshotToFiles(snapshot, { mediaOrigin = "" } = {}) {
     if (type === "hero-slide") files[FILES[type]] = Object.fromEntries(HERO_PAGES.map((page) => [page, rows.filter((slide) => slide.page === page).map(({ page: _, ...slide }) => slide)]));
     else if (type === "home-projects") files[FILES[type]] = rows[0].ids.filter((id) => projectIds.has(id));
     else if (type === "menu") files[FILES[type]] = { ...rows[0], featuredProjects: rows[0].featuredProjects.filter((id) => projectIds.has(id)) };
-    else files[FILES[type]] = rows;
+    else if (type === "advertising-card") {
+      // sourceOrder follows records.position within each category, from 0 (cms-plan part 2 K6).
+      const next = new Map();
+      files[FILES[type]] = rows.map((card) => {
+        const sourceOrder = next.get(card.category) ?? 0;
+        next.set(card.category, sourceOrder + 1);
+        return { ...card, sourceOrder };
+      });
+    } else files[FILES[type]] = rows;
   }
   files["redirects.json"] = snapshot.redirects ?? [];
   return files;

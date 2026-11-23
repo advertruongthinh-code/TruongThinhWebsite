@@ -554,6 +554,11 @@ for (const [mergedId, coverId] of Object.entries(MERGED_CARD_REDIRECTS)) {
     await writeFile(destination, html, "utf8");
   }
 }
+// One page per card in advertising-cards.json plus one redirect page per merged id (cms-plan part 2 E5).
+const cardPageCount = (await readdir(path.join(outputRoot, "advertising-products", "p"))).length;
+if (cardPageCount !== ADVERTISING_CARDS.length + Object.keys(MERGED_CARD_REDIRECTS).length) {
+  throw new Error(`advertising-products/p has ${cardPageCount} pages for ${ADVERTISING_CARDS.length} cards and ${Object.keys(MERGED_CARD_REDIRECTS).length} merged ids`);
+}
 // Self canonical and hreflang (SEO audit 2026-11-22): a route template without its own canonical (home, residential, commercial,
 // about) gets the links of its VI and EN routes, so every indexable page is in sitemap-pages.xml below.
 const localeRoutes = new Map();
