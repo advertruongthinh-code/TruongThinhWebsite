@@ -489,10 +489,11 @@ try {
       const grid = document.querySelector("[data-project-grid]");
       const before = new Set([...grid.querySelectorAll("[data-masonry-card]")].map((node) => node.dataset.masonryCard));
       new MutationObserver((records, observer) => {
-        const added = records.flatMap((record) => [...record.addedNodes]).filter((node) => node.dataset?.masonryCard && !before.has(node.dataset.masonryCard));
-        if (!added.length) return;
+        if (!records.flatMap((record) => [...record.addedNodes]).some((node) => node.dataset?.masonryCard && !before.has(node.dataset.masonryCard))) return;
         observer.disconnect();
         requestAnimationFrame(() => {
+          // A build may attach its new cards over several mutation batches: take every new card the grid holds by this frame.
+          const added = [...grid.querySelectorAll("[data-masonry-card]")].filter((node) => !before.has(node.dataset.masonryCard));
           const cards = added.filter((node) => !node.hidden).map((node) => ({
             id: node.dataset.masonryCard,
             slides: node.getAnimations().some((animation) => animation.id === "masonry-slide"),
