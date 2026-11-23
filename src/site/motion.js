@@ -770,15 +770,15 @@
       showHeader();
     } else if (document.body.classList.contains("menu-open")) {
       // Scroll locked: do not count delta (phone-header-scroll R4).
-    } else if (document.body.classList.contains("is-detail")) {
-      // Advertising detail (owner 2026-11-23, site-shell R3): with a mouse the header scrolls away with the page like content and
-      // shows again only near the page top or by mouse at the top edge (once fully gone it is is-hidden so forceShow slides it in);
-      // touch screens have no hover to call it back, so there it stays stuck.
+    } else if (!follow && headerHoverMedia.matches && document.body.classList.contains("is-detail")) {
+      // Advertising detail with a mouse (owner 2026-11-23, site-shell R3): the header scrolls away with the page like content and
+      // shows again only near the page top or by mouse at the top edge (once fully gone it is is-hidden so forceShow slides it in).
+      // Touch screens keep their usual behaviour (owner 2026-11-23 16:25).
       if (headerFollowStale) {
         headerFollowHeight = header.offsetHeight;
         headerFollowStale = false;
       }
-      headerOffset = headerHoverMedia.matches ? Math.min(settledY, headerFollowHeight) : 0;
+      headerOffset = Math.min(settledY, headerFollowHeight);
       const gone = headerOffset >= headerFollowHeight;
       header.classList.toggle("is-hidden", gone);
       header.classList.toggle("is-scroll-away", headerOffset > 0 && !gone);
