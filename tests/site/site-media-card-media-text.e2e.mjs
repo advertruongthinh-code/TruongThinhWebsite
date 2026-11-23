@@ -9,7 +9,10 @@ import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 const cardId = "kiosk-posm-51";
 const record = ADVERTISING_MEDIA_MANIFEST.find(({ id }) => id === cardId);
 const { category } = ADVERTISING_CATALOG_ARTIFACT.cards.find(({ id }) => id === cardId);
-const descriptionOf = (mediaId) => record.mediaDescriptions[mediaId]?.vi ?? record.descriptionVi;
+// media-seo R7 (owner 2026-11-22): the detail renders each line as its own span ("• " lines as a mark and a body, blank lines as paragraph
+// gaps), so its textContent is the lines joined without breaks.
+const rendered = (text) => text.split("\n").filter((line) => line.trim()).map((line) => (line.startsWith("• ") ? `•${line.slice(2)}` : line)).join("");
+const descriptionOf = (mediaId) => rendered(record.mediaDescriptions[mediaId]?.vi ?? record.descriptionVi);
 
 test("media-card R7: one card name, the detail description follows the media shown", async () => {
   assert(record.mediaItems.length >= 3);
@@ -39,8 +42,8 @@ test("media-card R7: one card name, the detail description follows the media sho
     const description = page.locator("[data-detail-description]");
     await page.waitForFunction((text) => document.querySelector("[data-detail-description]")?.textContent === text, descriptionOf(merged));
     await page.locator(`[data-detail-media-select="${record.coverMediaId}"]`).click();
-    await page.waitForFunction((text) => document.querySelector("[data-detail-description]")?.textContent === text, record.descriptionVi);
-    assert.equal(await description.textContent(), record.descriptionVi);
+    await page.waitForFunction((text) => document.querySelector("[data-detail-description]")?.textContent === text, rendered(record.descriptionVi));
+    assert.equal(await description.textContent(), rendered(record.descriptionVi));
     assert.deepEqual(errors, []);
   } finally { await browser.close(); }
 });

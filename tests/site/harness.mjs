@@ -31,6 +31,13 @@ export async function openPage(browser, viewport, contextOptions) {
   return { context, page: await context.newPage() };
 }
 
+// Cases that drive card media by hand hold the card slideshow (media-card R4, owner 2026-11-13), which would otherwise step a card on
+// its own after 2-6s; the slideshow itself is covered by site-media-card-slideshow.e2e.mjs. The schedule skips a card without
+// advertisingAdvance, so the assignment that would arm it is ignored.
+export const holdCardSlideshow = (context) => context.addInitScript(() => {
+  Object.defineProperty(HTMLElement.prototype, "advertisingAdvance", { configurable: true, get() { return undefined; }, set() {} });
+});
+
 export const frames = (page, count = 2) => page.evaluate(async (n) => {
   for (let i = 0; i < n; i++) await new Promise(requestAnimationFrame);
 }, count);

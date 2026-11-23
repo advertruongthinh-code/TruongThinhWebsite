@@ -289,14 +289,19 @@
         "node tests/site/image-format-fallback.e2e.mjs", "node tests/site/media-sweep-contained.e2e.mjs"]
     },
     "media-card": {
-      "specs": ["media-card", "glass-surface", "video-delivery"],
+      "specs": ["media-card", "glass-surface"],
       "tests": [
         "node tests/site/glass-surface.e2e.mjs",
         "node tests/site/site-media-card-autoplay.e2e.mjs",
         "node tests/site/site-media-card-m01b.e2e.mjs",
-        "node tests/site/site-media-card-m02a.e2e.mjs",
         "node tests/site/site-media-card-media-text.e2e.mjs",
-        "node tests/site/site-media-card-pill-tone.e2e.mjs",
+        "node tests/site/site-media-card-pill-tone.e2e.mjs"
+      ]
+    },
+    "media-card-2": {
+      "specs": ["media-card", "video-delivery"],
+      "tests": [
+        "node tests/site/site-media-card-m02a.e2e.mjs",
         "node tests/site/site-media-card-r6.e2e.mjs",
         "node tests/site/site-media-card-slideshow.e2e.mjs",
         "node tests/site/site-media-card-wait.e2e.mjs",

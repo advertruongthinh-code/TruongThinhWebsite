@@ -5,7 +5,13 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 import { CROP_CAP } from "../../src/site/masonry/replay.mjs";
-import { BASE_URL, VIEWPORTS, launchBrowser, openPage, settleTransitions } from "./harness.mjs";
+import { BASE_URL, VIEWPORTS, launchBrowser, openPage as openHarnessPage, settleTransitions, holdCardSlideshow } from "./harness.mjs";
+// Manual media navigation is under test here: hold the card slideshow (harness holdCardSlideshow).
+const openPage = async (...args) => {
+  const opened = await openHarnessPage(...args);
+  await holdCardSlideshow(opened.context);
+  return opened;
+};
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const fixtureId = "signage-raised-letters-37";
