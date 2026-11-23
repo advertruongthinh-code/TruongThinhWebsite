@@ -52,3 +52,11 @@ test("snapshotToFiles renumbers sourceOrder by position within each category and
   assert.equal(files["advertising-cards.json"][0].media.mediaId, undefined);
   assert.equal(files["advertising-cards.json"][0].media.crop, undefined);
 });
+
+test("deriveCard: a new cluster without legacySlug uses its slugEn; no tagIds stays empty", () => {
+  const { category: _c, productKey: _p, ...fresh } = structuredClone(card);
+  const products = [{ id: "new/one", cluster: "new" }];
+  const clusters = [{ id: "new", slugEn: "new-cluster" }];
+  assert.equal(deriveCard({ ...fresh, productIds: ["new/one"] }, { products, clusters }).category, "new-cluster");
+  assert.deepEqual(deriveCard({ ...card, tagIds: [] }).tagIds, []);
+});
