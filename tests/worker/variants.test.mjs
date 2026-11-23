@@ -56,11 +56,11 @@ test("a manifest of the right size makes the variant ready and a published recor
   assert.equal(one("SELECT value FROM settings WHERE key = 'content_rev'").value, "1");
 });
 
-test("a pending key older than 30 minutes becomes error timeout; a size mismatch becomes error size", async () => {
+test("a pending key older than 45 minutes becomes error timeout; a size mismatch becomes error size", async () => {
   const { env, media, variant, manifest, one } = setup();
   media("old-01");
   media("tall-01");
-  variant(KEY, "old-01", "0,0,1200,800", new Date(Date.now() - 31 * 60_000).toISOString());
+  variant(KEY, "old-01", "0,0,1200,800", new Date(Date.now() - 46 * 60_000).toISOString());
   variant("b".repeat(32), "tall-01", "0,0,1200,800");
   await manifest("b".repeat(32), 800, 1200);
   await settleVariants(env);
@@ -91,13 +91,24 @@ test("GitHub failing four times records dispatch_error; a later success clears i
   globalThis.fetch = async () => { fetches.push(1); return new Response("", { status: 500 }); };
   assert.equal(await dispatchWorkflow(env, "cms-variants.yml", { items: "[]" }), false);
   assert.equal(fetches.length, 4);
-  assert.match(one("SELECT value FROM settings WHERE key = 'dispatch_error'").value, /^\d{4}-\d\d-\d\dT\S+ cms-variants\.yml 500$/);
+  assert.match(one("SELECT value FROM settings WHERE key = 'dispatch_error:cms-variants.yml'").value, /^\d{4}-\d\d-\d\dT\S+ cms-variants\.yml 500$/);
   globalThis.fetch = async () => new Response(null, { status: 204 });
   assert.equal(await dispatchWorkflow(env, "cms-variants.yml", { items: "[]" }), true);
-  assert.equal(one("SELECT value FROM settings WHERE key = 'dispatch_error'"), undefined);
+  assert.equal(one("SELECT value FROM settings WHERE key = 'dispatch_error:cms-variants.yml'"), undefined);
   fetches.length = 0;
   globalThis.fetch = async () => { fetches.push(1); return new Response(null, { status: 204 }); };
   assert.equal(await dispatchWorkflow({ DB: env.DB }, "cms-variants.yml", { items: "[]" }), false);
   assert.equal(fetches.length, 0);
-  assert.match(one("SELECT value FROM settings WHERE key = 'dispatch_error'").value, / cms-variants\.yml no-token$/);
+  assert.match(one("SELECT value FROM settings WHERE key = 'dispatch_error:cms-variants.yml'").value, / cms-variants\.yml no-token$/);
+});
+
+test("a 4xx answer is not retried, and a variants success leaves a failed build dispatch recorded", async () => {
+  const { env, one, fetches } = setup();
+  env.DB.sqlite.prepare("INSERT INTO settings VALUES ('dispatch_error:ci.yml', 'x ci.yml 500')").run();
+  globalThis.fetch = async () => { fetches.push(1); return new Response("", { status: 422 }); };
+  assert.equal(await dispatchWorkflow(env, "cms-variants.yml", { items: "[]" }), false);
+  assert.equal(fetches.length, 1);
+  globalThis.fetch = async () => new Response(null, { status: 204 });
+  assert.equal(await dispatchWorkflow(env, "cms-variants.yml", { items: "[]" }), true);
+  assert.equal(one("SELECT value FROM settings WHERE key = 'dispatch_error:ci.yml'").value, "x ci.yml 500");
 });

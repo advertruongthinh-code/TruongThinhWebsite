@@ -32,6 +32,7 @@ async function original({ m, p }) {
   const bytes = Buffer.from(await response.arrayBuffer());
   const expected = response.headers.get("X-Hash") ?? "";
   const algorithm = expected.split(":")[0];
+  if (!["md5", "sha256"].includes(algorithm)) throw new Error("hash algorithm");
   const hash = `${algorithm}:${createHash(algorithm).update(bytes).digest("hex")}`;
   if (hash !== expected) throw new Error("hash");
   return { bytes, hash };
@@ -113,7 +114,7 @@ for (const item of items) {
     done += 1;
     console.log(`ok ${item.m} ${key} ${((Date.now() - start) / 1000).toFixed(1)}s`);
   } catch (error) {
-    console.log(`error ${item?.m} ${error.message}`);
+    console.log(`error ${ID.test(item?.m ?? "") ? item.m : JSON.stringify(item?.m)} ${error.message}`);
   }
 }
 process.exit(done ? 0 : 1);

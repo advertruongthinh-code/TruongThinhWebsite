@@ -1,6 +1,6 @@
 // One Cron Trigger "* * * * *" (CMS plan Q11). runCron picks the jobs by the UTC hour and minute of event.scheduledTime:
 // | UTC minute | Job                                                       |
-// | every      | settleVariants (P3); minutes divisible by 5 add retryBuild (P4) |
+// | every      | settleVariants (P3), except daily job minutes; minutes divisible by 5 add retryBuild (P4) |
 // | 18:00      | exportDatabase (S5)                                       |
 // | 18:05      | pruneBackups (S5), checkAccessDrift (P7, part 2)          |
 // | 18:10      | purgeOldTrash (P8, part 2)                                |
@@ -12,7 +12,8 @@ const DAILY = { "18:00": [exportDatabase], "18:05": [pruneBackups] }; // later t
 
 // Awaited rather than handed to waitUntil, so the invocation stays alive for the whole export poll.
 export async function runCron(event, env, ctx) {
-  ctx?.waitUntil(settleVariants(env, ctx).catch((error) => console.error("settleVariants", error)));
   const time = new Date(event.scheduledTime).toISOString().slice(11, 16);
+  // A daily job minute skips settleVariants, so the export's fetches and the R2 reads never share one invocation's limits.
+  if (!DAILY[time]) ctx?.waitUntil(settleVariants(env, ctx).catch((error) => console.error("settleVariants", error)));
   await Promise.all((DAILY[time] ?? []).map((job) => job(env).catch((error) => console.error(job.name, error))));
 }

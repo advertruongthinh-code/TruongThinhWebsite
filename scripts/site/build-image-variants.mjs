@@ -144,7 +144,7 @@ export const findThresholds = async (stem, tmp) => {
 };
 
 // Build only when run as a script; scripts/cms/build-variants.mjs imports the encoders.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const isVariant = (file) => /-(?:240|480|960)\.webp$/.test(file);
   const files = (await walk(path.join(sourceRoot, "assets/content")))
     .filter((file) => file.endsWith(".webp") && !isVariant(file) && !skip.has(relativeOf(file)));

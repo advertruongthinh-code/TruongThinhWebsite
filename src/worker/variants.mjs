@@ -19,7 +19,7 @@ export async function settleVariants(env, _ctx) {
       const manifest = await object.json().catch(() => ({})), media = sizes.get(variant.media_id);
       if (media && manifest.sourceWidth === media.width && manifest.sourceHeight === media.height) ready.push(variant.key);
       else failed.push({ k: variant.key, r: "size" });
-    } else if (now - Date.parse(variant.created_at) > 30 * 60_000) failed.push({ k: variant.key, r: "timeout" });
+    } else if (now - Date.parse(variant.created_at) > 45 * 60_000) failed.push({ k: variant.key, r: "timeout" });
   }
   if (!ready.length && !failed.length) return;
   const at = new Date(now).toISOString(), failedJson = JSON.stringify(failed);
