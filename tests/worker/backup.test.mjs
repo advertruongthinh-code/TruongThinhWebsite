@@ -87,6 +87,17 @@ test("cron runs the export at 18:00 UTC only", async () => {
   assert.equal(e.MEDIA_ORIGINALS.objects.size, 1);
 });
 
+test("cron retries the export at minute 33 only while today's file is missing", async () => {
+  const e = env();
+  stubFetch([reply({ result: { status: "complete", result: { signed_url: "https://x/dump.sql" } } })]);
+  await runCron({ scheduledTime: Date.parse("2026-11-23T19:32:00Z") }, e);
+  assert.equal(calls.length, 0);
+  await runCron({ scheduledTime: Date.parse("2026-11-23T19:33:00Z") }, e);
+  assert.equal(e.MEDIA_ORIGINALS.objects.size, 1);
+  await runCron({ scheduledTime: Date.parse("2026-11-23T20:33:00Z") }, e);
+  assert.equal(calls.length, 2, "today's file exists, no second export");
+});
+
 test("prune deletes exports older than 30 days and keeps newer ones; backupAt is the newest upload", async () => {
   const e = env();
   const now = Date.parse("2026-11-23T18:05:00Z");
