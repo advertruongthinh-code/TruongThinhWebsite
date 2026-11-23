@@ -13,6 +13,7 @@ import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
 import { contentDirOf, fileImageCheck, loadBlockContent, loadVariants, readHeroSources, readRedirects } from "./content-files.mjs";
+import { SLOT_PAGES, fillSlots } from "./slots.mjs";
 import { absoluteSrc, hasFile, manifestOf, variantKeyOf } from "./media-src.mjs";
 import { validateHomeProjects } from "./home-projects.mjs";
 import { KINDS, PROJECT_FILTERS, PROJECT_TYPES, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
@@ -62,12 +63,17 @@ const artifact = buildAdvertisingArtifact();
 
 const hero = readHeroSources(sourceRoot);
 await validateHeroSlides(hero.data, fileImageCheck(sourceRoot));
-const homeTemplate = readPageSource("index.html");
+// Standard pages filled from page-copy.json of the content dir (cms-plan part 2 K7); no file means the pages as written.
+const pageCopyFile = path.join(contentDirOf(sourceRoot), "page-copy.json");
+const pageCopy = existsSync(pageCopyFile) ? JSON.parse(await readFile(pageCopyFile, "utf8")) : {};
+const slotPageIds = Object.fromEntries(Object.entries(SLOT_PAGES).map(([id, page]) => [page, id]));
+const withSlots = (page, html) => fillSlots(html, pageCopy[slotPageIds[page]], { warn: (message) => console.warn(`${page}: ${message}`) });
+const homeTemplate = withSlots("index.html", readPageSource("index.html"));
 
 await rm(outputRoot, { recursive: true, force: true });
 await cp(sourceRoot, outputRoot, { recursive: true });
 // Menu and navbar list are rendered here, not stored in the source pages; the home page is overwritten next with its project reel.
-await Promise.all(MENU_PAGES.map((page) => writeFile(path.join(outputRoot, page), readPageSource(page), "utf8")));
+await Promise.all(MENU_PAGES.map((page) => writeFile(path.join(outputRoot, page), withSlots(page, readPageSource(page)), "utf8")));
 await writeFile(path.join(outputRoot, "index.html"), homeTemplate, "utf8");
 await Promise.all(vendorAssets.map(async ([source, destination]) => {
   const target = path.join(outputRoot, destination);

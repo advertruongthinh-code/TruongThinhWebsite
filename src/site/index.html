@@ -72,16 +72,16 @@
             <h1>
               <span class="hero-line-mask">
                 <span
-                  ><span class="hero-word" data-en="Built">Làm</span>
-                  <span class="hero-word"><span data-en="solid">chắc</span></span></span
+                  ><span data-slot="hero.text-1" class="hero-word" data-en="Built">Làm</span>
+                  <span class="hero-word"><span data-slot="hero.text-2" data-en="solid">chắc</span></span></span
                 >
               </span>
               <span class="hero-line-mask">
                 <span
                   ><em
-                    ><span class="hero-word" data-en="Made">Làm</span>
+                    ><span data-slot="hero.text-3" class="hero-word" data-en="Made">Làm</span>
                     <span class="hero-word"
-                      ><span data-en="different">khác</span></span></em
+                      ><span data-slot="hero.text-4" data-en="different">khác</span></span></em
                   ></span
                 >
               </span>
@@ -105,7 +105,7 @@
             </svg>
           </button>
 
-          <button
+          <button data-slot="hero.link"
             class="scroll-cue"
             type="button"
             data-scroll-cue
@@ -126,7 +126,7 @@
           aria-labelledby="services-title"
           data-header-tone="ink"
         >
-          <h2
+          <h2 data-slot="dich-vu.title"
             class="sr-only"
             id="services-title"
             data-en="Three core practices"
@@ -138,7 +138,7 @@
               class="service-portal media-hover-zoom-trigger"
               href="/residential/"
             >
-              <img
+              <img data-slot="dich-vu.image-1"
                 class="media-hover-zoom"
                 src="/assets/content/projects/tu-bep-nha-pho-gieng-troi.webp"
                 width="2304"
@@ -151,15 +151,15 @@
               <span class="portal-copy">
                 <strong
                   ><span class="portal-title__quiet"
-                    ><span class="portal-line" data-en="Spaces"
+                    ><span data-slot="dich-vu.text-1" class="portal-line" data-en="Spaces"
                       >Không gian</span
                     ></span
                   ><br /><span class="portal-title__strong"
-                    ><span class="portal-line" data-en="Residential">Nhà ở</span></span
+                    ><span data-slot="dich-vu.text-2" class="portal-line" data-en="Residential">Nhà ở</span></span
                   ></strong
                 >
                 <small
-                  ><span
+                  ><span data-slot="dich-vu.text-3"
                     class="portal-subtitle"
                     data-en="A place to restore your energy"
                     >Nơi tái tạo năng lượng sống</span
@@ -172,7 +172,7 @@
               class="service-portal media-hover-zoom-trigger"
               href="/commercial/"
             >
-              <img
+              <img data-slot="dich-vu.image-2"
                 class="media-hover-zoom"
                 src="/assets/content/projects/thiet-ke-quan-cafe-go-cnc.webp"
                 width="2304"
@@ -185,17 +185,17 @@
               <span class="portal-copy">
                 <strong
                   ><span class="portal-title__quiet"
-                    ><span class="portal-line" data-en="Spaces"
+                    ><span data-slot="dich-vu.text-4" class="portal-line" data-en="Spaces"
                       >Không gian</span
                     ></span
                   ><br /><span class="portal-title__strong"
-                    ><span class="portal-line" data-en="Commercial"
+                    ><span data-slot="dich-vu.text-5" class="portal-line" data-en="Commercial"
                       >Kinh doanh</span
                     ></span
                   ></strong
                 >
                 <small
-                  ><span
+                  ><span data-slot="dich-vu.text-6"
                     class="portal-subtitle"
                     data-en="Optimized design, lasting performance"
                     >Thiết kế tối ưu, vận hành bền bỉ</span
@@ -208,7 +208,7 @@
               class="service-portal media-hover-zoom-trigger"
               href="/advertising-products/"
             >
-              <img
+              <img data-slot="dich-vu.image-3"
                 class="media-hover-zoom"
                 src="/assets/content/projects/san-pham-bang-hieu-chu-noi.webp"
                 width="2304"
@@ -221,17 +221,17 @@
               <span class="portal-copy">
                 <strong
                   ><span class="portal-title__quiet"
-                    ><span class="portal-line" data-en="Products"
+                    ><span data-slot="dich-vu.text-7" class="portal-line" data-en="Products"
                       >Sản phẩm</span
                     ></span
                   ><br /><span class="portal-title__strong"
-                    ><span class="portal-line" data-en="Advertising"
+                    ><span data-slot="dich-vu.text-8" class="portal-line" data-en="Advertising"
                       >Quảng cáo</span
                     ></span
                   ></strong
                 >
                 <small
-                  ><span
+                  ><span data-slot="dich-vu.text-9"
                     class="portal-subtitle"
                     data-en="Keeping your brand in sight"
                     >Để thương hiệu luôn trong tầm mắt</span
@@ -248,7 +248,7 @@
           data-header-tone="ink"
           aria-labelledby="heritage-title"
         >
-          <h2
+          <h2 data-slot="tay-nghe.title"
             class="sr-only"
             id="heritage-title"
             data-en="Experience and creativity are our commitment to every product"
@@ -258,12 +258,12 @@
           <div class="heritage-rows">
             <p class="heritage-row heritage-row--center">
               <span class="heritage-text"
-                ><span class="heritage-line" data-en="Experience"
+                ><span data-slot="tay-nghe.text-1" class="heritage-line" data-en="Experience"
                   >Kinh nghiệm</span
                 ></span
               >
               <span class="heritage-image reveal-media">
-                <img
+                <img data-slot="tay-nghe.image-1"
                   src="/assets/content/shared/tho-moc-lay-dau-van-go.webp"
                   width="3072"
                   height="2048"
@@ -274,7 +274,7 @@
                 />
               </span>
               <span class="heritage-text heritage-text--minor"
-                ><span
+                ><span data-slot="tay-nghe.text-2"
                   class="heritage-line heritage-line--delay"
                   data-en="and"
                   >và</span
@@ -283,12 +283,12 @@
             </p>
             <p class="heritage-row heritage-row--start">
               <span class="heritage-text"
-                ><span class="heritage-line" data-en="creativity"
+                ><span data-slot="tay-nghe.text-3" class="heritage-line" data-en="creativity"
                   >sáng tạo</span
                 ></span
               >
               <span class="heritage-image reveal-media">
-                <img
+                <img data-slot="tay-nghe.image-2"
                   src="/assets/content/shared/phac-thao-tu-trung-bay.webp"
                   width="3072"
                   height="2304"
@@ -299,7 +299,7 @@
                 />
               </span>
               <span class="heritage-text heritage-text--minor"
-                ><span
+                ><span data-slot="tay-nghe.text-4"
                   class="heritage-line heritage-line--delay"
                   data-en="are"
                   >là</span
@@ -308,12 +308,12 @@
             </p>
             <p class="heritage-row heritage-row--end">
               <span class="heritage-text"
-                ><span class="heritage-line" data-en="our commitment"
+                ><span data-slot="tay-nghe.text-5" class="heritage-line" data-en="our commitment"
                   >cam kết</span
                 ></span
               >
               <span class="heritage-image reveal-media">
-                <img
+                <img data-slot="tay-nghe.image-3"
                   src="/assets/content/shared/nut-that-day-thung-chac.webp"
                   width="3072"
                   height="2048"
@@ -324,7 +324,7 @@
                 />
               </span>
               <span class="heritage-text heritage-text--minor"
-                ><span
+                ><span data-slot="tay-nghe.text-6"
                   class="heritage-line heritage-line--delay"
                   data-en="to"
                   >trong</span
@@ -333,10 +333,10 @@
             </p>
             <p class="heritage-row heritage-row--center">
               <span class="heritage-text heritage-text--minor"
-                ><span class="heritage-line" data-en="every">Từng</span></span
+                ><span data-slot="tay-nghe.text-7" class="heritage-line" data-en="every">Từng</span></span
               >
               <span class="heritage-image reveal-media">
-                <img
+                <img data-slot="tay-nghe.image-4"
                   src="/assets/content/shared/tu-console-go-mat-da.webp"
                   width="3072"
                   height="2048"
@@ -347,14 +347,14 @@
                 />
               </span>
               <span class="heritage-text"
-                ><span class="heritage-line" data-en="product"
+                ><span data-slot="tay-nghe.text-8" class="heritage-line" data-en="product"
                   >sản phẩm</span
                 ></span
               >
             </p>
           </div>
           <a class="story-link" href="/about/">
-            <span data-en="See how we work">Xem cách chúng tôi làm</span>
+            <span data-slot="tay-nghe.text-9" data-en="See how we work">Xem cách chúng tôi làm</span>
             <span class="story-arrow">
               <svg viewBox="0 0 178.01 39.43" aria-hidden="true">
                 <line x1="3.77" x2="174.25" y1="19.71" y2="19.71" />
@@ -370,7 +370,7 @@
           aria-labelledby="capabilities-title"
           data-header-tone="ink"
         >
-          <h2
+          <h2 data-slot="nang-luc.title-1"
             class="sr-only"
             id="capabilities-title"
             data-en="Our four commitments"
@@ -379,7 +379,7 @@
           </h2>
           <div class="service-portals service-portals--four">
             <article class="service-portal">
-              <img
+              <img data-slot="nang-luc.image-1"
                 src="/assets/content/shared/tu-van-thiet-ke-noi-that.webp"
                 width="3072"
                 height="2048"
@@ -389,17 +389,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Consultation">Tư vấn</h3>
+                <h3 data-slot="nang-luc.title-2" class="commitment-title" data-en="Consultation">Tư vấn</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="We listen closely">Lắng nghe kỹ</span><span class="portal-line" data-en="and make a plan">và chốt phương án</span></p
+                  ><span data-slot="nang-luc.text-1" class="portal-line" data-en="We listen closely">Lắng nghe kỹ</span><span data-slot="nang-luc.text-2" class="portal-line" data-en="and make a plan">và chốt phương án</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="We survey on site and talk through your needs, materials and budget to settle the right plan for your home or your shop.">Khảo sát tận nơi, trao đổi kỹ về nhu cầu, vật liệu và ngân sách để chốt phương án phù hợp cho nhà ở, cửa hàng của bạn.</span></p
+                  ><span data-slot="nang-luc.text-3" class="portal-subtitle" data-en="We survey on site and talk through your needs, materials and budget to settle the right plan for your home or your shop.">Khảo sát tận nơi, trao đổi kỹ về nhu cầu, vật liệu và ngân sách để chốt phương án phù hợp cho nhà ở, cửa hàng của bạn.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="nang-luc.image-2"
                 src="/assets/content/shared/commitment-production-cnc-v3-20261117.webp"
                 width="1024"
                 height="1536"
@@ -409,17 +409,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Production">Sản xuất</h3>
+                <h3 data-slot="nang-luc.title-3" class="commitment-title" data-en="Production">Sản xuất</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Made in our">Gia công chủ động</span><span class="portal-line" data-en="own workshop">tại xưởng riêng</span></p
+                  ><span data-slot="nang-luc.text-4" class="portal-line" data-en="Made in our">Gia công chủ động</span><span data-slot="nang-luc.text-5" class="portal-line" data-en="own workshop">tại xưởng riêng</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Every product is made and test-assembled in our own workshop, so we stay in control of time, check the quality and keep to schedule.">Các sản phẩm đều được gia công và lắp thử tại xưởng của chúng tôi để chủ động về thời gian, kiểm soát chất lượng và đảm bảo tiến độ.</span></p
+                  ><span data-slot="nang-luc.text-6" class="portal-subtitle" data-en="Every product is made and test-assembled in our own workshop, so we stay in control of time, check the quality and keep to schedule.">Các sản phẩm đều được gia công và lắp thử tại xưởng của chúng tôi để chủ động về thời gian, kiểm soát chất lượng và đảm bảo tiến độ.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="nang-luc.image-3"
                 src="/assets/content/shared/commitment-quality-shop-20261117.webp"
                 width="1024"
                 height="1536"
@@ -429,17 +429,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Quality">Chất lượng</h3>
+                <h3 data-slot="nang-luc.title-4" class="commitment-title" data-en="Quality">Chất lượng</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Care in">Chỉn chu</span><span class="portal-line" data-en="every detail">đến từng chi tiết</span></p
+                  ><span data-slot="nang-luc.text-7" class="portal-line" data-en="Care in">Chỉn chu</span><span data-slot="nang-luc.text-8" class="portal-line" data-en="every detail">đến từng chi tiết</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Materials match the quotation. Every joint, edge, fitting and light is checked carefully before we hand the work over to you.">Vật liệu dùng đúng như báo giá. Từng mối ghép, đường cạnh, phụ kiện và hệ đèn đều được kiểm tra kỹ trước khi bàn giao cho bạn.</span></p
+                  ><span data-slot="nang-luc.text-9" class="portal-subtitle" data-en="Materials match the quotation. Every joint, edge, fitting and light is checked carefully before we hand the work over to you.">Vật liệu dùng đúng như báo giá. Từng mối ghép, đường cạnh, phụ kiện và hệ đèn đều được kiểm tra kỹ trước khi bàn giao cho bạn.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="nang-luc.image-4"
                 src="/assets/content/shared/commitment-aftercare-sign-20261118.webp"
                 width="1024"
                 height="1536"
@@ -449,12 +449,12 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Aftercare">Hậu mãi</h3>
+                <h3 data-slot="nang-luc.title-5" class="commitment-title" data-en="Aftercare">Hậu mãi</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Still with you">Đồng hành</span><span class="portal-line" data-en="after handover">sau ngày bàn giao</span></p
+                  ><span data-slot="nang-luc.text-10" class="portal-line" data-en="Still with you">Đồng hành</span><span data-slot="nang-luc.text-11" class="portal-line" data-en="after handover">sau ngày bàn giao</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="We maintain, adjust and repair on site whenever you need, so everything we made for you keeps working well and looking good for years.">Bảo trì, căn chỉnh và sửa chữa tận nơi mỗi khi bạn cần, để mọi sản phẩm chúng tôi làm luôn vận hành ổn định, bền đẹp theo năm tháng.</span></p
+                  ><span data-slot="nang-luc.text-12" class="portal-subtitle" data-en="We maintain, adjust and repair on site whenever you need, so everything we made for you keeps working well and looking good for years.">Bảo trì, căn chỉnh và sửa chữa tận nơi mỗi khi bạn cần, để mọi sản phẩm chúng tôi làm luôn vận hành ổn định, bền đẹp theo năm tháng.</span></p
                 >
               </div>
             </article>
@@ -471,7 +471,7 @@
         >
           <h2 id="places-title" data-motion-lines>
             <span class="detail-line">
-              <span data-motion-line-source data-en="Meet us at our office and workshop">
+              <span data-slot="ghe-tham.text" data-motion-line-source data-en="Meet us at our office and workshop">
                 Gặp chúng tôi tại văn phòng và xưởng
               </span>
             </span>
@@ -486,7 +486,7 @@
           <article class="detail-place media-hover-zoom-trigger">
             <a class="detail-place__link" href="https://www.google.com/maps/search/?api=1&amp;query=E16+Khu+%C4%91%C3%B4+th%E1%BB%8B+H%C6%B0ng+Ph%C3%BA%2C+Ph%C3%BA+T%C3%A2n%2C+V%C4%A9nh+Long" target="_blank" rel="noreferrer" aria-label="Xem trụ sở trên bản đồ" data-en-aria-label="See the head office on the map"></a>
             <div class="detail-place__media">
-              <img
+              <img data-slot="places.image-1"
                 class="media-hover-zoom"
                 src="/assets/content/projects/placeholder-doc.webp"
                 width="2048"
@@ -496,12 +496,12 @@
                 loading="lazy"
               />
             </div>
-            <h3 class="detail-place__name" data-en="Head office">Trụ sở</h3>
-            <p class="detail-place__text"><span data-en="E16 Hưng Phú urban area, Phú Tân ward, Vĩnh Long province">E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long</span><br /><a href="tel:+842753813753">+84 275 381 3753</a></p>
+            <h3 data-slot="places.title-1" class="detail-place__name" data-en="Head office">Trụ sở</h3>
+            <p class="detail-place__text"><span data-slot="places.text" data-en="E16 Hưng Phú urban area, Phú Tân ward, Vĩnh Long province">E16 Khu đô thị Hưng Phú, Phường Phú Tân, tỉnh Vĩnh Long</span><br /><a href="tel:+842753813753">+84 275 381 3753</a></p>
           </article>
           <article class="detail-place media-hover-zoom-trigger">
             <div class="detail-place__media">
-              <img
+              <img data-slot="places.image-2"
                 class="media-hover-zoom"
                 src="/assets/content/projects/placeholder-doc.webp"
                 width="2048"
@@ -511,13 +511,13 @@
                 loading="lazy"
               />
             </div>
-            <h3 class="detail-place__name" data-en="Workshop">Xưởng</h3>
-            <p class="detail-place__text"><span data-en="Address coming soon">Địa chỉ đang cập nhật</span></p>
+            <h3 data-slot="places.title-2" class="detail-place__name" data-en="Workshop">Xưởng</h3>
+            <p data-slot="places.body" class="detail-place__text"><span data-en="Address coming soon">Địa chỉ đang cập nhật</span></p>
           </article>
           <article class="detail-place media-hover-zoom-trigger">
             <a class="detail-place__link" href="https://zalo.me/0949131050" target="_blank" rel="noreferrer" aria-label="Gọi Zalo tư vấn" data-en-aria-label="Talk to us on Zalo"></a>
             <div class="detail-place__media">
-              <img
+              <img data-slot="places.image-3"
                 class="media-hover-zoom"
                 src="/assets/content/projects/placeholder-doc.webp"
                 width="2048"
@@ -527,7 +527,7 @@
                 loading="lazy"
               />
             </div>
-            <h3 class="detail-place__name" data-en="Consultation">Tư vấn</h3>
+            <h3 data-slot="places.title-3" class="detail-place__name" data-en="Consultation">Tư vấn</h3>
             <p class="detail-place__text"><a href="tel:+84949131050">+84 949 131 050</a></p>
           </article>
         </section>
@@ -535,7 +535,7 @@
         <!-- shell:client-logos -->
 
         <section class="legacy-closer section-gap" data-header-tone="inverse">
-          <img
+          <img data-slot="legacy-closer.image-1"
             src="/assets/content/shared/xuong-cnc-san-xuat-do-go.webp"
             width="3072"
             height="2048"
@@ -547,18 +547,18 @@
           <div class="legacy-copy">
             <h2>
               <span class="line-mask"
-                ><span><span data-en="Keep the craft">Giữ nghề</span></span></span
+                ><span><span data-slot="legacy-closer.text-1" data-en="Keep the craft">Giữ nghề</span></span></span
               >
               <span class="line-mask"
                 ><span
-                  ><span data-en="Always">Không ngừng</span>
-                  <em><span data-en="evolving">làm mới</span></em></span
+                  ><span data-slot="legacy-closer.text-2" data-en="Always">Không ngừng</span>
+                  <em><span data-slot="legacy-closer.text-3" data-en="evolving">làm mới</span></em></span
                 ></span
               >
             </h2>
             <p>
               <a class="legacy-link" href="/about/"
-                ><span class="portal-subtitle" data-en="ABOUT US">VỀ CHÚNG TÔI</span></a
+                ><span data-slot="legacy-closer.text-4" class="portal-subtitle" data-en="ABOUT US">VỀ CHÚNG TÔI</span></a
               >
             </p>
           </div>

@@ -72,9 +72,8 @@
           <div class="hero-shade" aria-hidden="true"></div>
 
           <div class="hero-content">
-            <p
+            <p data-slot="hero.label"
               class="hero-kicker"
-              data-cms="hero.kicker"
               data-motion-hero-kicker
               data-en="SHOWROOM · SHOP · CAFE · RESTAURANT · OFFICE · WORKSPACE"
             >
@@ -85,13 +84,13 @@
                 <span
                   class="detail-title__quiet"
                   data-motion-word-source
-                ><span data-en="Designed to">Thiết kế</span> <em data-en="perform">tối ưu</em></span>
+                ><span data-slot="hero.text-1" data-en="Designed to">Thiết kế</span> <em data-slot="hero.text-2" data-en="perform">tối ưu</em></span>
               </span>
               <span class="detail-hero-line-mask">
                 <span
                   class="detail-title__strong"
                   data-motion-word-source
-                ><span data-en="Built to">Vận hành</span> <em data-en="last">bền bỉ</em></span>
+                ><span data-slot="hero.text-3" data-en="Built to">Vận hành</span> <em data-slot="hero.text-4" data-en="last">bền bỉ</em></span>
               </span>
             </h1>
           </div>
@@ -113,7 +112,7 @@
             </svg>
           </button>
 
-          <button
+          <button data-slot="hero.link"
             class="scroll-cue"
             type="button"
             data-scroll-cue
@@ -133,11 +132,11 @@
           data-header-tone="ink"
           aria-labelledby="intro-title"
         >
-          <h2 class="detail-lead__title" id="intro-title" data-motion-lines>
+          <h2 data-slot="tong-quan.title" class="detail-lead__title" id="intro-title" data-motion-lines>
             <span data-en="Spaces for">Không gian để</span>
             <i data-en="business">kinh doanh</i>
           </h2>
-          <p class="detail-lead__copy">
+          <p data-slot="tong-quan.body" class="detail-lead__copy">
             <span
               data-en="A commercial space has to serve both your customers and your staff. We plan the layout around customer flow and the rhythm of service to make the most of every square metre, and choose materials tough enough for years of trading."
               >Mặt bằng kinh doanh cần phục vụ tốt cả khách hàng lẫn người vận hành. Chúng tôi tư vấn bố trí theo luồng khách và nhịp phục vụ để tận dụng từng mét vuông, đồng thời chọn vật liệu đủ bền cho nhiều năm kinh doanh.</span
@@ -149,7 +148,7 @@
           class="detail-media section-gap"
           data-header-tone="ink"
         >
-          <img
+          <img data-slot="media.image-1"
             src="/assets/content/projects/quan-cafe-quay-bar-trang.webp"
             width="3072"
             height="2048"
@@ -165,10 +164,10 @@
           data-header-tone="ink"
           aria-labelledby="proof-title"
         >
-          <h2 class="sr-only" id="proof-title" data-en="Proof in operation">
+          <h2 data-slot="note.title" class="sr-only" id="proof-title" data-en="Proof in operation">
             Bằng chứng trong vận hành
           </h2>
-          <p>
+          <p data-slot="note.body">
             <span
               data-en="An optimised space helps customers find their way, saves staff wasted steps and keeps stock within reach. A durable one keeps the counter solid and the doors closing true, ready for customers after many years of use."
               >Một mặt bằng tối ưu giúp khách dễ tìm lối, nhân viên không mất bước thừa và hàng hóa luôn trong tầm tay. Một mặt bằng bền bỉ giữ quầy chắc chắn, cánh tủ khít và sẵn sàng đón khách sau nhiều năm sử dụng.</span
@@ -183,7 +182,7 @@
           data-header-tone="ink"
           aria-labelledby="gallery-title"
         >
-          <h2 id="gallery-title" data-motion-lines>
+          <h2 data-slot="cong-trinh.title" id="gallery-title" data-motion-lines>
             <span data-en="Spaces">Không gian</span>
             <i data-en="at work">đang vận hành</i>
           </h2>
@@ -198,7 +197,7 @@
             <div class="detail-gallery__slides">
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-1"
                     src="/assets/content/projects/cua-hang-giay-ke-xanh-dam.webp"
                     width="3072"
                     height="2456"
@@ -208,11 +207,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Retail &amp; showroom">Shop &amp; showroom</figcaption>
+                <figcaption data-slot="cong-trinh.caption-1" data-en="Retail &amp; showroom">Shop &amp; showroom</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-2"
                     src="/assets/content/projects/thiet-ke-quan-cafe-ban-go.webp"
                     width="2304"
                     height="3072"
@@ -222,11 +221,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Service café">Cafe phục vụ</figcaption>
+                <figcaption data-slot="cong-trinh.caption-2" data-en="Service café">Cafe phục vụ</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-3"
                     src="/assets/content/projects/van-phong-thiet-ke-ban-dai.webp"
                     width="3072"
                     height="2048"
@@ -236,11 +235,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Creative office">Văn phòng sáng tạo</figcaption>
+                <figcaption data-slot="cong-trinh.caption-3" data-en="Creative office">Văn phòng sáng tạo</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-4"
                     src="/assets/content/projects/van-phong-ke-go-canh-vang.webp"
                     width="3072"
                     height="2304"
@@ -250,11 +249,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Design studio">Văn phòng thiết kế</figcaption>
+                <figcaption data-slot="cong-trinh.caption-4" data-en="Design studio">Văn phòng thiết kế</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-5"
                     src="/assets/content/projects/thiet-ke-shop-thoi-trang.webp"
                     width="3072"
                     height="2048"
@@ -264,11 +263,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Commercial storefront">Mặt tiền thương mại</figcaption>
+                <figcaption data-slot="cong-trinh.caption-5" data-en="Commercial storefront">Mặt tiền thương mại</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-6"
                     src="/assets/content/projects/shop-the-thao-tuong-giay.webp"
                     width="3072"
                     height="2048"
@@ -278,11 +277,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Sports shop">Shop thể thao</figcaption>
+                <figcaption data-slot="cong-trinh.caption-6" data-en="Sports shop">Shop thể thao</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-7"
                     src="/assets/content/projects/shop-hoa-tuoi-quay-xanh.webp"
                     width="1536"
                     height="1024"
@@ -292,11 +291,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Flower shop">Shop hoa tươi</figcaption>
+                <figcaption data-slot="cong-trinh.caption-7" data-en="Flower shop">Shop hoa tươi</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-8"
                     src="/assets/content/projects/cua-hang-kinh-mat-ke-go.webp"
                     width="3072"
                     height="2048"
@@ -306,11 +305,11 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Optical shop">Cửa hàng kính mắt</figcaption>
+                <figcaption data-slot="cong-trinh.caption-8" data-en="Optical shop">Cửa hàng kính mắt</figcaption>
               </figure>
               <figure class="detail-gallery__item">
                 <div class="detail-gallery__media">
-                  <img
+                  <img data-slot="cong-trinh.image-9"
                     src="/assets/content/projects/tiem-may-ao-dai-ke-vai.webp"
                     width="3072"
                     height="2048"
@@ -320,7 +319,7 @@
                     data-motion-media
                   />
                 </div>
-                <figcaption data-en="Ao dai tailor shop">Tiệm may áo dài</figcaption>
+                <figcaption data-slot="cong-trinh.caption-9" data-en="Ao dai tailor shop">Tiệm may áo dài</figcaption>
               </figure>
 
             </div>
@@ -334,7 +333,7 @@
           data-header-tone="ink"
           aria-labelledby="process-title"
         >
-          <p
+          <p data-slot="quy-trinh.label"
             class="detail-eyebrow"
             data-motion-fade
             data-en="ONE CONTINUOUS PROCESS"
@@ -343,12 +342,12 @@
           </p>
           <h2 id="process-title" data-motion-words>
             <span class="detail-line"
-              ><span data-motion-word-source data-en="Optimised on paper"
+              ><span data-slot="quy-trinh.text-1" data-motion-word-source data-en="Optimised on paper"
                 >Tối ưu từ bản vẽ</span
               ></span
             >
             <span class="detail-line"
-              ><span data-motion-word-source data-en="durable after opening day"
+              ><span data-slot="quy-trinh.text-2" data-motion-word-source data-en="durable after opening day"
                 >bền bỉ sau ngày mở cửa</span
               ></span
             >
@@ -371,28 +370,28 @@
           </svg>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 514 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-1" /></svg>
-            <span class="editorial-media"><img src="/assets/content/projects/khao-sat-mat-bang-cua-hang.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Kỹ thuật viên đo laser khảo sát mặt bằng cửa hàng trước thi công" data-en-alt="Technician measuring an empty retail space with a laser meter" /></span>
-            <div><h3 data-en="Survey">Khảo sát</h3><p data-en="Measure the site and observe customer flow, peak hours and likely bottlenecks before designing.">Đo mặt bằng, quan sát luồng khách, giờ cao điểm và những điểm dễ ùn ứ trước khi thiết kế.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-1" src="/assets/content/projects/khao-sat-mat-bang-cua-hang.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Kỹ thuật viên đo laser khảo sát mặt bằng cửa hàng trước thi công" data-en-alt="Technician measuring an empty retail space with a laser meter" /></span>
+            <div><h3 data-slot="editorial-strip.title-1" data-en="Survey">Khảo sát</h3><p data-slot="editorial-strip.body-1" data-en="Measure the site and observe customer flow, peak hours and likely bottlenecks before designing.">Đo mặt bằng, quan sát luồng khách, giờ cao điểm và những điểm dễ ùn ứ trước khi thiết kế.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 489 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-2" /></svg>
-            <span class="editorial-media"><img src="/assets/content/projects/mau-vat-lieu-kiosk-ban-ve.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Mẫu vật liệu gỗ, kính và đá xếp trên bản vẽ kiosk" data-en-alt="Wood, glass and stone samples laid over kiosk elevation drawings" /></span>
-            <div><h3 data-en="Consultation">Tư vấn</h3><p data-en="Advise on function, brand identity and budget, and choose materials suited to how hard they will work.">Tư vấn công năng, nhận diện thương hiệu và ngân sách, chọn vật liệu phù hợp cường độ sử dụng.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-2" src="/assets/content/projects/mau-vat-lieu-kiosk-ban-ve.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Mẫu vật liệu gỗ, kính và đá xếp trên bản vẽ kiosk" data-en-alt="Wood, glass and stone samples laid over kiosk elevation drawings" /></span>
+            <div><h3 data-slot="editorial-strip.title-2" data-en="Consultation">Tư vấn</h3><p data-slot="editorial-strip.body-2" data-en="Advise on function, brand identity and budget, and choose materials suited to how hard they will work.">Tư vấn công năng, nhận diện thương hiệu và ngân sách, chọn vật liệu phù hợp cường độ sử dụng.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 505 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-3" /></svg>
-            <span class="editorial-media"><img src="/assets/content/projects/lap-hop-den-quang-cao.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ lắp dải LED vào hộp đèn quảng cáo khung đen tại xưởng" data-en-alt="Technician fitting LED strips into a black-framed lightbox in the workshop" /></span>
-            <div><h3 data-en="Production">Sản xuất</h3><p data-en="Everything is made in our workshop on CNC machines, with tight tolerances and easily replaced parts.">Sản xuất tại xưởng bằng máy CNC, kiểm soát sai số chặt chẽ, linh kiện dễ thay thế.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-3" src="/assets/content/projects/lap-hop-den-quang-cao.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ lắp dải LED vào hộp đèn quảng cáo khung đen tại xưởng" data-en-alt="Technician fitting LED strips into a black-framed lightbox in the workshop" /></span>
+            <div><h3 data-slot="editorial-strip.title-3" data-en="Production">Sản xuất</h3><p data-slot="editorial-strip.body-3" data-en="Everything is made in our workshop on CNC machines, with tight tolerances and easily replaced parts.">Sản xuất tại xưởng bằng máy CNC, kiểm soát sai số chặt chẽ, linh kiện dễ thay thế.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 540 745" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-4" /></svg>
-            <span class="editorial-media"><img src="/assets/content/projects/thi-cong-quay-tiem-banh.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ thi công lắp quầy tiệm bánh và kệ gỗ trước bàn giao" data-en-alt="Installers fitting a bakery counter and wood shelving before handover" /></span>
-            <div><h3 data-en="Installation and handover">Lắp đặt và bàn giao</h3><p data-en="We build to your opening schedule and hand over a space ready for customers.">Thi công đúng tiến độ khai trương, bàn giao mặt bằng sẵn sàng đón khách.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-4" src="/assets/content/projects/thi-cong-quay-tiem-banh.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ thi công lắp quầy tiệm bánh và kệ gỗ trước bàn giao" data-en-alt="Installers fitting a bakery counter and wood shelving before handover" /></span>
+            <div><h3 data-slot="editorial-strip.title-4" data-en="Installation and handover">Lắp đặt và bàn giao</h3><p data-slot="editorial-strip.body-4" data-en="We build to your opening schedule and hand over a space ready for customers.">Thi công đúng tiến độ khai trương, bàn giao mặt bằng sẵn sàng đón khách.</p></div>
           </article>
           <article class="editorial-item">
             <svg class="editorial-number" viewBox="0 0 498 757" preserveAspectRatio="xMaxYMin meet" aria-hidden="true"><use href="#commercial-digit-5" /></svg>
-            <span class="editorial-media"><img src="/assets/content/shared/bao-hanh-shop-thoi-trang.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ chỉnh bản lề tủ đảo và cân kệ tường trong shop thời trang" data-en-alt="Technicians adjusting island cabinet hinges and levelling wall shelves in a fashion store" /></span>
-            <div><h3 data-en="After-sales">Hậu mãi</h3><p data-en="Regular maintenance keeps your space running smoothly.">Bảo trì định kỳ để mặt bằng luôn vận hành trơn tru.</p></div>
+            <span class="editorial-media"><img data-slot="editorial-strip.image-5" src="/assets/content/shared/bao-hanh-shop-thoi-trang.webp" width="3072" height="2048" loading="lazy" decoding="async" alt="Thợ chỉnh bản lề tủ đảo và cân kệ tường trong shop thời trang" data-en-alt="Technicians adjusting island cabinet hinges and levelling wall shelves in a fashion store" /></span>
+            <div><h3 data-slot="editorial-strip.title-5" data-en="After-sales">Hậu mãi</h3><p data-slot="editorial-strip.body-5" data-en="Regular maintenance keeps your space running smoothly.">Bảo trì định kỳ để mặt bằng luôn vận hành trơn tru.</p></div>
           </article>
         </section>
 
@@ -402,7 +401,7 @@
           data-header-tone="ink"
           aria-labelledby="materials-title"
         >
-          <p
+          <p data-slot="vat-lieu.label"
             class="detail-eyebrow"
             data-motion-fade
             data-en="MATERIALS"
@@ -411,13 +410,13 @@
           </p>
           <h2 id="materials-title" data-motion-lines>
             <span class="detail-line">
-              <span data-motion-line-source data-en="Materials built for">
+              <span data-slot="vat-lieu.text-1" data-motion-line-source data-en="Materials built for">
                 Vật liệu chịu được
               </span>
             </span>
             <span class="detail-line">
               <span
-                ><em data-motion-line-source data-en="the pace of business"
+                ><em data-slot="vat-lieu.text-2" data-motion-line-source data-en="the pace of business"
                   >nhịp kinh&nbsp;doanh</em
                 ></span
               >
@@ -430,7 +429,7 @@
           data-header-tone="ink"
           aria-labelledby="materials-title"
         >
-          <p>
+          <p data-slot="note-2.body">
             <span
               data-en="Scratch-resistant counter tops, moisture-resistant boards for the bar, load-rated hardware for shelving. We choose materials for how hard each area really works, so counters, shelves and partitions CNC-cut in our workshop stay durable, easy to replace and ready to open on time."
             >
@@ -484,7 +483,7 @@
           data-header-tone="ink"
           aria-labelledby="typologies-title"
         >
-          <h2
+          <h2 data-slot="loai-hinh.title-1"
             class="sr-only"
             id="typologies-title"
             data-en="Three commercial typologies"
@@ -493,7 +492,7 @@
           </h2>
           <div class="service-portals">
             <article class="service-portal">
-              <img
+              <img data-slot="loai-hinh.image-1"
                 src="/assets/content/projects/cua-hang-my-pham-ke-xanh.webp"
                 width="3072"
                 height="2194"
@@ -503,17 +502,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Showroom · Store">Showroom · Cửa hàng</h3>
+                <h3 data-slot="loai-hinh.title-2" class="commitment-title" data-en="Showroom · Store">Showroom · Cửa hàng</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Stand-out displays">Trưng bày nổi bật</span><span class="portal-line" data-en="that sell easily">bán hàng dễ hơn</span></p
+                  ><span data-slot="loai-hinh.text-1" class="portal-line" data-en="Stand-out displays">Trưng bày nổi bật</span><span data-slot="loai-hinh.text-2" class="portal-line" data-en="that sell easily">bán hàng dễ hơn</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Shelving, display islands and cash counters follow your brand identity, set along the customer flow so products are easy to see, touch and buy.">Kệ, đảo trưng bày và quầy thu ngân theo nhận diện thương hiệu, sắp theo luồng khách để sản phẩm dễ thấy, dễ chạm và dễ chốt đơn.</span></p
+                  ><span data-slot="loai-hinh.text-3" class="portal-subtitle" data-en="Shelving, display islands and cash counters follow your brand identity, set along the customer flow so products are easy to see, touch and buy.">Kệ, đảo trưng bày và quầy thu ngân theo nhận diện thương hiệu, sắp theo luồng khách để sản phẩm dễ thấy, dễ chạm và dễ chốt đơn.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="loai-hinh.image-2"
                 src="/assets/content/projects/commercial-portal-cafe-v2.webp"
                 width="1024"
                 height="1536"
@@ -523,17 +522,17 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Café · Restaurant">Cafe · Nhà hàng</h3>
+                <h3 data-slot="loai-hinh.title-3" class="commitment-title" data-en="Café · Restaurant">Cafe · Nhà hàng</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Smooth service">Phục vụ trơn tru</span><span class="portal-line" data-en="relaxed guests">khách ngồi thư thái</span></p
+                  ><span data-slot="loai-hinh.text-4" class="portal-line" data-en="Smooth service">Phục vụ trơn tru</span><span data-slot="loai-hinh.text-5" class="portal-line" data-en="relaxed guests">khách ngồi thư thái</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Bar, kitchen and aisles are planned around the peak-hour rhythm; tables, seating and surfaces resist water, resist heat, wipe clean.">Quầy pha chế, khu bếp và lối đi tính theo nhịp phục vụ giờ cao điểm; bàn ghế và bề mặt chịu nước, chịu nhiệt, dễ lau.</span></p
+                  ><span data-slot="loai-hinh.text-6" class="portal-subtitle" data-en="Bar, kitchen and aisles are planned around the peak-hour rhythm; tables, seating and surfaces resist water, resist heat, wipe clean.">Quầy pha chế, khu bếp và lối đi tính theo nhịp phục vụ giờ cao điểm; bàn ghế và bề mặt chịu nước, chịu nhiệt, dễ lau.</span></p
                 >
               </div>
             </article>
             <article class="service-portal">
-              <img
+              <img data-slot="loai-hinh.image-3"
                 src="/assets/content/projects/commercial-portal-office-v1.webp"
                 width="1024"
                 height="1536"
@@ -543,12 +542,12 @@
               />
               <span class="portal-shade" aria-hidden="true"></span>
               <div class="portal-copy commitment-copy">
-                <h3 class="commitment-title" data-en="Office · Workspace">Văn phòng · Khu làm việc</h3>
+                <h3 data-slot="loai-hinh.title-4" class="commitment-title" data-en="Office · Workspace">Văn phòng · Khu làm việc</h3>
                 <p class="portal-title-mask commitment-lead"
-                  ><span class="portal-line" data-en="Teams connect">Gắn kết đội ngũ</span><span class="portal-line" data-en="and get work done">làm việc hiệu quả</span></p
+                  ><span data-slot="loai-hinh.text-7" class="portal-line" data-en="Teams connect">Gắn kết đội ngũ</span><span data-slot="loai-hinh.text-8" class="portal-line" data-en="and get work done">làm việc hiệu quả</span></p
                 >
                 <p class="commitment-body"
-                  ><span class="portal-subtitle" data-en="Meeting areas, desks, shelving partitions and file storage suit both focused work and teamwork, tidy and easy to extend as the team grows.">Khu họp, bàn làm việc, vách kệ và tủ hồ sơ bố trí cho cả lúc tập trung lẫn lúc trao đổi, gọn gàng và dễ mở rộng khi đội ngũ lớn thêm.</span></p
+                  ><span data-slot="loai-hinh.text-9" class="portal-subtitle" data-en="Meeting areas, desks, shelving partitions and file storage suit both focused work and teamwork, tidy and easy to extend as the team grows.">Khu họp, bàn làm việc, vách kệ và tủ hồ sơ bố trí cho cả lúc tập trung lẫn lúc trao đổi, gọn gàng và dễ mở rộng khi đội ngũ lớn thêm.</span></p
                 >
               </div>
             </article>
@@ -563,7 +562,7 @@
           data-header-tone="inverse"
           aria-labelledby="cta-title"
         >
-          <img
+          <img data-slot="tu-van.image-1"
             class="media-hover-zoom"
             src="/assets/content/projects/khao-sat-mat-bang-kinh-doanh.webp"
             width="3072"
@@ -574,10 +573,10 @@
             data-motion-media
           />
           <div class="detail-cta__copy">
-            <p data-motion-fade data-motion-delay="0.3" data-en="HAVE A SITE?">
+            <p data-slot="tu-van.body" data-motion-fade data-motion-delay="0.3" data-en="HAVE A SITE?">
               CÓ MẶT BẰNG?
             </p>
-            <h2 id="cta-title" data-motion-lines>
+            <h2 data-slot="tu-van.title" id="cta-title" data-motion-lines>
               <span data-en="Book a site survey">Đặt lịch khảo sát</span>
             </h2>
             <a
@@ -590,7 +589,7 @@
               aria-label="Gọi Zalo để đặt lịch khảo sát"
               data-en-aria-label="Book a site survey on Zalo"
             >
-              <span class="portal-subtitle" data-en="Talk on Zalo">Gọi Zalo tư vấn</span>
+              <span data-slot="tu-van.text" class="portal-subtitle" data-en="Talk on Zalo">Gọi Zalo tư vấn</span>
             </a>
           </div>
         </section>

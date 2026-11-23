@@ -11,6 +11,7 @@ import { mediaRefs } from "../../src/cms/media-ref.mjs";
 import { filesToRecords } from "../../src/cms/projection.mjs";
 import { ADVERTISING_MEDIA_MANIFEST } from "../../src/site/advertising-products/media-manifest.mjs";
 import { contentDirOf, fileImageCheck } from "../site/content-files.mjs";
+import { SLOT_PAGES, slotValues } from "../site/slots.mjs";
 
 const SITE_ROOT = fileURLToPath(new URL("../../src/site/", import.meta.url));
 const FILE_NAMES = ["news.json", "projects.json", "hero-slides.json", "home-projects.json", "menu.json"];
@@ -38,6 +39,9 @@ export async function seedSql({ contentDir = contentDirOf(SITE_ROOT), force = fa
   const files = {
     ...Object.fromEntries(FILE_NAMES.map((name) => [name, JSON.parse(readFileSync(path.join(contentDir, name), "utf8"))])),
     cards: structuredClone(ADVERTISING_MEDIA_MANIFEST),
+    // Standard pages: every slot with the text and image the page has now (K7), so the first build after the seed is unchanged.
+    "page-copy.json": Object.fromEntries(Object.entries(SLOT_PAGES).map(([id, page]) => [id, { slots: slotValues(readFileSync(path.join(SITE_ROOT, page), "utf8")) }])
+      .filter(([, { slots }]) => Object.keys(slots).length)),
   };
   const paths = filesToRecords(files).filter(({ type }) => type === "media").map(({ data }) => data.path);
   const records = filesToRecords(files, new Map(paths.map((src) => [src, fileFact(src)])));

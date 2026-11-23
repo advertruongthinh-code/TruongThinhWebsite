@@ -9,6 +9,7 @@ const ENTRIES = [
   "scripts/site/block-pages.mjs",
   "scripts/site/hero-slides.mjs",
   "scripts/site/media-src.mjs",
+  "scripts/site/slots.mjs",
   "scripts/site/home-projects.mjs",
   "src/site/advertising-products/media-contract.mjs",
   "src/cms/layouts.mjs",

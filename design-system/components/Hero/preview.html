@@ -20,16 +20,16 @@
             <h1>
               <span class="hero-line-mask">
                 <span
-                  ><span class="hero-word" data-en="Built">Làm</span>
-                  <span class="hero-word"><span data-en="solid">chắc</span></span></span
+                  ><span data-slot="hero.text-1" class="hero-word" data-en="Built">Làm</span>
+                  <span class="hero-word"><span data-slot="hero.text-2" data-en="solid">chắc</span></span></span
                 >
               </span>
               <span class="hero-line-mask">
                 <span
                   ><em
-                    ><span class="hero-word" data-en="Made">Làm</span>
+                    ><span data-slot="hero.text-3" class="hero-word" data-en="Made">Làm</span>
                     <span class="hero-word"
-                      ><span data-en="different">khác</span></span></em
+                      ><span data-slot="hero.text-4" data-en="different">khác</span></span></em
                   ></span
                 >
               </span>
@@ -53,7 +53,7 @@
             </svg>
           </button>
 
-          <button
+          <button data-slot="hero.link"
             class="scroll-cue"
             type="button"
             data-scroll-cue
