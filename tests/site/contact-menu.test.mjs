@@ -92,6 +92,8 @@ test("menu: 5 or 7 groups is a shape error (400); a link to a trashed project is
   for (const groups of [menu.groups.slice(0, 5), [...menu.groups, menu.groups[5]]]) {
     assert.deepEqual((await shapeErrors("menu", { groups })).map(({ code }) => code), ["menu-shape"]);
   }
+  const badAria = menu.groups.map((group, i) => (i ? group : { ...group, aria: { vi: "a" } }));
+  assert.deepEqual((await shapeErrors("menu", { groups: badAria })).map(({ code }) => code), ["menu-shape"]);
   assert.deepEqual(await shapeErrors("menu", menu), []);
   const projects = new Map(menu.groups[2].items.filter(({ link }) => link.startsWith("page:project/")).map(({ link }) => [link.slice(13), {}]));
   assert.deepEqual(await fullErrors("menu", menu, { projects }), []);
