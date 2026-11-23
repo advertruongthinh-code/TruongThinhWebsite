@@ -43,6 +43,16 @@
     </div>
     <pre id="log" role="status" aria-live="polite"></pre>
   </section>
+  <section>
+    <h2>Tải ảnh thử</h2>
+    <label>Ảnh (JPEG, PNG, WebP, AVIF)<br><input id="testFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></label>
+    <div class="row">
+      <button id="uploadTest" type="button">Tải ảnh thử</button>
+      <button id="mediaReload" type="button">Tải lại media</button>
+    </div>
+    <pre id="uploadLog" role="status" aria-live="polite"></pre>
+    <pre id="mediaList" aria-live="polite">Đang tải...</pre>
+  </section>
 </main>
 <script type="module" src="./status.js"></script>
 </body>

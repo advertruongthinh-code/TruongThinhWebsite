@@ -25,7 +25,7 @@ export function createR2() {
       const start = range?.offset ?? 0;
       const end = range?.length === undefined ? object.size : start + range.length;
       const bytes = object.body.subarray(start, end);
-      return { ...meta(key, object), body: new Response(bytes).body, arrayBuffer: async () => bytes, text: async () => bytes.toString() };
+      return { ...meta(key, object), body: new Response(bytes).body, arrayBuffer: async () => bytes, text: async () => bytes.toString(), json: async () => JSON.parse(bytes.toString()) };
     },
     async head(key) {
       const object = objects.get(key);
