@@ -1,7 +1,7 @@
 // docs-system.md R11: AGENTS.md rules checked by qa:docs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, diffLines, ownerLockErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from "../../scripts/docs/agents-rules.mjs";
+import { blockLines, cardClaimErrors, cardId, cardLevel, parentIds, planErrors, tierFloor, tierLineErrors, cmsImportErrors, commentLanguageErrors, designLineErrors, diffLines, ownerLockErrors, emojiErrors, isImageMaster, isVietnameseProse, markdownNameErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from "../../scripts/docs/agents-rules.mjs";
 
 const reader = (files) => (file) => files[file];
 
@@ -138,4 +138,46 @@ test("owner lock: dropping or rewriting an owner-dated spec sentence or deleting
 test("unified diff with -U0 splits into removed and added lines", () => {
   const diff = ["diff --git a/x b/x", "--- a/x", "+++ b/x", "@@ -1 +1 @@", "-old line", "+new line", "+-- not a header"].join("\n");
   assert.deepEqual(diffLines(diff), { removed: ["old line"], added: ["new line", "-- not a header"] });
+});
+
+test("tier floor: CMS code or a long task is 3, site code is 1, docs and CI are 0", () => {
+  const row = (file, added = 1) => ({ file, added, deleted: 0 });
+  assert.equal(tierFloor([row("docs/a.md", 900), row("scripts/docs/x.mjs")]), 0);
+  assert.equal(tierFloor([row("src/site/a.js")]), 1);
+  assert.equal(tierFloor([row("src/search/a.mjs")]), 1);
+  assert.equal(tierFloor([row("src/worker/a.mjs")]), 3);
+  assert.equal(tierFloor([row("src/site/a.js", 400)]), 3);
+  assert.equal(tierFloor([row("src/site/a.md", 900)]), 1, "Markdown is not LOC");
+  assert.equal(tierFloor([row("src/site/a.js"), row("scripts/b.mjs")]), 3, "two zones");
+  assert.equal(tierFloor(Array.from({ length: 8 }, (_, i) => row(`tests/t${i}.mjs`))), 3);
+  assert.equal(tierFloor([row("src/site/motion.js"), row("src/site/m.mjs")], ["src/site/motion.js", "src/site/m.mjs"]), 3, "two hot files");
+});
+
+test("tier line: missing or below the floor or the card's Plan level fails", () => {
+  assert.deepEqual(tierLineErrors(0, "no line"), []);
+  assert.equal(tierLineErrors(1, "no line").length, 1);
+  assert.equal(tierLineErrors(0, "no line", 2).length, 1);
+  assert.deepEqual(tierLineErrors(1, "Kiểm độc lập: tầng 2, vai 1-5, https://x"), []);
+  assert.match(tierLineErrors(3, "Kiểm độc lập: tầng 1, vai 1")[0], /at least tầng 3/);
+  assert.match(tierLineErrors(0, "Kiểm độc lập: tầng 0 - chỉ docs", 2)[0], /Plan level is 2/);
+  assert.equal(cardLevel({ properties: { "Plan level": { select: { name: "3" } } } }), 3);
+  assert.equal(cardLevel({ properties: { "Plan level": { select: null } } }), 0);
+  assert.equal(cardLevel(null), 0);
+});
+
+test("card plan: needs a Plan heading with to-dos and an approval line with a link", () => {
+  const block = (type, text, href = null) => ({ type, [type]: { rich_text: [{ plain_text: text, href }] } });
+  const good = blockLines([
+    block("paragraph", "Mục tiêu: x"),
+    block("heading_2", "Plan"),
+    block("to_do", "B1"),
+    block("paragraph", "Plan đã duyệt: tin owner", "https://claude.ai/code/project/x?thread=y"),
+  ]);
+  assert.deepEqual(planErrors(good), []);
+  assert.deepEqual(planErrors(blockLines([block("heading_2", "Plan"), block("to_do", "B1"), block("paragraph", "Plan đã duyệt: https://claude.ai/x")])), []);
+  assert.equal(planErrors(blockLines([block("to_do", "B1"), block("heading_2", "Plan"), block("paragraph", "Plan đã duyệt: https://x")])).length, 1, "to-do before the heading");
+  assert.equal(planErrors(blockLines([block("heading_2", "Plan"), block("to_do", "B1"), block("paragraph", "Plan đã duyệt: chờ")])).length, 1, "approval without link");
+  assert.equal(planErrors([]).length, 2);
+  assert.deepEqual(parentIds({ properties: { "Parent item": { relation: [{ id: "4213-3284" }] } } }), ["42133284"]);
+  assert.deepEqual(parentIds({}), []);
 });
