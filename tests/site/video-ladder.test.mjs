@@ -61,3 +61,17 @@ test("a source rotated 90 degrees gets no rung wider than its display width", { 
   execFileSync(process.execPath, [path.resolve(here, "../../scripts/site/build-video-ladder.mjs"), path.join(dir, "turned.mp4"), path.join(dir, "out")]);
   assert.deepEqual(readdirSync(path.join(dir, "out")).filter((file) => file.endsWith(".mp4")).sort(), ["240.mp4", "480.mp4"]);
 });
+
+// CRF alone made a 1920 rung 130 MB from an 85.8 MB phone clip: rungs are capped so none is bigger than the source file.
+test("no rung is bigger than a low-bitrate source", { skip: !hasFfmpeg && "ffmpeg not installed" }, (t) => {
+  const dir = mkdtempSync(path.join(tmpdir(), "ladder-"));
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  // Noise is hard to compress, so CRF alone spends more than the 400 kbps of this source; a keyframe every 1 s makes the 960 rung re-encode, not copy.
+  execFileSync("ffmpeg", ["-y", "-f", "lavfi", "-i", "testsrc2=size=960x540:rate=30,noise=alls=40:allf=t", "-t", "5", "-c:v", "libx264", "-b:v", "400k", "-g", "30",
+    "-pix_fmt", "yuv420p", "noisy.mp4"], { cwd: dir, stdio: "ignore" });
+  execFileSync(process.execPath, [path.resolve(here, "../../scripts/site/build-video-ladder.mjs"), path.join(dir, "noisy.mp4"), path.join(dir, "out")]);
+  const limit = statSync(path.join(dir, "noisy.mp4")).size;
+  for (const file of readdirSync(path.join(dir, "out")).filter((name) => name.endsWith(".mp4"))) {
+    assert.ok(statSync(path.join(dir, "out", file)).size <= limit, `${file} is not bigger than the source`);
+  }
+});
