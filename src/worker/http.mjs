@@ -27,11 +27,15 @@ export async function readJson(request) {
   if (declared > MAX_JSON_BYTES) throw new HttpError(413, { error: "too large" });
   const text = await request.text();
   if (new TextEncoder().encode(text).byteLength > MAX_JSON_BYTES) throw new HttpError(413, { error: "too large" });
+  let body;
   try {
-    return JSON.parse(text);
+    body = JSON.parse(text);
   } catch {
     throw new HttpError(400, { error: "invalid json" });
   }
+  // Every command takes an object; null or an array would throw a TypeError (503, no audit row) when destructured.
+  if (!isPlainObject(body)) throw new HttpError(400, { error: "shape" });
+  return body;
 }
 
 // guard = { sql, args } (records.mjs guard()): the row is written only when that condition holds inside the same batch.
