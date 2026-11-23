@@ -124,7 +124,10 @@ test("content contract: an R2 image reused across News posts is one photo by var
   Object.assign(process.env, { TT_CONTENT_DIR: dir, CMS_MEDIA_ORIGIN: ORIGIN });
   try {
     const reuse = (errors) => errors.filter((error) => /News image also used by/.test(error));
-    assert.deepEqual(reuse(await checkSiteContent(path.join(projectRoot, "src/site"))), []);
+    const errors = await checkSiteContent(path.join(projectRoot, "src/site"));
+    assert.deepEqual(reuse(errors), []);
+    // The R2 video has only hlsSrc until resolveVideoRungs fills src from variants.json (E4).
+    assert.deepEqual(errors.filter((error) => error.includes(".video")), []);
     const news = JSON.parse(readFileSync(path.join(dir, "news.json"), "utf8"));
     news[1].cover = { ...news[0].cover };
     writeFileSync(path.join(dir, "news.json"), JSON.stringify(news));
