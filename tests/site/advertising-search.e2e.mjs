@@ -5,7 +5,7 @@ import { test } from "node:test";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
 import { COPY } from "../../src/site/search/bar.mjs";
 import { matchesFilter } from "../../src/site/masonry/layout.mjs";
-import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, viewportAt } from "./harness.mjs";
+import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, touchSwipe, viewportAt } from "./harness.mjs";
 
 const PAGE = `${BASE_URL}/advertising-products/`;
 const WIDE = { width: 1440, height: 900 };
@@ -340,6 +340,12 @@ test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and
     assert.equal(await page.locator("[data-masonry-pending]").count(), 0, "grid no longer pending");
     assert(await page.locator(`.search-bar [data-search-note] button[aria-label="${COPY.vi.retry}"]`).isVisible(), "retry icon");
     await announced(page, /kết quả/, 6000); // the late answer still applies
+    // Moved after the wait ended: the late answer waits behind the offer button (owner 2026-11-23).
+    await page.press(".search-bar input", "Enter");
+    await page.waitForSelector(".search-bar [data-search-note]", { state: "hidden", timeout: 2000 }); // the old note fades out first
+    await page.waitForFunction(() => /đang chậm/i.test(document.querySelector(".search-bar [data-search-note]").textContent), null, { timeout: 5000 });
+    await touchSwipe(page, { x: 200, y: 400 }, { x: 200, y: 250 });
+    await page.waitForSelector("[data-masonry-offer]", { timeout: 6000 });
     await context.close();
   } finally {
     await browser.close();
@@ -423,6 +429,51 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     await page.click('[data-masonry-filter="all"]');
     await page.waitForTimeout(900);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+test("R6 at 384px: server trouble keeps keyword results with a short note and Try again; no keyword match says trouble and stays put", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, PHONE, PAGE, { status: 503 });
+    let calls = 0;
+    page.on("request", (request) => request.url().endsWith("/api/search") && calls++);
+    const note = (pattern) => page.waitForFunction((source) => {
+      const node = document.querySelector(".search-bar [data-search-note]");
+      return !node.hidden && new RegExp(source, "i").test(node.textContent) && node.querySelector("button");
+    }, pattern.source, { timeout: 5000 });
+    await search(page, "hộp đèn");
+    await note(/^Lỗi tìm kiếm$/);
+    // The note and its button fit inside the bar on a phone.
+    await barStill(page);
+    const fits = await page.evaluate(() => {
+      const shell = document.querySelector(".search-bar__shell").getBoundingClientRect();
+      return [...document.querySelectorAll(".search-bar [data-search-note] > *")].every((node) => {
+        const box = node.getBoundingClientRect();
+        return box.left >= shell.left - 1 && box.right <= shell.right + 1 && node.scrollWidth <= node.clientWidth + 1;
+      });
+    });
+    assert(fits, "note fits the bar");
+    await page.click(".search-bar [data-search-note] button");
+    await page.waitForTimeout(1500); // a fast second error lands while the first note still fades out
+    assert.equal(calls, 2, "Try again asks the server again");
+    await note(/^Lỗi tìm kiếm$/);
+    // No keyword match: the trouble note, not "no match", and the page does not move.
+    await backToTop(page);
+    const before = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
+    await search(page, "zzqxw");
+    await note(/^Lỗi tìm kiếm$/);
+    await page.waitForTimeout(800);
+    assert.equal(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY), before, "stays put");
+    // An image: the image trouble note.
+    await page.fill(".search-bar input", "");
+    await page.setInputFiles("[data-search-file]", await makeJpeg(page, 20));
+    await page.waitForFunction(() => !document.querySelector(".search-bar [data-search-thumb]").hidden);
+    await page.click(".search-bar [type=submit]");
+    await note(/^Lỗi tìm ảnh$/);
     await context.close();
   } finally {
     await browser.close();
@@ -656,13 +707,20 @@ for (const viewport of [WIDE, PHONE]) {
         if (from === "mid") await to(4000);
         if (from === "cta") await to(1e6);
         await page.waitForTimeout(800);
-        await search(page, "hộp đèn");
-        await page.waitForFunction(() => {
+        const atGridTop = () => page.waitForFunction(() => {
           const grid = document.querySelector("[data-project-grid]").getBoundingClientRect().top;
           const header = Math.max(0, document.querySelector(".site-header").getBoundingClientRect().bottom);
           const outer = Number.parseFloat(getComputedStyle(document.querySelector(".masonry-section")).getPropertyValue("--masonry-outer"));
           return Math.abs(grid - header - outer) <= 2;
         }, null, { timeout: 8000 });
+        await search(page, "hộp đèn");
+        await atGridTop();
+        // The same query again (same results) still glides back (owner 2026-11-23).
+        await page.waitForTimeout(800);
+        await to(from === "top" ? 0 : from === "mid" ? 4000 : 1e6);
+        await page.waitForTimeout(800);
+        await search(page, "hộp đèn");
+        await atGridTop();
         await context.close();
       } finally {
         await browser.close();
@@ -832,8 +890,8 @@ test("search-bar R3 at 360px: every tip and notice fits the floating phone field
       }, null, { polling: 500, timeout: 10_000 });
       await page.waitForTimeout(1200);
       const copy = COPY[locale];
-      const plain = [...copy.tips, copy.imageHint, copy.videoOnly, copy.unsupported, copy.tooLarge, copy.unreadable, copy.paused, copy.searching, copy.empty];
-      const retry = [copy.slow];
+      const plain = [...copy.tips, copy.imageHint, copy.videoOnly, copy.unsupported, copy.tooLarge, copy.unreadable, copy.searching, copy.empty];
+      const retry = [copy.slow, copy.trouble, copy.imageTrouble];
       const { field, wide } = await page.evaluate(({ plain, retry }) => {
         const field = document.querySelector(".search-host .search-bar__field").getBoundingClientRect().width;
         const font = getComputedStyle(document.querySelector(".search-host .search-bar__note")).fontFamily;

@@ -52,19 +52,22 @@ Then hàng chip có nút mũi tên "Hiện tất cả (19)" ở cuối; bấm th
 
 **Chữ gợi ý.** Ô trống, không focus, không rê chuột thì chữ mờ (`muted`) đổi mỗi 3 giây; câu cũ trượt lên 60% và mờ đi, câu mới trượt từ dưới lên,
 `--dur-fade` `--ease-expo-out`. Focus, rê chuột hoặc đã có chữ thì dừng ở câu đang hiện. Giảm chuyển động: không đổi, chỉ hiện câu đầu. Đang có ảnh mà chưa gõ chữ thì
-hiện cố định "Thêm chữ để tìm sát hơn" / "Add words to narrow it down". Mỗi câu tối đa 28 ký tự để vừa ô chữ phone 390px (khoảng 215px); dài hơn thì cắt bằng "…".
-Danh sách (VI / EN): "Tìm hộp đèn, chữ nổi, kệ…" / "Search lightboxes, letters…"; "Thử: chữ nổi inox" / "Try: steel letters"; "Mẹo: tìm bằng một ảnh mẫu" /
-"Tip: search with a photo"; "Gõ không dấu cũng được" / "Typos are fine"; "Thử: kệ trưng bày mỹ phẩm" / "Try: cosmetics display". Lớp chữ gợi ý là `aria-hidden`; ô chữ giữ
+hiện cố định "Thêm chữ để lọc" / "Add a few words". Owner 2026-11-23: phone chung hàng với nút về đầu trang ([R5](#r5-nút-về-đầu-trang-phone-và-chuyển-động)) nên ô chữ
+phone 360px chỉ còn khoảng 157px; mỗi câu (khoảng 20 ký tự) phải vừa nguyên ô đó, không bị cắt "…".
+Danh sách (VI / EN): "Tìm hộp đèn, chữ nổi" / "Search lightboxes…"; "Thử: chữ nổi inox" / "Try: steel letters"; "Mẹo: tìm bằng ảnh" /
+"Tip: search by photo"; "Gõ không dấu được" / "Typos are fine"; "Thử: kệ mỹ phẩm" / "Try: display shelves". Lớp chữ gợi ý là `aria-hidden`; ô chữ giữ
 `placeholder` tĩnh cho trình đọc màn hình.
 
 **Ảnh: một tấm.** Ảnh vào bằng nút ảnh, kéo thả (lớp phủ "Thả ảnh vào đây để tìm") hoặc dán. Thumbnail 30px nằm đúng chỗ nút ảnh, góc trên phải có nút bỏ 14px nền `ink`
 chữ trắng (vùng bấm 32px); thanh không cao thêm, không còn khay ảnh. Bấm thumbnail thì mở chọn ảnh để thay. Đưa ảnh mới (một hay nhiều file) thì ảnh đầu thay ảnh
 cũ ([Tìm kiếm R8](advertising-search.md#r8-ảnh-khách-đưa-vào)). Bỏ ảnh thì focus về nút ảnh. Phần tìm (1 ảnh gửi API) thuộc thread rà soát tìm kiếm ([Tìm kiếm R8](advertising-search.md#r8-ảnh-khách-đưa-vào)).
 
-**Thông báo.** ("Chưa thấy mẫu phù hợp", thông báo về ảnh của R8, đang chậm, tạm nghỉ): không còn khay, nên thông báo là một lớp chữ đè lên ô chữ (chữ khách gõ
+**Thông báo.** ("Chưa thấy mẫu nào", thông báo về ảnh của R8, đang chậm, lỗi tìm): không còn khay, nên thông báo là một lớp chữ đè lên ô chữ (chữ khách gõ
 tạm trong suốt), trượt vào và ra như chữ gợi ý, chữ `ink` đậm 600 để khác chữ gợi ý; 4 giây rồi chữ khách gõ hiện lại. Khách gõ hoặc bấm vào ô thì thông báo tắt
-ngay. Đang chậm và tạm nghỉ ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)): thông báo ở lại tới khi khách làm gì đó, cuối thông báo có nút chữ "Thử lại" / "Retry". Phone: dùng câu ngắn ("Ảnh chưa đọc
-được, thử JPG" ...), tối đa 28 ký tự. Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
+ngay. Đang chậm và lỗi tìm ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)): thông báo ở lại tới khi khách làm gì đó, cuối ô chữ có nút icon vòng xoay 40px như nút ảnh, nhãn `aria-label`/`title` "Thử lại" / "Try again" (owner 2026-11-23, thay nút chữ). Câu ngắn
+như chữ gợi ý: vừa nguyên ô chữ phone 360px (khoảng 157px), câu có nút thử lại vừa phần còn lại (khoảng 107px): "Tìm ảnh chậm" / "Image is slow", "Lỗi tìm kiếm" /
+"Search error", "Lỗi tìm ảnh" / "Image error", "Ảnh lỗi, thử JPG" / "Bad image, try JPG", "File chưa hỗ trợ" / "File not supported", "Ảnh cần dưới 25 MB" /
+"Image over 25 MB". Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
 
 ### R4. Khe CTA
 
@@ -77,7 +80,9 @@ dự phòng cũ: link cách đáy khối ít nhất `--masonry-gap`.
 ### R5. Nút về đầu trang, phone và chuyển động
 
 **Nút về đầu trang (thiết bị cảm ứng, theo điều kiện hiện nay `(hover: none) and (pointer: coarse)`).** Nút luôn là ô 50px nền `paper`, viền 1px `ink`, cùng bóng
-với thanh ([shell](site-shell.md), owner 2026-11-22). Khi thanh nổi: nằm hàng riêng phía trên thanh, cách 10px, sát mép phải màn như mọi trang (owner 2026-11-22). Thanh ở khe thì nút ẩn. Nút nằm dưới khối tìm kiếm (z-index), bóng không phủ lên thanh. Detail view ẩn thanh nên nút về góc thường. `--search-bar-offset` = chiều cao khối (gồm hàng
+với thanh ([shell](site-shell.md), owner 2026-11-22). Khi thanh nổi trên máy cỡ tablet: nằm hàng riêng phía trên thanh, cách 10px, sát mép phải màn (owner 2026-11-22). Phone dọc và ngang (như
+[phone-header-scroll R6](phone-header-scroll.md), owner 2026-11-23): thanh và nút chung một hàng cách đáy 16px, thẳng mép lưới: thanh từ mép trái lưới tới cách
+mép phải lưới 60px, nút 50px nằm cuối hàng cách thanh 10px, đáy nút bằng đáy thanh; có kết quả thì hàng chip mở phía trên thanh, nút đứng yên. Thanh ở khe thì nút ẩn. Nút nằm dưới khối tìm kiếm (z-index), bóng không phủ lên thanh. Detail view ẩn thanh nên nút về góc thường. `--search-bar-offset` = chiều cao khối (gồm hàng
 chip) + 12px; Floating CTA và nút về đầu trang không cùng hiện nên không cộng hàng nút.
 
 **Phone, bàn phím mở.** Ô chữ focus trên phone: hàng chip và nút về đầu trang ẩn, chỉ còn hàng chữ trên bàn phím; thanh không đổi chỗ tới khi blur (như nay).
@@ -161,7 +166,9 @@ Owner 2026-11-23: tìm xong (Enter, kính lúp, thêm ảnh) thì trang trượt
 PC và phone. Đầu lưới nằm dưới đáy header một khoảng bằng lề trái, phải của lưới so với mép trang (`--masonry-outer`); header ẩn khi cuộn
 xuống và hiện khi cuộn lên ([phone-header-scroll R2](phone-header-scroll.md#r2-header-đi-theo-quãng-cuộn)), nên cuộn xuống thì khoảng đó tính
 từ mép trên màn hình. Trượt 600ms theo đường `--ease-card`, cùng lúc lưới xếp lại; chạm, lăn chuột hoặc bấm phím thì dừng; giảm chuyển động
-thì nhảy ngay. Bấm chip trong kết quả hoặc bỏ tìm (Esc, nút xoá): chỉ trượt khi lưới mới ngắn hơn làm trang lùi về chỗ thấy CTA; còn lại đứng yên.
+thì nhảy ngay. Tìm lại đúng câu cũ (kết quả y hệt) cũng trượt (owner 2026-11-23). Không có kết quả thì đứng yên; trang chỉ trượt khi kết quả về,
+không trượt lúc bấm. Ảnh về muộn sau khi khách đã cuộn thì thành nút "Có thêm kết quả gợi ý", bấm mới trượt ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)).
+Bấm chip trong kết quả hoặc bỏ tìm (Esc, nút xoá): chỉ trượt khi lưới mới ngắn hơn làm trang lùi về chỗ thấy CTA; còn lại đứng yên.
 
 ```gherkin
 Given trang gốc ở 384px, cuộn tới tận cuối, thanh ở khe CTA

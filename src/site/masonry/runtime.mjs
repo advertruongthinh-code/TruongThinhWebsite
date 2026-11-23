@@ -3974,8 +3974,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   // Switches the grid to another card set (filter or search results), sliding cards from where they are now. reason tells the search
   // page why search ended (R6): "clear", "filter" (a click: rail, active chip, navbar, breadcrumb) or "history" (Back/Forward).
-  // After a search the page glides so the grid's top sits one outer margin below the header (search-bar R9): always for new
-  // results; for a chip or clearing only when the shorter grid left the CTA in view. Two frames let the slide and site:layout land first.
+  // After a search the page glides so the grid's top sits one outer margin below the header (search-bar R9): always for
+  // results (new or the same again); for a chip or clearing only when the shorter grid left the CTA in view. Two frames let the slide and site:layout land first.
   const glideToGrid = (always) => requestAnimationFrame(() => requestAnimationFrame(() => {
     if (!always && !(gridCta && gridCta.getBoundingClientRect().top < innerHeight)) return;
     const y = getLogicalScroll();
@@ -4049,7 +4049,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     setPending(false);
     setOffer(null);
     const next = searchFor(ids);
-    if (next.key === search?.key && searchFilter === "all") return;
+    // The same results again still glide to the grid top (search-bar R9, owner 2026-11-23).
+    if (next.key === search?.key && searchFilter === "all") return glideToGrid(true);
     relayoutTo(() => {
       search = next;
       searchFilter = "all";

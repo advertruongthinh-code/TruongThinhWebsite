@@ -43,13 +43,15 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   document.body.append(host);
 
   const announce = (text) => { liveNode.textContent = text; };
-  // Notices take the input's place for 4 seconds (search-bar R3); slow and paused stay, with "Try again", until the visitor acts.
+  // Notices take the input's place for 4 seconds (search-bar R3); slow and error notes stay, with "Try again", until the visitor acts.
   let noteTimer;
+  let noteTurn = 0; // a note shown during the fade-out of the last one stays: the late fade end must not hide it
   const notice = (text, action) => {
     clearTimeout(noteTimer);
+    const turn = ++noteTurn;
     if (!text) {
       if (noteNode.hidden) return;
-      const done = () => { noteNode.hidden = true; noteNode.replaceChildren(); bar.classList.remove("has-note"); syncHint(); };
+      const done = () => { if (turn !== noteTurn) return; noteNode.hidden = true; noteNode.replaceChildren(); bar.classList.remove("has-note"); syncHint(); };
       if (reduced()) return done();
       noteNode.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(-60%)", opacity: 0 }], { duration: 450, easing: "cubic-bezier(0.16, 1, 0.3, 1)" })
         .finished.then(done, done);
