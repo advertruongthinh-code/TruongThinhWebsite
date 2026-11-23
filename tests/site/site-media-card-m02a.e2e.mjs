@@ -130,7 +130,8 @@ async function primaryState(page) {
     const visible = [...hero.querySelectorAll("img, video")].filter((node) => {
       const style = getComputedStyle(node);
       const box = node.getBoundingClientRect();
-      return !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
+      // The floating thumbnail strip sits on the touch primary image; its thumbnails are not primary media.
+      return !node.closest(".thumb-dock") && !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
         && style.visibility !== "hidden" && Number(style.opacity) > 0 && box.width > 0 && box.height > 0;
     }).map((node) => ({ kind: node.tagName.toLowerCase(),
       // A streamed JXL original shows a blob URL; data-original names its file (progressive-loading R10).
@@ -170,7 +171,7 @@ async function assertPrimary(page, card, expectedId, locale) {
         // A streamed JXL original shows a blob URL; data-original names its file (progressive-loading R10).
         const shownUrl = (node.currentSrc.startsWith("blob:") && node.dataset.original) || node.currentSrc || node.src;
         const path = new URL(shownUrl, location.href).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, ".webp");
-        return path === src && !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
+        return path === src && !node.closest(".thumb-dock") && !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
           && style.visibility !== "hidden" && Number(style.opacity) > 0 && box.width > 0 && box.height > 0;
       });
     if (!shown) window.__ttPrimaryStableSince = null;
@@ -1404,13 +1405,15 @@ test("M02a touch primary video shows the expand button and a tap on the video pa
       "tapping the video pauses it");
     assert.equal(await page.locator("[data-detail-dialog]").evaluate((node) => node.open), false,
       "tapping the video does not open the viewer");
-    // Touch screens hide the viewer button and viewer thumbnail row from sight, still available to screen readers (viewer R8).
+    // Touch screens show the viewer strip too (viewer R8, owner 2026-11-23): a portrait phone stacks it on the left, 24px from the edge.
     await page.locator("[data-detail-expand]").tap();
     await page.waitForFunction(() => document.querySelector("[data-detail-dialog]").dataset.viewerState
       === "open");
-    assert.deepEqual(await page.locator("[data-detail-viewer-thumbs]").evaluate((node) =>
-      [node.getBoundingClientRect().width <= 1, node.querySelectorAll("button").length > 1]), [true, true],
-      "the viewer strip is hidden from sight on touch screens but its buttons stay for screen readers");
+    await settleTransitions(page);
+    const touchStrip = await page.locator("[data-detail-viewer-thumbs] button").first().boundingBox();
+    assert(touchStrip && Math.abs(touchStrip.x - 24) <= 1 && Math.abs(touchStrip.width - 56) <= 1,
+      `the viewer strip shows on touch screens, 56px thumbnails 24px from the left: ${JSON.stringify(touchStrip)}`);
+    assert(await page.locator("#detail-dialog [data-thumbs-toggle]").isVisible(), "the strip toggle shows in the viewer");
   });
 });
 
@@ -1429,12 +1432,14 @@ test("M02a viewer thumbnails slide from the video to the image and closing keeps
       (nodes) => nodes.map((node) => `${node.dataset.detailViewerSelect}:${node.getAttribute("aria-current")}`));
     assert.deepEqual(await current(), card.mediaItems.map(({ id }) => `${id}:${id === videoId}`),
       "the viewer strip lists every media of the card and marks the video");
-    const strip = await page.locator("[data-detail-viewer-thumbs]").boundingBox();
+    await settleTransitions(page);
+    const thumbs = await page.$$eval("[data-detail-viewer-thumbs] button", (nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
     const viewport = page.viewportSize();
-    // PC: the strip is a column at the left edge, centered vertically (owner 2026-11-14).
-    assert(strip && Math.abs(strip.x - 16) <= 1 && strip.height > strip.width
-      && Math.abs(strip.y + strip.height / 2 - viewport.height / 2) <= 1,
-      `the strip sits at the left of the viewer, centered: ${JSON.stringify(strip)}`);
+    // PC landscape: the strip is a row of 96px thumbnails 48px above the bottom edge, centered across (owner 2026-11-23).
+    const row = { left: thumbs[0].left, right: thumbs.at(-1).right, bottom: thumbs[0].bottom, height: thumbs[0].height };
+    assert(Math.abs(row.bottom - (viewport.height - 48)) <= 1 && Math.abs(row.height - 96) <= 1
+      && Math.abs((row.left + row.right) / 2 - viewport.width / 2) <= 1,
+      `the strip is a bottom row of the viewer, centered: ${JSON.stringify(row)}`);
     const ghost = await page.evaluate((id) => {
       document.querySelector(`[data-detail-viewer-select="${id}"]`).click();
       return Boolean(document.querySelector("[data-detail-dialog] .detail-dialog__ghost"));
@@ -1470,6 +1475,8 @@ test("M02a viewer strip hides while the mouse rests and arrow keys step the medi
       === "open");
     const opacity = () => page.locator("[data-detail-viewer-thumbs]")
       .evaluate((node) => Number(getComputedStyle(node).opacity));
+    // The strip slides in once the opening morph ends (owner 2026-11-23).
+    await settleTransitions(page);
     assert.equal(await opacity(), 1, "the strip shows when the viewer opens");
     // The `data-viewer-idle` state signal is set by the runtime 3s timer; wait for it then wait for the fade to finish.
     const idle = (expected) => page.waitForFunction((expected) => document.querySelector("[data-detail-viewer-thumbs]")
@@ -1561,6 +1568,7 @@ const scrollHints = (page) => page.evaluate(() => {
     scrollTop: scroll.scrollTop,
     bar: { hidden: bar.hidden, display: getComputedStyle(bar).display, opacity: getComputedStyle(bar).opacity },
     align: getComputedStyle(document.querySelector("[data-detail-description]")).textAlign,
+    docked: strip.matches(".detail-view__hero-frame > .thumb-dock"),
   };
 });
 
@@ -1617,8 +1625,8 @@ test("M02a crowded primary keeps one thumbnail row and scrolls the description b
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForTimeout(300);
     const state = await scrollHints(page);
-    assert.deepEqual([state.rows, state.description, state.bar.display], [1, [false, true], "none"],
-      "touch keeps the row and the fade but has no scrollbar");
+    assert.deepEqual([state.description, state.bar.display, state.docked], [[false, true], "none", true],
+      "touch floats the strip on the image (owner 2026-11-23), keeps the description fade, has no scrollbar");
   });
 });
 

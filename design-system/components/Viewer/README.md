@@ -17,12 +17,13 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
   trỏ hoặc một ngón, giới hạn trong ảnh.
 - Không có nút đóng và nút zoom (owner 2026-11-14): đóng bằng click nền, Escape, Back; zoom bằng con lăn,
   phím `+`/`-`, chuột giữa về fit. Mở viewer thì focus vào chính hộp thoại.
-- PC: ảnh cách mép màn hình 16px; có dãy thumbnail thì dãy xếp dọc sát trái (cách mép 16px, giữa theo chiều dọc),
-  nút rộng 96px (owner nới từ 60px), cao theo đúng tỷ lệ media như dãy Primary (owner 2026-11-14), chỉ hiện nút nguyên;
-  ảnh cách dãy ít nhất 16px, lề phải bằng lề trái nên ảnh vẫn giữa màn hình.
+- Lề quanh ảnh `48px`, phone (cạnh nào tới `600px`) `24px`. Dãy thumbnail là [dãy nổi](../../../docs/specs/advertising-viewer-touch-zoom.md#r8-dãy-thumbnail-nổi-và-lề-viewer)
+  (`.thumb-dock`, owner 2026-11-23): màn dọc cột sát trái, màn ngang hàng ở đáy, thumbnail cạnh `96px` (phone `56px`), cao/rộng
+  theo đúng tỷ lệ media như dãy Primary (owner 2026-11-14), vùng đen mờ dần sau dãy; nút thu/mở góc trên trái, trạng thái
+  chung với dãy Primary. Tablet và PC: ảnh cách dãy `16px`, phía đối diện chừa bằng nên ảnh vẫn giữa màn hình; phone: dãy đè lên ảnh.
 - Mọi máy: nền tối `rgba(32, 33, 32, 0.85)` cộng blur `50px`; điện thoại cũng blur
   (owner 2026-10-26, trước đó không blur để giữ 60fps trên phone Android).
-- Màn cảm ứng (`hover: none`, `pointer: coarse`) không hiện nút: chụm hoặc
+- Màn cảm ứng (`hover: none`, `pointer: coarse`): chụm hoặc
   chạm một lần để zoom, vặn để xoay; ở fit vuốt ảnh lên hoặc xuống thì ảnh theo tay, nền nhạt
   dần, quá `15%` chiều cao hoặc vuốt nhanh thì đóng, chưa tới thì về chỗ.
 - Back (nút back Android, vuốt mép iOS, nút back trình duyệt) chỉ đóng viewer.
