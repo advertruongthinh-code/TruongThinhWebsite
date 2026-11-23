@@ -8,7 +8,7 @@ import { validateAdvertisingCardMedia } from "../../src/site/advertising-product
 import { IMAGE_SRC } from "../../scripts/site/lib-pure.mjs";
 import { ADVERTISING_CLUSTERS, ADVERTISING_PRODUCTS } from "../../src/site/advertising-products/taxonomy.mjs";
 import { layoutErrors } from "./layouts.mjs";
-import { mediaRefs } from "./media-ref.mjs";
+import { isLegacy, mediaRefs } from "./media-ref.mjs";
 import { SLOTS } from "./slots.generated.mjs";
 import { marksErrors } from "./inline-marks.mjs";
 import { CONTACT_CHANNELS, CTA_KEYS, SLOT_PAGES } from "../../scripts/site/slots.mjs";
@@ -136,7 +136,7 @@ export async function shapeErrors(type, data, ctx = {}) {
   const mediaById = ctx.mediaById ?? new Map();
   for (const ref of mediaRefs(type, data)) {
     // legacySrc keeps seeded fields as is, so it must not let a client keep its own src (Q6: legacySrc equals the seeded src).
-    if (ref.legacySrc !== undefined) {
+    if (isLegacy(ref)) {
       if (typeof ref.legacySrc !== "string" || ref.src !== ref.legacySrc || !IMAGE_SRC.test(ref.src)) errors.push(shape(`${at}: legacySrc must equal src and be a repo image path`, "legacy-src"));
       continue;
     }
@@ -149,13 +149,16 @@ export async function shapeErrors(type, data, ctx = {}) {
   }
   // Project card (cms-content R4): card media come from the page's own media; seeded crops (legacySrc) are exempt.
   if (type === "project" && Array.isArray(data.card?.media)) {
-    const pageMedia = new Set(mediaRefs("news", data).map((ref) => ref.mediaId));
+    const pageMedia = pageMediaIds(data);
     for (const [index, ref] of data.card.media.entries()) {
-      if (isObject(ref) && ref.legacySrc === undefined && !pageMedia.has(ref.mediaId)) errors.push(shape(`${at}: card.media[${index}] must be a media of this page`, "card-media"));
+      if (isObject(ref) && !isLegacy(ref) && !pageMedia.has(ref.mediaId)) errors.push(shape(`${at}: card.media[${index}] must be a media of this page`, "card-foreign"));
     }
   }
   return errors;
 }
+
+// Media ids of a news or project page: cover and every block image (a project card may use only these).
+export const pageMediaIds = (data) => new Set(mediaRefs("news", data).map((ref) => ref.mediaId).filter((id) => id !== undefined));
 
 // Required EN fields that are empty (cms-content R2, K3): a news or project record with any of them builds in VI only.
 // Image alt EN stays required and is not listed here.
@@ -177,6 +180,7 @@ export async function fullErrors(type, data, ctx = {}) {
   const projects = ctx.projects ?? new Map();
   let messages = [];
   let layout = [];
+  const cardMin = [];
   if (type === "news" || type === "project") {
     const kind = pageKind(type);
     layout = layoutErrors(kind, data);
@@ -186,9 +190,9 @@ export async function fullErrors(type, data, ctx = {}) {
     messages = [
       ...(await validateBlockPage(data, { checkImage: ctx.checkImage, projects, news: ctx.news ?? new Map(), en: "optional" })).filter((message) => !reported.has(message)),
       ...kindFieldErrors(kind, data, at, { en: "optional" }).filter((message) => !reported.has(message)),
-      // cms-content R4: a project card always has 2 or more media, so a page without a card is missing them too.
-      ...(type === "project" && !(Array.isArray(data.card?.media) && data.card.media.length >= 2) ? [`${at}: card công trình cần ít nhất 2 media`] : []),
     ];
+    // cms-content R4: a project card always has 2 or more media, so a page without a card is missing them too.
+    if (type === "project" && !(Array.isArray(data.card?.media) && data.card.media.length >= 2)) cardMin.push({ ...missing(`${at}: card công trình cần ít nhất 2 media`), code: "card-min" });
   } else if (type === "hero-slide") {
     messages = [
       ...await heroSlideErrors(data, at, ctx.checkImage),
@@ -208,6 +212,7 @@ export async function fullErrors(type, data, ctx = {}) {
   else if (type === "contact") messages = Object.entries(data.cta ?? {}).filter(([, cta]) => !data.channels?.[cta?.channel]?.href).map(([key, cta]) => `contact: cta ${key} points to ${cta?.channel}, which has no link`);
   return [
     ...messages.map(missing),
+    ...cardMin,
     ...layout.filter((error) => error.level === "missing").map((error) => ({ ...error, message: `${at}: ${error.message}` })),
   ];
 }

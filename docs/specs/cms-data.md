@@ -126,7 +126,8 @@ là JPEG, PNG, WebP, AVIF, tối đa 25 MB. Logo SVG (tối đa 200 KB, qua bộ
 file ghi thẳng `v/<key>/<mediaId>.svg` ở bucket public kèm manifest, kích thước lấy từ `viewBox` làm tròn. Kích thước media là kích thước sau khi xoay theo EXIF; job
 biến thể xoay trước khi cắt. Chỗ đặt media trong nội dung là `{ mediaId, crop: [x, y, w, h] }`; Worker tự ghi `src`,
 `width`, `height`, `altVi`, `altEn`, không tin giá trị client gửi. Chỗ đặt có `legacySrc` (chỉ dữ liệu seed, ví dụ file
-cắt riêng của card công trình) giữ nguyên `src` và alt cho tới khi người soạn đặt lại crop.
+cắt riêng của card công trình) giữ nguyên `src` và alt cho tới khi người soạn đặt lại crop: chỗ đặt gửi lên có cả
+`legacySrc` và `crop` thì bỏ `legacySrc` và tính như chỗ đặt thường, ở mọi kiểu.
 
 Key biến thể là 32 ký tự hex đầu của SHA-256 trên `<hash bản gốc>|<x,y,w,h>|<số công thức>`. Media `repo` với crop
 nguyên khung dùng thẳng `path`; còn lại dùng object `v/<key>/<mediaId>[-<bề rộng>].<webp|avif|jxl>` ở bucket public, cùng
