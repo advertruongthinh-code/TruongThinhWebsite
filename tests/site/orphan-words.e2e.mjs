@@ -78,7 +78,9 @@ try {
     await page.setViewportSize({ width, height: 900 });
     for (const route of routes) {
       await page.goto(origin + route, { waitUntil: "load" });
-      await page.evaluate(() => document.fonts.ready);
+      // fonts.ready only waits for faces already requested: an italic face first used by a block the page has not laid out yet still measures in the
+      // fallback font (CI 2026-11-23: "Always evolving" at 390, "softly rounded wood" at 768). Load every face so the scan reads the final lines.
+      await page.evaluate(() => Promise.all([...document.fonts].map((face) => face.load().catch(() => {}))).then(() => document.fonts.ready));
       const { found, tooWide, overflow } = await page.evaluate(scan);
       for (const item of found) failures.push(`${width} ${route}: one word on the last line of ${item}`);
       for (const item of tooWide) failures.push(`${width} ${route}: last two words wider than the column, lower the type size: ${item}`);

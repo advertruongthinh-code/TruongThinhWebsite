@@ -26,7 +26,8 @@ const cardStates = (page, selector = "[data-project-grid] [data-masonry-card]") 
     const { top, bottom } = card.getBoundingClientRect();
     return bottom > 0 && top < innerHeight;
   }).map((card) => {
-    const image = card.querySelector("img");
+    // A multi-media card prepends the next media's hidden layer while it loads (media-card R4 slideshow, owner 2026-11-13): read the shown one.
+    const image = card.querySelector("img:not([hidden])");
     return {
       id: card.dataset.masonryCard || card.dataset.masonryRelatedCard,
       loaded: Boolean(image?.complete && image.naturalWidth),
@@ -91,7 +92,7 @@ try {
         await new Promise(requestAnimationFrame);
         for (const card of document.querySelectorAll("[data-project-grid] [data-masonry-card]")) {
           const { top, bottom } = card.getBoundingClientRect();
-          const image = card.querySelector("img");
+          const image = card.querySelector("img:not([hidden])");
           if (bottom <= 0 || top >= innerHeight || !image || image.complete) continue;
           if (!ids.has(image)) ids.set(image, ids.size + 1);
           samples.push({ card: card.dataset.masonryCard, wait: card.dataset.mediaWait, image: ids.get(image), animations: image.getAnimations().length });
@@ -143,9 +144,9 @@ try {
     assert.deepEqual(fades.filter(({ easing, from, to, layer, filter }) => easing !== "cubic-bezier(0.65, 0, 0.35, 1)" || from !== "0" || to !== "1"
       || layer !== "colors" || filter), [], "phone: the fade is opacity 0 to 1 on the --ease-card curve, over the color layer, unfiltered");
     assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
-      .filter((card) => card.querySelector("img")?.naturalWidth > 0)
-      .filter((card) => card.hasAttribute("data-media-wait") || getComputedStyle(card.querySelector("img")).opacity !== "1"
-        || card.style.getPropertyValue("--wait-1") || card.querySelector("img").style.filter)
+      .filter((card) => card.querySelector("img:not([hidden])")?.naturalWidth > 0)
+      .filter((card) => card.hasAttribute("data-media-wait") || getComputedStyle(card.querySelector("img:not([hidden])")).opacity !== "1"
+        || card.style.getPropertyValue("--wait-1") || card.querySelector("img:not([hidden])").style.filter)
       .map((card) => card.dataset.masonryCard)), [], "phone: loaded cards drop the color layer and show the image");
     await context.close();
   }
@@ -217,7 +218,7 @@ try {
       }).observe(document, { childList: true, subtree: true });
       const tick = () => {
         for (const frame of document.querySelectorAll("[data-project-grid] [data-masonry-card] [data-masonry-loading-skeleton]")) {
-          const image = frame.closest("[data-masonry-card]").querySelector("img");
+          const image = frame.closest("[data-masonry-card]").querySelector("img:not([hidden])");
           if (!image || image.complete) continue;
           if (!ids.has(image)) ids.set(image, ++next);
           window.__waitTrace.push([image.closest("[data-masonry-card]").dataset.masonryCard, ids.get(image), image.getAnimations().length,
@@ -477,7 +478,7 @@ try {
     assertPhoneWait("phone related", related);
     await page.waitForFunction(() => {
       const loaded = [...document.querySelectorAll("[data-masonry-related-card]")]
-        .map((card) => card.querySelector("img")).filter((image) => image?.naturalWidth > 0);
+        .map((card) => card.querySelector("img:not([hidden])")).filter((image) => image?.naturalWidth > 0);
       return loaded.length && loaded.every((image) => !image.closest("[data-media-wait]"));
     }, null, { timeout: DELAY + 6000 }).catch(async () => assert.fail("phone: loaded related cards still wait "
       + JSON.stringify(await cardStates(page, "[data-masonry-related-card]"))));

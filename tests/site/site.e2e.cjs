@@ -6543,6 +6543,9 @@ async function runAdvertisingMediaEntranceChecks() {
                     }),
                   shellOpacity: Number.parseFloat(getComputedStyle(tile).opacity),
                   blur: image.style.filter.startsWith("blur("),
+                  // Frosted reveal (progressive-loading R9, owner 2026-11-12): the image is shown under the Flow frame, whose still turns
+                  // transparent while the grid canvas draws the frosted copy and clears it.
+                  frosted: tile.querySelector("[data-masonry-loading-skeleton]")?.style.opacity === "0",
                 });
                 if (image.classList.contains("is-masonry-media-ready") && image.naturalWidth && !trace.at(-1).blur
                   && readyAt < 0) {
@@ -6566,15 +6569,17 @@ async function runAdvertisingMediaEntranceChecks() {
         const final = trace.at(-1);
         // 0.6s rhythm (design-system motion.md, image in card): the image shows 0.13s to 0.39s, cubic-bezier(0.65, 0, 0.35, 1).
         const fade = fading?.opacityAnimations[0];
-        // progressive-loading R9: the image waits hidden under its Flow frame, never blurred, then fades in within the 0.6s reveal.
+        // progressive-loading R9: the image waits hidden under its Flow frame, never blurred, then shows within the 0.6s reveal: through the frosted
+        // copy on the grid canvas, or the crossfade when the canvas does not draw that frame yet (both owner 2026-11-12).
         assert(
           targetImageDelayed && final?.imageReady && final.imageOpacity >= 0.999 && !final.blur &&
             final.currentSrc && final.complete && final.naturalWidth > 0 &&
             trace.every((sample) => !sample.blur) &&
-            fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
-              fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)" &&
+            ((fade && Math.abs(fade.delay - 130) <= 5 && Math.abs(fade.endTime - 390) <= 5 &&
+              fade.easing === "cubic-bezier(0.65, 0, 0.35, 1)") ||
+              trace.some((sample) => sample.intersectsViewport && sample.imageReady && sample.frosted)) &&
             trace.every((sample) => sample.shellOpacity >= 0.999),
-          `${locale} fresh deep card skipped the image-only fade of the 0.6s reveal: ${JSON.stringify(trace)}`,
+          `${locale} fresh deep card skipped the 0.6s reveal (frosted or image fade): ${JSON.stringify(trace)}`,
         );
 
         const captureReplay = async (cycle) => {

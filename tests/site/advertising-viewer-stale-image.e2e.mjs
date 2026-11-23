@@ -68,8 +68,9 @@ try {
     const nextId = await page.evaluate((fetchedPaths) => {
       const current = document.querySelector("[data-detail-image]").dataset.detailId;
       const card = [...document.querySelectorAll("[data-masonry-related-card]")].find((node) => {
-        const thumb = node.querySelector(":scope > a img");
-        if (node.dataset.masonryRelatedCard === current || !thumb) return false;
+        // A multi-media card prepends the next media's hidden layer while it loads (media-card R4 slideshow, owner 2026-11-13): read the shown one.
+        const thumb = node.querySelector(":scope > a img:not([hidden])");
+        if (node.dataset.masonryRelatedCard === current || !(thumb?.currentSrc || thumb?.src)) return false;
         const thumbPath = new URL(thumb.currentSrc || thumb.src).pathname;
         const stem = thumbPath.replace(/(?:-\d+)?\.\w+$/, "");
         return !fetchedPaths.some((file) => file !== thumbPath && file.startsWith(stem));

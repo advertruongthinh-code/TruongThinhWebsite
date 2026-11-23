@@ -1282,11 +1282,14 @@ try {
     const relatedPage = await relatedContext.newPage();
     // A related image decoded before the IntersectionObserver's first entry shows immediately (loading-glass R3), without the R2 fade that
     // this step checks; a busy runner swaps the order of those two events (issue #507). Hold the image until the card carries the skeleton.
+    // A's own files load; file names carry the SEO slug, not the card id (media-seo, owner 2026-11-22), so match every variant of A's media.
+    const stems = ADVERTISING_CATALOG_ARTIFACT.cards.find(({ id }) => id === A).mediaItems.map(({ src }) => src.replace(/\.\w+$/, ""));
+    const ownMedia = (url) => stems.some((stem) => /^[-.]/.test(new URL(url).pathname.slice(stem.length)) && new URL(url).pathname.startsWith(stem));
     const heldMedia = [];
     let mediaReleased = false;
     const mediaPattern = "**/assets/content/**";
     await relatedPage.route(mediaPattern, (route) => {
-      if (mediaReleased || route.request().resourceType() !== "image" || route.request().url().includes(`/${A}-`)) return route.continue();
+      if (mediaReleased || route.request().resourceType() !== "image" || ownMedia(route.request().url())) return route.continue();
       heldMedia.push(route);
     });
     await installStuffingProbe(relatedPage, "[data-masonry-related-card]", "[data-detail-related-grid]");
@@ -1309,7 +1312,7 @@ try {
     await relatedPage.unroute(mediaPattern);
     await relatedPage.waitForFunction((id) => {
       const card = document.querySelector(`[data-masonry-related-card="${id}"]`);
-      return card?.querySelector("img")?.naturalWidth && !card.querySelector("[data-masonry-loading-skeleton]");
+      return card?.querySelector("img:not([hidden])")?.naturalWidth && !card.querySelector("[data-masonry-loading-skeleton]");
     }, initialMediaId);
     const initialMedia = await relatedPage.evaluate((id) => window.__ttP13RelatedMedia.records.find((record) => record.id === id), initialMediaId);
     // Under the Flow frame the image stays hidden; it only fades in during the reveal from that frame, never blurred, and ends opaque.
