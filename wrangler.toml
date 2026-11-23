@@ -15,7 +15,7 @@ run_worker_first = ["/api/*"]
 [[d1_databases]]
 binding = "DB"
 database_name = "truong-thinh-cms"
-database_id = "REPLACE_IN_S4"
+database_id = "a98c6483-b503-4829-8da9-03bbd2a0eeda"
 migrations_dir = "src/db/migrations"
 
 [[r2_buckets]]
