@@ -11,11 +11,12 @@ import { layoutErrors } from "./layouts.mjs";
 import { mediaRefs } from "./media-ref.mjs";
 import { SLOTS } from "./slots.generated.mjs";
 import { marksErrors } from "./inline-marks.mjs";
-import { SLOT_PAGES } from "../../scripts/site/slots.mjs";
+import { CONTACT_CHANNELS, CTA_KEYS, SLOT_PAGES } from "../../scripts/site/slots.mjs";
+import { CONTACT_HREF } from "./links.mjs";
 
 export const TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu", "client-logo", "contact", "page-copy"];
 export const SINGLETON_TYPES = ["home-projects", "menu", "contact"];
-export const OPEN_TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu", "page-copy"];
+export const OPEN_TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu", "page-copy", "contact"];
 export const ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
 export const HERO_PAGES = ["home", "residential", "commercial"];
 
@@ -83,6 +84,26 @@ function pageCopyErrors(data, at) {
   return errors;
 }
 
+// contact.json (K8): the six channels and the fixed CTA keys, nothing more; href is empty or one of the allowed schemes.
+const sameKeys = (value, keys) => isObject(value) && Object.keys(value).length === keys.length && keys.every((key) => Object.hasOwn(value, key));
+const isText = (value) => typeof value === "string" && value.trim() !== "";
+function contactErrors(data) {
+  const errors = [];
+  if (!sameKeys(data.channels, CONTACT_CHANNELS)) errors.push(shape(`contact: channels must be exactly ${CONTACT_CHANNELS.join(", ")}`, "contact-channels"));
+  else for (const [key, channel] of Object.entries(data.channels)) {
+    if (!isObject(channel) || typeof channel.href !== "string" || (channel.href && !CONTACT_HREF.test(channel.href))) errors.push(shape(`contact: ${key}.href must be empty, https://, tel: or mailto:`, "contact-href"));
+    else if (channel.text !== undefined && typeof channel.text !== "string") errors.push(shape(`contact: ${key}.text must be text`));
+  }
+  if (!sameKeys(data.cta, CTA_KEYS)) return [...errors, shape(`contact: cta must be exactly ${CTA_KEYS.join(", ")}`, "contact-cta")];
+  for (const [key, cta] of Object.entries(data.cta)) {
+    const aria = cta?.aria;
+    if (!isObject(cta) || !isText(cta.vi) || !isText(cta.en)) errors.push(shape(`contact: cta ${key} needs vi and en`));
+    else if (!CONTACT_CHANNELS.includes(cta.channel)) errors.push(shape(`contact: cta ${key} channel must be one of ${CONTACT_CHANNELS.join(", ")}`, "contact-channel"));
+    else if (aria !== undefined && !(isObject(aria) && isText(aria.vi) && isText(aria.en))) errors.push(shape(`contact: cta ${key} aria needs vi and en`));
+  }
+  return errors;
+}
+
 // ctx: { id, mediaById }. mediaById holds media that are not trashed, so a trashed id reads as unknown.
 export async function shapeErrors(type, data, ctx = {}) {
   if (!isObject(data)) return [shape(`${type}: data must be an object`)];
@@ -102,6 +123,7 @@ export async function shapeErrors(type, data, ctx = {}) {
   }
   if (type === "advertising-card" && !ADVERTISING_PRODUCTS.some(({ id }) => id === data.productIds?.[0])) errors.push(shape(`${at}: a card needs a known main product (productIds[0])`, "card-product"));
   if (type === "page-copy") errors.push(...pageCopyErrors(data, at));
+  if (type === "contact") errors.push(...contactErrors(data));
   const mediaById = ctx.mediaById ?? new Map();
   for (const ref of mediaRefs(type, data)) {
     // legacySrc keeps seeded fields as is, so it must not let a client keep its own src (Q6: legacySrc equals the seeded src).
@@ -169,6 +191,8 @@ export async function fullErrors(type, data, ctx = {}) {
     if (!card.tagIds.length) messages.push(`${at}: a card needs tagIds`);
     try { validateAdvertisingCardMedia(card); } catch (error) { messages.push(error.message); }
   } else if (type === "media") messages = mediaErrors(data);
+  // A button on a channel without a link renders disabled: the save goes through but the record is not complete.
+  else if (type === "contact") messages = Object.entries(data.cta ?? {}).filter(([, cta]) => !data.channels?.[cta?.channel]?.href).map(([key, cta]) => `contact: cta ${key} points to ${cta?.channel}, which has no link`);
   return [
     ...messages.map(missing),
     ...layout.filter((error) => error.level === "missing").map((error) => ({ ...error, message: `${at}: ${error.message}` })),

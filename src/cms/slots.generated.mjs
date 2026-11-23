@@ -758,10 +758,6 @@ export const SLOTS = {
     "tu-van.title": {
       "kind": "text",
       "marks": "title"
-    },
-    "tu-van.text": {
-      "kind": "text",
-      "marks": "small"
     }
   },
   "commercial": {
@@ -1048,10 +1044,6 @@ export const SLOTS = {
     "tu-van.title": {
       "kind": "text",
       "marks": "title"
-    },
-    "tu-van.text": {
-      "kind": "text",
-      "marks": "small"
     }
   }
 };

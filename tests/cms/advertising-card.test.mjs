@@ -46,7 +46,7 @@ test("snapshotToFiles renumbers sourceOrder by position within each category and
   const a = { ...structuredClone(card), id: "a", category: "x", sourceOrder: 7, media: { ...card.media, mediaId: "m1", crop: [0, 0, 1, 1] } };
   const b = { ...structuredClone(card), id: "b", category: "y", sourceOrder: 3 };
   const c = { ...structuredClone(card), id: "c", category: "x", sourceOrder: 0 };
-  const records = { "advertising-card": [a, b, c], "home-projects": [{ ids: [] }], menu: [{ featuredProjects: [] }] };
+  const records = { "advertising-card": [a, b, c], "home-projects": [{ ids: [] }], menu: [{ featuredProjects: [] }], contact: [{}] };
   const files = snapshotToFiles({ records });
   assert.deepEqual(files["advertising-cards.json"].map(({ id, sourceOrder }) => [id, sourceOrder]), [["a", 0], ["b", 0], ["c", 1]]);
   assert.equal(files["advertising-cards.json"][0].media.mediaId, undefined);

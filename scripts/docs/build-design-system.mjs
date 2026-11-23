@@ -6,7 +6,7 @@ import { expandHero } from '../site/hero-slides.mjs';
 import { readHeroSources } from '../site/content-files.mjs';
 import { renderBlocks } from '../site/blocks.mjs';
 import { renderNewsListPage } from '../site/block-pages.mjs';
-import { MENU_PAGES, readPageSource } from '../site/sync-site-menu.mjs';
+import { MENU_PAGES, contact, readPageSource } from '../site/sync-site-menu.mjs';
 import { COPY as SEARCH_COPY, barMarkup } from '../../src/site/search/bar.mjs';
 // The Zalo link has one source, the floating CTA partial.
 
@@ -28,7 +28,7 @@ const frame = (markup, { cls = '', bg = 'var(--paper)', height }) =>
 // boot: false drops motion-fallback where it would override a state class (header tone).
 const BLOCKS_PREVIEW = 'scripts/docs/blocks-preview.json';
 const blocksPreview = JSON.parse(readFileSync(BLOCKS_PREVIEW, 'utf8'));
-const blocksPreviewContext = { projects: new Map(blocksPreview.projects.map((p) => [p.id, p])), news: new Map(blocksPreview.news.map((p) => [p.id, p])) };
+const blocksPreviewContext = { projects: new Map(blocksPreview.projects.map((p) => [p.id, p])), news: new Map(blocksPreview.news.map((p) => [p.id, p])), contact };
 const COMPONENTS = [
   { name: 'Header', group: 'Shell', height: 420, file: 'src/site/index.html', start: /<header class="site-header"/, boot: false,
     frames: [{ cls: 'is-brand-inverse', bg: 'var(--ink)', height: 140 }, { cls: 'is-ink', height: 140 }, { cls: 'is-collapsed is-surface is-ink is-brand-color', height: 140 }] },

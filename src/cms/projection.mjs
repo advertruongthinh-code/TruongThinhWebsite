@@ -3,11 +3,11 @@
 import { HERO_PAGES, OPEN_TYPES, SINGLETON_TYPES } from "./contract.mjs";
 import { mediaRefs } from "./media-ref.mjs";
 
-const FILES = { news: "news.json", project: "projects.json", "advertising-card": "advertising-cards.json", "hero-slide": "hero-slides.json", "home-projects": "home-projects.json", menu: "menu.json", "page-copy": "page-copy.json" };
+const FILES = { news: "news.json", project: "projects.json", "advertising-card": "advertising-cards.json", "hero-slide": "hero-slides.json", "home-projects": "home-projects.json", menu: "menu.json", "page-copy": "page-copy.json", contact: "contact.json" };
 // Media id = file name without extension, cut to the 80-character id limit (a few Advertising audit files are longer).
 const stem = (path) => path.split("/").pop().replace(/\.[^.]+$/, "").slice(0, 80).replace(/-+$/, "");
 
-// files: { "news.json", "projects.json", "hero-slides.json", "home-projects.json", "menu.json" } parsed, plus `cards` (card array).
+// files: { "news.json", "projects.json", "hero-slides.json", "home-projects.json", "menu.json", "contact.json" } parsed, plus `cards` (card array).
 // Returns [{ type, id, data, position }]: media records first, then content in OPEN_TYPES order. Inputs are not mutated.
 export function filesToRecords(files, fileFacts = new Map()) {
   const content = {
@@ -46,7 +46,8 @@ export function filesToRecords(files, fileFacts = new Map()) {
       records.push({ type, id: data.id, data, position });
     }
   }
-  const singles = [{ type: "home-projects", data: { ids: structuredClone(files["home-projects.json"] ?? []) } }, { type: "menu", data: structuredClone(files["menu.json"]) }];
+  const singles = [{ type: "home-projects", data: { ids: structuredClone(files["home-projects.json"] ?? []) } }, { type: "menu", data: structuredClone(files["menu.json"]) },
+    { type: "contact", data: structuredClone(files["contact.json"]) }];
   for (const single of singles) if (single.data !== undefined) records.push({ ...single, id: "main", position: 0 });
   return [...[...mediaByPath.values()].map((data, position) => ({ type: "media", id: data.id, data, position })), ...records];
 }
@@ -76,6 +77,7 @@ export function snapshotToFiles(snapshot, { mediaOrigin = "" } = {}) {
     else if (type === "home-projects") files[FILES[type]] = rows[0].ids.filter((id) => projectIds.has(id));
     else if (type === "menu") files[FILES[type]] = { ...rows[0], featuredProjects: rows[0].featuredProjects.filter((id) => projectIds.has(id)) };
     else if (type === "page-copy") files[FILES[type]] = Object.fromEntries(rows.map(({ id, ...data }) => [id, data]));
+    else if (type === "contact") files[FILES[type]] = rows[0];
     else if (type === "advertising-card") {
       // sourceOrder follows records.position within each category, from 0 (cms-plan part 2 K6).
       const next = new Map();

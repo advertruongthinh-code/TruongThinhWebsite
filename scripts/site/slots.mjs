@@ -4,6 +4,7 @@
 import { htmlElements } from "./html-elements.mjs";
 import { escapeHtml } from "./lib-pure.mjs";
 import { markedInner } from "../../src/cms/inline-marks.mjs";
+import { resolveLink } from "../../src/cms/links.mjs";
 
 export const SLOT_ID = /^[a-z0-9-]+(\.[a-z0-9-]+)+$/;
 // Page-copy record id -> source page.
@@ -201,4 +202,52 @@ export function fillSlots(html, record, ctx = {}) {
     edits.push({ start: element.start, end: element.contentEnd, text: tag + (segments ?? escapeHtml(value.vi)) });
   }
   return edits.toSorted((left, right) => right.start - left.start).reduce((out, { start, end, text }) => out.slice(0, start) + text + out.slice(end), html);
+}
+
+// Contact links and CTA buttons (cms-plan part 2 K8, task E7): every element with data-channel="<channel>" or
+// data-cta="<key>" gets its href and text from contact.json. The source writes href="#"; an empty channel renders the
+// disabled form of the footer socials. aria-label follows cta.aria, or the text when the button has no label span.
+const DISABLED = ' role="link" aria-disabled="true" tabindex="-1"';
+export const CONTACT_CHANNELS = ["zalo", "hotline", "office", "facebook", "tiktok", "youtube"];
+// Every data-cta key of the page sources and partials; the CMS edits their text and channel, never adds or removes one.
+export const CTA_KEYS = ["floating", "floating-project", "floating-advertising", "menu", "contact-quick", "home-1", "home-2",
+  "residential-1", "commercial-1", "about-1", "advertising-1", "advertising-2"];
+export function fillContact(html, contact) {
+  const elements = tree(html);
+  const edits = [];
+  const linkTag = (element, href) => {
+    const disabled = attrOf(element.tag, "aria-disabled") === "true";
+    if (!href) return disabled ? element.tag : ["href", "target", "rel"].reduce(dropAttr, element.tag).replace(/^<a\b/, `<a${DISABLED}`);
+    const tag = setAttr(["role", "aria-disabled", "tabindex"].reduce(dropAttr, element.tag), "href", escapeHtml(href));
+    return disabled && href.startsWith("https://") ? tag.replace(/^<a\b/, '<a target="_blank" rel="noreferrer"') : tag;
+  };
+  const replaceInner = (element, text) => edits.push({ start: element.contentStart, end: element.contentEnd, text: escapeHtml(text) });
+  for (const element of elements) {
+    const channelKey = attrOf(element.tag, "data-channel");
+    const ctaKey = attrOf(element.tag, "data-cta");
+    if (channelKey === null && ctaKey === null) continue;
+    const cta = ctaKey === null ? null : contact.cta?.[ctaKey];
+    if (ctaKey !== null && !cta) throw new Error(`contact.json has no cta "${ctaKey}"`);
+    const channel = contact.channels?.[cta ? cta.channel : channelKey];
+    if (!channel) throw new Error(`contact.json has no channel "${cta ? cta.channel : channelKey}"`);
+    const href = resolveLink(`contact:${cta ? cta.channel : channelKey}`, { contact })?.vi ?? "";
+    let tag = linkTag(element, href);
+    if (cta) {
+      const label = element.children.find((child) => child.name === "span" && attrOf(child.tag, "data-en") !== null);
+      if (label) edits.push({ start: label.start, end: label.contentEnd, text: setAttr(label.tag, "data-en", escapeHtml(cta.en)) + escapeHtml(cta.vi) });
+      const aria = cta.aria ?? (label ? null : cta);
+      if (aria) tag = setAttr(setAttr(tag, "aria-label", escapeHtml(aria.vi)), "data-en-aria-label", escapeHtml(aria.en));
+    } else if (channel.text) {
+      const strong = element.children.find((child) => child.name === "strong");
+      if (strong) replaceInner(strong, channel.text);
+      else if (!element.children.length) replaceInner(element, channel.text);
+    }
+    edits.push({ start: element.start, end: element.contentStart, text: tag });
+  }
+  const out = edits.toSorted((left, right) => right.start - left.start).reduce((text, { start, end, text: value }) => text.slice(0, start) + value + text.slice(end), html);
+  // href="#" is only a placeholder in the source: a tag the element walker skipped (inside a script string, say) would
+  // point nowhere on the site, so the raw text is checked too.
+  const left = out.match(/<[a-z][^<>]*\sdata-(?:cta|channel)="[^"]*"[^<>]*>/gi)?.find((tag) => attrOf(tag, "href") === "#");
+  if (left) throw new Error(`contact link left as href="#": ${left.replace(/\s+/g, " ")}`);
+  return out;
 }

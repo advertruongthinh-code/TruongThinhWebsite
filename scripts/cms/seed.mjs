@@ -14,7 +14,7 @@ import { contentDirOf, fileImageCheck } from "../site/content-files.mjs";
 import { SLOT_PAGES, slotValues } from "../site/slots.mjs";
 
 const SITE_ROOT = fileURLToPath(new URL("../../src/site/", import.meta.url));
-const FILE_NAMES = ["news.json", "projects.json", "hero-slides.json", "home-projects.json", "menu.json"];
+const FILE_NAMES = ["news.json", "projects.json", "hero-slides.json", "home-projects.json", "menu.json", "contact.json"];
 const MAX_DATA_CHARS = 90_000; // one D1 statement is at most 100 KB
 
 const HEADER = `-- Refuses to run once the CMS is live: a NULL insert into a NOT NULL column aborts the import.

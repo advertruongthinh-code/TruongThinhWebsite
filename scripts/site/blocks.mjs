@@ -3,13 +3,13 @@
 // The same data always yields the same HTML; text is plain text only, all HTML characters are escaped.
 import { IMAGE_SRC, escapeHtml } from "./lib-pure.mjs";
 import { variantKeyOf } from "./media-src.mjs";
+import { resolveLink } from "../../src/cms/links.mjs";
 import { listHtml, listOf, markedInner, marksErrors, paragraphs, parseMarks, plainText, sideMarksErrors, typoWarnings } from "../../src/cms/inline-marks.mjs";
 
 export const BLOCK_SCHEMA_VERSION = 1;
 
 const VIDEO_SRC = /^\/assets\/content\/[a-z0-9/-]+\.mp4$/;
 const isR2 = (src, extension) => variantKeyOf(src) !== null && src.endsWith(extension);
-export const ZALO_HREF = "https://zalo.me/0949131050";
 
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 // ponytail: only internal links (VI at the root, EN under /en) or Zalo; extend when the CMS needs checked external links.
@@ -92,6 +92,14 @@ const taglineLine = (line) => {
 };
 // The hero CTA target; one Zalo block per page.
 const CONTACT_ID = "lien-he";
+// The contact-quick button reads cta["contact-quick"] of contact.json (K8); an empty channel renders it disabled.
+const contactQuick = (ctx) => {
+  const cta = ctx.contact?.cta?.["contact-quick"];
+  if (!cta) return "";
+  const href = resolveLink(`contact:${cta.channel}`, ctx)?.vi;
+  const link = href ? `href="${escapeHtml(href)}"${href.startsWith("https://") ? ' target="_blank" rel="noopener"' : ""}` : 'role="link" aria-disabled="true" tabindex="-1"';
+  return `  <a class="blk-contact__zalo" ${link} data-en="${escapeHtml(cta.en)}">${escapeHtml(cta.vi)}</a>`;
+};
 const figure = (media, className) => `<figure class="${className}">${image(media)}</figure>`;
 
 // Strip and News blocks without ids pick their items at build (layout-library R1 "tự lấy"), so the CMS author places the block only.
@@ -261,7 +269,7 @@ const BLOCKS = {
     render: (block, ctx) => [
       `<section class="blk blk-contact section-gap" id="${CONTACT_ID}" data-header-tone="ink">`,
       `  ${marked("h2", block.title, ` class="blk-contact__title${hasLongTail(block.title) ? " blk-contact__title--long-tail" : ""}"`, ctx)}`,
-      `  <a class="blk-contact__zalo" href="${ZALO_HREF}" target="_blank" rel="noopener" data-en="Chat on Zalo">Nhắn Zalo</a>`,
+      contactQuick(ctx),
       "</section>",
     ].join("\n"),
   },

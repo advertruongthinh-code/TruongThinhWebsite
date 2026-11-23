@@ -946,11 +946,6 @@
       "id": "tu-van.title",
       "kind": "text",
       "marks": "title"
-    },
-    {
-      "id": "tu-van.text",
-      "kind": "text",
-      "marks": "small"
     }
   ],
   "commercial": [
@@ -1308,11 +1303,6 @@
       "id": "tu-van.title",
       "kind": "text",
       "marks": "title"
-    },
-    {
-      "id": "tu-van.text",
-      "kind": "text",
-      "marks": "small"
     }
   ]
 }
