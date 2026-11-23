@@ -151,6 +151,26 @@ jobs:
           case "${{ needs.suite.result }}" in success|skipped) ;; *) exit 1 ;; esac
           case "${{ needs.red-before.result }}" in success|skipped) ;; *) exit 1 ;; esac
 
+  # A red nightly run opens or updates one Notion card in Tasks, a green one closes it (spec ci-test-suites R13, owner 2026-11-22).
+  nightly-card:
+    needs: static-release
+    if: ${{ always() && github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - run: node scripts/ci/nightly-card.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          RESULT: ${{ needs.static-release.result }}
+
   # Deploy demo runs only on main (push or Automerge dispatch) when static-release, i.e. the fast suite, is green; the nightly run does not deploy.
   # Deploy only when the fast suite ran (code changed) and static-release is green. Without !cancelled() a skipped job anywhere
   # upstream (red-before always skips off a PR) skips the deploy too.

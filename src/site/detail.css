@@ -4712,7 +4712,8 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__item {
   display: grid;
   /* Golden ratio (owner 2026-11-22): cover : text = 1 : 1.618 and the cover is 1 : 1.618 portrait. */
-  grid-template-columns: 1fr 1.618fr;
+  /* minmax(0, ...): the cover's ratio must not set a minimum width for its track, or the three items outgrow the grid. */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.618fr);
   column-gap: 20px;
   color: #222;
   text-decoration: none;
@@ -4721,12 +4722,12 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
 .home-news__media {
   position: relative;
   overflow: hidden;
-}
-
-.home-news__media::before {
-  content: "";
-  display: block;
-  padding-top: 161.8%;
+  /* Cover at least 1 : 1.618 (owner 2026-11-22), stretched by a taller text block. aspect-ratio, not a ::before spacer: the loading
+     sweep takes the frame's ::before (style.css media-frame) and made the spacer absolute, so the box grew when the image settled. */
+  aspect-ratio: 1 / 1.618;
+  align-self: stretch;
+  /* A definite width keeps the cover in its column: with an auto width the stretched height fed the ratio and widened the cover. */
+  width: 100%;
 }
 
 .home-news__media img {
@@ -4794,7 +4795,7 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   }
 
   .home-news__item {
-    grid-template-columns: 1fr 1.618fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.618fr);
   }
 }
 
@@ -5218,6 +5219,13 @@ html[lang="en"] .blk-article-head--list .blk-article-head__title {
   font-weight: 400;
   letter-spacing: normal;
   line-height: 1.4;
+}
+
+/* hero-typography R7: a contact title whose tied last two words do not fit the phone column (scripts/site/blocks.mjs) steps down. */
+@media (max-width: 750px) {
+  .blk-contact__title--long-tail {
+    font-size: 32px;
+  }
 }
 
 .detail-lead__copy,

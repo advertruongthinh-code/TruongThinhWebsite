@@ -262,7 +262,7 @@ Then advertising-search.e2e.mjs đỏ, job xanh
 | Lệnh | `pnpm qa:suite` | Gọi script trên, dùng chung cho local và CI |
 | Helper | `tests/site/harness.mjs` | `BASE_URL`, `VIEWPORTS`, mở trình duyệt và trang, chờ frame và transition, kéo, vuốt, đo motion cho test ESM (R12) |
 | Script | `scripts/ci/red-before.mjs` | R13: chạy test PR đổi trên `src/site/` của `main`; `plan()` chọn file hoặc lý do bỏ qua |
-| Check | `static-release` | Check tổng mà Automerge đọc |
+| Check | `static-release` | Check tổng mà Automerge đọc; lượt đêm thêm job `nightly-card`: đỏ thì mở hoặc cập nhật card Notion, xanh thì đóng ([Notion rule 16](../operations/notion.md#rule), `tests/tooling/nightly-card.test.mjs`) |
 
 ## Kiểm tra
 

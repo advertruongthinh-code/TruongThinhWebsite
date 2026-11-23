@@ -1,5 +1,6 @@
 "use strict";
 
+const { isStreamedOriginalAbort } = require("./streamed-original.cjs");
 const { test, expect } = require("playwright/test");
 
 const fs = require("node:fs");
@@ -29,7 +30,7 @@ for (const route of routes) {
     });
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("requestfailed", (request) => {
-      failedRequests.push(`${request.method()} ${request.url()}`);
+      if (!isStreamedOriginalAbort(request)) failedRequests.push(`${request.method()} ${request.url()}`);
     });
 
     const response = await page.goto(route, { waitUntil: "domcontentloaded" });

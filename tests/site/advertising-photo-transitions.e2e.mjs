@@ -6,6 +6,7 @@ import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { matchesFilter } from "../../src/site/masonry/layout.mjs";
+import streamedOriginal from "./streamed-original.cjs";
 import { ADVERTISING_CATALOG_ARTIFACT } from "../../.site-output/advertising-products/catalog-artifact.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
@@ -42,7 +43,9 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const engine = (await import("playwright"))[process.env.PHOTO_TRANSITIONS_ENGINE || "chromium"];
 const results = [];
 const A = "kiosk-posm-07";
-const B = "mobile-retail-04";
+// taxonomy R5: suggestion tags are product pages now; B sits in A's sampling-booths page (the old use-sampling tag is gone).
+const B = "mobile-retail-05";
+const TAG = "displays-booths/sampling-booths-reception-counters";
 const mediaCardId = "signage-raised-letters-37";
 const mediaVideoId = `${mediaCardId}-synthetic-video`;
 // Mirrors VISIT_SEED_HANDOFF_KEY; the runtime module needs a window to import.
@@ -136,8 +139,8 @@ async function openA(page) {
   await ready(page, A);
 }
 async function chooseB(page, beforeClick) {
-  await page.locator('[data-masonry-suggestion-tag="use-sampling"]').click();
-  await page.waitForFunction(() => new URL(location.href).searchParams.get("tag") === "use-sampling");
+  await page.locator(`[data-masonry-suggestion-tag="${TAG}"]`).click();
+  await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, TAG);
   const link = page.locator(`[data-masonry-related-card="${B}"] > a`);
   await link.waitFor();
   await link.scrollIntoViewIfNeeded();
@@ -394,9 +397,9 @@ async function ensureParentTarget(page) {
 
 async function prepareRelatedTarget(page) {
   await ready(page, A);
-  const tag = page.locator('[data-masonry-suggestion-tag="use-sampling"]');
-  if (new URL(page.url()).searchParams.get("tag") !== "use-sampling") await tag.click();
-  await page.waitForFunction(() => new URL(location.href).searchParams.get("tag") === "use-sampling");
+  const tag = page.locator(`[data-masonry-suggestion-tag="${TAG}"]`);
+  if (new URL(page.url()).searchParams.get("tag") !== TAG) await tag.click();
+  await page.waitForFunction((tag) => new URL(location.href).searchParams.get("tag") === tag, TAG);
   const link = page.locator(`[data-masonry-related-card="${B}"] > a`);
   await link.waitFor();
   await link.scrollIntoViewIfNeeded();
@@ -554,6 +557,11 @@ async function installStuffingProbe(page, selector, gridSelector) {
           // A transform transition runs on the compositor: it still slides the full 400ms when the main thread is busy and cannot take a frame in between.
           transformTransitionMs: node.getAnimations().find((animation) => animation.transitionProperty === "transform"
             && animation.playState === "running")?.effect.getTiming().duration ?? null,
+          // masonry-live-layout R7: the slide is a Web Animation on transform (id masonry-slide), not a CSS transition.
+          slide: (() => {
+            const timing = node.getAnimations().find((animation) => animation.id === "masonry-slide")?.effect.getTiming();
+            return timing ? { duration: timing.duration, delay: timing.delay, easing: timing.easing } : null;
+          })(),
         };
       };
       const record = { id: node.dataset.masonryCard || node.dataset.masonryRelatedCard, inserted: read(), frames: [] };
@@ -564,7 +572,7 @@ async function installStuffingProbe(page, selector, gridSelector) {
         record.frames.push({ elapsed, ...read() });
         // A transition only has a start time at the first frame painted after creation: a busy main thread while mounting related makes the card
         // slide later than the 460ms window (issue #507), so keep sampling until the transform transition finishes.
-        const moving = node.getAnimations().some((animation) => animation.transitionProperty === "transform"
+        const moving = node.getAnimations().some((animation) => (animation.transitionProperty === "transform" || animation.id === "masonry-slide")
           && animation.playState === "running");
         if ((elapsed < 460 || (moving && elapsed < 3_000)) && node.isConnected) requestAnimationFrame(sample);
         else record.done = true;
@@ -661,6 +669,23 @@ async function readBackdropMorphState(page) {
 const stuffingSettled = (page) => page.waitForFunction(() => window.__ttP13Stuffing.records.length
   && window.__ttP13Stuffing.records.every((record) => record.done));
 
+// Column heads of the related grid: under primary for its columns; advertising-detail R5 (owner 2026-11-22) pins the suggestion block at the
+// top of column four, so that column's head is below it; other columns start at the grid top.
+const readRelatedHeads = () => {
+  const grid = document.querySelector("[data-detail-related-grid]").getBoundingClientRect();
+  const suggestion = document.querySelector("[data-masonry-suggestion-card]")?.getBoundingClientRect();
+  return {
+    records: window.__ttP13Stuffing.records,
+    primary: document.querySelector("[data-detail-primary]").getBoundingClientRect().toJSON(),
+    gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-detail-view]")).getPropertyValue("--detail-gap")),
+    suggestion: suggestion && { x: suggestion.left - grid.left, bottom: suggestion.bottom - grid.top },
+  };
+};
+const relatedColumnHead = ({ primary, gap, suggestion }) => (_record, first) => {
+  if (first.x < primary.width) return primary.height + gap;
+  return suggestion && Math.abs(first.x - suggestion.x) < 1 ? suggestion.bottom + gap : 0;
+};
+
 function assertStuffingRecord(records, label, expectedHead) {
   const moved = records.find((record) => {
     const first = record.frames[0];
@@ -674,11 +699,13 @@ function assertStuffingRecord(records, label, expectedHead) {
     && Math.abs(y - first.y) > 1 && Math.abs(last.y - y) > 1);
   const head = expectedHead(moved, first);
   assert(Math.abs(first.y - head) <= 1.5, `${label}: first frame was not the destination column head ${JSON.stringify({ id: moved.id, first, head, inserted: moved.inserted, last })}`);
-  assert((middle && Math.abs(middle.y - first.y) > 1 && Math.abs(last.y - middle.y) > 1) || first.transformTransitionMs === 400,
+  const slide = moved.frames.find((frame) => frame.slide)?.slide;
+  assert((middle && Math.abs(middle.y - first.y) > 1 && Math.abs(last.y - middle.y) > 1) || slide?.duration === 400,
     `${label}: missing visible 400ms travel ${JSON.stringify({ first, middle, last, frames: moved.frames.length })}`);
-  assert(first.duration.split(",").includes("0.4s"), `${label}: duration is ${first.duration}`);
-  assert(first.delay.split(",").every((value) => value === "0s"), `${label}: transition has delay ${first.delay}`);
-  assert(first.easing.split(",").includes("ease"), `${label}: easing is ${first.easing}`);
+  assert(slide, `${label}: no masonry-slide animation ${JSON.stringify({ first, last })}`);
+  assert.equal(slide.duration, 400, `${label}: duration is ${slide.duration}`);
+  assert.equal(slide.delay, 0, `${label}: slide has delay ${slide.delay}`);
+  assert.equal(slide.easing, "ease", `${label}: easing is ${slide.easing}`);
   return { id: moved.id, first, middle, last };
 }
 
@@ -1062,7 +1089,7 @@ try {
       stage(`${scenario.locale}-${scenario.width}-${scenario.input}-${scenario.reduced ? "reduced" : "motion"}`);
       await page.setViewportSize({ width: scenario.width, height: 912 });
       await page.emulateMedia({ reducedMotion: scenario.reduced ? "reduce" : "no-preference" });
-      await page.goto(href(`/${scenario.locale}/advertising-products/?category=${scenario.category}&photo=${scenario.category}-${scenario.from}`));
+      await page.goto(href(`${scenario.locale === "vi" ? "" : "/" + scenario.locale}/advertising-products/?category=${scenario.category}&photo=${scenario.category}-${scenario.from}`));
       await ready(page, `${scenario.category}-${scenario.from}`);
       const link = page.locator(`[data-masonry-related-card="${id}"] > a`);
       // The related order is seeded and virtualized; scan down then up again until the target card mounts.
@@ -1267,12 +1294,8 @@ try {
     await relatedPage.goto(href(`/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
     await stuffingSettled(relatedPage);
-    const relatedState = await relatedPage.evaluate(() => ({
-      records: window.__ttP13Stuffing.records,
-      primary: document.querySelector("[data-detail-primary]").getBoundingClientRect().toJSON(),
-      gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-detail-view]")).getPropertyValue("--detail-gap")),
-    }));
-    const relatedStuffing = assertStuffingRecord(relatedState.records, "related stuffing", (_record, first) => first.x < relatedState.primary.width ? relatedState.primary.height + relatedState.gap : 0);
+    const relatedState = await relatedPage.evaluate(readRelatedHeads);
+    const relatedStuffing = assertStuffingRecord(relatedState.records, "related stuffing", relatedColumnHead(relatedState));
     const initialRelatedIds = new Set(relatedState.records.map(({ id }) => id));
     const initialMediaId = relatedState.records[0]?.id;
     assert(initialMediaId, "initial related window has no media fixture");
@@ -1299,12 +1322,8 @@ try {
     await relatedPage.goto(href(`/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
     await stuffingSettled(relatedPage);
-    const tagState = await relatedPage.evaluate(() => ({
-      records: window.__ttP13Stuffing.records,
-      primary: document.querySelector("[data-detail-primary]").getBoundingClientRect().toJSON(),
-      gap: Number.parseFloat(getComputedStyle(document.querySelector("[data-detail-view]")).getPropertyValue("--detail-gap")),
-    }));
-    const tagStuffing = assertStuffingRecord(tagState.records, "tag stuffing", (_record, first) => first.x < tagState.primary.width ? tagState.primary.height + tagState.gap : 0);
+    const tagState = await relatedPage.evaluate(readRelatedHeads);
+    const tagStuffing = assertStuffingRecord(tagState.records, "tag stuffing", relatedColumnHead(tagState));
     await relatedPage.locator('[data-masonry-suggestion-tag="format-portrait"][aria-pressed="true"]').click();
     await relatedPage.waitForFunction(() => !new URL(location.href).searchParams.has("tag"));
     stage("related-cached-remount");
@@ -1432,7 +1451,7 @@ try {
     const transition = await noGridMorphEvidence(page, B, detailY);
     assert(relatedY > 0, "related click must start from a scrolled detail");
     assert.equal((new URL(page.url()).pathname.match(/\/p\/([^/]+)\/$/)?.[1] ?? null), B);
-    assert.equal(new URL(page.url()).searchParams.get("tag"), "use-sampling");
+    assert.equal(new URL(page.url()).searchParams.get("tag"), TAG);
     const scrollStart = await page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
     // Locomotive moves one notch per wheel event, scaled by OS (Windows 108 px, Linux 43 px); three notches exceed 100 px.
     for (let notch = 0; notch < 3; notch += 1) await page.mouse.wheel(0, 160);
@@ -1572,6 +1591,7 @@ try {
     page.on("requestfailed", (request) => {
       // Chromium cancels the fetches of lazy images or videos being replaced (srcset/variant/src change, unmount); not a load error.
       if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
+      if (streamedOriginal.isStreamedOriginalAbort(request)) return;
       networkFailures.push({ url: request.url(), error: request.failure()?.errorText });
     });
     page.on("response", (response) => {
@@ -1580,7 +1600,9 @@ try {
     for (const locale of ["en", "vi"]) {
       networkFailures.length = 0;
       stage(locale + "-offscreen-grid-fixture");
-      await page.goto(href("/" + locale + "/advertising-products/?category=signage-raised-letters"), { waitUntil: "domcontentloaded" });
+      // Vietnamese lives at the root, English under /en (owner 2026-11-22).
+      const base = (locale === "vi" ? "" : "/" + locale) + "/advertising-products/";
+      await page.goto(href(base + "?category=signage-raised-letters"), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(0));
       let initial = null;
@@ -1657,7 +1679,7 @@ try {
       assert.equal(backState.focusId, id, locale + ": Back lost card focus");
       assert.equal(forwardState.length, initial.length + 1, locale + ": click created wrong history length");
       assert.equal(backState.length, forwardState.length, locale + ": traversal added history entry");
-      assert.ok(new URL(page.url()).pathname.startsWith("/" + locale + "/advertising-products/"), locale + ": locale changed");
+      assert.ok(new URL(page.url()).pathname.startsWith(base), locale + ": locale changed");
       assert.deepEqual(networkFailures, [], locale + ": fixture/network failure");
       evidence.push({ locale, clickedY, detailY, grid, forward, back, forwardState, backState, networkFailures: [] });
     }
@@ -1833,7 +1855,7 @@ try {
   });
   await caseRun("delayed-image-resize-latest-wins", { width: 390, height: 844 }, async (page, stage) => {
     stage("open-A"); await openA(page);
-    await page.route("**/*mobile-retail-04*.webp", async (route) => { await new Promise((resolve) => setTimeout(resolve, 700)); await route.continue(); });
+    await page.route("**/*quay-trung-bay-di-dong*", async (route) => { await new Promise((resolve) => setTimeout(resolve, 700)); await route.continue(); });
     stage("B-and-resize"); await chooseB(page); await page.setViewportSize({ width: 1440, height: 900 });
     await ready(page, B); await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     const state = await page.evaluate(snapshot);
@@ -2224,16 +2246,16 @@ try {
     const group = ADVERTISING_CARDS.find((card) => card.id === A).category;
     // The URL carries the cluster slug per locale (taxonomy R4).
     const groupSlug = ADVERTISING_CATEGORIES.find((category) => category.slug === group).slugVi;
-    const openFromGroup = async () => {
+    const openFromGroup = async (id = A) => {
       await page.goto(href(`/advertising-products/?category=${group}`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       // A's saved anchor offset must match across stages: a click under the route veil makes Playwright
       // retry with a different scroll alignment, and html scroll-behavior lets it stop midway while scrolling.
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter") && !document.body.classList.contains("is-transitioning"));
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id)
-        .scrollIntoView({ block: "nearest", behavior: "instant" }), A);
-      await page.locator(`[data-masonry-card="${A}"] > a`).click();
-      await ready(page, A);
+        .scrollIntoView({ block: "nearest", behavior: "instant" }), id);
+      await page.locator(`[data-masonry-card="${id}"] > a`).click();
+      await ready(page, id);
     };
     const navbarReturn = async (focusId) => {
       await page.locator('[data-site-header] a[href="/advertising-products/"]').click();
@@ -2269,11 +2291,19 @@ try {
     assert(Math.abs(centered.top - Math.max(0, (900 - centered.height) / 2)) <= 2, `related photo in the group is centered: ${centered.top}`);
 
     stage("related-outside-group-returns-to-origin");
-    await openFromGroup();
-    await chooseB(page);
-    await ready(page, B);
-    const back = await navbarReturn(A);
-    assert(Math.abs(back.top - origin) <= 2, `A returns to its old offset: ${back.top} != ${origin}`);
+    // A's related cards and suggestion pages all stay in its group now (taxonomy R5); B is in the group through its product page and
+    // its related list leaves the group (mobile-retail cards), so B is the photo opened from the grid here.
+    await openFromGroup(B);
+    const originB = await page.evaluate(() => window.TruongThinhMasonry.getBrowseState().grid.anchorOffset);
+    const relatedIds = await page.$$eval("[data-masonry-related-card]", (nodes) => nodes.map((node) => node.dataset.masonryRelatedCard));
+    const outside = relatedIds.find((id) => !matchesFilter(ADVERTISING_CARDS.find((card) => card.id === id), group));
+    assert(outside, `B has a related card outside ${group}: ${relatedIds.join(",")}`);
+    const outsideLink = page.locator(`[data-masonry-related-card="${outside}"] > a`);
+    await outsideLink.scrollIntoViewIfNeeded();
+    await outsideLink.click();
+    await ready(page, outside);
+    const back = await navbarReturn(B);
+    assert(Math.abs(back.top - originB) <= 2, `B returns to its old offset: ${back.top} != ${originB}`);
 
     stage("direct-photo-lands-on-all");
     await page.goto(href(`/advertising-products/?category=${group}&photo=${A}`), { waitUntil: "domcontentloaded" });

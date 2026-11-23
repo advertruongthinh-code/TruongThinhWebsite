@@ -2,6 +2,8 @@
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/advertising-search.e2e.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import { matchesFilter } from "../../src/site/masonry/layout.mjs";
 import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, viewportAt } from "./harness.mjs";
 
 const PAGE = `${BASE_URL}/advertising-products/`;
@@ -383,9 +385,15 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     await search(page, "hộp đèn");
     await announced(page, /results/);
     // The x leaves the search too.
-    const cleared = page.evaluate(() => new Promise((resolve) => addEventListener("masonry:search-left", (e) => resolve(e.detail?.reason), { once: true })));
+    // Register the listener before the click (awaited), then wait with a bound: a pending page promise left the test hanging until the
+    // browser closed and hid the real state.
+    await page.evaluate(() => {
+      window.__ttSearchLeft = null;
+      addEventListener("masonry:search-left", (e) => { window.__ttSearchLeft = e.detail?.reason ?? ""; }, { once: true });
+    });
     await page.click(".search-bar [data-search-clear-text]");
-    assert.equal(await cleared, "clear");
+    await page.waitForFunction(() => window.__ttSearchLeft !== null, null, { timeout: 10_000 });
+    assert.equal(await page.evaluate(() => window.__ttSearchLeft), "clear");
     assert.equal(await page.inputValue(".search-bar input"), "");
     await search(page, "hộp đèn");
     await announced(page, /results/);
@@ -397,7 +405,6 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     assert(rail.every((entry) => entry.empty !== entry.shown), "hidden exactly when empty");
     assert(rail.some((entry) => entry.empty), "some cluster has no result");
     const target = rail.find((entry) => entry.shown && entry.filter !== "all").filter;
-    const total = await page.locator("[data-masonry-card]").count();
     await backToTop(page);
     let left = false;
     await page.evaluate(() => addEventListener("masonry:search-left", () => { window.__left = true; }, { once: true }));
@@ -407,11 +414,11 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     assert.equal(left, false, "still searching");
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
     assert.equal(await page.getAttribute(`[data-masonry-filter="${target}"]`, "aria-current"), "true");
-    const narrowed = await page.evaluate((slug) => {
-      const ids = [...document.querySelectorAll("[data-masonry-card]")].map((node) => node.dataset.masonryCard);
-      return { count: ids.length };
-    }, target);
-    assert(narrowed.count <= total, "narrowed");
+    // The grid is virtualized, so the mounted-card count is not the result count: every shown card belongs to the clicked cluster.
+    const shown = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-card]")]
+      .filter((node) => !node.hidden).map((node) => node.dataset.masonryCard));
+    const outside = shown.filter((id) => !matchesFilter(ADVERTISING_CARDS.find((card) => card.id === id), target));
+    assert(shown.length > 0 && outside.length === 0, `narrowed to ${target}: ${JSON.stringify(outside)}`);
     await page.click('[data-masonry-filter="all"]');
     await page.waitForTimeout(900);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
@@ -510,6 +517,8 @@ test("search-bar R4: at the end of the page the space above and below the bar is
       await page.evaluate(() => window.TruongThinhMotion?.setLogicalScroll(1e6) || scrollTo({ top: 1e6, behavior: "instant" }));
       await page.waitForFunction(() => !document.querySelector(".search-bar").getAnimations({ subtree: true }).length, null, { timeout: 8000 });
       await page.waitForTimeout(1500);
+      // The bottom zone reveals the header (site-shell R3); a slow runner may still be sliding it, so measure once it stands still.
+      await page.waitForFunction(() => !document.querySelector(".site-header").getAnimations({ subtree: true }).length, null, { timeout: 8000 });
       const cta = await page.evaluate(() => {
         const heading = document.querySelector("#cta-title").getBoundingClientRect();
         const slot = document.querySelector("[data-search-dock]").getBoundingClientRect();

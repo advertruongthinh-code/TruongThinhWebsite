@@ -2,6 +2,7 @@
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node tests/site/image-loading-frame.e2e.mjs
 import assert from "node:assert/strict";
 import fs from "node:fs/promises";
+import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
 import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 const output = ".tmp/image-loading-frame";
 const DELAY = 1500;
@@ -348,10 +349,23 @@ try {
     assert.ok(await page.evaluate(() => document.querySelector("[data-project-grid] img.lazyloading")), `${viewport.width}px: geometry sampled while images load`);
     await page.waitForFunction(() => !document.querySelector("[data-project-grid] img.lazyloading"), null, { timeout: 30_000 });
     const loaded = await geometry();
-    assert.deepEqual(loaded, duringLoad, `${viewport.width}px: grid, CTA, footer and filters keep geometry while images load`);
+    // The virtual window may mount more cards once the page is idle (on a slow runner after this sample): compare the cards both samples hold.
+    const sampledIds = new Set(duringLoad.cards.map(([id]) => id));
+    const settledIds = new Set(loaded.cards.map(([id]) => id));
+    assert.deepEqual([...sampledIds].filter((id) => !settledIds.has(id)), [], `${viewport.width}px: no card unmounts while images load`);
+    assert.deepEqual({ ...loaded, cards: loaded.cards.filter(([id]) => sampledIds.has(id)) },
+      { ...duringLoad, cards: duringLoad.cards.filter(([id]) => settledIds.has(id)) },
+      `${viewport.width}px: grid, CTA, footer and filters keep geometry while images load`);
     const cardCount = loaded.cards.length;
-    const cardRequests = counts.size;
-    assert.ok(cardRequests <= cardCount && cardCount < 154, `${viewport.width}px: lazy window bounds requests (${cardRequests} for ${cardCount} rendered cards)`);
+    // A multi-media card may also load its other media (PC 240 wait files, media-card R5, owner 2026-11-12; the slideshow's next image,
+    // R4, owner 2026-11-13): every request must be a file of a card the lazy window rendered.
+    const original = (url) => new URL(url).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, "");
+    const renderedFiles = new Set(ADVERTISING_CARDS.filter((card) => sampledIds.has(card.id) || settledIds.has(card.id))
+      .flatMap((card) => (card.mediaItems ?? [card.media]).flatMap((item) => [item.src, item.posterSrc]).filter(Boolean))
+      .map((src) => original(new URL(src, BASE_URL).href)));
+    const outside = [...counts.keys()].filter((url) => !renderedFiles.has(original(url)));
+    assert.ok(counts.size > 0 && outside.length === 0 && cardCount < 154,
+      `${viewport.width}px: lazy window bounds requests (${counts.size} for ${cardCount} rendered cards, outside: ${JSON.stringify(outside)})`);
     // The Flow frame or color layer goes within 0.6 s after the last image finishes loading. On the phone a rendered card whose image has not
     // started (outside the lazy window) keeps its color layer from the moment it is built, so only cards with a loaded image count.
     await page.waitForFunction((selector) => ![...document.querySelectorAll(selector)].some((node) => !node.closest("[data-masonry-card]")
@@ -469,7 +483,7 @@ try {
     assert.equal(await page.evaluate(() => document.querySelectorAll("[data-detail-view] [data-masonry-loading-skeleton], [data-detail-view] [data-media-wait]").length), 0,
       `${viewport.width}px: closing the viewer clears the skeleton and the color layer`);
     assert.deepEqual((await geometry()).filters, loaded.filters, `${viewport.width}px: history return keeps filters`);
-    results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests, first: first.photo, swapped: relatedId });
+    results.push({ case: "p9-advertising", width: viewport.width, cardCount, cardRequests: counts.size, first: first.photo, swapped: relatedId });
     await context.close();
   }
   // Only the PC primary reveals through frosted glass; the phone primary uses the color layer; neither wears Kính.
@@ -514,7 +528,9 @@ try {
         settled: frame.classList.contains("is-media-settled"), offscreen: frame.classList.contains("is-media-offscreen") };
     }, id);
     await add("frame-visible", 0);
-    await page.evaluate(() => document.getElementById("frame-visible").scrollIntoView());
+    // Pinned in the viewport: a native scrollIntoView is undone by the smooth scroll's logical position, which made the frame flip
+    // back off screen on CI.
+    await page.evaluate(() => { document.getElementById("frame-visible").style.cssText = "position:fixed;top:120px;left:0;width:200px;height:100px"; });
     await page.waitForFunction(() => { const frame = document.getElementById("frame-visible"); return frame.classList.contains("media-frame") && !frame.classList.contains("is-media-offscreen"); });
     assert.deepEqual(await state("frame-visible"), { marked: true, sweep: "media-sweep", settled: false, offscreen: false }, "data-media-frame frame outside /assets/content/ shows the sweep");
     await add("frame-far", 8000);

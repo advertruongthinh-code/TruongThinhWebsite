@@ -1673,6 +1673,9 @@ em {
   padding: 0 35px;
   margin-inline: auto;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* The row is the 600px box itself: an unloaded portrait img sized the row by its width/height attributes (615px at 1440) and the
+     frame shrank to 600px once the file loaded (media-delivery P8). */
+  grid-template-rows: 100%;
   gap: 70px;
 }
 
@@ -2897,6 +2900,7 @@ em {
   .service-portals {
     height: auto;
     grid-template-columns: 1fr;
+    grid-template-rows: none;
     gap: 1.25rem;
   }
 

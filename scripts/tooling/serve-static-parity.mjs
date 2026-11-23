@@ -54,6 +54,8 @@ const MIME = new Map([
   [".mp4", "video/mp4"],
   [".png", "image/png"],
   [".svg", "image/svg+xml"],
+  [".txt", "text/plain; charset=UTF-8"],
+  [".xml", "application/xml; charset=UTF-8"],
   [".webm", "video/webm"],
   [".webp", "image/webp"],
   [".woff", "font/woff"],

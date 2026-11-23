@@ -22,6 +22,10 @@ const marked = (tag, text, attributes, ctx) => {
   const inner = markedInner(text.vi, text.en, ctx);
   return inner === null ? localized(tag, text, attributes) : `<${tag}${attributes}>${inner}</${tag}>`;
 };
+// hero-typography R7: the orphan tie keeps the last two words on one line; at the 40px phone title a pair over 15 characters
+// ("wardrobe measured?") is wider than the 354px column, so such a title gets a smaller phone size instead.
+const LONG_TAIL_CHARS = 15;
+const hasLongTail = (text) => [text.vi, text.en ?? ""].some((value) => plainText(value).trim().split(/\s+/).slice(-2).join(" ").length > LONG_TAIL_CHARS);
 // lists: a body paragraph whose every line starts with "• " or "<n>. " becomes <ul> or <ol>.
 const localizedParagraphs = (text, ctx, { lists = false } = {}) => {
   const vi = paragraphs(text.vi);
@@ -256,7 +260,7 @@ const BLOCKS = {
     marks: { title: "title" },
     render: (block, ctx) => [
       `<section class="blk blk-contact section-gap" id="${CONTACT_ID}" data-header-tone="ink">`,
-      `  ${marked("h2", block.title, ' class="blk-contact__title"', ctx)}`,
+      `  ${marked("h2", block.title, ` class="blk-contact__title${hasLongTail(block.title) ? " blk-contact__title--long-tail" : ""}"`, ctx)}`,
       `  <a class="blk-contact__zalo" href="${ZALO_HREF}" target="_blank" rel="noopener" data-en="Chat on Zalo">Nhắn Zalo</a>`,
       "</section>",
     ].join("\n"),

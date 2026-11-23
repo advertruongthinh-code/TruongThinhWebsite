@@ -5,6 +5,8 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import streamedOriginal from "./streamed-original.cjs";
+const { isStreamedOriginalAbort } = streamedOriginal;
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const outputDirectory = process.env.PHOTO_VIEW_OUTPUT_DIR
@@ -121,6 +123,7 @@ function attachDiagnostics(page) {
   page.on("requestfailed", (request) => {
     // Chromium cancels lazy image or video fetches that get replaced (srcset/variant/src change, unmount); not a load error.
     if (["image", "media"].includes(request.resourceType()) && request.failure()?.errorText === "net::ERR_ABORTED") return;
+    if (isStreamedOriginalAbort(request)) return;
     if (isLocalUrl(request.url())) issues.push({ kind: "requestfailed", url: request.url(), error: request.failure()?.errorText || "unknown" });
   });
   page.on("response", (response) => {
@@ -402,6 +405,10 @@ async function layoutEvidence(page) {
           const scroller = info.querySelector("[data-detail-description-scroll]");
           return scroller ? scroller.clientHeight / Number.parseFloat(getComputedStyle(scroller).lineHeight) : null;
         })(),
+        descriptionScrolls: (() => {
+          const scroller = info.querySelector("[data-detail-description-scroll]");
+          return Boolean(scroller && scroller.scrollHeight > scroller.clientHeight + 1);
+        })(),
         tabIndex: info.tabIndex,
         role: info.getAttribute("role"),
       } : null,
@@ -452,9 +459,14 @@ function assertLayout(evidence, label, { initialDirect = false } = {}) {
   closeTo(evidence.frameRect.height, expected.imageZoneHeight, `${label}: image frame height`);
   closeTo(evidence.primaryGap, expected.gap, `${label}: primary image-description gap`, 0.1);
   if (evidence.infoFloor <= expected.heightCap) assert(expected.height <= expected.heightCap + 0.01, `${label}: independent geometry exceeds height cap despite fitting floors`);
-  // Detail spec R2: exceeds the 28% cap only when three description lines share a group and the CTA does not fit.
-  if (expected.mode === "pinterest" && expected.descriptionHeight > expected.descriptionCap + 1) {
-    assert(evidence.info?.descriptionLines < 3.5, `${label}: info exceeds 28% of the viewport with more than three description lines`);
+  // Detail spec R2: info goes past 28% for its three-line floor, or (owner 2026-11-22) into the room the image leaves at its natural
+  // height; a description that still scrolls then takes primary down to the height cap.
+  if (expected.mode === "pinterest" && expected.descriptionHeight > expected.descriptionCap + 1 && !(evidence.info?.descriptionLines < 3.5)) {
+    const naturalZoneHeight = expected.width / intrinsicRatio;
+    assert(expected.imageZoneHeight >= naturalZoneHeight - 1.5,
+      `${label}: info past 28% with more than three description lines shrinks the image (${expected.imageZoneHeight} < natural ${naturalZoneHeight})`);
+    if (evidence.info?.descriptionScrolls) closeTo(evidence.primaryRect.height, expected.heightCap,
+      `${label}: a scrolling description past 28% leaves primary short of the height cap`, 1.5);
   }
   // Detail spec R3: info does not scroll itself; long text scrolls inside the description area.
   assert(!["auto", "scroll"].includes(evidence.info?.overflowY), `${label}: description has its own scrollbar`);

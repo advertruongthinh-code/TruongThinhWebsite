@@ -138,7 +138,9 @@ try {
   // Phone 384px: primary spans the full column (pinterest), the suggestion pins in the left column right under primary. Cards do not intersect primary,
   // do not tuck under the suggestion; at least one case of a card detouring around the suggestion must occur.
   let phoneDetours = 0;
-  for (const hero of heroes.slice(0, 3)) {
+  // Layouts are random per visit: check the first three heroes, then keep going through the rest only until a detour shows up.
+  for (const [index, hero] of heroes.entries()) {
+    if (index >= 3 && phoneDetours) break;
     const phone = await browser.newPage({ viewport: { width: 384, height: 854 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
     phone.on("pageerror", (error) => errors.push(`phone ${hero}: ${error.message}`));
     await openDetail(phone, "vi", hero);

@@ -6,6 +6,7 @@ import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
+import streamedOriginal from "./streamed-original.cjs";
 
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= "E:/TruongThinh-Website/.tooling/browsers";
 const engines = await import("playwright");
@@ -41,7 +42,7 @@ const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { w
 const results = [];
 // Resize and route changes re-pick the srcset candidate; the browser cancels the replaced image request
 // (Chromium reports net::ERR_ABORTED, Firefox NS_BINDING_ABORTED).
-const supersededImage=request=>request.resourceType()==='image'&&['net::ERR_ABORTED','NS_BINDING_ABORTED'].includes(request.failure()?.errorText);
+const supersededImage=request=>(request.resourceType()==='image'&&['net::ERR_ABORTED','NS_BINDING_ABORTED'].includes(request.failure()?.errorText))||streamedOriginal.isStreamedOriginalAbort(request);
 async function saveRecord(record){results.push(record);await fs.appendFile(dir+'/observations.jsonl',JSON.stringify(record)+'\n');}
 async function textFixture(context,size){await context.addInitScript(size=>document.addEventListener('DOMContentLoaded',()=>document.documentElement.style.fontSize=`${size}px`,{once:true}),size);}
 function measure(options = {}) {

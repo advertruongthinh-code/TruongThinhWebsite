@@ -23,6 +23,7 @@ try {
       return {
         primary: { x: primary.x, y: primary.y, width: primary.width, height: primary.height },
         card: card && { x: card.x, y: card.y },
+        suggestion: (() => { const r = document.querySelector("[data-masonry-suggestion-card]")?.getBoundingClientRect(); return r && { x: r.x, y: r.y, bottom: r.bottom }; })(),
         count: grid.querySelectorAll("figure:not([hidden])").length,
         slots: [...document.querySelectorAll("[data-masonry-suggestion-tag]")].map(e => {
           const r = e.getBoundingClientRect();
@@ -44,7 +45,10 @@ try {
       assert.deepEqual(settled.primary, initial.primary);
       assert.deepEqual(settled.slots, initial.slots);
       assert.ok(settled.card.x > settled.primary.x + settled.primary.width);
-      assert.ok(Math.abs(settled.card.y - settled.primary.y) < 0.5);
+      // advertising-detail R5 (owner 2026-11-22): the suggestion is pinned at the top of column four, so the one related card follows it one
+      // 35px gap lower in the same column.
+      assert.ok(Math.abs(settled.suggestion.y - settled.primary.y) < 0.5 && Math.abs(settled.card.x - settled.suggestion.x) < 0.5);
+      assert.ok(Math.abs(settled.card.y - (settled.suggestion.bottom + 35)) < 0.5, JSON.stringify(settled));
       await page.waitForTimeout(500);
       assert.deepEqual((await snapshot()).card, settled.card, "No second jump after motion settles");
     }
@@ -53,7 +57,7 @@ try {
     const narrow = await snapshot();
     assert.ok(narrow.card.y > narrow.primary.y + narrow.primary.height);
     assert.deepEqual(errors, []);
-    console.log(`${locale}: 3 toggle cycles keep column 4; resize moves related below primary`);
+    console.log(`${locale}: 3 toggle cycles keep column 4 under the suggestion; resize moves related below primary`);
     await page.close();
   }
 } finally {
