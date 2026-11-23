@@ -89,17 +89,21 @@ test("the site built from the seeded D1 snapshot equals the site built from the 
   const response = await snapshot.run(new Request("https://admin.test/api/admin/snapshot"), { DB });
   const files = snapshotToFiles(JSON.parse(await response.text()));
   const work = mkdtempSync(path.join(tmpdir(), "tt-seed-"));
+  let before, after;
   try {
     const content = path.join(work, "content");
     cpSync(path.join(ROOT, "src/site/content"), content, { recursive: true });
     for (const [name, value] of Object.entries(files)) writeFileSync(path.join(content, name), JSON.stringify(value, null, 2));
-    const build = (env) => execFileSync("pnpm", ["-s", "prepare:site"], { cwd: ROOT, env: { ...process.env, TT_CONTENT_DIR: "", ...env }, stdio: "pipe" });
-    build({});
-    cpSync(path.join(ROOT, ".site-output"), path.join(work, "site-before"), { recursive: true });
-    build({ TT_CONTENT_DIR: content });
-    const diff = execFileSync("diff", ["-r", path.join(work, "site-before"), path.join(ROOT, ".site-output")], { encoding: "utf8" });
+    // Both builds go to their own dirs so a parallel suite never sees the shared .site-output half written.
+    // prepare:site only writes to a direct child of the repo root, so the dirs live there.
+    const build = (out, env) => execFileSync("pnpm", ["-s", "prepare:site"], { cwd: ROOT, env: { ...process.env, TT_CONTENT_DIR: "", TT_SITE_OUT: out, ...env }, stdio: "pipe" });
+    before = mkdtempSync(path.join(ROOT, ".site-output-seed-"));
+    after = mkdtempSync(path.join(ROOT, ".site-output-seed-"));
+    build(before, {});
+    build(after, { TT_CONTENT_DIR: content });
+    const diff = execFileSync("diff", ["-r", before, after], { encoding: "utf8" });
     assert.equal(diff, "");
   } finally {
-    rmSync(work, { recursive: true, force: true });
+    for (const dir of [work, before, after]) if (dir) rmSync(dir, { recursive: true, force: true });
   }
 });
