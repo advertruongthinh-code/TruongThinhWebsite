@@ -18,12 +18,13 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 
 // Every card becomes a video card so the schedule always has candidates, independent of the grid seed. playlist: video, image,
-// second video, to check the slideshow plays each video to its end and stands on the image.
+// second video, to check the slideshow plays each video to its end and stands on the image. Cards are 4:3, under the golden ratio: a
+// 16:9 card spans two columns (masonry R5, owner 2026-11-09), and a grid of only two-column cards leaves one card per row in view.
 function fixtureArtifact(playlist = false) {
   const artifact = structuredClone(ADVERTISING_CATALOG_ARTIFACT);
   for (const card of artifact.cards) {
     const shared = {
-      ...card.mediaItems[0], width: 640, height: 360, source: "M00b sealed synthetic fixture",
+      ...card.mediaItems[0], width: 640, height: 480, source: "M00b sealed synthetic fixture",
       provenance: "Synthetic test-only fixture, not public media.",
     };
     const video = (suffix) => ({

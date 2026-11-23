@@ -69,11 +69,11 @@ And test fail nếu một mode mới của site.e2e.cjs chưa nằm ở đâu
 | `adv-primary` | advertising-detail | ảnh primary: span, CTA, chữ vừa khung, reduced motion |
 | `adv-view-1` tới `adv-view-6` | advertising-detail, advertising-viewer-touch-zoom | hình học detail và viewer ở 20 cỡ màn hình, hai ngôn ngữ, ba dạng ảnh; mỗi bộ một shard Chromium |
 | `media` | media-delivery, loading-glass-and-page-entry, glass-surface, media-card, page-home, detail-pages | khung ảnh, CLS, skeleton chờ ảnh, kính mờ lộ ảnh, vệt chờ không tràn khỏi khung (`media-sweep-contained.e2e.mjs`) |
-| `media-card` | media-card, glass-surface, video-delivery | card nhiều media (vuốt, chấm, video cover, rect ổn định), Kính dạng cung, video thích ứng mạng |
+| `media-card` | media-card, glass-surface | card nhiều media (vuốt, chấm, video cover, tự phát), Kính dạng cung |
+| `media-card-2` | media-card, video-delivery | card nhiều media (rect ổn định, slideshow, chờ ảnh, viewer), video thích ứng mạng (tách khỏi `media-card` 2026-11-23: gộp lại chạy quá 12 phút, job bị hủy mỗi đêm) |
 | `search` | advertising-search | Worker `/api/*` và hàm thuần của tìm kiếm (`node --test tests/search/*.test.mjs`) |
 
-Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo
-spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn thời gian dựng job.
+Danh sách file test từng bộ nằm trong manifest, không chép vào đây. Bộ quá 5 phút trên runner CI thì tách đôi theo spec; bộ dưới 30 giây gộp vào bộ cùng phần để không tốn thời gian dựng job.
 
 ### R3. Chọn bộ theo file PR sửa
 
@@ -210,8 +210,7 @@ Trước đó apt treo cũng đã làm một job `media-card` mất 20 phút mà
 
 ### R12. Harness test trình duyệt
 
-`tests/site/harness.mjs` là helper duy nhất cho test trình duyệt viết bằng ESM; tên không chứa `.e2e.` hay `.test.` nên
-runner không nhặt nó làm test, và nó nằm trong `shared` của manifest nên đổi nó chạy mọi bộ ([R3](#r3-chọn-bộ-theo-file-pr-sửa)).
+`tests/site/harness.mjs` là helper duy nhất cho test trình duyệt viết bằng ESM; tên không chứa `.e2e.` hay `.test.` nên runner không nhặt nó làm test, và nó nằm trong `shared` của manifest nên đổi nó chạy mọi bộ ([R3](#r3-chọn-bộ-theo-file-pr-sửa)).
 Export đúng các tên sau:
 
 | Export | Việc |
@@ -223,6 +222,7 @@ Export đúng các tên sau:
 | `openPage(browser, viewport, contextOptions)` | Tách `width`, `height` khỏi option thiết bị của viewport, mở context và trang; trả `{ context, page }` |
 | `frames(page, count = 2)` | Chờ `count` lần `requestAnimationFrame` |
 | `settleTransitions(page)` | Chờ hai frame rồi chờ tới khi không còn CSS transition đang chạy |
+| `holdCardSlideshow(context)` | Giữ slideshow card ([media-card R4](media-card.md), owner 2026-11-13) đứng yên cho test đổi media bằng tay; slideshow có test riêng (`site-media-card-slideshow.e2e.mjs`) |
 | `mouseDrag(page, from, to, steps = 12)` | Kéo chuột thật (`page.mouse`) giữa hai điểm viewport `{ x, y }` |
 | `touchSwipe(page, from, to, steps = 12)` | Vuốt bằng touch event CDP; context cần `hasTouch` |
 | `trackMotion(page, selector, act, ms = 1500)` | Đo hình hộp phần tử mỗi frame trong lúc `act` chạy; trả `jump`: bước lớn nhất giữa hai frame chia cho toàn biên độ (đổi tức thì là 1, morph nhỏ hơn nhiều) |

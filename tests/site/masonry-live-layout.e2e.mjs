@@ -492,20 +492,28 @@ try {
         if (!records.flatMap((record) => [...record.addedNodes]).some((node) => node.dataset?.masonryCard && !before.has(node.dataset.masonryCard))) return;
         observer.disconnect();
         requestAnimationFrame(() => {
-          // A build may attach its new cards over several mutation batches: take every new card the grid holds by this frame.
-          const added = [...grid.querySelectorAll("[data-masonry-card]")].filter((node) => !before.has(node.dataset.masonryCard));
-          const cards = added.filter((node) => !node.hidden).map((node) => ({
-            id: node.dataset.masonryCard,
-            slides: node.getAnimations().some((animation) => animation.id === "masonry-slide"),
-            opacity: Number(getComputedStyle(node).opacity),
-            waits: [...node.querySelectorAll(".card-media__wait")].map((wait) => Number(getComputedStyle(wait).opacity)),
-            at: [node.style.left, node.style.top],
-          }));
-          // Media already cached fades in over the card colour, as a card replacing a temp card does (GHOST_FADE_MS).
-          const fades = () => added.filter((node) => node.querySelector(".masonry-card__foreground")?.getAnimations()
-            .some((animation) => animation.effect.getKeyframes().some((frame) => "opacity" in frame) && animation.effect.getTiming().duration === fadeMs)).length;
+          // New cards past the first become real cards at their target over the next frames' budget (masonry-live-layout R7, advertising-masonry
+          // R7): record every new card in the first frame it shows, for 500ms.
+          const added = new Map();
+          let mediaFades = 0;
           const start = performance.now();
-          const poll = () => (fades() || performance.now() - start > 500 ? resolve({ cards, mediaFades: fades() }) : requestAnimationFrame(poll));
+          const poll = () => {
+            for (const node of grid.querySelectorAll("[data-masonry-card]")) {
+              if (before.has(node.dataset.masonryCard) || added.has(node) || node.hidden) continue;
+              added.set(node, {
+                id: node.dataset.masonryCard,
+                slides: node.getAnimations().some((animation) => animation.id === "masonry-slide"),
+                opacity: Number(getComputedStyle(node).opacity),
+                waits: [...node.querySelectorAll(".card-media__wait")].map((wait) => Number(getComputedStyle(wait).opacity)),
+                at: [node.style.left, node.style.top],
+              });
+            }
+            // Media already cached fades in over the card colour, as a card replacing a temp card does (GHOST_FADE_MS).
+            mediaFades = Math.max(mediaFades, [...added.keys()].filter((node) => node.querySelector(".masonry-card__foreground")?.getAnimations()
+              .some((animation) => animation.effect.getKeyframes().some((frame) => "opacity" in frame) && animation.effect.getTiming().duration === fadeMs)).length);
+            if (performance.now() - start > 500) resolve({ cards: [...added.values()], mediaFades });
+            else requestAnimationFrame(poll);
+          };
           poll();
         });
       }).observe(grid, { childList: true });

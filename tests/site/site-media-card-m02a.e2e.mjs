@@ -16,6 +16,7 @@ const clip = path.join(root, "tests/site/fixtures/site-media-card-clip-audio-3x2
 const poster = path.join(root, "tests/site/fixtures/site-media-card-poster-3x2.webp");
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
+const { holdCardSlideshow } = await import("./harness.mjs");
 
 function fixtureArtifact(videoCover = false, { singleton = false, relatedMedia = false, hasAudio = true, wideVideo = false,
   crowded = false, twoVideos = false, otherImages = 0 } = {}) {
@@ -132,7 +133,8 @@ async function primaryState(page) {
       return !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
         && style.visibility !== "hidden" && Number(style.opacity) > 0 && box.width > 0 && box.height > 0;
     }).map((node) => ({ kind: node.tagName.toLowerCase(),
-      src: node.currentSrc || node.getAttribute("src") || "",
+      // A streamed JXL original shows a blob URL; data-original names its file (progressive-loading R10).
+      src: (node.currentSrc.startsWith("blob:") && node.dataset.original) || node.currentSrc || node.getAttribute("src") || "",
       poster: node.getAttribute("poster") || "", muted: node.tagName === "VIDEO" ? node.muted : null,
       alt: node.getAttribute("alt") || "", ariaLabel: node.getAttribute("aria-label") || "" }));
     const thumbs = [...view.querySelectorAll("[data-detail-media-select]")].map((node) => ({
@@ -165,7 +167,9 @@ async function assertPrimary(page, card, expectedId, locale) {
       && [...document.querySelectorAll(`[data-detail-hero] ${kind === "video" ? "video" : "img"}`)].some((node) => {
         const style = getComputedStyle(node);
         const box = node.getBoundingClientRect();
-        const path = new URL(node.currentSrc || node.src, location.href).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, ".webp");
+        // A streamed JXL original shows a blob URL; data-original names its file (progressive-loading R10).
+        const shownUrl = (node.currentSrc.startsWith("blob:") && node.dataset.original) || node.currentSrc || node.src;
+        const path = new URL(shownUrl, location.href).pathname.replace(/(?:-(?:240|480|960|1600|2048))?\.(?:avif|webp|jxl)$/, ".webp");
         return path === src && !node.hidden && !node.closest('[aria-hidden="true"]') && style.display !== "none"
           && style.visibility !== "hidden" && Number(style.opacity) > 0 && box.width > 0 && box.height > 0;
       });
@@ -242,9 +246,12 @@ test("M02a selected image opens image viewer bound to that image", async () => {
     await page.locator("[data-detail-expand]").click();
     const viewer = page.locator("[data-detail-dialog]");
     await viewer.waitFor({ state: "visible" });
-    const image = await viewer.locator("[data-detail-expanded-image]").evaluate((node) => ({
-      src: node.currentSrc || node.src, alt: node.alt,
-    }));
+    // The viewer reuses the primary's streamed JXL original (a blob URL, detail-viewer showImage); the primary image holding that blob
+    // names its file in data-original (progressive-loading R10).
+    const image = await viewer.locator("[data-detail-expanded-image]").evaluate((node) => {
+      const streamed = [...document.querySelectorAll("[data-detail-hero] img[data-original]")].find((hero) => hero.currentSrc === node.currentSrc);
+      return { src: (node.currentSrc.startsWith("blob:") && streamed?.dataset.original) || node.currentSrc || node.src, alt: node.alt };
+    });
     assert.equal(mediaPath(image.src), card.mediaItems[0].src);
     assert.equal(image.alt, card.mediaItems[0].altEn);
     assert.deepEqual(await viewerMediaGate(page), { frame: false, animations: [] }, "viewer image has no wait sweep or fade-in");
@@ -268,7 +275,10 @@ const underViewer = (page) => page.evaluate(() => {
 // The viewer belongs to Advertising so it has no light streak or fade-in of the content image placeholder frame (loading-glass R5).
 const viewerMediaGate = (page) => page.evaluate(() => ({
   frame: document.querySelector(".detail-dialog__viewport").classList.contains("media-frame"),
-  animations: document.getAnimations().map(({ animationName }) => animationName).filter((name) => /^media-/.test(name)),
+  // The viewer's thumbnails are frames of their own whose sweep fades out as their small files load (media-delivery R6); the gate is
+  // about the media itself.
+  animations: document.getAnimations().filter(({ effect }) => !effect?.target?.closest?.("[data-detail-viewer-select]"))
+    .map(({ animationName }) => animationName).filter((name) => /^media-/.test(name)),
 }));
 
 async function choosePrimaryThumb(page, id) {
@@ -288,6 +298,8 @@ async function withPage(locale, execute) {
     viewport: locale === "vi" ? { width: 390, height: 844 } : { width: 1440, height: 900 },
     hasTouch: locale === "vi", isMobile: locale === "vi",
   });
+  // Manual media navigation is under test here: hold the card slideshow (harness holdCardSlideshow).
+  await holdCardSlideshow(context);
   const page = await context.newPage();
   const pageErrors = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
