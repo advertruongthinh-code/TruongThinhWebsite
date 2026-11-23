@@ -44,8 +44,10 @@ Database `truong-thinh-cms` (vùng `apac`, binding `DB`), một migration `src/d
 | `settings` | `key` | `value`; khóa `publish_paused`, `dispatch_error`, `access_drift`, `orphan_cursor`, `cms_live` |
 
 `records.type` là một trong `media`, `news`, `project`, `advertising-card`, `hero-slide`, `client-logo`,
-`home-projects`, `menu`, `contact`, `page-copy`; kiểu đơn có đúng một dòng `id = 'main'`, không tạo, không xóa. Phần 1
-mở `media`, `news`, `project`, `advertising-card`, `hero-slide`, `home-projects`, `menu`; ba kiểu còn lại mở ở phần 2.
+`home-projects`, `menu`, `contact`, `page-copy`; kiểu đơn có đúng một dòng `id = 'main'`, không tạo, không xóa.
+`page-copy` có bốn bản ghi cố định `home`, `residential`, `commercial`, `about`, không tạo thêm, không xóa
+([editor R6](cms-editor.md#r6-trang-chuẩn)). Phần 1 mở `media`, `news`, `project`, `advertising-card`, `hero-slide`,
+`home-projects`, `menu`; ba kiểu còn lại mở ở phần 2, `page-copy` mở ở task E6.
 Media là một kiểu bản ghi, cùng trạng thái, phiên bản và thùng rác; media là `published` khi có đủ `altVi`, `altEn`
 (tới khi phần 2 mở EN không bắt buộc theo [nội dung CMS R2](cms-content.md)). `data` có đúng hình dạng một phần tử file chiếu. Slug duy nhất theo kiểu trong
 các bản ghi chưa vào thùng rác (index duy nhất một phần), nên khôi phục bài trùng slug trả 409. `save` ghi bằng một câu

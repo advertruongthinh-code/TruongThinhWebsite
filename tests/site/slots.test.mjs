@@ -5,7 +5,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:f
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { PLACEHOLDER_IMAGES, PLACEHOLDER_TEXT, SLOT_ID, SLOT_PAGES, fillSlots, slotValues, slotsOf } from "../../scripts/site/slots.mjs";
+import { PLACEHOLDER_IMAGES, PLACEHOLDER_TEXT, SLOT_ID, SLOT_PAGES, fillSlots, slotIds, slotValues, slotsOf } from "../../scripts/site/slots.mjs";
 import { shapeErrors } from "../../src/cms/contract.mjs";
 import { mediaRefs } from "../../src/cms/media-ref.mjs";
 import { filesToRecords, snapshotToFiles } from "../../src/cms/projection.mjs";
@@ -107,10 +107,25 @@ test("the build fills the home page from page-copy.json of the content dir", { t
   const out = mkdtempSync(path.join(projectRoot, ".site-output-r2-"));
   t.after(() => { rmSync(dir, { recursive: true, force: true }); rmSync(out, { recursive: true, force: true }); });
   cpSync(path.join(projectRoot, "src/site/content"), dir, { recursive: true });
-  writeFileSync(path.join(dir, "page-copy.json"), JSON.stringify({ home: { slots: { "dich-vu.title": { vi: "Mảng thử nghiệm", en: "Test areas" } } } }));
+  writeFileSync(path.join(dir, "page-copy.json"), JSON.stringify({ home: { slots: { "dich-vu.title": { vi: "Mảng thử nghiệm", en: "Test areas" } } }, residential: { slots: { "tong-quan.body": { vi: "Đoạn thử nghiệm", en: "Test paragraph" } } } }));
   const result = spawnSync(process.execPath, ["scripts/site/prepare-static-assets.mjs"], { cwd: projectRoot, env: { ...process.env, TT_CONTENT_DIR: dir, TT_SITE_OUT: out }, encoding: "utf8" });
   assert.equal(result.status, 0, result.stderr);
   // The build keeps short last words together with a no-break space, so the text is matched with \s.
   assert.match(readFileSync(path.join(out, "index.html"), "utf8"), /data-slot="dich-vu.title"[^>]*>\s*Mảng thử\snghiệm\s*</);
   assert.match(readFileSync(path.join(out, "en/index.html"), "utf8"), /data-slot="dich-vu.title"[^>]*>\s*Test\sareas\s*</);
+  // The menu pages are written on their own path in the build, so one of them is checked too.
+  assert.match(readFileSync(path.join(out, "residential/index.html"), "utf8"), /data-slot="tong-quan.body"[^>]*>\s*Đoạn thử\snghiệm\s*</);
+});
+
+test("noscript, build-generated regions and data-cta blocks give no slots", () => {
+  const region = (open, close) => `${open}<p data-en="Inside">Bên trong</p><img src="/assets/content/projects/x.webp" width="4" height="3" alt="x" />${close}`;
+  const html = `<main><section id="mau">
+    <h2 data-en="Kept">Giữ lại</h2>
+    ${region("<noscript>", "</noscript>")}
+    ${region('<div class="hero-slides">', "</div>")}
+    ${region('<div class="client-logos">', "</div>")}
+    ${region('<div class="supplier-logos">', "</div>")}
+    ${region('<div class="cta" data-cta="">', "</div>")}
+  </section></main>`;
+  assert.deepEqual(slotIds(html).map(({ id }) => id), ["mau.title"]);
 });
