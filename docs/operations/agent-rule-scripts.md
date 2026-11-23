@@ -37,6 +37,7 @@ Path đều relative repository root. Dùng entrypoint này; helper/private laun
 | Skill Claude local | `pwsh -NoProfile -File scripts/tooling/local-setup.ps1` | Cài năm plugin skill pin vào `~/.claude/skills`; cloud dùng `cloud-setup.sh`. |
 | Approved repair từng phần | `pwsh -NoProfile -File scripts/tooling/bootstrap.ps1 -Components Skills` | Chọn `Python`, `Node` hoặc `Skills`; không chạy full bootstrap, đổi host agent config hay cài Git hook. |
 | Graphify Linux/cloud | `scripts/tooling/invoke-graphify.sh query|path|explain ...` | Tự cài Graphify pin, refresh AST khi tree đổi. |
+| Token Cloudflare, GitHub | `pnpm token:setup`, `pnpm token:roll <tên>`, `pnpm token:list` | Chỉ chạy trên PC; tạo, đặt và liệt kê hạn token ([runbook](cms-storage-runbook.md#token-tự-động)). Agent chạy được, không đọc giá trị. |
 | Health | `pnpm tooling:doctor`, `pnpm tooling:doctor -- -Mcp` | Diagnose reported setup/MCP issue. |
 | Update report | `pwsh -File scripts/tooling/check-updates.ps1 [-IfDue]` | Notify-only; không install. |
 | Impeccable Windows | `& "$env:USERPROFILE\.agents\skills\impeccable\scripts\impeccable.cmd" context|doctor|detect` | Skill 4.8.0; `context` một lần mỗi session, `doctor` cho maintenance; không cài agent lifecycle hook. |

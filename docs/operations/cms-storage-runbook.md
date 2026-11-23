@@ -59,8 +59,8 @@ Ba lớp, từ gần tới xa ([cms.md](../specs/cms.md) R6):
 
 Owner nhập một lần; agent không đọc giá trị. `D1_DATABASE_ID` là biến thường trong `wrangler.toml` (test giữ nó bằng `database_id`).
 
-1. Cloudflare, My Profile, API Tokens, Create Token, Custom token: tên `tt-d1-export`; Permissions: Account, D1, Edit; Account Resources: tài khoản của site; TTL: 1 năm. Create, chép token.
-2. Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets, Add: Type `Secret`, tên `D1_EXPORT_TOKEN`, dán token. Add lần nữa: `Secret`, tên `CF_ACCOUNT_ID`, giá trị là Account ID (cột phải trang Workers & Pages). Bấm Deploy.
+1. Trên PC: `pnpm token:roll d1-export` (mục [Token tự động](#token-tự-động)) tạo `tt-d1-export` (D1 Write, 1 năm) và đặt secret Worker `D1_EXPORT_TOKEN`.
+2. Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets, Add: `Secret`, tên `CF_ACCOUNT_ID`, giá trị là Account ID (cột phải trang Workers & Pages). Bấm Deploy.
 
 ### Khôi phục
 
@@ -95,7 +95,7 @@ Owner nhập một lần; agent không đọc giá trị. Admin Worker dùng tok
 
 1. GitHub, Settings, Developer settings, Personal access tokens, Fine-grained tokens, Generate new token: tên `tt-cms-dispatch`; Expiration 1 năm; Repository access: Only select repositories, chọn repo `TruongThinhWebsite`; Permissions, Repository permissions: Actions, Read and write. Generate, chép token.
 2. Cloudflare, Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets, Add: Type `Secret`, tên `GITHUB_ACTIONS_TOKEN`, dán token, Deploy.
-3. Cách khác trên PC: `pnpm demo:wrangler secret put GITHUB_ACTIONS_TOKEN --config wrangler.toml`, dán token khi được hỏi.
+3. Cách khác trên PC: `pnpm token:roll cms-dispatch`, dán token và ngày hết hạn khi được hỏi; lệnh đặt secret Worker và ghi hạn vào sổ.
 4. Kiểm: mở `status.html`, `tokenExpiresAt` có ngày hết hạn và `runs` không phải `null`. Ghi ngày hết hạn vào bảng dưới; đổi token trước hạn bằng cùng các bước.
 5. Lúc tạm dừng xuất bản, các lần lưu không gọi dựng và Cron không gọi lại. Bỏ tạm dừng xong, bấm "Dựng lại" trên `status.html` để staging nhận nội dung đã lưu.
 
@@ -124,16 +124,35 @@ Panel "Tài khoản" của editor (menu Bảng, chỉ owner) thêm người, đ�
 - PR có file mới trong `src/db/migrations/` mở kèm nhãn `hold` (Automerge không tự merge). Thread áp migration bằng tay ở gate của chặng (`pnpm demo:wrangler d1 migrations apply truong-thinh-cms --remote --config wrangler.toml`) trước khi merge code cần lược đồ mới, rồi gỡ nhãn.
 - CI không áp migration: token CI không có quyền D1.
 
+## Token tự động
+
+Script `scripts/tooling/tokens.mjs` chạy trên PC, không dùng AI. Giá trị token chỉ đi qua bộ nhớ và stdin của `wrangler`, `gh`; không in, không ghi file trừ token gốc.
+
+1. Owner tạo một lần token gốc: Cloudflare, My Profile, API Tokens, Create Token, template "Create additional tokens", Use template; tên `tt-token-admin`; TTL 1 năm; Continue, Create, Copy. Không thêm quyền khác.
+2. Owner chạy `pnpm token:setup`, dán token (ẩn). Script kiểm token rồi lưu ở `%USERPROFILE%\.truongthinh\cf-token-admin`; secret guard chặn agent đọc file này.
+3. `pnpm token:roll <tên>`: tạo token mới đúng quyền, hạn 1 năm, đặt vào đích, xóa token cũ cùng tên. Đặt đích lỗi thì xóa token mới, giữ token cũ. Cần `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN` (cho `wrangler`) và `gh auth login` trên PC.
+4. `pnpm token:list`: mọi token Cloudflare của owner kèm hạn, cộng sổ `%USERPROFILE%\.truongthinh\token-registry.json` (token nhập tay), xếp theo hạn.
+
+| Tên | Token | Đích |
+| --- | --- | --- |
+| `d1-export` | `tt-d1-export`, D1 Write | Secret Worker `D1_EXPORT_TOKEN` |
+| `cms-access` | `tt-cms-access`, Access: Apps and Policies Write | Secret Worker `ACCESS_API_TOKEN` |
+| `ci-deploy` | `tt-ci-deploy`, chép quyền của "Edit Cloudflare Workers" | Secret `CLOUDFLARE_API_TOKEN` của environment `cloudflare-deploy`; xóa biến cùng tên trong environment đó. Token "Edit Cloudflare Workers" cũ không tự xóa: owner thu hồi sau khi kiểm token PC không dùng nó |
+| `cms-dispatch` | GitHub fine-grained `tt-cms-dispatch` (GitHub không có API tạo token này) | Owner tạo theo mục trên, dán vào lệnh; secret Worker `GITHUB_ACTIONS_TOKEN` |
+
+Không tự động: service token Access, token R2 (S3), token gốc. Thêm token mới: thêm một dòng vào `TOKENS` trong script.
+
 ## Hạn dùng credential
 
-Không ghi giá trị. Thread tạo credential điền dòng của nó; card Notion nhắc gia hạn 30 ngày trước hạn sớm nhất. Service token hết hạn thì mọi lần dựng từ bản chụp dừng.
+Không ghi giá trị. Hạn thật của token Cloudflare và token nhập tay: `pnpm token:list`. Thread tạo credential điền dòng của nó; card Notion nhắc gia hạn 30 ngày trước hạn sớm nhất. Service token hết hạn thì mọi lần dựng từ bản chụp dừng.
 
 | Credential | Tạo ở | Hết hạn | Gia hạn ở |
 | --- | --- | --- | --- |
 | Service token Access CMS (`tt-cms-ci`) | S4 bước 8 | 2027-11-23 | Zero Trust, Access, Service Auth |
 | Token R2 bucket public (`tt-r2-public-write`) | S4 bước 5 | Không hết hạn | R2, Manage API tokens |
 | Token CI Cloudflare "Edit Cloudflare Workers" (environment `cloudflare-deploy`) | S4 bước 5 | Không hết hạn | Cloudflare, API Tokens |
-| Token export D1 (`tt-d1-export`, secret Worker `D1_EXPORT_TOKEN`) | S5 | 1 năm sau ngày tạo (ghi ngày khi tạo) | Cloudflare, API Tokens |
+| Token export D1 (`tt-d1-export`, secret Worker `D1_EXPORT_TOKEN`) | S5 | 1 năm sau ngày tạo (ghi ngày khi tạo) | `pnpm token:roll d1-export` |
+| Token gốc (`tt-token-admin`, file trên PC) | Token tự động | 1 năm sau ngày tạo | Cloudflare, API Tokens, rồi `pnpm token:setup` |
 | Token R2 chỉ đọc bucket private (rclone `r2cms` trên PC) | S5 | | R2, Manage API tokens |
 | Token GitHub fine-grained (`tt-cms-dispatch`, secret Worker `GITHUB_ACTIONS_TOKEN`) | P4 | 1 năm sau ngày tạo (ghi ngày khi tạo) | GitHub, Developer settings, Fine-grained tokens |
 | Token Access API (`tt-cms-access`, secret Worker `ACCESS_API_TOKEN`) | P7 | 1 năm sau ngày tạo (ghi ngày khi tạo) | Cloudflare, API Tokens |
