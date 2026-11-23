@@ -7026,7 +7026,7 @@ async function runAdvertisingMediaFocusedChecks() {
       await page.waitForTimeout(500);
       await page.waitForFunction(() => {
         const card = document.querySelector("[data-project-grid] .masonry-card");
-        const image = card?.querySelector(".masonry-card__foreground");
+        const image = card?.querySelector(".masonry-card__foreground:not([hidden])");
         return image?.classList.contains("is-masonry-media-ready")
           && Number.parseFloat(getComputedStyle(image).opacity) >= 0.999;
       });
@@ -7079,7 +7079,8 @@ async function runAdvertisingMediaFocusedChecks() {
       await page.waitForFunction(
         (id) => {
           const current = document.querySelector(`[data-project-grid] [data-masonry-card="${id}"]`);
-          const image = current?.querySelector(".masonry-card__foreground");
+          // A multi-media card keeps its other media layers hidden (media-card R5); the shown layer is the one checked.
+          const image = current?.querySelector(".masonry-card__foreground:not([hidden])");
           return current && current !== window.__ttAdvertisingOneShotNode
             && image?.classList.contains("is-masonry-media-ready");
         },
@@ -7090,15 +7091,23 @@ async function runAdvertisingMediaFocusedChecks() {
       );
       const replay = await page.locator("[data-project-grid]").evaluate((grid, id) => {
         const current = grid.querySelector(`[data-masonry-card="${id}"]`);
-        const image = current?.querySelector(".masonry-card__foreground");
+        const image = current?.querySelector(".masonry-card__foreground:not([hidden])");
+        // A multi-media card may already be sliding to its next media (slideshow, media-card R4, owner 2026-11-13): the strip moves
+        // its lanes by transform and the pill changes tone, which is not an entrance replay (the entrance fades opacity).
+        const keyframeKeys = new Set(["offset", "computedOffset", "easing", "composite", "transform", "translate"]);
+        const slide = (animation) => animation.transitionProperty
+          ? ["color", "background-color"].includes(animation.transitionProperty) && Boolean(animation.effect?.target?.closest?.(".card-media__pill"))
+          : animation.effect?.getKeyframes().every((frame) => Object.keys(frame).every((key) => keyframeKeys.has(key)));
+        const running = current?.getAnimations({ subtree: true })
+          .filter((animation) => animation.playState === "running" && !slide(animation));
         return {
           oldConnected: window.__ttAdvertisingOneShotNode?.isConnected,
           sameNode: current === window.__ttAdvertisingOneShotNode,
           ready: image?.classList.contains("is-masonry-media-ready"),
           opacity: image ? Number.parseFloat(getComputedStyle(image).opacity) : -1,
-          runningAnimations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running").length ?? -1,
-          animations: current?.getAnimations({ subtree: true }).filter((animation) => animation.playState === "running")
-            .map((animation) => `${animation.animationName || animation.transitionProperty}:${animation.effect?.target?.className}`),
+          runningAnimations: running?.length ?? -1,
+          animations: running
+            ?.map((animation) => `${animation.animationName || animation.transitionProperty}:${animation.effect?.target?.className}`),
         };
       }, replayFixtureId);
       // loading-glass R3, masonry R8: a card whose image already loaded shows the image immediately on re-attach, without rerunning the entrance effect.
@@ -7109,7 +7118,7 @@ async function runAdvertisingMediaFocusedChecks() {
       );
       await page.waitForFunction(
         () => {
-          const image = document.querySelector("[data-project-grid] .masonry-card__foreground");
+          const image = document.querySelector("[data-project-grid] .masonry-card__foreground:not([hidden])");
           return image && Number.parseFloat(getComputedStyle(image).opacity) >= 0.999;
         },
         null,
