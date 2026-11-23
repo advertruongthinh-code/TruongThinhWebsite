@@ -26,7 +26,7 @@ export function writeStatements(env, { type, id, version, status, text, usesJson
 
 // Shape check, materialize, variant keys: shared by save and create.
 export async function prepare(env, type, id, data, target) {
-  const ctx = await validationContext(env, type, data);
+  const ctx = await validationContext(env, type, data, id);
   const shape = await shapeErrors(type, data, { ...ctx, id: SINGLETON_TYPES.includes(type) ? undefined : id });
   if (shape.length) throw new HttpError(400, { error: "shape", errors: shape }, target);
   const { data: next, uses } = await materialize(type, data, ctx.mediaById);

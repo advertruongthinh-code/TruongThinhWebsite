@@ -196,7 +196,7 @@ Then lần dựng đó dùng code của commit X với nội dung mới
 | `trash`, `restore` | `{ type, id }` | 200; `trash` trả `referencedBy` |
 | `purge` | `{ type, id, confirm }` | 200; `confirm` phải bằng tên bản ghi |
 | `upload-media` | Thân là byte file; query `slugBase`, `width`, `height`, `altVi`, `altEn` | 201, media và biến thể `pending` |
-| `update-media` | `{ id, version, altVi, altEn, tags }` | 200; alt mới ghi vào mọi bản ghi dùng media |
+| `update-media` | `{ id, version, altVi, altEn, tags }` | 200; alt mới ghi vào mọi bản ghi dùng media; 400 `alt-dup` kèm `usedBy` khi alt mới trùng alt của media khác trong cùng card |
 | `account-add`, `account-update` | `{ email, role, status }` | 201, 200 |
 | `rollback` | `{ versionId, target }`; `target` là `staging` (mặc định) hoặc `production`; `versionId` là một trong 10 dấu gần nhất của đích đó | 202; đích `staging` thì tự đăng tạm dừng |
 | `release` | `{ commit, snapshotId }` của dấu deployment staging mới nhất | 202; 409 `staging-changed`, `staging-behind`, `paused`, `already-released`, `cms-not-live` |
@@ -215,7 +215,7 @@ vai trò hoặc lỗi 4xx cũng có một dòng. `upload-media` có thêm hạn 
 `home-projects` còn từ 3 công trình, mỗi trang còn ít nhất một slide hero `published`. Khóa tài khoản ghi D1 trước rồi
 mới gỡ khỏi chính sách Access. `list` nhận `status=trashed` và trả `enMissing` từ cột `records.en_missing` (Worker tính
 lúc lưu); `audit-log` lọc theo `email`, `command`. `trash` một card Advertising làm cụm thiếu loại khung thì 409
-`pool-min`; `purge` media mà site chính còn dùng thì 409 `live-on-production`.
+`pool-min` kèm `missing` (các cụm mất loại khung); `purge` media mà site chính còn dùng thì 409 `live-on-production`.
 
 ## Giao diện và dữ liệu
 

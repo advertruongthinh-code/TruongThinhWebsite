@@ -3,6 +3,7 @@ import { IMAGE_SRC, imageFieldErrors } from "../../scripts/site/lib-pure.mjs";
 import { ADVERTISING_CLUSTERS } from "../site/advertising-products/taxonomy.mjs";
 import { SINGLETON_TYPES } from "../cms/contract.mjs";
 import { isLegacy, mediaRefs } from "../cms/media-ref.mjs";
+import { poolEntry, poolLoss } from "../cms/rules.mjs";
 import { HttpError } from "./http.mjs";
 
 // cms.md R4: these types only have get and save, are always published, never trashed or created.
@@ -32,9 +33,42 @@ export async function loadMedia(env, ids) {
 // The Worker reads no file: sizes were written by materialize from the media record.
 export const mediaRowCheck = () => async (image, where) => imageFieldErrors(image, where, (src) => IMAGE_SRC.test(src) || VARIANT_SRC.test(src));
 
-export async function validationContext(env, type, data) {
-  const mediaById = await loadMedia(env, [...new Set(mediaRefs(type, data).map((place) => place.mediaId).filter(Boolean))]);
-  return { mediaById, ...(await loadContext(env)), categories: CATEGORIES, checkImage: mediaRowCheck(mediaById) };
+// Other live records that place one of these media (K10 media-reuse): Map mediaId -> [{ type, id }].
+export async function loadUsage(env, ids, type, id) {
+  if (!ids.length) return new Map();
+  const { results } = await env.DB
+    .prepare("SELECT DISTINCT m.media_id, m.type, m.id FROM record_media m JOIN records r ON r.type = m.type AND r.id = m.id WHERE m.media_id IN (SELECT value FROM json_each(?)) AND r.status != 'trashed' AND NOT (m.type = ? AND m.id = ?)")
+    .bind(JSON.stringify(ids), type, id)
+    .all();
+  const usage = new Map();
+  for (const row of results) usage.set(row.media_id, [...(usage.get(row.media_id) ?? []), { type: row.type, id: row.id }]);
+  return usage;
+}
+
+// Published Advertising cards as pool entries (K10 pool-dup, pool-min): only the fields the rules read, no full JSON.parse.
+export async function loadPool(env) {
+  const { results } = await env.DB.prepare(`SELECT id, json_extract(data, '$.productIds') AS products,
+      coalesce(json_extract(data, '$.media.width'), json_extract(data, '$.mediaItems[0].width')) AS width,
+      coalesce(json_extract(data, '$.media.height'), json_extract(data, '$.mediaItems[0].height')) AS height,
+      (SELECT json_group_array(k.value) FROM (
+        SELECT json_extract(data, '$.media.src') AS value UNION SELECT json_extract(data, '$.media.sourceId')
+        UNION SELECT 'm:' || json_extract(data, '$.media.mediaId')
+        UNION SELECT json_extract(i.value, '$.src') FROM json_each(data, '$.mediaItems') i
+        UNION SELECT json_extract(i.value, '$.sourceId') FROM json_each(data, '$.mediaItems') i
+        UNION SELECT 'm:' || json_extract(i.value, '$.mediaId') FROM json_each(data, '$.mediaItems') i) k WHERE k.value IS NOT NULL) AS keys
+    FROM records WHERE type = 'advertising-card' AND status = 'published'`).all();
+  return results.map((row) => ({
+    ...poolEntry({ id: row.id, productIds: JSON.parse(row.products ?? "[]"), media: { width: row.width, height: row.height } }),
+    keys: new Set(JSON.parse(row.keys)),
+  }));
+}
+
+export async function validationContext(env, type, data, id) {
+  const ids = [...new Set(mediaRefs(type, data).map((place) => place.mediaId).filter((mediaId) => typeof mediaId === "string"))];
+  const [mediaById, context, usage, pool] = await Promise.all([
+    loadMedia(env, ids), loadContext(env), loadUsage(env, ids, type, id), type === "advertising-card" ? loadPool(env) : undefined,
+  ]);
+  return { id, mediaById, ...context, usage, pool, categories: CATEGORIES, checkImage: mediaRowCheck(mediaById) };
 }
 
 // Every statement after the conditional UPDATE of a batch appends this, so it writes only when that UPDATE wrote.
@@ -119,6 +153,10 @@ export async function trashRefusal(env, type, id, row, target) {
     const home = await env.DB.prepare("SELECT json_extract(data, '$.ids') AS ids FROM records WHERE type = 'home-projects' AND id = 'main'").first();
     const ids = home?.ids ? JSON.parse(home.ids) : [];
     if (Array.isArray(ids) && ids.includes(id) && ids.length - 1 < 3) throw new HttpError(409, { error: "home-projects-min" }, target);
+  }
+  if (type === "advertising-card" && row.status === "published") {
+    const loss = poolLoss(await loadPool(env), id, null);
+    if (loss.length) throw new HttpError(409, { error: "pool-min", missing: loss }, target);
   }
   if (type === "hero-slide" && row.status === "published" && await lastSlide(env, row.page, id)) throw new HttpError(409, { error: "last-slide" }, target);
 }

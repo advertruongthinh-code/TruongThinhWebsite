@@ -5,6 +5,7 @@ import { dispatchVariants, wantBuildStatement } from "../dispatch.mjs";
 import { auditStatement, HttpError, json, readJson } from "../http.mjs";
 import { patchAlt } from "../media.mjs";
 import { contentRevStatement, guard } from "../records.mjs";
+import { altErrors } from "../../cms/rules.mjs";
 
 // 37 keeps the conflict path (re-read, refusal audit row) under the 50 queries of D1 Free.
 const MAX_USES = 37;
@@ -38,7 +39,11 @@ export default {
     const writeId = crypto.randomUUID();
     const now = new Date().toISOString();
     const G = guard("media", id, writeId);
-    const patched = users.map((user) => ({ ...user, text: JSON.stringify(patchAlt(user.type, JSON.parse(user.data), id, altVi, altEn)) }));
+    const patched = users.map((user) => ({ ...user, old: JSON.parse(user.data) })).map((user) => ({ ...user, next: patchAlt(user.type, user.old, id, altVi, altEn) }))
+      .map((user) => ({ ...user, text: JSON.stringify(user.next) }));
+    // alt-dup (K10): the new alt may not equal the alt of another media of the same card; checked on the records read above.
+    const clash = patched.filter((user) => altErrors(user.type, user.next).length && !altErrors(user.type, user.old).length).map((user) => ({ type: user.type, id: user.id }));
+    if (clash.length) throw new HttpError(400, { error: "alt-dup", usedBy: clash }, target);
     const [update] = await env.DB.batch([
       // Writes nothing (so the guard stops the batch) when a user record was saved or patched after it was read.
       env.DB.prepare("UPDATE records SET version = ?, live_version = ?, status = ?, data = ?, write_id = ?, updated_at = ?, updated_by = ? WHERE type = 'media' AND id = ? AND version = ? AND status != 'trashed' AND NOT EXISTS (SELECT 1 FROM json_each(?) j LEFT JOIN records r ON r.type = json_extract(j.value, '$.t') AND r.id = json_extract(j.value, '$.i') WHERE r.write_id IS NOT json_extract(j.value, '$.w'))")

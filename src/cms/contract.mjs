@@ -1,7 +1,7 @@
 // Shared record contract of the CMS (cms-plan Q1, Q5, Q10): record types, names and slugs, and the two error levels the
 // Worker and the build both use. Pure module: must not import catalog.mjs (it drags the 733 KB card manifest into the Worker).
 import { BLOCK_TYPES, blockEmptyEnHrefs, blockMarksErrors, blockTextFields, validateBlockPage } from "../../scripts/site/blocks.mjs";
-import { PROJECT_TYPES, kindFieldErrors, menuLinkErrors, menuShapeErrors } from "../../scripts/site/block-pages.mjs";
+import { kindFieldErrors, menuShapeErrors } from "../../scripts/site/block-pages.mjs";
 import { heroSlideErrors } from "../../scripts/site/hero-slides.mjs";
 import { validateHomeProjects } from "../../scripts/site/home-projects.mjs";
 import { validateAdvertisingCardMedia } from "../../src/site/advertising-products/media-contract.mjs";
@@ -11,6 +11,8 @@ import { layoutErrors } from "./layouts.mjs";
 import { isLegacy, mediaRefs } from "./media-ref.mjs";
 import { SLOTS } from "./slots.generated.mjs";
 import { marksErrors } from "./inline-marks.mjs";
+import { ratioErrors } from "./ratios.mjs";
+import { crossErrors } from "./rules.mjs";
 import { CONTACT_CHANNELS, CTA_KEYS, SLOT_PAGES } from "../../scripts/site/slots.mjs";
 import { CONTACT_HREF } from "./links.mjs";
 
@@ -152,6 +154,8 @@ export async function shapeErrors(type, data, ctx = {}) {
     else if (media.kind === "video" || (media.mime === SVG) !== (type === "client-logo")) errors.push(shape(`${at}: media ${ref.mediaId} (${media.mime}) cannot be placed in ${type}`, "media-kind"));
     else errors.push(...cropErrors(ref.crop, media, `${at}: media ${ref.mediaId}`));
   }
+  // crop-ratio (K10): only once every crop is a valid rectangle.
+  if (!errors.some((error) => error.code === "crop")) errors.push(...ratioErrors(type, data, mediaById, at));
   // Project card (cms-content R4): card media come from the page's own media; seeded crops (legacySrc) are exempt.
   if (type === "project" && Array.isArray(data.card?.media)) {
     const pageMedia = pageMediaIds(data);
@@ -179,7 +183,7 @@ export function enMissing(type, data) {
   ];
 }
 
-// ctx: { checkImage, projects, news (Maps id -> published data) }.
+// ctx: { checkImage, projects, news (Maps id -> published data), id, mediaById, usage, pool (crossErrors) }.
 export async function fullErrors(type, data, ctx = {}) {
   const at = data?.id ?? type;
   const projects = ctx.projects ?? new Map();
@@ -204,9 +208,6 @@ export async function fullErrors(type, data, ctx = {}) {
       ...(HERO_PAGES.includes(data.page) ? [] : [`${at}: page must be ${HERO_PAGES.join(", ")}`]),
     ];
   } else if (type === "home-projects") messages = validateHomeProjects(data.ids, projects);
-  else if (type === "menu") messages = menuShapeErrors(data, "menu").length ? [] : menuLinkErrors(data, {
-    projects, news: ctx.news ?? new Map(), clusters: ADVERTISING_CLUSTERS.map(({ id }) => ({ slug: id })), projectTypes: Object.keys(PROJECT_TYPES),
-  }, "menu");
   else if (type === "advertising-card") {
     const card = deriveCard(data);
     if (!card.tagIds.length) messages.push(`${at}: a card needs tagIds`);
@@ -215,8 +216,12 @@ export async function fullErrors(type, data, ctx = {}) {
   else if (type === "client-logo" && !isText(data.name)) messages = [`${at}: logo cần tên (alt)`];
   // A button on a channel without a link renders disabled: the save goes through but the record is not complete.
   else if (type === "contact") messages = Object.entries(data.cta ?? {}).filter(([, cta]) => !data.channels?.[cta?.channel]?.href).map(([key, cta]) => `contact: cta ${key} points to ${cta?.channel}, which has no link`);
+  // Cross-record rules (K10) carry their code; the same text from a build validator is not listed twice.
+  const cross = crossErrors(type, ctx.id ?? data?.id ?? "main", data, ctx);
+  const crossText = new Set(cross.map(({ message }) => message));
   return [
-    ...messages.map(missing),
+    ...messages.filter((message) => !crossText.has(message)).map(missing),
+    ...cross,
     ...cardMin,
     ...layout.filter((error) => error.level === "missing").map((error) => ({ ...error, message: `${at}: ${error.message}` })),
   ];
