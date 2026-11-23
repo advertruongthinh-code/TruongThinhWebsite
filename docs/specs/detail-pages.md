@@ -218,7 +218,7 @@ khối theo chiều dọc, lệch tối đa 2px: copy là grid `1fr auto 1fr`, e
 theo `--cta-title-size`. Khối "Giữ nghề" dùng chung grid và rule nút này. Nút là nhãn `.legacy-link` + `.portal-subtitle` như link "VỀ CHÚNG TÔI": 16px, viết hoa, không mũi tên, vùng chạm
 44px, gạch chân 3px chạy từ trái khi hover hoặc focus. Lớp bấm `::before` của nút phủ cả khối (cắt bởi `overflow: clip`),
 nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertising bỏ lớp bấm, gạch chân chỉ chạy khi hover nút.
-Dấu chấm cuối `h2` không treo: cả dòng kể cả dấu nằm giữa khối. Dấu nằm chung text node với chữ (`data-en` gồm dấu), không tách span: span riêng thành một từ của SplitText, dòng vừa khít đẩy riêng dấu chấm xuống dòng mới (Nhà ở 390px). `.capability-marquee`: hai `.marquee-line` giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
+Dấu chấm cuối `h2` không treo: cả dòng kể cả dấu nằm giữa khối. Dấu nằm chung text node với chữ (`data-en` gồm dấu), không tách span: span riêng thành một từ của SplitText, dòng vừa khít đẩy riêng dấu chấm xuống dòng mới (Nhà ở 390px). Dải logo khách hàng ([trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)) không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
 reduced motion). Hover ảnh CTA (gallery: R7) dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
 thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì khung có

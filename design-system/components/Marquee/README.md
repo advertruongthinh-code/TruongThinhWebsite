@@ -1,15 +1,8 @@
 # Marquee
 
-Nguồn: CSS `.capability-marquee`, `.marquee-line`, `.client-logo-marquee`; spec [ba trang con R10](../../../docs/specs/detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng), [trang chủ R9](../../../docs/specs/page-home.md#r9-closer-và-marquee-khách-hàng).
+Nguồn: CSS `.capability-marquee`, `.client-logo-marquee`; spec [ba trang con R10](../../../docs/specs/detail-pages.md#r10-cta-marquee-hover-và-ảnh-dưới-chữ-trắng), [trang chủ R9](../../../docs/specs/page-home.md#r9-closer-và-marquee-khách-hàng).
 
-Dải chạy ngang vô tận. Preview: dải logo khách hàng của trang chủ; About dùng lại cùng partial `client-logos` ngay trên CTA. Dải chữ năng lực không còn trang nào dùng (CSS giữ lại).
-
-## Dải chữ
-
-- `section.capability-marquee` > hai `div.marquee-line`, mỗi dòng các từ chữ hoa ngăn bằng chấm tròn `blue`,
-  `orange-accent` xen kẽ.
-- Chữ 500, chữ hoa: 40.32px ở 1440, 24px ở 390; gap bằng 1.1em (44.8px, 24px).
-- Chạy `marquee 25s linear infinite`; dừng khi `motion-paused`.
+Dải logo khách hàng chạy ngang vô tận. Preview: dải của trang chủ; About dùng lại cùng partial `client-logos` ngay trên CTA.
 
 ## Dải logo khách hàng
 

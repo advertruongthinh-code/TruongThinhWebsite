@@ -74,6 +74,23 @@ test("1440: each milestone cuts its group one way, the sheet stays pinned", asyn
   }
 });
 
+test("1180 then 820 (tablet turned): the one-column journey shows every milestone in ink", async () => {
+  const browser = await launchBrowser();
+  const { context, page } = await openPage(browser, { width: 1180, height: 820 });
+  try {
+    await page.goto(`${BASE_URL}/about/`, { waitUntil: "load" });
+    await page.waitForFunction(() => document.querySelector(".about-journey")?.classList.contains("is-armed"), null, { timeout: 10_000 });
+    await page.setViewportSize({ width: 820, height: 1180 });
+    await page.waitForTimeout(800);
+    const colors = await page.evaluate(() => [...new Set([...document.querySelectorAll(".about-journey__item")]
+      .map((item) => getComputedStyle(item).color))]);
+    assert.deepEqual(colors, ["rgb(32, 33, 32)"]);
+  } finally {
+    await context.close();
+    await browser.close();
+  }
+});
+
 test("reduced motion at 1440: the sheet is drawn complete, no milestone dimmed", async () => {
   const browser = await launchBrowser();
   const { context, page } = await openPage(browser, VIEWPORTS.desktop, { reducedMotion: "reduce" });

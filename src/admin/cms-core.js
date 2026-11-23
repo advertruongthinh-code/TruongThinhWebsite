@@ -20,7 +20,7 @@
   };
   LISTS.commercial = LISTS.residential;
   // The marquee's aria-hidden copy: not edited on its own, rebuilt from the preceding group after each draft apply.
-  const MIRRORS = '.marquee-line[aria-hidden="true"], .client-logo-marquee__group[aria-hidden="true"]';
+  const MIRRORS = '.client-logo-marquee__group[aria-hidden="true"]';
   const PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000"><rect width="100%" height="100%" fill="#e9e6df"/>'
     + '<text x="50%" y="50%" font-family="sans-serif" font-size="64" fill="#b3261e" text-anchor="middle">Chọn ảnh</text></svg>',
