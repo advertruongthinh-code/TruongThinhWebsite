@@ -9,6 +9,8 @@ import list from "./commands/list.mjs";
 import purge from "./commands/purge.mjs";
 import rebuild from "./commands/rebuild.mjs";
 import restore from "./commands/restore.mjs";
+import resumePublish from "./commands/resume-publish.mjs";
+import rollback from "./commands/rollback.mjs";
 import save from "./commands/save.mjs";
 import mediaFile from "./commands/media-file.mjs";
 import mediaList from "./commands/media-list.mjs";
@@ -31,6 +33,8 @@ export const COMMANDS = {
   purge,
   rebuild,
   restore,
+  "resume-publish": resumePublish,
+  rollback,
   save,
   snapshot,
   trash,

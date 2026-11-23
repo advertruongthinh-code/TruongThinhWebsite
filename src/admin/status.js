@@ -2,7 +2,7 @@
 
 const $ = (id) => document.getElementById(id);
 const logEl = $('log');
-const buttons = [$('save1'), $('save10'), $('stale10'), $('uploadTest'), $('uploadVideoTest'), $('mediaReload'), $('rebuild')];
+const buttons = [$('save1'), $('save10'), $('stale10'), $('uploadTest'), $('uploadVideoTest'), $('mediaReload'), $('rebuild'), $('resume')];
 
 function log(line, out = logEl) {
   out.textContent += line + '\n';
@@ -103,11 +103,74 @@ async function loadBuildStatus() {
       return;
     }
     $('buildWarnings').textContent = warnings(data).join('\n');
+    renderRollback(data);
     el.textContent = Object.entries(data).map(([k, v]) => k + ': ' + JSON.stringify(v)).join('\n') || '(trống)';
   } catch (e) {
     el.textContent = 'Không tải được trạng thái build.';
   }
 }
+
+// Rollback panel (cms-plan P6): 10 deployments, a confirm <dialog> per older one, 3 latest rollback runs, resume button.
+const when = (iso) => (iso ? new Date(iso).toLocaleString('vi-VN') : '?');
+const RUN_TEXT = { success: 'xong', failure: 'lỗi', cancelled: 'bị hủy, bấm lại' };
+
+function item(parts, action) {
+  const li = document.createElement('li');
+  for (const part of parts) {
+    const span = document.createElement(part.code ? 'code' : 'span');
+    span.textContent = part.text;
+    li.append(span);
+  }
+  if (action) li.append(action);
+  return li;
+}
+
+function renderRollback(data) {
+  const deployments = data.deployments || [];
+  const repoBuild = deployments[0] && !deployments[0].snapshotId;
+  $('pausedNote').textContent = data.paused
+    ? 'Tự đăng đang tạm dừng.' + (repoBuild ? ' Site đang dựng từ repo: lần merge code kế tiếp sẽ đè bản đã quay về.' : '')
+    : '';
+  $('resume').hidden = !data.paused;
+  $('deployList').replaceChildren(...deployments.map((d, index) => {
+    const parts = [{ text: when(d.at) }, { text: (d.commit || '').slice(0, 7), code: true }, { text: d.snapshotId ? d.snapshotId.slice(0, 8) : 'từ repo', code: Boolean(d.snapshotId) }];
+    if (index === 0) return item([...parts, { text: '(đang chạy)' }]);
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = 'Quay về bản này';
+    button.addEventListener('click', () => askRollback(d));
+    return item(parts, button);
+  }));
+  if (!deployments.length) $('deployList').replaceChildren(item([{ text: 'Chưa có lần deploy nào có dấu.' }]));
+  const runs = data.rollbackRuns;
+  $('rollbackRuns').replaceChildren(...(runs === null
+    ? [item([{ text: 'Không đọc được GitHub.' }])]
+    : runs.length ? runs.map((r) => {
+      const link = document.createElement('a');
+      if (String(r.html_url).startsWith('https://github.com/')) link.href = r.html_url;
+      link.textContent = 'xem run';
+      return item([{ text: when(r.created_at) }, { text: r.status === 'completed' ? (RUN_TEXT[r.conclusion] || r.conclusion) : 'đang chạy' }], link);
+    }) : [item([{ text: 'Chưa quay về lần nào.' }])]));
+}
+
+function askRollback(d) {
+  const dialog = $('rollbackDialog');
+  $('rollbackQuestion').textContent = 'Quay staging về bản ' + when(d.at) + ' (commit ' + (d.commit || '').slice(0, 7) + ')?';
+  dialog.returnValue = '';
+  dialog.addEventListener('close', () => {
+    if (dialog.returnValue === 'ok') run(() => ownerCall('rollback', { versionId: d.versionId }));
+  }, { once: true });
+  dialog.showModal();
+}
+
+async function ownerCall(command, body) {
+  const out = $('rollbackLog');
+  const r = await timed(command, '/api/admin/' + command, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }, out);
+  if (r.status === 403) log('Chỉ owner.', out);
+  await loadBuildStatus();
+}
+
+$('resume').addEventListener('click', () => run(() => ownerCall('resume-publish', {})));
 
 // Upload one test image as media thu-NN: the browser reads the EXIF-rotated size, the body is the raw file.
 async function uploadTest() {
