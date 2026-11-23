@@ -50,7 +50,7 @@ Ba lớp, từ gần tới xa ([cms.md](../specs/cms.md) R6):
 | Lớp | Chạy | Giữ | Nơi |
 | --- | --- | --- | --- |
 | D1 Time Travel | Cloudflare tự làm | 7 ngày (D1 Free) | Trong D1 |
-| Export hằng ngày | Cron Worker admin lúc 18:00 UTC (01:00 giờ Việt Nam), `src/worker/backup.mjs` | 30 ngày (dọn lúc 18:05 UTC) | Bucket private `truong-thinh-media-originals`, key `backups/d1/<YYYY-MM-DD>.sql` |
+| Export hằng ngày | Cron Worker admin lúc 18:00 UTC (01:00 giờ Việt Nam), `src/worker/backup.mjs`; lỗi hoặc lỡ thì phút 33 mỗi giờ chạy lại tới khi có file của ngày UTC đó | 30 ngày (dọn lúc 18:05 UTC) | Bucket private `truong-thinh-media-originals`, key `backups/d1/<YYYY-MM-DD>.sql` |
 | Bản sao tuần | Task Scheduler trên PC owner, `scripts/cms/backup-pull.ps1` (chép thêm, không xóa file đã có) | Theo ổ PC và NAS | `E:\TruongThinhBackup\cms\originals`, rồi `<NAS>\cms-originals` |
 
 `GET /api/admin/build-status` trả `backupAt` (giờ upload của file export mới nhất, hoặc `null`). Quá 2 ngày là export đang hỏng: xem Workers Logs của `truong-thinh-admin`, dòng `exportDatabase`.
