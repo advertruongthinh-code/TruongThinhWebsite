@@ -216,8 +216,7 @@ And request www.truongthinhads.vn hoặc http:// trả 301 về https://truongth
 
 ### R12. Ranh giới với CMS dormant
 
-`wrangler.toml` là admin Worker `truong-thinh-admin` của CMS (`main = "src/worker/index.js"`, chỉ chạy Worker cho
-`/api/*`), chưa deploy, không script nào trong `package.json` dùng. Build chỉ
+`wrangler.toml` là admin Worker `truong-thinh-admin` của CMS (`main = "src/worker/index.js"`, chỉ chạy Worker cho `/api/*`), chưa deploy, không script nào trong `package.json` dùng. Build chỉ
 chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ chạy
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
 `/vi/` và redirect `projects-products` chỉ có ở Worker CMS dormant, không chuyển sang static assets (owner 2026-11-22: giữ
