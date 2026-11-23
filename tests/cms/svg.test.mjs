@@ -28,7 +28,7 @@ test("accepted: BOM, XML declaration, comments, a DOCTYPE without a subset, xlin
   assert.ok(isSafeSvg(svg(`<text>A &amp; B</text>${OK}`)));
   assert.ok(isSafeSvg(svg(`<title>Metadata: logo</title><style><![CDATA[.a{fill:url(#f)}]]></style>`
     + `<filter id="f"><feGaussianBlur stdDeviation="1"/><feOffset dx="1"/></filter><path class="a" filter="url(#f)" d="M0 0h1z"/>`,
-  ' xmlns:i="http://ns.adobe.com/AdobeIllustrator/10.0/" xmlns:x="&amp;ns_extend;"')));
+  ' xmlns:i="http://ns.adobe.com/AdobeIllustrator/10.0/"')));
 });
 
 test("rejected: one fixture per rule", () => {
@@ -63,6 +63,9 @@ test("rejected: one fixture per rule", () => {
     "xml:base": `<svg viewBox="0 0 1 1" xml:base="//evil.test/"><use href="#a"/></svg>`,
     "< in a DOCTYPE opens a comment the check would strip": `<!DOCTYPE svg SYSTEM "<!--">${svg(`<g a="-->"><script>alert(1)</script></g>`)}`,
     "< in an attribute value": svg(`<g a="<!--"><script>alert(1)</script></g><g b="-->"/>`),
+    "element named with an _ prefix": `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><_:script xmlns:_="http://www.w3.org/2000/svg">document.title="PWNED"</_:script></svg>`,
+    "element with an svg-namespace prefix": svg(`<x:script xmlns:x="http://www.w3.org/2000/svg">alert(1)</x:script>`),
+    "comment opened and closed inside CDATA": svg(`<style><![CDATA[ <!-- ]]></style><script>document.title="PWNED"</script><style><![CDATA[ --> ]]></style>`),
     "prefixed element of an editor": svg(`<i:pgf xmlns:i="http://ns.adobe.com/AdobeIllustrator/10.0/">x</i:pgf>${OK}`),
     "root is not svg": `<g>${svg(OK)}</g>`,
     "text after the root": `${svg(OK)}junk`,

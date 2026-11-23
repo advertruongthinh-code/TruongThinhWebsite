@@ -31,11 +31,12 @@ export function isSafeSvg(text) {
   if (!rootTag(svg) || !/<\/svg>\s*$/i.test(svg) || !svgViewBox(svg)) return false;
   // Control characters (tab, LF, CR are fine), a DOCTYPE internal subset or ENTITY (entity expansion), other processing instructions.
   // A backslash is a CSS escape (@\69mport, u\72l() that hides words from the checks below. xml:base moves where #ids resolve.
-  // A < inside a quoted value or the DOCTYPE could open a comment this check strips but the browser does not.
-  if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]|<!doctype[^>]*[[<]|<!entity|<\?|\\|xml:base|=\s*("[^"]*<|'[^']*<)/i.test(raw)) return false;
+  // A < inside a quoted value, a CDATA section or the DOCTYPE could open a comment this check strips but the browser does not.
+  if (/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]|<!doctype[^>]*[[<]|<!entity|<\?|\\|xml:base|=\s*("[^"]*<|'[^']*<)|<!\[cdata\[(?:(?!\]\]>)[\s\S])*</i.test(raw)) return false;
   // Character references hide words from the checks below (&#106;avascript:); only the five XML ones are allowed.
   if (/&(?!(?:amp|lt|gt|quot|apos);)/i.test(svg)) return false;
-  const tags = [...svg.matchAll(/<\/?\s*([a-z][\w:.-]*)/gi)].map((match) => match[1].toLowerCase());
+  // Everything after < (but <! and <?) is a tag name and must be on the list, so _:script or x:script fails too.
+  const tags = [...svg.replace(/<!\[cdata\[[\s\S]*?\]\]>/gi, " ").matchAll(/<\/?([^\s/>!?]*)/g)].map((match) => match[1].toLowerCase());
   if (!tags.every((tag) => ELEMENTS.has(tag))) return false;
   const body = svg.replace(NAMESPACES, " ");
   // Event handlers, script URLs, links or urls that leave the document, CSS imports.
