@@ -367,7 +367,8 @@ export const blockMarksErrors = (page, at = page?.id ?? "page") => blockTextFiel
 // Validate one page (project or News post). Returns the error list, does not stop at the first error.
 // checkImage(image, where) returns the errors of one image reference: fileImageCheck(siteRoot) in the build, a record check in the Worker.
 // en: "optional" (News and projects, cms-content R2): an empty EN field is not an error, a filled one is checked as before.
-export async function validateBlockPage(page, { checkImage, projects = new Map(), news = new Map(), at = page?.id ?? "page", en = "required" }) {
+// marks: false skips the mark check for a caller that already ran blockMarksErrors (the CMS reports marks as shape errors).
+export async function validateBlockPage(page, { checkImage, projects = new Map(), news = new Map(), at = page?.id ?? "page", en = "required", marks = true }) {
   if (typeof checkImage !== "function") throw new Error("validateBlockPage: checkImage is required");
   const errors = [];
   const text = (value, where) => {
@@ -384,7 +385,7 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
   text(page?.description, `${at}.description`);
   await media(page?.cover, `${at}.cover`);
   if (!Array.isArray(page?.blocks) || !page.blocks.length) return [...errors, `${at}: needs at least one block`];
-  errors.push(...blockMarksErrors(page, at).map(({ message }) => message));
+  if (marks) errors.push(...blockMarksErrors(page, at).map(({ message }) => message));
 
   const blockIds = new Set();
   for (const [index, block] of page.blocks.entries()) {
