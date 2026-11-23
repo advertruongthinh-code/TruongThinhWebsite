@@ -222,8 +222,7 @@ chép `src/site/`, không lấy `src/worker/`, `src/admin/`, `src/db/`. CI chỉ
 `pnpm qa:worker:security` (import Worker trong Node, env giả). Redirect `/` sang
 `/vi/` và redirect `projects-products` chỉ có ở Worker CMS dormant, không chuyển sang static assets (owner 2026-11-22: giữ
 trang gốc như hiện tại). Sau đó owner chọn tiếng Việt ở gốc (R5): `/` là trang chủ tiếng Việt, Worker CMS chưa đổi theo, thread CMS sửa khi mở phase. Sitemap đã là file tĩnh do `prepare-static-assets.mjs` sinh. Wrangler cho CMS chỉ cài và nối lại khi owner mở phase
-theo [điều kiện mở CMS](cms.md#gate-còn-mở).
-Từ task S2 của CMS, Worker CMS chỉ còn API admin; hai redirect đó đã bỏ cùng Worker cũ.
+theo [điều kiện mở CMS](cms.md#gate-còn-mở). Từ task S2 của CMS, Worker CMS chỉ còn API admin; hai redirect đó đã bỏ cùng Worker cũ.
 
 ```gherkin
 Given phase tĩnh
