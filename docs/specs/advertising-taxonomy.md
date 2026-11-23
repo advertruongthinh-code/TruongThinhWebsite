@@ -9,7 +9,7 @@ tests:
   - tests/site/advertising-pages.test.mjs
   - tests/site/advertising-rail-two-tier.e2e.mjs
 notion: https://app.notion.com/p/3f6332849a0e8113b8c0dbb53a4770fe
-updated: 2026-11-11
+updated: 2026-11-23
 ---
 
 # Phân loại sản phẩm Advertising theo cụm, sản phẩm và tag
@@ -97,8 +97,8 @@ And không file code render nào đổi
 Rail giữ kiểu hiện tại (chữ hoa, gạch chân mục đang chọn); hover desktop: gạch chân chạy vào từ trái như nav header
 ([Filter](../../design-system/components/Filter/README.md)). Hàng một: "Tất cả" rồi sáu cụm, mỗi cụm ghi tên ngắn `railVi`/`railEn` (owner chọn 2026-10-17, ví dụ "Biển văn phòng"); h1, kicker và title giữ nhãn đầy đủ R1. Hover cụm
 không mở danh sách sản phẩm (owner bỏ 2026-10-17). Bấm cụm lọc cả cụm và hiện hàng chip sản phẩm kèm số ảnh của cụm
-bên dưới, dựng sẵn trong HTML tĩnh; bấm chip lọc riêng sản phẩm đó, chip đang chọn có `aria-current="true"`. Điện
-thoại: hàng chip cuộn ngang. Mọi cụm và sản phẩm là `<a href>` tới URL R4. Click chính đổi filter như masonry R3 hiện tại (không tải
+bên dưới, dựng sẵn trong HTML tĩnh; bấm chip lọc riêng sản phẩm đó, chip đang chọn có `aria-current="true"`. Rail
+và hàng chip mỗi thứ một hàng ở mọi cỡ màn (owner 2026-11-23): vừa thì căn giữa, tràn thì bắt đầu ở mép lưới, vuốt, kéo chuột hoặc lăn bánh xe để cuộn ngang, mép mờ khi còn mục bị che, mục đang chọn tự cuộn vào khung; chỗ một hàng chip luôn chừa sẵn nên rail và lưới không nhảy khi chip hiện, ẩn. Mọi cụm và sản phẩm là `<a href>` tới URL R4. Click chính đổi filter như masonry R3 hiện tại (không tải
 document, `replaceState`, card chuyển vị trí); URL thành path trang đích và đổi `document.title` theo trang
 đích, nhưng kicker hero giữ nguyên chữ của trang đã tải, không đổi theo filter (owner 2026-11-08); đổi ngôn ngữ giữ đúng slug của locale; link menu mọi trang trỏ thẳng trang cụm. Chip chỉ có cho sản phẩm đủ
 ngưỡng R5 và chip nào cũng trỏ trang riêng của sản phẩm.

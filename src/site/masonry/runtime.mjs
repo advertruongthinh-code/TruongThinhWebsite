@@ -1801,6 +1801,59 @@ function sizeNode(node, placement, setSize) {
   node.setAttribute("aria-setsize", String(setSize));
 }
 
+// Rail and chip rows stay on one line at every size (owner 2026-11-23): the edge fades while items remain beyond it, a vertical wheel
+// and a mouse drag scroll across, a drag does not open the item under the pointer.
+function bindRowScroll(row, signal) {
+  const sync = () => {
+    const room = row.scrollWidth - row.clientWidth;
+    row.toggleAttribute("data-fade-start", row.scrollLeft > 1);
+    row.toggleAttribute("data-fade-end", room - row.scrollLeft > 1);
+  };
+  const observer = new ResizeObserver(sync);
+  observer.observe(row);
+  signal.addEventListener("abort", () => observer.disconnect(), { once: true });
+  row.addEventListener("scroll", sync, { passive: true, signal });
+  // Locomotive takes the wheel at the container: a row that can still move keeps it.
+  row.addEventListener("wheel", (event) => {
+    if (Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
+    const next = Math.max(0, Math.min(row.scrollWidth - row.clientWidth, row.scrollLeft + event.deltaY));
+    if (Math.abs(next - row.scrollLeft) < 1) return;
+    event.preventDefault();
+    event.stopPropagation();
+    row.scrollLeft = next;
+  }, { passive: false, signal });
+  let drag = null;
+  row.addEventListener("pointerdown", (event) => {
+    drag = event.pointerType === "mouse" && event.button === 0 ? { x: event.clientX, left: row.scrollLeft, moved: false } : null;
+  }, { signal });
+  row.addEventListener("pointermove", (event) => {
+    if (!drag || !(event.buttons & 1)) return;
+    const dx = event.clientX - drag.x;
+    if (!drag.moved && Math.abs(dx) < 6) return;
+    if (!drag.moved) row.setPointerCapture(event.pointerId);
+    drag.moved = true;
+    row.scrollLeft = drag.left - dx;
+  }, { signal });
+  row.addEventListener("click", (event) => {
+    if (!drag?.moved) return;
+    drag = null;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, { capture: true, signal });
+  row.addEventListener("dragstart", (event) => event.preventDefault(), { signal });
+}
+
+// Bring the current item of a one-line row into view, centred, along the row only so the page does not move.
+function revealCurrent(row) {
+  const current = row.hidden ? null : row.querySelector('[aria-current="true"]');
+  if (!current || row.scrollWidth - row.clientWidth <= 1) return;
+  const frame = row.getBoundingClientRect();
+  const box = current.getBoundingClientRect();
+  const fade = parseFloat(getComputedStyle(row).getPropertyValue("--scroll-fade-size")) || 0;
+  if (box.left >= frame.left + fade - 1 && box.right <= frame.right - fade + 1) return;
+  row.scrollLeft += box.left + box.width / 2 - frame.left - frame.width / 2;
+}
+
 export async function mountMasonry(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true } = {}) {
   if (!container || activeInstance?.container === container) return activeInstance?.cleanup || (() => {});
   activeInstance?.cleanup();
@@ -2193,6 +2246,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const shown = (node) => !node.hidden && !node.hasAttribute("data-search-empty") && !node.closest("[hidden]");
   // Two-tier rail (taxonomy R3): the selected cluster shows a chip row; the product entry matching the filter has aria-current.
   const chipGroups = [...container.querySelectorAll("[data-masonry-chips]")];
+  [filters, ...chipGroups].forEach((row) => bindRowScroll(row, controller.signal));
   // Elements shown after a rail click reuse the Advertising entrance rhythm ([Motion](design-system/motion.md)); reduced motion goes straight to the final state.
   const enterFrom = (nodes, transform, { duration, easing, delay = 0, stagger = 0 }) => {
     if (reducedMotionQuery.matches) return;
@@ -2245,13 +2299,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         const chips = [...group.querySelectorAll(".rail-chip")];
         enterFrom(chips, "translate3d(0, 20px, 0)", { duration: 1000, easing: EASE.expoOut, delay: 300, stagger: Math.min(150, 600 / Math.max(1, chips.length - 1)) });
       }
-      // The chip row scrolls horizontally on phones: bring the selected chip into the frame, horizontal axis only so the page is not dragged.
-      // Next frame, so the rail writes above do not force a layout inside the click task.
-      const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
-      if (current) requestAnimationFrame(() => {
-        group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
-      });
     });
+    // Next frame, so the rail writes above do not force a layout inside the click task.
+    requestAnimationFrame(() => [filters, ...chipGroups].forEach(revealCurrent));
   };
   let filter = initialFilter({ categories, cards, pages });
   // Search mode (masonry-live-layout R6): ranked result ids replace the filter pool, every card one column in score order.

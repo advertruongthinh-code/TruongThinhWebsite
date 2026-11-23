@@ -7344,6 +7344,85 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 }
 
+/* Rail and chips (owner 2026-11-23): each stays one line at every size. A row that fits is centred; one that does not starts at the grid
+   edge and scrolls across (swipe, drag, wheel) with the edge fading while items remain beyond it (runtime bindRowScroll). */
+.detail-index-hero :is(.project-filters, .rail-chips) {
+  --scroll-fade-direction: to right;
+  --scroll-fade-size: 48px;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  padding-inline: var(--masonry-outer);
+  flex-wrap: nowrap;
+  /* Browsers without the safe keyword keep the row at the start, never clipped on the left. */
+  justify-content: flex-start;
+  justify-content: safe center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-padding-inline: var(--masonry-outer);
+  scrollbar-width: none;
+}
+
+.detail-index-hero :is(.project-filters, .rail-chips)::-webkit-scrollbar {
+  display: none;
+}
+
+.detail-index-hero .project-filters {
+  column-gap: 3.125rem;
+}
+
+.detail-index-hero :is(.project-filter, .rail-chip) {
+  flex: 0 0 auto;
+  max-width: none;
+  margin-inline: 0;
+  white-space: nowrap;
+}
+
+/* The scroll frame clips the chip underline and count: padding gives them room, the negative margin keeps the row where it was. */
+.detail-index-hero .rail-chips {
+  padding-block: 0.25rem 0.5rem;
+}
+
+@media (min-width: 681px) {
+  .detail-index-hero .rail-chips {
+    margin-block: -0.25rem -0.5rem;
+  }
+}
+
+@media (min-width: 1025px) {
+  .detail-index-hero .rail-chips {
+    height: calc(1.225rem + 0.75rem);
+  }
+}
+
+@media (min-width: 681px) and (max-width: 750px) {
+  .detail-index-hero > .hero-browse > .rail-chips {
+    height: calc(var(--hero-chip-row) + 0.75rem);
+  }
+}
+
+.detail-index-hero :is(.project-filters, .rail-chips):is([data-fade-start], [data-fade-end]) {
+  mask-image: linear-gradient(var(--scroll-fade-direction), var(--scroll-fade-from, #000), #000 var(--scroll-fade-size),
+    #000 calc(100% - var(--scroll-fade-size)), var(--scroll-fade-to, #000));
+}
+
+.detail-index-hero :is(.project-filters, .rail-chips)[data-fade-start] {
+  --scroll-fade-from: transparent;
+}
+
+.detail-index-hero :is(.project-filters, .rail-chips)[data-fade-end] {
+  --scroll-fade-to: transparent;
+}
+
+/* 751-1024px: the rail and chips are rows of the hero grid. Without a chip row the rail keeps its room, so neither the rail nor the grid
+   below moves when chips come and go. */
+@media (min-width: 751px) and (max-width: 1024px) {
+  .detail-index-hero:not(:has(.rail-chips:not([hidden]))) .project-filters {
+    margin-bottom: calc(1rem + 0.875rem * 1.4);
+  }
+}
+
 /* Project and News page blocks (layout-library R1, scripts/site/blocks.mjs). Learns the layout of Espacio's /en/projects/ child pages,
    following the site's text, color and spacing; same width frame as the detail blocks. */
 .blk {

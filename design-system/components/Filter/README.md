@@ -14,7 +14,7 @@ runtime `masonry/runtime.mjs` cập nhật trạng thái.
 - Cụm: chữ hoa 700, 1rem, màu `muted`; hover, focus và mục đang chọn đổi sang
   `ink` kèm gạch chân dày 3px, cách 4px. Máy có hover: gạch chân chạy như nav
   header ([Motion](../../motion.md#motion-theo-bề-mặt-ui)); điện thoại hiện ngay. Căn giữa, rộng tối đa 62.5rem, cách
-  đáy hero 15vh cộng 3.25rem (một bậc trên hàng chip); xuống dòng khi hẹp.
+  đáy hero 15vh cộng 3.25rem (một bậc trên hàng chip).
 - Sản phẩm: chữ thường 500, `muted`; hover, focus, mục đang chọn đổi `ink`, gạch
   chân 2px dưới tên, chạy như cụm trên máy có hover. Số ảnh 0.8125rem (sàn chữ 12.5px), 700, `tabular-nums`.
 - Bấm khi lưới của filter chưa xếp xong: mục vừa bấm mang `aria-busy="true"` và hiện như mục đang chọn, mục cũ giữ `aria-current` tới khi lưới đổi.
@@ -24,10 +24,11 @@ runtime `masonry/runtime.mjs` cập nhật trạng thái.
   số ảnh nhỏ. Từ 1025px hàng chip căn giữa, cách đáy hero 15vh (owner 2026-10-17). Trang có lưới masonry không có chữ
   "Cuộn xuống"; trang có thanh tìm kiếm đặt thanh ở chỗ rail, rail và chip lùi xuống một bậc (owner 2026-11-18).
 - Đang tìm: rail chọn "Tất cả", nhóm và chip không có kết quả ẩn (`data-search-empty`), số trên chip là số kết quả, mục còn
-  lại trượt về chỗ mới; bấm một mục thì lọc trong kết quả, không rời tìm kiếm. Hàng chip đầu neo dọc: khung cao đúng một hàng, nhiều hàng thì hàng thêm
-  tràn xuống dưới nên hàng đầu luôn đứng một vị trí; tới 1024px nằm trong luồng ngay dưới rail. `Tất cả` không có hàng chip.
-- Tới 680px: rail cụm và hàng chip là hai hàng cuộn ngang tràn bề rộng màn,
-  chừa 25px hai bên; chip đang chọn tự cuộn vào khung, mục nhận focus bàn phím
+  lại trượt về chỗ mới; bấm một mục thì lọc trong kết quả, không rời tìm kiếm. Tới 1024px hàng chip nằm trong luồng ngay
+  dưới rail. `Tất cả` không có hàng chip; chỗ của hàng chip luôn chừa sẵn nên rail và lưới không nhảy.
+- Mọi cỡ màn (owner 2026-11-23): rail và hàng chip mỗi thứ một hàng tràn bề rộng màn. Vừa thì căn giữa; tràn thì bắt
+  đầu ở mép lưới masonry, vuốt, kéo chuột hoặc lăn bánh xe để cuộn ngang (kéo không tính là bấm, lăn tới đầu hoặc cuối
+  thì trả về trang), mép mờ dần `48px` khi còn mục bị che; mục đang chọn tự cuộn vào giữa khung, mục nhận focus bàn phím
   tự cuộn vào trọn khung.
 - Bấm cụm hoặc chip: kicker đổi chữ và hàng chip vừa hiện chạy entrance có sẵn
   ([Motion](../../motion.md#kicker-và-hàng-chip-khi-đổi-filter)).
