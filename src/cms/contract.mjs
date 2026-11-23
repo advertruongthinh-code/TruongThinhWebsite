@@ -23,7 +23,7 @@ export function recordName(type, data) {
   return data?.id;
 }
 
-export const recordSlugs = (type, data) => (type === "news" || type === "project" ? { vi: data?.slugVi ?? null, en: data?.slugEn ?? null } : { vi: null, en: null });
+export const recordSlugs = (type, data) => (type === "news" || type === "project" ? { vi: data?.slugVi || null, en: data?.slugEn || null } : { vi: null, en: null });
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const isSize = (value) => Number.isSafeInteger(value) && value > 0;

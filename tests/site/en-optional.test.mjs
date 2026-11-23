@@ -84,3 +84,62 @@ test("dropElements skips script text, ignores attribute values and refuses an un
   assert.equal(dropElements('<p data-en="a data-vi-only b">x</p>', "data-vi-only"), '<p data-en="a data-vi-only b">x</p>');
   assert.throws(() => dropElements('<img data-vi-only src="a">', "data-vi-only"), /without a closing tag/);
 });
+
+// Break tests (independent review 2026-11-23): each goes red if its K3 piece is removed.
+const { localeHtml } = await import("../../scripts/tooling/serve-static-parity.mjs");
+const { renderBlocks } = await import("../../scripts/site/blocks.mjs");
+const page = { id: "host", blocks: [] };
+const newsCardsHtml = (block) => renderBlocks({ ...page, blocks: [{ type: "news-cards", id: "b", ...block }] }, ctx);
+
+test("localeHtml drops data-vi-only on EN and data-en-only on VI", () => {
+  const html = '<html lang="vi"><body><p data-vi-only>A</p><p data-en-only data-en="B">B</p><p data-en="C">C</p></body></html>';
+  const en = localeHtml(html, "en");
+  const vi = localeHtml(html, "vi");
+  assert.ok(!en.includes(">A<") && en.includes(">B<") && en.includes(">C<"), en);
+  assert.ok(vi.includes(">A<") && !vi.includes("data-en-only") && vi.includes(">C<"), vi);
+});
+
+test("news-cards with chosen ids: the VI-only post shows on VI and is gone on EN", () => {
+  const html = newsCardsHtml({ newsIds: posts.map((post) => post.id) });
+  assert.ok(localeHtml(html, "vi").includes(`/news/${viOnly.slugVi}/`));
+  const en = localeHtml(html, "en");
+  assert.ok(!en.includes(viOnly.slugVi) && !en.includes(`/en/news/${viOnly.slugEn}/`), en);
+  assert.ok(en.includes(`/en/news/${posts[1].slugEn}/`));
+});
+
+test("news-cards picked automatically: EN picks only posts with EN", () => {
+  const en = localeHtml(newsCardsHtml({}), "en");
+  assert.ok(!en.includes(viOnly.slugVi), "the VI-only post is not an EN pick");
+});
+
+test("menu: a VI-only project is a VI-only option with no EN href", async () => {
+  const { renderMenuNav } = await import("../../scripts/site/sync-site-menu.mjs");
+  const { projects } = loadBlockContent(siteRoot);
+  const project = { ...structuredClone(projects[0]), noEn: true };
+  const nav = renderMenuNav({ projects: [project], productGroups: [] });
+  const option = nav.match(new RegExp(`<a class="menu-option" href="/projects/${project.slugVi}/"[^>]*>`))?.[0];
+  assert.ok(option, nav);
+  assert.match(option, /data-vi-only/);
+  assert.doesNotMatch(option, /data-en-href/);
+  assert.ok(!localeHtml(`<html lang="vi"><body>${nav}</body></html>`, "en").includes(`/projects/${project.slugVi}/`));
+});
+
+test("projects artifact marks a VI-only card and the EN runtime leaves it out", async () => {
+  const { buildProjectArtifact } = await import("../../scripts/site/project-list.mjs");
+  const { projects } = loadBlockContent(siteRoot);
+  const list = projects.slice(0, 2).map((project) => structuredClone(project));
+  list[0].noEn = true;
+  const cards = buildProjectArtifact(list).cards;
+  const card = cards.find(({ id }) => id === list[0].id);
+  assert.equal(card.noEn, true);
+  assert.equal(card.href.en, undefined);
+  assert.equal(cards.find(({ id }) => id === list[1].id).noEn, undefined);
+  const { readFileSync } = await import("node:fs");
+  const detail = readFileSync(new URL("../../src/site/detail.js", import.meta.url), "utf8");
+  assert.match(detail, /document\.documentElement\.lang === "en"\s*\?\s*\{ \.\.\.artifact, cards: artifact\.cards\.filter\(\(card\) => !card\.noEn\) \}/);
+});
+
+test("recordSlugs keeps an empty slugEn out of the unique index", async () => {
+  const { recordSlugs } = await import("../../src/cms/contract.mjs");
+  assert.deepEqual(recordSlugs("news", { slugVi: "bai", slugEn: "" }), { vi: "bai", en: null });
+});
