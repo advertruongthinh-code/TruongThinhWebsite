@@ -29,7 +29,8 @@ export default {
     if (video) {
       const poster = await env.DB.prepare("SELECT status, data FROM records WHERE type = 'media' AND id = ?").bind(posterId).first();
       const shot = poster && poster.status !== "trashed" ? JSON.parse(poster.data) : null;
-      if (shot?.kind !== "image") throw new HttpError(400, { error: "poster" });
+      // Only an uploaded raster image can be a poster: repo media have no original in R2 and SVG has no frame size.
+      if (shot?.kind !== "image" || shot.source !== "r2" || !Object.hasOwn(IMAGE_EXT, shot.mime)) throw new HttpError(400, { error: "poster" });
       if (Math.abs(shot.width * height - shot.height * width) > 0.01 * shot.width * height) throw new HttpError(400, { error: "poster-ratio" });
     }
     const id = await nextMediaId(env, slugBase);
@@ -50,10 +51,13 @@ export default {
     const text = JSON.stringify({ id, kind: video ? "video" : "image", source: "r2", originalKey: key, hash, bytes: length, mime: type, width, height, ...(video ? { duration, posterId } : {}), altVi, altEn, tags: [] });
     const now = new Date().toISOString();
     const G = guard("media", id, writeId);
+    let written;
     try {
-      await env.DB.batch([
-        env.DB.prepare("INSERT INTO records (type, id, status, version, live_version, pending, position, name, slug_vi, slug_en, data, write_id, created_at, created_by, updated_at, updated_by) VALUES ('media', ?, ?, 1, 1, 0, 0, ?, NULL, NULL, ?, ?, ?, ?, ?, ?)")
-          .bind(id, status, id, text, writeId, now, actor.email, now, actor.email),
+      written = await env.DB.batch([
+        // A video row is written only while its poster is still not trashed, checked in the same batch as the
+        // record_media row, so a trash that lands during the upload never leaves a video pointing at a trashed poster.
+        env.DB.prepare(`INSERT INTO records (type, id, status, version, live_version, pending, position, name, slug_vi, slug_en, data, write_id, created_at, created_by, updated_at, updated_by) SELECT 'media', ?, ?, 1, 1, 0, 0, ?, NULL, NULL, ?, ?, ?, ?, ?, ?${video ? " WHERE EXISTS (SELECT 1 FROM records WHERE type = 'media' AND id = ? AND status != 'trashed')" : ""}`)
+          .bind(id, status, id, text, writeId, now, actor.email, now, actor.email, ...(video ? [posterId] : [])),
         env.DB.prepare(`INSERT INTO versions (type, id, version, status, data, saved_at, saved_by) SELECT 'media', ?, 1, ?, ?, ?, ? WHERE ${G.sql}`).bind(id, status, text, now, actor.email, ...G.args),
         // Identical bytes under another id share the key: that row stays as it is (see Deviations).
         env.DB.prepare(`INSERT INTO variants (key, media_id, crop, status, created_at) SELECT ?, ?, ?, 'pending', ? WHERE ${G.sql} ON CONFLICT (key) DO NOTHING`).bind(variant, id, `0,0,${width},${height}`, now, ...G.args),
@@ -66,6 +70,10 @@ export default {
       await env.MEDIA_ORIGINALS.delete(key);
       if (isUniqueId(error)) throw new HttpError(409, { error: "retry" }, target);
       throw error;
+    }
+    if (written[0].meta.changes === 0) {
+      await env.MEDIA_ORIGINALS.delete(key);
+      throw new HttpError(409, { error: "poster" }, target);
     }
     ctx?.waitUntil?.(dispatchVariants(env, [variant]));
     return json({ id, version: 1, status, variant: { key: variant, status: "pending" } }, 201);

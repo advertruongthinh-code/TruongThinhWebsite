@@ -305,6 +305,34 @@ test("an unknown, trashed or non-image poster is 400 poster", async () => {
   assert.equal(await poster(t.posterId), "poster");
 });
 
+test("a repo or SVG media is not a poster: 400 poster", async () => {
+  const t = await withPoster();
+  const repoId = t.DB.sqlite.prepare("SELECT id FROM records WHERE type = 'media' AND json_extract(data, '$.source') = 'repo' LIMIT 1").get().id;
+  const svgId = "logo-svg-01";
+  t.DB.sqlite.prepare("INSERT INTO records SELECT type, ?, status, prev_status, version, live_version, pending, position, ?, NULL, NULL, json_set(data, '$.id', ?, '$.mime', 'image/svg+xml'), write_id, created_at, created_by, updated_at, updated_by, trashed_at FROM records WHERE type = 'media' AND id = ?").run(svgId, svgId, svgId, t.posterId);
+  for (const id of [repoId, svgId]) {
+    const { status, body } = await json(await t.video(MP4, videoQuery(id)));
+    assert.deepEqual([status, body.error], [400, "poster"], id);
+  }
+});
+
+test("a poster trashed while the video uploads is 409 poster: no video row, no record_media row, object deleted", async () => {
+  const t = await withPoster();
+  const before = t.env.MEDIA_ORIGINALS.objects.size;
+  const put = t.env.MEDIA_ORIGINALS.put.bind(t.env.MEDIA_ORIGINALS);
+  t.env.MEDIA_ORIGINALS.put = async (...args) => {
+    t.DB.sqlite.prepare("UPDATE records SET status = 'trashed' WHERE type = 'media' AND id = ?").run(t.posterId);
+    return put(...args);
+  };
+  const rev = t.rev();
+  const { status, body } = await json(await t.video());
+  assert.deepEqual([status, body.error], [409, "poster"]);
+  assert.equal(t.env.MEDIA_ORIGINALS.objects.size, before);
+  assert.equal(t.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM records WHERE type = 'media' AND id LIKE 'clip-%'").get().n, 0);
+  assert.equal(t.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM record_media WHERE media_id = ?").get(t.posterId).n, 0);
+  assert.equal(t.rev(), rev);
+});
+
 test("a 4:3 poster for a 16:9 video is 400 poster-ratio and R2 gets no new object", async () => {
   const t = setup();
   const poster = await json(await t.upload(WEBP, { query: "slugBase=poster&width=1200&height=900&altVi=P&altEn=P" }));

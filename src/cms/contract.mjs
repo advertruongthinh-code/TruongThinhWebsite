@@ -43,7 +43,7 @@ export function mediaErrors(media) {
     ...["altVi", "altEn"].filter((field) => typeof media?.[field] !== "string" || !media[field].trim()).map((field) => `${at}: missing ${field}`),
     ...(isSize(media?.width) && isSize(media?.height) ? [] : [`${at}: width and height must be positive integers`]),
     ...(media?.kind === "video" ? [
-      ...(typeof media.duration === "number" && media.duration > 0 ? [] : [`${at}: duration must be a positive number`]),
+      ...(typeof media.duration === "number" && media.duration > 0 && media.duration <= 600 ? [] : [`${at}: duration must be a number in (0, 600]`]),
       ...(typeof media.posterId === "string" && ID.test(media.posterId) ? [] : [`${at}: posterId must be a media id`]),
     ] : []),
   ];
