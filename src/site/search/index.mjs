@@ -2,7 +2,7 @@
 // detail.js mounts it after the grid.
 import artifact from "/advertising-products/catalog-artifact.mjs";
 import css from "./search.css";
-import { COPY, createBar } from "./bar.mjs";
+import { COPY, createBar, icon } from "./bar.mjs";
 import { createClient } from "./client.mjs";
 import { mountDock } from "./dock.mjs";
 import { hashOf, prepareImage } from "./images.mjs";
@@ -148,35 +148,46 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   }, { signal });
 
   // Floating chip row (search-bar R2): the products with results, mirrored from the page's chips, which own the filter and its counts.
-  // Most cards first (owner 2026-11-23). When the row overflows, "Show all (N)" stays pinned at its right end and opens every product
-  // in a panel above the bar.
+  // Most cards first (owner 2026-11-23). When the row overflows, a chevron stays pinned at its right end and opens every product in a
+  // panel joined to the top of the bar, one frame that grows up and shrinks back with the bar's morph (owner 2026-11-23).
   const shell = bar.querySelector(".search-bar__shell");
   const railRoot = container.querySelector("[data-masonry-filter]")?.closest(".detail-index-hero, section") ?? container;
   const allFilter = () => container.querySelector('[data-masonry-filter="all"]');
   const countOf = (product) => Number.parseInt(product.querySelector("sup")?.textContent ?? "", 10) || 0;
-  const panel = Object.assign(document.createElement("div"), { className: "search-bar__all", hidden: true, id: "search-bar-all" });
+  // Closed, the panel stays in the layout at no height so it can morph; inert keeps it out of Tab and screen readers.
+  const panel = Object.assign(document.createElement("div"), { className: "search-bar__all", id: "search-bar-all", inert: true });
   panel.setAttribute("role", "group");
   panel.setAttribute("aria-label", copy.chips);
+  // The fold is the panel's one grid row (0fr closed, 1fr open); the list inside it scrolls and keeps its padding.
+  const fold = Object.assign(document.createElement("div"), { className: "search-bar__fold" });
+  const list = Object.assign(document.createElement("div"), { className: "search-bar__list" });
+  fold.append(list);
+  panel.append(fold);
   shell.append(panel);
-  const more = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip search-bar__more", hidden: true });
+  const more = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip search-bar__more", hidden: true, innerHTML: icon("chevron") });
   more.setAttribute("aria-controls", panel.id);
-  more.setAttribute("aria-expanded", "false");
+  let total = 0;
+  const isOpen = () => panel.hasAttribute("data-open");
   const setPanel = (open) => {
-    panel.hidden = !open;
+    panel.toggleAttribute("data-open", open);
+    panel.inert = !open;
     more.setAttribute("aria-expanded", String(open));
+    more.title = open ? copy.showLess : copy.showAll(total);
+    more.setAttribute("aria-label", more.title);
     if (open) panelFade();
   };
-  more.addEventListener("click", () => setPanel(panel.hidden), { signal });
+  setPanel(false);
+  more.addEventListener("click", () => setPanel(!isOpen()), { signal });
   // Esc closes the panel from the panel or from its button.
   for (const node of [panel, more]) node.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape" || panel.hidden) return;
+    if (event.key !== "Escape" || !isOpen()) return;
     event.stopPropagation();
     setPanel(false);
     more.focus();
   }, { signal });
-  const panelFade = () => panel.toggleAttribute("data-more", panel.scrollTop + panel.clientHeight < panel.scrollHeight - 1);
-  panel.addEventListener("scroll", panelFade, { passive: true, signal });
-  document.addEventListener("pointerdown", (event) => !panel.hidden && !shell.contains(event.target) && setPanel(false), { signal });
+  const panelFade = () => list.toggleAttribute("data-more", list.scrollTop + list.clientHeight < list.scrollHeight - 1);
+  list.addEventListener("scroll", panelFade, { passive: true, signal });
+  document.addEventListener("pointerdown", (event) => isOpen() && !shell.contains(event.target) && setPanel(false), { signal });
   const chipFor = (product) => {
     const button = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__chip" });
     const pressed = product.getAttribute("aria-current") === "true";
@@ -259,9 +270,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     products.sort((a, b) => countOf(b) - countOf(a)); // stable: equal counts keep the rail order
     const row = Object.assign(document.createElement("div"), { className: "search-bar__chiprow" });
     row.append(...products.map(chipFor));
-    panel.replaceChildren(...products.map(chipFor));
-    if (!products.length) setPanel(false);
-    more.textContent = copy.showAll(products.length);
+    list.replaceChildren(...products.map(chipFor));
+    total = products.length;
+    setPanel(isOpen() && total > 0);
     const scrollLeft = chips.querySelector(".search-bar__chiprow")?.scrollLeft ?? 0;
     chips.replaceChildren(row, more);
     row.scrollLeft = scrollLeft;
