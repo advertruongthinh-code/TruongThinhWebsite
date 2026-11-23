@@ -43,7 +43,7 @@
 
 Board Tasks trên Notion là backlog; Git `main` giữ contract, card chỉ trỏ tới đó. Mọi việc có card trước khi làm, card ở `In progress` và cột `Agent` ghi thread (`qa:docs` kiểm); hai thread không sửa cùng file nóng cùng lúc: điều phối
 tạo và ghi link trong brief, việc owner giao thẳng thì thread tự tạo. Card nhỏ (dưới 50 LOC, một PR) chỉ tên, status, link PR;
-card lớn là plan, không bỏ bước chưa tick khi owner chưa nói bỏ. Cột `Plan level` là tầng rủi ro 0-3: tầng 2 card có sổ việc, tầng 3 card nằm dưới card Plan tổng; owner duyệt plan thì tạo sổ việc ngay, `qa:docs` chặn PR thiếu ([notion](docs/operations/notion.md#rule) rule 4). Mọi PR có dòng `Card: <link>` (không vào được Notion:
+card lớn là plan, không bỏ bước chưa tick khi owner chưa nói bỏ. Mọi PR có dòng `Card: <link>` (không vào được Notion:
 `Card: chờ tạo`), qa-docs kiểm.
 
 ## Routing theo path
