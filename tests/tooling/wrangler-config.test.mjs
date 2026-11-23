@@ -42,7 +42,7 @@ test("admin sub-pages load scripts and links by absolute /admin/ paths", () => {
   assert.match(read("wrangler.toml"), /^html_handling = "force-trailing-slash"$/m);
   for (const page of ["status", "records"]) {
     const html = read(`src/admin/${page}.html`);
-    assert.doesNotMatch(html, /(?:src|href)="\.\//, `${page}.html`);
+    assert.doesNotMatch(html, /(?:src|href)="(?!\/|https?:|#|data:)/, `${page}.html`);
     assert.match(html, new RegExp(`<script type="module" src="/admin/${page}\\.js"></script>`), `${page}.html`);
   }
 });
