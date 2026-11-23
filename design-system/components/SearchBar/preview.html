@@ -387,6 +387,25 @@ body.is-detail .search-host {
   pointer-events: auto;
 }
 
+/* "Search all" after "None in this group" (search-bar R8, owner 2026-11-23): a text button, so the note takes the whole row and the image
+   and search buttons step aside until the visitor taps or types. */
+.search-bar.has-wide-note :is(.search-bar__sep, .search-bar__media, .search-bar__go) {
+  display: none;
+}
+
+.search-bar__note .search-bar__action {
+  flex: none;
+  height: 40px;
+  padding: 0 8px;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  text-decoration: underline 2px;
+  text-underline-offset: 5px;
+  cursor: pointer;
+}
+
 .search-bar__tool {
   display: grid;
   flex: none;

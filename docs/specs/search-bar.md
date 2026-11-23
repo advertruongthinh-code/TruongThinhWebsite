@@ -22,7 +22,7 @@ audit trang thật với mock (R6).
 
 **Một khối ở ba chỗ.** Thanh là một khối liền: nền `paper`, viền 1px `ink`, góc vuông. Ba chỗ dùng cùng khối đó; đổi chỗ chỉ đổi vị trí, bề rộng và bóng,
 không đổi dáng (bỏ đường kẻ ở khe CTA). Ngoại lệ có chủ ý so với mock: chữ ô 16px (mock 15px) và morph 1s (mock 0,6s, quyết định owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` như nay (thế chỗ hàng nhóm dưới tiêu đề hero; trang có lưới masonry bỏ "Cuộn xuống").
-Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe dứt khoát theo vị trí cuộn ([R7](#r7-vào-khe-dứt-khoát)); chỉ trang gốc có thanh ([R8](#r8-chỉ-trang-gốc-có-thanh)).
+Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe dứt khoát theo vị trí cuộn ([R7](#r7-vào-khe-dứt-khoát)); trang card không có thanh, trang nhóm và trang sản phẩm có thanh và tìm trong nhóm ([R8](#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)).
 
 | | PC và tablet (từ 751px) | Phone (dưới 751px) |
 | --- | --- | --- |
@@ -140,25 +140,39 @@ When cuộn xuống qua chỗ khe CTA chạm thanh rồi dừng
 Then thanh vào khe và bề rộng đi dần từ bề rộng nổi tới bề rộng khe trong khoảng 1 giây, bóng mờ dần
 ```
 
-### R8. Chỉ trang gốc có thanh
+### R8. Thanh khi đang lọc, tìm trong nhóm
 
-Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/advertising-products/`, `/en/advertising-products/`). Trang Công trình và mọi trang
-con (trang nhóm, trang sản phẩm, trang chi tiết card) không có thanh, không có khe; hero và CTA giữ bố cục như trước khi có thanh (link "Trao đổi ý tưởng" cách
-tiêu đề một khoảng lưới). Muốn tìm thì về trang gốc.
+Owner 2026-11-23 (thay luật "chỉ trang gốc có thanh" ngày 2026-11-22): thanh tìm kiếm có ở trang gốc Sản phẩm quảng cáo, trang nhóm và trang sản phẩm
+(mở thẳng hoặc bấm nhóm, chip ở hero). Hero và CTA của trang nhóm, trang sản phẩm có khe như trang gốc ([R7](#r7-vào-khe-dứt-khoát)). Trang chi tiết card và
+trang Công trình không có thanh, không có khe.
 
-- Trên trang gốc, đang không tìm mà bấm một nhóm hoặc chip ở hero (sang trang con), hoặc mở chi tiết một card: thanh đang nổi trượt xuống khỏi màn hình
-  (450ms `--ease-card`, giảm chuyển động thì tắt ngay) rồi ẩn; thanh đang ở khe mất cùng khe.
-- Đang tìm: bấm chip trong kết quả thì thanh vẫn ở (R2). Bấm một nhóm ở hero là rời tìm (như nay) nên thanh ẩn như trên.
-- Về "Tất cả" hoặc đóng card: thanh hiện lại ngay ở chỗ đúng theo R7.
+- Đang lọc (một nhóm hoặc một sản phẩm) mà tìm: chỉ tìm trong bộ lọc đó. Lưới chỉ hiện kết quả thuộc bộ lọc; hàng chip của thanh chỉ có sản phẩm của nhóm đó
+  (lọc theo sản phẩm thì là các sản phẩm cùng nhóm) còn kết quả.
+- Đang tìm mà bấm nhóm, chip khác: lọc trong kết quả như nay (R2); lần tìm sau tìm trong bộ lọc đang chọn.
+- Bỏ tìm (Esc, nút xoá): lưới về danh sách đang lọc, URL vẫn là trang nhóm.
+- Nhóm không có kết quả: trang đứng yên, lưới giữ danh sách đang lọc, thanh báo "Nhóm này chưa có" / "None in this group" kèm nút chữ "Tìm tất cả" /
+  "Search all". Thông báo phủ cả hàng nhập: nút ảnh và kính lúp tạm ẩn (owner 2026-11-23, vì ô chữ phone 360px chỉ khoảng 157px); thông báo ở lại tới khi
+  khách chạm vào ô, gõ chữ hoặc bấm nút. Bấm "Tìm tất cả" thì kết quả hiện trên cả danh mục (rail về "Tất cả") và trang trượt về đầu lưới (R9).
+- Mở chi tiết một card: thanh đang nổi trượt xuống khỏi màn hình (450ms `--ease-card`, giảm chuyển động thì tắt ngay) rồi ẩn; thanh đang ở khe mất cùng
+  khe. Đóng card: thanh hiện lại ngay ở chỗ đúng theo R7.
 
 ```gherkin
-Given trang gốc ở 1440px, chưa tìm
-When bấm nhóm "Bảng hiệu"
-Then URL sang trang nhóm, không còn thanh và khe; bấm "Tất cả" thì thanh hiện lại trong khe đầu trang
+Given trang nhóm "Bảng hiệu" ở 1440px
+When tìm một câu có kết quả trong nhóm
+Then lưới chỉ có card của nhóm "Bảng hiệu", hàng chip của thanh chỉ có sản phẩm của nhóm này
+
+Given trang nhóm "Bảng hiệu"
+When tìm một câu chỉ có kết quả ở nhóm khác
+Then lưới đứng yên, thanh báo "Nhóm này chưa có" kèm nút "Tìm tất cả"; bấm nút thì lưới hiện kết quả của cả danh mục
+
+Given trang nhóm "Bảng hiệu" đang tìm
+When bấm Esc
+Then lưới về danh sách nhóm "Bảng hiệu"
 ```
 
-Ghi chú kỹ thuật: build gắn `data-search-off` lên container của trang con và trang card; runtime masonry bật, tắt thuộc tính này khi đổi nhóm, mở hoặc đóng card;
-`dock.mjs` chọn chỗ mỗi frame cuộn, chỉ đọc vị trí hai khe và đáy header.
+Ghi chú kỹ thuật: build gắn `data-search-off` lên container của trang card; runtime masonry bật, tắt thuộc tính này khi mở hoặc đóng card. Phạm vi tìm là bộ lọc
+rail đang chọn (`setResults(ids, { scope })`, `countInScope(ids)`); client hỏi `countInScope` trước khi đưa kết quả lên lưới. `dock.mjs` chọn chỗ mỗi frame cuộn,
+chỉ đọc vị trí hai khe và đáy header.
 
 ### R9. Tìm xong về đầu lưới
 
