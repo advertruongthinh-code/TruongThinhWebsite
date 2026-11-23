@@ -6,13 +6,13 @@
 import { pathToFileURL } from 'node:url';
 
 // Secret file names; scripts/docs/agents-rules.mjs reuses this for the tracked-file check.
-export const SECRET_FILE = /(^|[\\/])(\.env(?!\.example$)[^\\/]*|\.dev\.vars[^\\/]*|id_(rsa|ed25519|ecdsa)[^\\/]*|[^\\/]+\.(keytab|pem|key|p12|pfx|sqlite3?|db))$/i;
-const SECRET_WORD = /(^|[\s"'=:\\/(])(\.env(?!\.example\b)(\.[\w-]+)*|\.dev\.vars(\.[\w-]+)*|[\w.-]*\.(keytab|pem|p12|pfx)|id_(rsa|ed25519|ecdsa)\w*)(?=$|[\s"';|&)<>])/i;
+export const SECRET_FILE = /(^|[\\/])(\.env(?!\.example$)[^\\/]*|\.dev\.vars[^\\/]*|id_(rsa|ed25519|ecdsa)[^\\/]*|cf-token-admin|[^\\/]+\.(keytab|pem|key|p12|pfx|sqlite3?|db))$/i;
+const SECRET_WORD = /(^|[\s"'=:\\/(])(\.env(?!\.example\b)(\.[\w-]+)*|\.dev\.vars(\.[\w-]+)*|[\w.-]*\.(keytab|pem|p12|pfx)|id_(rsa|ed25519|ecdsa)\w*|cf-token-admin)(?=$|[\s"';|&)<>])/i;
 const COMMAND_RULES = [
   [/\bgit\s+push\b[^\n]*\s(--force(-with-lease)?|-f)(\s|=|$)/, 'force-push rewrites pushed history'],
   [/\bgit\s+reset\s+--hard\b/, 'git reset --hard discards work'],
   [/\s--no-verify\b/, '--no-verify skips the Git hooks'],
-  [SECRET_WORD, 'the command names a secret file (.env, .dev.vars, keytab, private key)'],
+  [SECRET_WORD, 'the command names a secret file (.env, .dev.vars, keytab, private key, bootstrap token)'],
 ];
 
 export function verdict(payload) {
