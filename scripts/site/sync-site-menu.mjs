@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES } from "../../src/site/advertising-products/catalog.mjs";
 import { PROJECT_TYPES, SECTOR_LABEL, menuFeatured, pageHref, projectTypeHref } from "./block-pages.mjs";
-import { contentDirOf } from "./content-files.mjs";
+import { contentDirOf, loadBlockContent } from "./content-files.mjs";
 import { escapeHtml, siteRoot } from "./lib.mjs";
 import { hrefAttrs } from "../../src/cms/links.mjs";
 import { renderShell } from "./shell.mjs";
@@ -38,7 +38,8 @@ const SOCIAL = [
 ];
 
 // A VI-to-EN route that only changes the prefix is swapped by the runtime itself; a different slug needs data-en-href.
-const option = ({ vi, en, label }) => `<a class="menu-option" ${hrefAttrs(vi, en)} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`;
+// viOnly: a project without EN (cms-content R2) shows in the VI menu only; localeHtml drops it from EN pages.
+const option = ({ vi, en, label, viOnly = false }) => `<a class="menu-option" ${hrefAttrs(vi, viOnly ? undefined : en)}${viOnly ? " data-vi-only" : ""} data-en="${escapeHtml(label.en ?? "")}">${escapeHtml(label.vi)}</a>`;
 const typeOption = (type) => option({ vi: projectTypeHref(type, "vi"), en: projectTypeHref(type, "en"), label: PROJECT_TYPES[type].label });
 const typesOf = (sector) => Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === sector);
 
@@ -69,7 +70,7 @@ export const renderMenuNav = ({ projects, productGroups }) => {
       title: { vi: "Công trình", en: "Projects" }, href: { vi: "/projects/" },
       options: [
         option({ vi: "/projects/", label: { vi: "Các công trình của chúng tôi", en: "Our projects" } }),
-        ...projects.map((project) => option({ vi: pageHref("projects", "vi", project), en: pageHref("projects", "en", project), label: project.title })),
+        ...projects.map((project) => option({ vi: pageHref("projects", "vi", project), en: pageHref("projects", "en", project), label: project.title, viOnly: project.noEn })),
       ],
     },
     {
@@ -102,7 +103,8 @@ export const renderMenuNav = ({ projects, productGroups }) => {
   ].join("\n");
 };
 
-const [menu, projects] = ["menu.json", "projects.json"].map((file) => JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), file), "utf8")));
+const menu = JSON.parse(readFileSync(path.join(contentDirOf(siteRoot), "menu.json"), "utf8"));
+const { projects } = loadBlockContent(siteRoot);
 export const renderDesktopList = (indent) => [
   "<ul>",
   ...DESKTOP_LINKS.map(({ href, vi, en }) => `${indent}  <li><a href="${href}" data-vi="${escapeHtml(vi)}" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</a></li>`),

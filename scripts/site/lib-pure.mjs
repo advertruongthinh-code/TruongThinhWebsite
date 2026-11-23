@@ -27,12 +27,13 @@ export const collectionLd = ({ path: pathname, name, description, items, crumbs 
   breadcrumbLd(crumbs),
 ]);
 // Absolute canonical and hreflang links for a page whose VI and EN paths are given.
-export const alternateLinks = (vi, en) => [
+// en null: the page has VI only (cms-content R2), so no EN alternate.
+export const alternateLinks = (vi, en) => en ? [
   `<link rel="canonical" href="${absolute(vi)}" data-en-href="${absolute(en)}" />`,
   `<link rel="alternate" hreflang="vi" href="${absolute(vi)}" />`,
   `<link rel="alternate" hreflang="en" href="${absolute(en)}" />`,
   `<link rel="alternate" hreflang="x-default" href="${absolute(vi)}" />`,
-];
+] : [`<link rel="canonical" href="${absolute(vi)}" />`];
 // A page title without the brand suffix is the page's keyword name.
 export const pageName = ({ titleVi, titleEn }) => ({ vi: titleVi.replace(/ — Trường Thịnh$/, ""), en: titleEn.replace(/ — Trường Thịnh$/, "") });
 // The page's keyword name as its h1 (media-seo R6): screen readers and search engines read it; the visible kicker and slogan keep their look.

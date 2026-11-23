@@ -18,6 +18,7 @@ import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
 import { tieOrphans } from "./tie-orphans.mjs";
+import { htmlElements } from "./html-elements.mjs";
 import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, localePrefix, phonePacksScript, projectRoot, readJson, routeLocale, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
@@ -372,7 +373,7 @@ for (const [kind, pages] of Object.entries(blockContent)) {
   }
 }
 if (!frameTemplates.has("about")) frameTemplates.set("about", readPageSource("about/index.html"));
-for (const listPage of newsListPages(blockContent.news)) {
+for (const listPage of ["vi", "en"].flatMap((locale) => newsListPages(blockContent.news, locale))) {
   const destination = path.join(outputRoot, newsListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, renderNewsListPage(frameTemplates.get("about"), listPage), "utf8");
@@ -428,75 +429,20 @@ const escapeAttribute = (value) =>
   );
 
 const embedVietnameseText = (html, filePath) => {
-  const voidElements = new Set([
-    "area",
-    "base",
-    "br",
-    "col",
-    "embed",
-    "hr",
-    "img",
-    "input",
-    "link",
-    "meta",
-    "param",
-    "source",
-    "track",
-    "wbr",
-  ]);
-  const stack = [];
-  const insertions = [];
-  let candidates = 0;
-  let covered = 0;
-  const tagPattern = /<!--[\s\S]*?-->|<![^>]*>|<\/?[a-z][^>]*>/gi;
-  let match;
-  while ((match = tagPattern.exec(html))) {
-    const token = match[0];
-    if (token.startsWith("<!--") || token.startsWith("<!")) continue;
-    const closing = /^<\//.test(token);
-    const name = token.match(/^<\/?([a-z][\w:-]*)/i)?.[1].toLowerCase();
-    if (!name) continue;
-    if (closing) {
-      const index = stack.findLastIndex((entry) => entry.name === name);
-      if (index < 0) continue;
-      const [entry] = stack.splice(index, 1);
-      if (!entry.needsVietnamese) continue;
-      const content = html.slice(entry.contentStart, match.index);
-      const vietnamese = decodeHtmlText(content).replace(/\s+/g, " ").trim();
-      insertions.push({
-        at: entry.tagEnd - 1,
-        value: ` data-vi="${escapeAttribute(vietnamese)}"`,
-      });
-      covered += 1;
-      continue;
-    }
-    const hasEnglish = /\bdata-en=(?:"[^"]*"|'[^']*')/i.test(token);
-    const hasVietnamese = /\bdata-vi=(?:"[^"]*"|'[^']*')/i.test(token);
-    if (hasEnglish) {
-      candidates += 1;
-      if (hasVietnamese) covered += 1;
-    }
-    if (!/\/$/.test(token.slice(0, -1).trim()) && !voidElements.has(name)) {
-      stack.push({
-        contentStart: tagPattern.lastIndex,
-        name,
-        needsVietnamese: hasEnglish && !hasVietnamese,
-        tagEnd: tagPattern.lastIndex,
-      });
-    }
-  }
-  if (covered !== candidates) {
+  const english = /\bdata-en=(?:"[^"]*"|'[^']*')/i;
+  const vietnamese = /\bdata-vi=(?:"[^"]*"|'[^']*')/i;
+  const candidates = htmlElements(html).filter(({ tag }) => english.test(tag));
+  const insertions = candidates.filter(({ tag, contentEnd }) => !vietnamese.test(tag) && contentEnd !== undefined).map(({ contentStart, contentEnd }) => ({
+    at: contentStart - 1,
+    value: ` data-vi="${escapeAttribute(decodeHtmlText(html.slice(contentStart, contentEnd)).replace(/\s+/g, " ").trim())}"`,
+  }));
+  const covered = candidates.filter(({ tag }) => vietnamese.test(tag)).length + insertions.length;
+  if (covered !== candidates.length) {
     throw new Error(
-      `${filePath}: embedded ${covered} Vietnamese values for ${candidates} English text values.`,
+      `${filePath}: embedded ${covered} Vietnamese values for ${candidates.length} English text values.`,
     );
   }
-  let output = html;
-  insertions
-    .sort((left, right) => right.at - left.at)
-    .forEach(({ at, value }) => {
-      output = `${output.slice(0, at)}${value}${output.slice(at)}`;
-    });
-  return output;
+  return insertions.reduceRight((output, { at, value }) => `${output.slice(0, at)}${value}${output.slice(at)}`, html);
 };
 
 // Wrap content WebP <img> tags in <picture>: a progressive JXL <source> (progressive-loading R1) for browsers that can read JXL,

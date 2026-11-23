@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { blockRoutes, newsListRoutes } from "../site/block-pages.mjs";
+import { dropElements } from "../site/html-elements.mjs";
 import { loadBlockContent, readRedirects } from "../site/content-files.mjs";
 import { projectListRoutes } from "../site/project-list.mjs";
 import { legacyRedirects } from "../site/redirects.mjs";
@@ -85,7 +86,9 @@ function setAttribute(tag, name, value) {
 const ATTRIBUTE = String.raw`(?:\s+[\w:-]+(?:="[^"]*")?)`;
 const EN_TEXT_ELEMENT = new RegExp(String.raw`<([a-z][\w:-]*)(${ATTRIBUTE}*?\s+data-en="([^"]*)"${ATTRIBUTE}*\s*)>[\s\S]*?<\/\1\s*>`, "gi");
 export function localeHtml(source, locale = "vi") {
-  let html = source.replace(/<html\b[^>]*>/i, (tag) => setAttribute(setAttribute(tag, "lang", locale), "data-route-locale", locale));
+  // A post without EN shows only on VI pages (data-vi-only), its EN-only replacement only on EN pages (cms-content R2).
+  const other = locale === "en" ? "data-vi-only" : "data-en-only";
+  let html = (source.includes(other) ? dropElements(source, other) : source).replace(/<html\b[^>]*>/i, (tag) => setAttribute(setAttribute(tag, "lang", locale), "data-route-locale", locale));
   if (locale === "en") {
     html = html.replace(/<[^>]+>/g, (tag) => {
       let output = tag;

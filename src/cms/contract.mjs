@@ -1,6 +1,6 @@
 // Shared record contract of the CMS (cms-plan Q1, Q5, Q10): record types, names and slugs, and the two error levels the
 // Worker and the build both use. Pure module: must not import catalog.mjs (it drags the 733 KB card manifest into the Worker).
-import { BLOCK_TYPES, blockMarksErrors, validateBlockPage } from "../../scripts/site/blocks.mjs";
+import { BLOCK_TYPES, blockMarksErrors, blockTextFields, validateBlockPage } from "../../scripts/site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../../scripts/site/block-pages.mjs";
 import { heroSlideErrors } from "../../scripts/site/hero-slides.mjs";
 import { validateHomeProjects } from "../../scripts/site/home-projects.mjs";
@@ -86,6 +86,19 @@ export async function shapeErrors(type, data, ctx = {}) {
   return errors;
 }
 
+// Required EN fields that are empty (cms-content R2, K3): a news or project record with any of them builds in VI only.
+// Image alt EN stays required and is not listed here.
+export function enMissing(type, data) {
+  if (type !== "news" && type !== "project") return [];
+  const empty = (value) => typeof value?.en !== "string" || !value.en.trim();
+  return [
+    ...["title", "description"].filter((field) => empty(data?.[field])).map((field) => `${field}.en`),
+    ...(typeof data?.slugEn === "string" && data.slugEn ? [] : ["slugEn"]),
+    ...(type === "project" && data?.seoTitle !== undefined && empty(data.seoTitle) ? ["seoTitle.en"] : []),
+    ...blockTextFields(data).filter(([, value]) => empty(value)).map(([field]) => `${field}.en`),
+  ];
+}
+
 // ctx: { checkImage, projects, news (Maps id -> published data), categories }.
 export async function fullErrors(type, data, ctx = {}) {
   const at = data?.id ?? type;
@@ -100,8 +113,8 @@ export async function fullErrors(type, data, ctx = {}) {
     // Mark errors are shape errors (shapeErrors reports them); drop their text copy too.
     const reported = new Set([...layout.map(({ message }) => `${at}: ${message}`), ...blockMarksErrors(data, at).map(({ message }) => message)]);
     messages = [
-      ...(await validateBlockPage(data, { checkImage: ctx.checkImage, projects, news: ctx.news ?? new Map() })).filter((message) => !reported.has(message)),
-      ...kindFieldErrors(kind, data, at).filter((message) => !reported.has(message)),
+      ...(await validateBlockPage(data, { checkImage: ctx.checkImage, projects, news: ctx.news ?? new Map(), en: "optional" })).filter((message) => !reported.has(message)),
+      ...kindFieldErrors(kind, data, at, { en: "optional" }).filter((message) => !reported.has(message)),
       // cms-content R4: a project card always has 2 or more media, so a page without a card is missing them too.
       ...(type === "project" && !(Array.isArray(data.card?.media) && data.card.media.length >= 2) ? [`${at}: card công trình cần ít nhất 2 media`] : []),
     ];

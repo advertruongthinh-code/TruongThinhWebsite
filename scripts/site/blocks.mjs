@@ -13,7 +13,7 @@ const SAFE_HREF = /^(?:\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
 
 // Text is plain paragraphs split by blank lines; marked text (cms-plan part 2 K2) renders as leaf segments inside the element.
 // Text without marks or breaks keeps the plain path, so existing data renders the same HTML.
-const localized = (tag, text, attributes = "") => `<${tag}${attributes} data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</${tag}>`;
+const localized = (tag, text, attributes = "") => `<${tag}${attributes} data-en="${escapeHtml(text.en ?? "")}">${escapeHtml(text.vi)}</${tag}>`;
 const marked = (tag, text, attributes, ctx) => {
   const inner = markedInner(text.vi, text.en, ctx);
   return inner === null ? localized(tag, text, attributes) : `<${tag}${attributes}>${inner}</${tag}>`;
@@ -22,7 +22,7 @@ const marked = (tag, text, attributes, ctx) => {
 const localizedParagraphs = (text, ctx, { lists = false } = {}) => {
   const vi = paragraphs(text.vi);
   const en = paragraphs(text.en);
-  return vi.map((part, index) => (lists && listOf(part) ? listHtml(part, en[index], ctx) : marked("p", { vi: part, en: en[index] }, "", ctx))).join("\n");
+  return vi.map((part, index) => (lists && listOf(part) ? listHtml(part, en[index] ?? "", ctx) : marked("p", { vi: part, en: en[index] ?? "" }, "", ctx))).join("\n");
 };
 const image = (media, attributes = 'loading="lazy"') =>
   `<img src="${media.src}" width="${media.width}" height="${media.height}" alt="${escapeHtml(media.altVi)}" data-en-alt="${escapeHtml(media.altEn)}" ${attributes} />`;
@@ -43,10 +43,18 @@ export const NEWS_GROUPS = {
 
 // News teaser like the espaciohomedesign.com news block (home strip and "Other news" at the end of an article, news R3, R4, measured 2026-11-11):
 // small cover left, group in capitals, title, and "Read more" that fades in on hover. The whole item is one link.
-export const newsTeaser = (post) => {
+// VI and EN pick lists rendered once (cms-content R2): an item only VI shows gets data-vi-only, one only EN shows gets data-en-only,
+// and localeHtml drops each from the other locale. Returns [item, attribute] in VI order, then the EN-only items.
+export const bilingualPicks = (vi, en) => [
+  ...vi.map((item) => [item, en.includes(item) ? "" : " data-vi-only"]),
+  ...en.filter((item) => !vi.includes(item)).map((item) => [item, " data-en-only"]),
+];
+// EN link of a page, or none for a page without EN (its EN route does not exist).
+const enHrefAttr = (page, dir) => (page.noEn ? "" : ` data-en-href="/en/${dir}/${page.slugEn}/"`);
+export const newsTeaser = (post, only = "") => {
   const group = NEWS_GROUPS[post.group];
   return [
-    `    <a class="home-news__item" href="/news/${post.slugVi}/" data-en-href="/en/news/${post.slugEn}/">`,
+    `    <a class="home-news__item" href="/news/${post.slugVi}/"${enHrefAttr(post, "news")}${only}>`,
     `      <span class="home-news__media">${image(post.cover)}</span>`,
     '      <span class="home-news__text">',
     `        ${localized("span", group, ' class="home-news__group"')}`,
@@ -119,6 +127,18 @@ export const autoNewsIds = (ctx, page) => {
     .toSorted((left, right) => Number(right.post.group === page.group) - Number(left.post.group === page.group) || right.score - left.score || right.post.published.localeCompare(left.post.published) || left.post.id.localeCompare(right.post.id))
     .slice(0, NEWS_CARD_COUNT)
     .map(({ post }) => post.id);
+};
+
+// "Other news" for VI and EN: chosen ids minus posts without EN; picked ones are ranked again among the posts that have EN.
+const enNewsMaps = new WeakMap();
+const enNews = (news) => {
+  if (!enNewsMaps.has(news)) enNewsMaps.set(news, new Map([...news].filter(([, post]) => !post.noEn)));
+  return enNewsMaps.get(news);
+};
+const newsPicks = (block, ctx, page) => {
+  if (block.newsIds) return [block.newsIds, block.newsIds.filter((id) => !ctx.news.get(id).noEn)];
+  const vi = autoNewsIds(ctx, page);
+  return [vi, enNews(ctx.news).size === ctx.news.size ? vi : autoNewsIds({ ...ctx, news: enNews(ctx.news) }, page)];
 };
 
 // Each block: required fields by type and the HTML builder. ctx holds the project and News lists so blocks can look them up.
@@ -245,16 +265,17 @@ const BLOCKS = {
       const variants = ["project-card--high", "project-card--low"];
       // On a project page the strip lists the other projects, so it gets Espacio's centred italic "Other projects" heading.
       const onProjectPage = ctx.projects.has(page.id);
+      const ids = block.projectIds ?? autoProjectIds(ctx, page);
       return [
         // The strip slides in from 60px right (Espacio "animate-left"); motion.js adds the horizontal parallax of the home rail to the track.
         '<section class="blk blk-projects section-gap" data-header-tone="ink" data-motion-left>',
         ...(onProjectPage ? ['  <h2 class="blk-projects__title" data-motion-words data-en="Other projects">Công trình khác</h2>'] : []),
         '  <div class="blk-projects__track">',
-        ...(block.projectIds ?? autoProjectIds(ctx, page)).map((id, index) => {
+        ...bilingualPicks(ids, ids.filter((id) => !ctx.projects.get(id).noEn)).map(([id, only], index) => {
           const project = ctx.projects.get(id);
           const cover = project.cover;
           return [
-            `    <a class="project-card ${variants[index % 2]} blk-projects__card" href="/projects/${project.slugVi}/" data-en-href="/en/projects/${project.slugEn}/">`,
+            `    <a class="project-card ${variants[index % 2]} blk-projects__card" href="/projects/${project.slugVi}/"${enHrefAttr(project, "projects")}${only}>`,
             `      <span class="project-card__media">${image(cover)}</span>`,
             `      ${localized("span", project.title, ' class="blk-projects__name"')}`,
             "    </a>",
@@ -283,7 +304,7 @@ const BLOCKS = {
       '<section class="blk blk-news-cards section-gap" data-header-tone="ink">',
       '  <h2 class="blk-news-cards__title" data-en="Other news">Tin khác</h2>',
       '  <div class="home-news__grid">',
-      ...(block.newsIds ?? autoNewsIds(ctx, page)).map((id) => newsTeaser(ctx.news.get(id))),
+      ...bilingualPicks(...newsPicks(block, ctx, page)).map(([id, only]) => newsTeaser(ctx.news.get(id), only)),
       "  </div>",
       "</section>",
     ].join("\n"),
@@ -300,40 +321,46 @@ const BLOCKS = {
 };
 export const BLOCK_TYPES = Object.keys(BLOCKS);
 
-// Mark errors (level shape, with code) of every block text field, by the block's marks table; other fields are plain (K2).
-// The Worker reports them as shape errors, the build as page errors.
-export function blockMarksErrors(page, at = page?.id ?? "page") {
-  const errors = [];
-  const check = (value, kind, where) => {
-    if (typeof value?.vi === "string" && typeof value?.en === "string") errors.push(...marksErrors(value.vi, value.en, kind).map((error) => ({ ...error, message: `${where}: ${error.message}` })));
-  };
+// Every text field of a page's blocks: [path, value, marks kind]; path is relative to the page ("blocks[2].text"). Hero lines
+// have no marks kind (null): they keep their own italic rule. Used by the mark check and by enMissing (cms-plan part 2 K3).
+export function blockTextFields(page) {
+  const fields = [];
   for (const [index, block] of (Array.isArray(page?.blocks) ? page.blocks : []).entries()) {
     const spec = BLOCKS[block?.type];
     if (!spec) continue;
-    const where = `${at}.blocks[${index}]`;
-    for (const field of [...spec.text ?? [], ...spec.optionalText ?? []]) check(block[field], spec.marks?.[field] ?? "plain", `${where}.${field}`);
+    const at = `blocks[${index}]`;
+    const kind = (field) => spec.marks?.[field] ?? "plain";
+    for (const field of spec.text ?? []) fields.push([`${at}.${field}`, block[field], kind(field)]);
+    for (const field of spec.optionalText ?? []) if (block[field] !== undefined) fields.push([`${at}.${field}`, block[field], kind(field)]);
+    for (const field of Object.keys(spec.lines ?? {})) for (const [line, value] of (Array.isArray(block[field]) ? block[field] : []).entries()) fields.push([`${at}.${field}[${line}]`, value, null]);
     if (spec.list && Array.isArray(block.items)) {
-      for (const [item, value] of block.items.entries()) for (const field of spec.list.text ?? []) check(value?.[field], spec.marks?.[field] ?? "plain", `${where}.items[${item}].${field}`);
+      for (const [item, value] of block.items.entries()) for (const field of spec.list.text ?? []) fields.push([`${at}.items[${item}].${field}`, value?.[field], kind(field)]);
     }
   }
-  return errors;
+  return fields;
 }
+
+// Mark errors (level shape, with code) of every block text field, by the block's marks table; other fields are plain (K2).
+// The Worker reports them as shape errors, the build as page errors.
+export const blockMarksErrors = (page, at = page?.id ?? "page") => blockTextFields(page).flatMap(([field, value, kind]) =>
+  kind && typeof value?.vi === "string" && typeof value?.en === "string" ? marksErrors(value.vi, value.en, kind).map((error) => ({ ...error, message: `${at}.${field}: ${error.message}` })) : []);
 
 // Validate one page (project or News post). Returns the error list, does not stop at the first error.
 // checkImage(image, where) returns the errors of one image reference: fileImageCheck(siteRoot) in the build, a record check in the Worker.
-export async function validateBlockPage(page, { checkImage, projects = new Map(), news = new Map(), at = page?.id ?? "page" }) {
+// en: "optional" (News and projects, cms-content R2): an empty EN field is not an error, a filled one is checked as before.
+export async function validateBlockPage(page, { checkImage, projects = new Map(), news = new Map(), at = page?.id ?? "page", en = "required" }) {
   if (typeof checkImage !== "function") throw new Error("validateBlockPage: checkImage is required");
   const errors = [];
   const text = (value, where) => {
     if (!value || typeof value.vi !== "string" || !value.vi.trim()) errors.push(`${where}: missing VI text`);
-    if (!value || typeof value.en !== "string" || !value.en.trim()) errors.push(`${where}: missing EN text`);
+    if (!value || typeof value.en !== "string" || !value.en.trim()) { if (en !== "optional") errors.push(`${where}: missing EN text`); }
     else if (typeof value.vi === "string" && paragraphs(value.vi).length !== paragraphs(value.en).length) errors.push(`${where}: paragraph counts differ between VI and EN`);
   };
   const media = async (value, where) => { errors.push(...await checkImage(value, where)); };
   const href = (value, where) => { if (!SAFE_HREF.test(value ?? "")) errors.push(`${where}: invalid link`); };
 
   if (!KEBAB.test(page?.id ?? "")) errors.push(`${at}: id must be kebab-case`);
-  for (const field of ["slugVi", "slugEn"]) if (!KEBAB.test(page?.[field] ?? "")) errors.push(`${at}: ${field} must be unaccented kebab-case`);
+  for (const field of ["slugVi", "slugEn"]) if (!(field === "slugEn" && en === "optional" && !page?.slugEn) && !KEBAB.test(page?.[field] ?? "")) errors.push(`${at}: ${field} must be unaccented kebab-case`);
   text(page?.title, `${at}.title`);
   text(page?.description, `${at}.description`);
   await media(page?.cover, `${at}.cover`);
@@ -409,7 +436,8 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
 // The lookup Map keeps the last entry on duplicates, so report duplicate id and slug within one file first.
 export const duplicatePageFields = (pages, at) => ["id", "slugVi", "slugEn"].flatMap((field) => {
   const seen = new Set();
-  return pages.flatMap((page) => {
+  // A post without EN may have no slugEn; empty values are not duplicates of each other.
+  return pages.filter((page) => page[field]).flatMap((page) => {
     const duplicate = seen.has(page[field]);
     seen.add(page[field]);
     return duplicate ? [`${at}: duplicate ${field} ${page[field]}`] : [];
