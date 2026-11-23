@@ -21,7 +21,8 @@ import { tieOrphans } from "./tie-orphans.mjs";
 import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, localePrefix, phonePacksScript, projectRoot, readJson, routeLocale, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
-const outputRoot = path.join(projectRoot, ".site-output");
+// TT_SITE_OUT lets a test build into a temp dir instead of the shared .site-output.
+const outputRoot = process.env.TT_SITE_OUT || path.join(projectRoot, ".site-output");
 const vendorAssets = [
   ["node_modules/lazysizes/lazysizes.min.js", "assets/vendor/lazysizes-5.3.2.min.js"],
   ["node_modules/gsap/dist/gsap.min.js", "assets/vendor/gsap-3.15.0.min.js"],
