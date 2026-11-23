@@ -36,3 +36,13 @@ test("the admin Worker serves only its custom domain, not workers.dev", () => {
   assert.match(admin, /^workers_dev = false$/m);
   assert.match(admin, /^pattern = "admin\.truongthinhads\.vn"\ncustom_domain = true$/m);
 });
+
+// force-trailing-slash serves /admin/status.html at /admin/status/, so a "./x.js" there resolves to /admin/status/x.js (503).
+test("admin sub-pages load scripts and links by absolute /admin/ paths", () => {
+  assert.match(read("wrangler.toml"), /^html_handling = "force-trailing-slash"$/m);
+  for (const page of ["status", "records"]) {
+    const html = read(`src/admin/${page}.html`);
+    assert.doesNotMatch(html, /(?:src|href)="\.\//, `${page}.html`);
+    assert.match(html, new RegExp(`<script type="module" src="/admin/${page}\\.js"></script>`), `${page}.html`);
+  }
+});
