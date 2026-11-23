@@ -1,33 +1,43 @@
-# Dormant until the owner activates the CMS phase.
-# The current static workflow must not call this config.
-name = "truong-thinh-website"
+# Admin Worker of the CMS (docs/specs/cms.md R1). Deployed only after the owner approves the Storage slice.
+name = "truong-thinh-admin"
 main = "src/worker/index.js"
 compatibility_date = "2026-07-31"
 workers_dev = true
+preview_urls = false
 
 [assets]
 directory = ".site-output"
 binding = "ASSETS"
 html_handling = "force-trailing-slash"
 not_found_handling = "404-page"
-run_worker_first = [
-  "/",
-  "/index.html",
-  "/vi",
-  "/vi/*",
-  "/en",
-  "/en/*",
-  "/nha-o*",
-  "/kinh-doanh*",
-  "/quang-cao*",
-  "/gioi-thieu*",
-  "/residential*",
-  "/commercial*",
-  "/advertising-products*",
-  "/projects-products*",
-  "/about*",
-  "/api/*",
-  "/media/*",
-  "/robots.txt",
-  "/sitemap.xml",
-]
+run_worker_first = ["/api/*"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "truong-thinh-cms"
+database_id = "REPLACE_IN_S4"
+migrations_dir = "src/db/migrations"
+
+[[r2_buckets]]
+binding = "MEDIA_ORIGINALS"
+bucket_name = "truong-thinh-media-originals"
+
+[[r2_buckets]]
+binding = "MEDIA_PUBLIC"
+bucket_name = "truong-thinh-media-public"
+
+[[ratelimits]]
+name = "ADMIN_WRITE_LIMIT"
+namespace_id = "7311"
+simple = { limit = 120, period = 60 }
+
+[[ratelimits]]
+name = "ADMIN_UPLOAD_LIMIT"
+namespace_id = "7312"
+simple = { limit = 20, period = 60 }
+
+[triggers]
+crons = ["* * * * *"]
+
+[observability]
+enabled = true
