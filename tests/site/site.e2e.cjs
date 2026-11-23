@@ -3029,7 +3029,7 @@ async function runEspacioRouteLogoTimingChecks() {
       );
       const state = await page.evaluate(() => {
         const image = document.querySelector(
-          '[data-barba-namespace="residential"] img[src*="residential-detail"]',
+          '[data-barba-namespace="residential"] img[src*="tu-ao-canh-lua-phong-ngu"]',
         );
         return {
           complete: image?.complete,
@@ -3045,7 +3045,7 @@ async function runEspacioRouteLogoTimingChecks() {
       await page.waitForFunction(
         () =>
           document.querySelector(
-            '[data-barba-namespace="residential"] img[src*="residential-detail"]',
+            '[data-barba-namespace="residential"] img[src*="tu-ao-canh-lua-phong-ngu"]',
           )?.complete,
         null,
         { timeout: 5_000 },
@@ -7080,7 +7080,9 @@ async function runAdvertisingMediaFocusedChecks() {
             && image?.classList.contains("is-masonry-media-ready");
         },
         replayFixtureId,
-        { timeout: 3_000 },
+        // The re-attach waits for the virtual window to reach the card after the scroll; 3s ran out on a 2-core CI runner. "Immediately"
+        // is checked below on the node itself (no entrance animation, full opacity), not by this wait.
+        { timeout: 8_000 },
       );
       const replay = await page.locator("[data-project-grid]").evaluate((grid, id) => {
         const current = grid.querySelector(`[data-masonry-card="${id}"]`);

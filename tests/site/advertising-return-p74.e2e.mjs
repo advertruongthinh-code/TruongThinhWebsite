@@ -68,7 +68,16 @@ try {
   // Back button (R10): top-left corner of the primary frame, steps back one entry like Back; a photo entered directly returns to the group masonry.
   for (const [width, touch] of [[1440, false], [390, true]]) {
     const page = await browser.newPage({ viewport: { width, height: 844 }, hasTouch: touch, isMobile: touch });
-    const press = () => touch ? page.locator("[data-detail-back]").tap() : page.locator("[data-detail-back]").click();
+    // Scrolling to the top shows the header again (it slides back in); on a slow runner it still covered the button when pressed, so press
+    // once the button is the top element at its centre.
+    const press = async () => {
+      await page.waitForFunction(() => {
+        const button = document.querySelector("[data-detail-back]");
+        const rect = button.getBoundingClientRect();
+        return button.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
+      }, null, { timeout: 5_000 });
+      return touch ? page.locator("[data-detail-back]").tap() : page.locator("[data-detail-back]").click();
+    };
     await page.goto(`${base}/vi/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(600));

@@ -383,9 +383,15 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     await search(page, "hộp đèn");
     await announced(page, /results/);
     // The x leaves the search too.
-    const cleared = page.evaluate(() => new Promise((resolve) => addEventListener("masonry:search-left", (e) => resolve(e.detail?.reason), { once: true })));
+    // Register the listener before the click (awaited), then wait with a bound: a pending page promise left the test hanging until the
+    // browser closed and hid the real state.
+    await page.evaluate(() => {
+      window.__ttSearchLeft = null;
+      addEventListener("masonry:search-left", (e) => { window.__ttSearchLeft = e.detail?.reason ?? ""; }, { once: true });
+    });
     await page.click(".search-bar [data-search-clear-text]");
-    assert.equal(await cleared, "clear");
+    await page.waitForFunction(() => window.__ttSearchLeft !== null, null, { timeout: 10_000 });
+    assert.equal(await page.evaluate(() => window.__ttSearchLeft), "clear");
     assert.equal(await page.inputValue(".search-bar input"), "");
     await search(page, "hộp đèn");
     await announced(page, /results/);

@@ -419,10 +419,23 @@ try {
       assert.equal(empty, slug !== "all" && !ranked.some((id) => inCluster(id, slug)), `rail ${slug} hidden only without results`);
     }
     const cluster = rail.find(([slug, empty]) => slug !== "all" && !empty && ranked.some((id) => !inCluster(id, slug)))[0];
-    await page.locator(`[data-masonry-filter="${cluster}"]`).click();
+    // A search glides the page to the masonry top (search-bar, owner 2026-11-22), past the rail: bring the rail back into view through
+    // the smooth-scroll position (native scrollIntoView does not move it) before clicking.
+    const clickRail = async (slug) => {
+      await page.evaluate((selector) => {
+        const top = document.querySelector(selector).getBoundingClientRect().top;
+        window.TruongThinhMotion.setLogicalScroll(Math.max(0, window.TruongThinhMotion.getLogicalScroll() + top - 200));
+      }, `[data-masonry-filter="${slug}"]`);
+      await page.waitForFunction((selector) => {
+        const rect = document.querySelector(selector).getBoundingClientRect();
+        return rect.top >= 0 && rect.bottom <= innerHeight;
+      }, `[data-masonry-filter="${slug}"]`);
+      await page.locator(`[data-masonry-filter="${slug}"]`).click();
+    };
+    await clickRail(cluster);
     await searchMatches(page, ranked.filter((id) => inCluster(id, cluster)), "rail inside search");
     assert.equal(await page.getAttribute(`[data-masonry-filter="${cluster}"]`, "aria-current"), "true");
-    await page.locator('[data-masonry-filter="all"]').click();
+    await clickRail("all");
     await searchMatches(page, ranked, "all inside search");
     assert.equal(await page.evaluate(() => window.__searchLeft), 0, "the rail does not leave search");
     // clearResults returns to the filter.
