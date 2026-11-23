@@ -221,3 +221,68 @@ export function ownerLockErrors(diffs, body) {
   const ask = '; show the owner the old and new text, and after he says ok in his own words add the line: Owner đổi: <link to his message>';
   return errors.map((e) => e + ask);
 }
+
+// Trust tiers (agent-rule-verification-roles.md, owner 2026-11-23): one scale 0-3 shared by the PR line
+// `Kiểm độc lập: tầng N` and the card's `Plan level`. CI computes the lowest tier the diff allows from what it can see
+// (zones and the long-task thresholds of agent-rule-plan-review.md); interaction and motion stay declared.
+const CMS = /^src\/(worker|admin|db)\//;
+const SITE = /^src\/(site|search)\//;
+const ZONES = [SITE, CMS, /^(scripts\/|\.github\/workflows\/)/, /^design-system\//];
+const NOT_LOC = /\.md$|(^|\/)pnpm-lock\.yaml$|^(\.site-output|\.tmp|\.tooling|graphify-out|\.wrangler|vendor)\//;
+export const LONG_TASK = { loc: 400, files: 8, hot: 2, zones: 2 };
+
+// numstat: [{ file, added, deleted }] from `git diff --numstat` (binary files carry NaN and count as 0 LOC).
+export function tierFloor(numstat, hotFiles = []) {
+  const files = numstat.map((r) => r.file);
+  const loc = numstat.filter((r) => !NOT_LOC.test(r.file)).reduce((n, r) => n + (r.added || 0) + (r.deleted || 0), 0);
+  const sourceTest = files.filter((f) => /^(src|tests)\//.test(f) && !f.endsWith('.md')).length;
+  const hot = files.filter((f) => hotFiles.includes(f)).length;
+  const zones = ZONES.filter((z) => files.some((f) => z.test(f))).length;
+  if (files.some((f) => CMS.test(f)) || loc >= LONG_TASK.loc || sourceTest >= LONG_TASK.files || hot >= LONG_TASK.hot || zones >= LONG_TASK.zones) return 3;
+  return files.some((f) => SITE.test(f)) ? 1 : 0;
+}
+
+export function declaredTier(body) {
+  const m = body.match(/^Kiểm độc lập: tầng ([0-3])\b/m);
+  return m ? Number(m[1]) : null;
+}
+
+export function cardLevel(page) {
+  const name = page?.properties?.['Plan level']?.select?.name;
+  return /^[0-3]$/.test(name ?? '') ? Number(name) : 0;
+}
+
+// The PR declares a tier no lower than the diff's floor or the card's Plan level. Returns the tier the PR runs at.
+export function tierLineErrors(floor, body, level = 0) {
+  const tier = declaredTier(body);
+  if (tier === null) return floor > 0 || level > 0
+    ? [`tier line: the PR needs a line "Kiểm độc lập: tầng <N>, ..." with N at least ${Math.max(floor, level)} (agent-rule-verification-roles.md)`] : [];
+  const errors = [];
+  if (tier < floor) errors.push(`tier line: the PR declares tầng ${tier} but the diff is at least tầng ${floor} (CMS code or a long task means 3, src/site or src/search means 1)`);
+  if (tier < level) errors.push(`tier line: the PR declares tầng ${tier} but the card's Plan level is ${level}; raise the PR line or ask the owner before lowering the card`);
+  return errors;
+}
+
+// Notion blocks reduced to { type, text, links, checked }: the text of rich_text, every href in it, and a to-do's tick.
+export function blockLines(blocks) {
+  return blocks.map((b) => {
+    const rich = b[b.type]?.rich_text ?? [];
+    return { type: b.type, text: rich.map((t) => t.plain_text).join('').trim(), links: rich.map((t) => t.href).filter(Boolean), checked: b.to_do?.checked ?? null };
+  });
+}
+
+// A plan (notion.md "Sổ việc trên card"): a heading "Plan" followed by at least one to-do, and a line
+// "Plan đã duyệt: <link to the owner's message>". `what` names the page in the error ("card", "card cha").
+export function planErrors(lines, what = 'card') {
+  const head = lines.findIndex((l) => /^heading_[123]$/.test(l.type) && l.text === 'Plan');
+  const todos = head < 0 ? [] : lines.slice(head + 1).filter((l) => l.type === 'to_do');
+  const approved = lines.find((l) => l.text.startsWith('Plan đã duyệt:'));
+  const errors = [];
+  if (!todos.length) errors.push(`card plan: the ${what} has no heading "Plan" followed by to-do steps (notion.md "Sổ việc trên card")`);
+  if (!approved || !(approved.links.length || /https?:\/\/\S+/.test(approved.text))) errors.push(`card plan: the ${what} has no line "Plan đã duyệt: <link to the owner's message>"`);
+  return errors;
+}
+
+export function parentIds(page) {
+  return (page?.properties?.['Parent item']?.relation ?? []).map((r) => r.id.replaceAll('-', ''));
+}

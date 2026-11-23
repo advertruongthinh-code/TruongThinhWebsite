@@ -219,6 +219,8 @@ các check trong `scripts/docs/agents-rules.mjs`; file nóng chung với PR mở
 | one pr per card | Một PR đang mở khác có cùng card trong dòng `Card:` |
 | owner lock | Branch bỏ hoặc sửa một câu trong `docs/specs/` có nhãn owner kèm ngày, hoặc xóa assert trong `tests/` mà không thêm assert nào cùng file (so cả câu, bỏ khoảng trắng đầu cuối; câu chỉ dời chỗ không tính), và không có dòng `Owner đổi: <link tin nhắn owner>`. Owner tự gõ "ok" cho câu cũ và câu mới thì thread mới thêm dòng (owner 2026-11-22) |
 | card claim | Có secret `NOTION_TOKEN`: card không ở `In progress`/`Done` hoặc cột `Agent` trống. Thiếu secret hoặc Notion lỗi: chỉ cảnh báo |
+| tier line | PR chạm `src/site`, `src/search`, CMS, task dài, hoặc card có `Plan level` từ 1, mà không có dòng `Kiểm độc lập: tầng N`; hoặc N thấp hơn tầng sàn của diff hay `Plan level` (owner 2026-11-23) |
+| card plan | Tầng từ 2: card thiếu heading `Plan` kèm ô tick hoặc dòng `Plan đã duyệt:` có link; tầng 3: card không có `Parent item` hoặc card cha thiếu hai thứ đó. Thiếu secret, Notion lỗi, `Card: chờ tạo` đều fail |
 
 ## Ranh giới
 

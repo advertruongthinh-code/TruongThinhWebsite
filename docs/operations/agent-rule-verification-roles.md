@@ -32,7 +32,7 @@ Persona có sẵn theo vùng: `code-reviewer`; `security-auditor` khi chạm CMS
 
 ## Tầng rủi ro: gọi vai nào
 
-Một PR khớp nhiều dòng thì theo dòng cao nhất.
+Một PR khớp nhiều dòng thì theo dòng cao nhất. Tầng cũng là cột `Plan level` trên card và quyết định sổ việc Notion ([notion](notion.md#rule) rule 4); owner 2026-11-23 gắn effort workflow với Notion theo kim tự tháp này.
 
 | Tầng | Khi nào | Gọi thêm | Model |
 | --- | --- | --- | --- |
@@ -46,7 +46,7 @@ Một PR khớp nhiều dòng thì theo dòng cao nhất.
 1. QA độc lập là subagent ngữ cảnh mới do main gọi ([lifecycle](agent-rule-workflow-tools.md#skill-lifecycle) mục 6). Brief chỉ gồm nguyên văn tin owner, link `R` trong spec, link PR hoặc diff, lệnh chạy site, vai cần chạy. Không gửi kết luận hay tóm tắt của implementer.
 2. Một subagent cho mọi vai của tầng 1, 2; tách agent chỉ ở tầng 3. Không gọi advisor Fable cho vai kiểm tra.
 3. Chạy sau khi tự kiểm xanh, trước khi bỏ draft. Finding chặn merge: implementer viết test đỏ, sửa, subagent kiểm lại đúng finding đó, không review lại toàn bộ. Hai vòng còn finding chặn merge thì báo điều phối.
-4. PR ghi một dòng `Kiểm độc lập: tầng <N>, vai <số>, <link evidence>`, hoặc `Kiểm độc lập: tầng 0 - <lý do>`.
+4. PR ghi một dòng `Kiểm độc lập: tầng <N>, vai <số>, <link evidence>`, hoặc `Kiểm độc lập: tầng 0 - <lý do>`. `qa:docs` tính tầng sàn từ diff (CMS hoặc [task dài](agent-rule-plan-review.md#ngưỡng-task-dài): 3; `src/site`, `src/search`: 1) và fail khi thiếu dòng hoặc N thấp hơn sàn hay `Plan level` của card; CI không thấy thao tác, motion nên tầng 2 dựa vào khai báo.
 
 ## Chú thích thuật ngữ
 

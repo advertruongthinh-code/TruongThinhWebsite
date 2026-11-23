@@ -3,7 +3,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, matchesGlob } from 'node:path';
 import { changedLineNumbers, cssRuleHeads } from './css-rule-heads.mjs';
-import { cardClaimErrors, cardId, cmsImportErrors, commentLanguageErrors, designLineErrors, diffLines, emojiErrors, isImageMaster, markdownNameErrors, ownerLockErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from './agents-rules.mjs';
+import { blockLines, cardClaimErrors, cardId, cardLevel, declaredTier, parentIds, planErrors, tierFloor, tierLineErrors, cmsImportErrors, commentLanguageErrors, designLineErrors, diffLines, emojiErrors, isImageMaster, markdownNameErrors, ownerLockErrors, pngOriginErrors, qaLineErrors, secretFileErrors, sameCardErrors, secretTextErrors, ssotPathErrors } from './agents-rules.mjs';
 
 const git = (...args) => execFileSync('git', args, { encoding: 'utf8' });
 // Raw evidence under source-assets/ and research/ lives on the owner's PC by design (docs/index.md).
@@ -116,6 +116,21 @@ async function hotFileWarnings(api, prNumber, changed, openPrs) {
   }
 }
 
+const notion = (path) => fetch(`https://api.notion.com/v1${path}`, { headers: { authorization: `Bearer ${process.env.NOTION_TOKEN}`, 'notion-version': '2022-06-28' } }).catch(() => null);
+// Top-level blocks of a Notion page, every page of results; a failed read throws so the check never passes on missing data.
+async function notionBlocks(id) {
+  const all = [];
+  let cursor = '';
+  do {
+    const res = await notion(`/blocks/${id}/children?page_size=100${cursor ? `&start_cursor=${cursor}` : ''}`);
+    if (!res?.ok) throw new Error(`card plan: cannot read Notion page ${id}, HTTP ${res?.status ?? 'no response'}`);
+    const json = await res.json();
+    all.push(...json.results);
+    cursor = json.has_more ? json.next_cursor : '';
+  } while (cursor);
+  return blockLines(all);
+}
+
 const originMain = () => { try { return git('rev-parse', '--verify', '-q', 'origin/main').trim(); } catch { return ''; } };
 let pngAdded = [];
 let pngBody = '';
@@ -131,6 +146,8 @@ if (docsBase) {
   // messages before the PR exists, and a rewritten description cannot drop them.
   const body = `${prBody}\n${git('log', '--format=%B', `${mergeBase}..HEAD`)}`;
   const changed = git('diff', '--name-only', base).split('\n').filter(Boolean);
+  const floor = tierFloor(git('diff', '--numstat', base).split('\n').filter(Boolean)
+    .map((l) => { const [a, d, file] = l.split('\t'); return { file, added: Number(a), deleted: Number(d) }; }), HOT_FILES);
   // Card gate (docs-system.md R4, notion.md): every PR names its Notion card. A local run without PR_NUMBER or PR_BODY skips it.
   if ((PR_NUMBER || process.env.PR_BODY) && !/^Card: (https:\/\/(app\.notion\.com|www\.notion\.so)\/\S+|chờ tạo)/m.test(body)) {
     errors.push('card: the PR description or a commit message on this branch has no line, alone and unformatted: Card: <link Notion card> (or Card: chờ tạo when Notion is unreachable)');
@@ -150,12 +167,24 @@ if (docsBase) {
     errors.push(...sameCardErrors(PR_NUMBER, body, openPrs));
     await hotFileWarnings(api, PR_NUMBER, changed, openPrs);
     const id = cardId(body);
+    let card = null;
     if (id && process.env.NOTION_TOKEN) {
-      const page = await fetch(`https://api.notion.com/v1/pages/${id}`, { headers: { authorization: `Bearer ${process.env.NOTION_TOKEN}`, 'notion-version': '2022-06-28' } }).catch(() => null);
-      if (page?.ok) errors.push(...cardClaimErrors(await page.json()));
+      const page = await notion(`/pages/${id}`);
+      if (page?.ok) errors.push(...cardClaimErrors(card = await page.json()));
       else console.warn(`WARN card claim: Notion answered ${page?.status ?? 'no response'}; card status not checked`);
     } else if (id) console.warn('WARN card claim: secret NOTION_TOKEN is not set; card status not checked');
-  }
+    // Trust tiers (agent-rule-verification-roles.md): from tầng 2 the card carries an approved plan, from tầng 3 a parent
+    // plan card (Plan tổng). There Notion trouble or `Card: chờ tạo` fails instead of warning (owner 2026-11-23).
+    errors.push(...tierLineErrors(floor, body, cardLevel(card)));
+    const tier = Math.max(floor, declaredTier(body) ?? 0, cardLevel(card));
+    if (tier >= 2 && !card) errors.push(`card plan: tầng ${tier} needs a readable Notion card (secret NOTION_TOKEN set, a real Card: link, Notion reachable); it was not read`);
+    else if (tier === 2) errors.push(...planErrors(await notionBlocks(id), 'card'));
+    else if (tier === 3) {
+      const parent = parentIds(card)[0];
+      if (!parent) errors.push('card plan: tầng 3 needs the card under a Plan tổng card (Parent item) with the plan and its owner approval');
+      else errors.push(...planErrors(await notionBlocks(parent), 'parent card (Plan tổng)'));
+    }
+  } else if (process.env.PR_BODY) errors.push(...tierLineErrors(floor, body));
   pngAdded = git('diff', '--name-only', '--diff-filter=A', base).split('\n').filter(isImageMaster);
   pngBody = body;
   const waived = /^Spec: không đổi - (?!<)\S/m.test(body);
