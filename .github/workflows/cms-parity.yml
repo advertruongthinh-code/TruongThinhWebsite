@@ -1,0 +1,33 @@
+# CMS parity (cms-plan J1): the staging build from the D1 snapshot must equal the build from the repo files.
+# build-info.json is the only file allowed to differ. Holds only while D1 has no R2 (/v/...) image: the repo build has none.
+name: CMS parity
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prepare:site && mkdir -p .tmp && mv .site-output .tmp/site-repo
+      # Only this step sees the CMS service token.
+      - run: node scripts/cms/fetch-snapshot.mjs --out "$PWD/.tmp/snapshot/content"
+        env:
+          CMS_SNAPSHOT_URL: ${{ vars.CMS_ADMIN_ORIGIN }}/api/admin/snapshot
+          CMS_ACCESS_CLIENT_ID: ${{ secrets.CMS_ACCESS_CLIENT_ID }}
+          CMS_ACCESS_CLIENT_SECRET: ${{ secrets.CMS_ACCESS_CLIENT_SECRET }}
+      - shell: bash
+        run: |
+          set -euo pipefail
+          TT_CONTENT_DIR="$PWD/.tmp/snapshot/content" pnpm prepare:site
+          diff -r -x build-info.json .tmp/site-repo .site-output

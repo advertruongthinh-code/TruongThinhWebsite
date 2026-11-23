@@ -45,14 +45,45 @@ export async function dispatchVariants(env, keys) {
   await Promise.all(lots.map((lot) => dispatchWorkflow(env, "cms-variants.yml", { items: JSON.stringify(lot) })));
 }
 
-// Content build (Q8): paused publishing never calls GitHub and returns "paused"; after unpausing, press "Dựng lại" (runbook).
-export async function dispatchBuild(env) {
-  const paused = await env.DB.prepare("SELECT value FROM settings WHERE key = 'publish_paused'").first("value");
-  return paused === "1" ? "paused" : dispatchWorkflow(env, "ci.yml", { content: "true" });
+// Content build (Q8): a command never calls GitHub; it sets build_wanted to the content_rev its batch raised, and Cron sends
+// at most one ci.yml dispatch a minute (many quick saves give one build). where: a guard ({ sql, args }) for a batch statement.
+export const wantBuildStatement = (env, where = { sql: "1", args: [] }) => env.DB
+  .prepare(`INSERT INTO settings (key, value) SELECT 'build_wanted', COALESCE((SELECT value FROM settings WHERE key = 'content_rev'), '0') WHERE ${where.sql} ON CONFLICT (key) DO UPDATE SET value = excluded.value`)
+  .bind(...where.args);
+
+// Dead Cron check (owner 2026-11-23: "nếu dùng cron thì phải có fallback, kiểm tra khi cron chết"): every Cron minute writes
+// cron_at; when it is older than this, a published save and a build-status read send the wanted build themselves, the status
+// page warns, and the nightly CI run turns red (scripts/cms/check-cron.mjs).
+export const CRON_STALE_MS = 5 * 60_000;
+export const cronStale = (cronAt, now = Date.now()) => !(now - Date.parse(cronAt) <= CRON_STALE_MS);
+
+const STATE_SQL = "SELECT key, value FROM settings WHERE key IN ('publish_paused', 'build_wanted', 'build_sent', ?)";
+// heartbeat: also store the time as cron_at, in the same batch as the read (one D1 call a minute).
+async function buildState(env, heartbeat) {
+  const read = env.DB.prepare(STATE_SQL).bind(dispatchErrorKey("ci.yml"));
+  const results = heartbeat
+    ? (await env.DB.batch([env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('cron_at', ?)").bind(new Date().toISOString()), read]))[1].results
+    : (await read.all()).results;
+  return Object.fromEntries(results.map((row) => [row.key, row.value]));
 }
 
-// Cron calls this every 5 minutes: a failed ci.yml dispatch is repeated until it succeeds (success clears dispatch_error).
-export async function retryBuild(env) {
-  const error = await env.DB.prepare("SELECT value FROM settings WHERE key = ?").bind(dispatchErrorKey("ci.yml")).first("value");
-  if (error) await dispatchBuild(env);
+// Paused publishing never calls GitHub and returns "paused"; after unpausing, Cron sends the wanted build. A sent dispatch
+// records build_sent, so a "Dựng lại" by hand also covers the wanted build.
+export async function dispatchBuild(env, state) {
+  const { publish_paused: paused, build_wanted: wanted } = state ?? await buildState(env);
+  if (paused === "1") return "paused";
+  const sent = await dispatchWorkflow(env, "ci.yml", { content: "true" });
+  if (sent && wanted) await env.DB.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('build_sent', ?)").bind(wanted).run();
+  return sent;
+}
+
+// Cron every minute (cron: true writes the heartbeat; send: false on daily job minutes, which keep the subrequest budget),
+// and the dead-Cron fallback: dispatch when a build is wanted and not yet sent; after a failed ci.yml dispatch, retry only
+// at minutes divisible by 5 (also for a failed "Dựng lại").
+export async function flushBuild(env, now, { cron = false, send = true } = {}) {
+  const state = await buildState(env, cron);
+  if (!send) return;
+  const failed = state[dispatchErrorKey("ci.yml")];
+  if (failed ? now.getUTCMinutes() % 5 !== 0 : !state.build_wanted || state.build_wanted === state.build_sent) return;
+  await dispatchBuild(env, state);
 }
