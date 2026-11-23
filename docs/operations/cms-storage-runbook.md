@@ -99,6 +99,14 @@ Owner nhập một lần; agent không đọc giá trị. Admin Worker dùng tok
 4. Kiểm: mở `status.html`, `tokenExpiresAt` có ngày hết hạn và `runs` không phải `null`. Ghi ngày hết hạn vào bảng dưới; đổi token trước hạn bằng cùng các bước.
 5. Lúc tạm dừng xuất bản, các lần lưu không gọi dựng và Cron không gọi lại. Bỏ tạm dừng xong, bấm "Dựng lại" trên `status.html` để staging nhận nội dung đã lưu.
 
+## Quay staging về bản cũ (P6)
+
+1. `status.html`, mục "Quay về bản cũ": mười lần deploy gần nhất (thời điểm, commit, bản chụp hoặc "từ repo"); bấm "Quay về bản này" ở dòng cần về, xác nhận trong hộp thoại. Chỉ owner; staff nhận "Chỉ owner".
+2. Worker đặt `publish_paused = '1'` rồi gọi `rollback.yml` (`wrangler rollback`, token Cloudflare chỉ nằm trong secret GitHub). Gọi GitHub lỗi thì trang báo 502, vẫn tạm dừng: bấm lại.
+3. Trong lúc tạm dừng, lưu không gọi dựng và `snapshot` trả 423. Xong việc, bấm "Tiếp tục đăng": bỏ tạm dừng và gọi một lần dựng nội dung.
+4. Giới hạn phần 1: rollback chỉ đổi staging, site thật không đổi. Khi `CMS_SNAPSHOT_URL` rỗng, lần merge code kế tiếp vẫn deploy từ repo và đè bản đã quay về. Sau rollback, `build-info.json` của staging là của bản cũ, nên lần dựng nội dung kế tiếp dùng commit cũ đó tới khi có một lần merge code.
+5. Run rollback hiện "bị hủy" (một deploy hay rollback khác chen vào): bấm lại.
+
 ## Migration D1
 
 - Migration sau `0001` chỉ thêm (bảng, cột, index), không xóa, không đổi tên, không đổi kiểu, để Worker bản cũ vẫn chạy trên lược đồ mới.

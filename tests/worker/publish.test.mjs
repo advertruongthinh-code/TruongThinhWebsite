@@ -109,7 +109,7 @@ test("build-status: staff has no accessDrift, owner has null; GitHub failure kee
   assert.equal(owner.body.accessDrift, null);
   assert.equal(owner.body.runs, null);
   assert.equal(owner.body.tokenExpiresAt, null);
-  assert.deepEqual(owner.body.rollbackRuns, []);
+  assert.equal(owner.body.rollbackRuns, null);
 });
 
 test("build-status reads runs, token expiry, deployments, dispatchError and lastSaveAt", async () => {

@@ -1,0 +1,45 @@
+# Rollback of staging by the admin Worker (docs/specs/cms.md R6, CMS plan P6); the Worker dispatches it, the token stays here.
+name: Rollback staging
+on:
+  workflow_dispatch:
+    inputs:
+      version_id:
+        type: string
+        required: true
+permissions:
+  contents: read
+# Same group as a staging deploy: a rollback never runs at the same time as a deploy. Staging only;
+# the live site is rolled back with the command in docs/specs/static-release.md R11 until part 2.
+# cancel-in-progress: a rollback cancels the deploy that is running and takes its place, instead of waiting
+# in the single pending slot where the next deploy would silently replace it.
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: cloudflare-deploy
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - shell: bash
+        env:
+          VERSION_ID: ${{ inputs.version_id }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          [[ "$VERSION_ID" =~ ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$ ]]
+          mkdir -p .tmp
+          pnpm demo:wrangler deployments list --config wrangler.static.toml --json > .tmp/deployments.json
+          # deployments list returns the 10 most recent deployments; the id must be one of them.
+          grep -F -q "$VERSION_ID" .tmp/deployments.json
+          pnpm demo:wrangler rollback "$VERSION_ID" --config wrangler.static.toml --message "CMS rollback"
