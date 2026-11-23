@@ -1,3 +1,5 @@
+import { altDuplicate, missingRatioClasses } from "../../cms/rules.mjs";
+
 export const ADVERTISING_MEDIA_CATEGORY_COUNTS = Object.freeze({
   "kiosk-posm": 24,
   "mobile-retail": 16,
@@ -45,8 +47,6 @@ export function validateAdvertisingCardMedia(record) {
     throw new Error(`${record.id} coverMediaId must name one media item`);
   }
   const ids = new Set();
-  // Per-media alt for SEO (media-seo R3): keyed by language, keeping the first media id to report errors.
-  const altOwners = new Map();
   let cardWidth = 0n;
   let cardHeight = 0n;
   for (const item of mediaItems) {
@@ -63,10 +63,6 @@ export function validateAdvertisingCardMedia(record) {
       throw new Error(`${record.id} media ${item.id} ratio must match the card`);
     }
     if (!isNonEmptyString(item.altVi) || !isNonEmptyString(item.altEn)) throw new Error(`${record.id} media ${item.id} requires altVi and altEn`);
-    for (const alt of [`vi:${item.altVi}`, `en:${item.altEn}`]) {
-      if (altOwners.has(alt)) throw new Error(`${record.id} media ${altOwners.get(alt)} and ${item.id} share alt "${alt.slice(3)}"`);
-      altOwners.set(alt, item.id);
-    }
     if (!isR2(item.src) && (!isNonEmptyString(item.source) || !isSha256(item.sha256) || !isNonEmptyString(item.provenance))) {
       throw new Error(`${record.id} media ${item.id} requires source, sha256, and provenance`);
     }
@@ -82,6 +78,9 @@ export function validateAdvertisingCardMedia(record) {
       if (typeof item.hasAudio !== "boolean") throw new Error(`${record.id} media ${item.id} requires hasAudio`);
     }
   }
+  // Per-media alt for SEO (media-seo R3): no two media of a card share an alt in one language (the Worker's alt-dup rule).
+  const altDup = altDuplicate(record.id, mediaItems);
+  if (altDup) throw new Error(altDup);
   const cover = mediaItems.find((item) => item.id === coverMediaId);
   if (cover.kind === "image" && cover.src === record.media?.src) {
     if (!isPositiveInteger(record.media.width) || !isPositiveInteger(record.media.height)) {
@@ -196,10 +195,7 @@ export function validateAdvertisingMediaPool(records, options) {
 
   // Four aspect-ratio classes are considered at cluster level; a card belongs to every cluster of the products it is attached to.
   for (const [clusterId, ratios] of ratiosByCluster) {
-    if (!ratios.some((ratio) => ratio < 0.9)) errors.push(`${clusterId} missing portrait ratio`);
-    if (!ratios.some((ratio) => ratio >= 0.9 && ratio <= 1.1)) errors.push(`${clusterId} missing near-square ratio`);
-    if (!ratios.some((ratio) => ratio > 1.1)) errors.push(`${clusterId} missing landscape ratio`);
-    if (!ratios.some((ratio) => ratio <= 0.625 || ratio >= 1.6)) errors.push(`${clusterId} missing extreme ratio`);
+    for (const name of missingRatioClasses(ratios)) errors.push(`${clusterId} missing ${name} ratio`);
   }
 
   if (errors.length > 0) throw new Error(`Invalid advertising media pool:\n- ${errors.join("\n- ")}`);
