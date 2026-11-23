@@ -1,6 +1,6 @@
 name: Card report
 
-# notion.md rule 9: each night list PRs merged in the last 24 hours without a Notion card link; red means the coordinator backfills.
+# notion.md rule 9: each night list PRs merged in the last 24 hours without a Notion card link, and plan cards missing their plan; red means the coordinator fixes them.
 on:
   schedule:
     - cron: "0 19 * * *"
@@ -22,3 +22,4 @@ jobs:
       - run: node scripts/ci/card-report.mjs
         env:
           GH_TOKEN: ${{ github.token }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}

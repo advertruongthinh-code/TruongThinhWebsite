@@ -5,6 +5,17 @@ const PREFIX = "backups/d1/";
 const KEEP_DAYS = 30;
 const DAY_MS = 86_400_000;
 
+const todayKey = () => `${PREFIX}${new Date().toISOString().slice(0, 10)}.sql`;
+
+// Says which secret is wrong without logging either value: token state from the verify API, account id shape.
+async function authHint(env) {
+  const verify = await fetch("https://api.cloudflare.com/client/v4/user/tokens/verify", {
+    headers: { Authorization: `Bearer ${env.D1_EXPORT_TOKEN}` },
+  }).catch(() => null);
+  const state = verify ? `${verify.status} ${(await verify.json().catch(() => ({}))).result?.status ?? ""}`.trim() : "unreachable";
+  return `; token verify: ${state}; account id is 32 hex: ${/^[0-9a-f]{32}$/.test(env.CF_ACCOUNT_ID ?? "")}`;
+}
+
 // Polls the D1 export REST API, then streams the dump into R2; the dump is never read into memory.
 export async function exportDatabase(env) {
   const api = `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/d1/database/${env.D1_DATABASE_ID}/export`;
@@ -19,7 +30,8 @@ export async function exportDatabase(env) {
     const { result } = data;
     if (!response.ok || result?.status === "error") {
       const reason = result?.error ?? data.errors?.map(({ code, message }) => `${code} ${message}`).join("; ") ?? "";
-      throw new Error(`d1 export failed: ${response.status} ${reason}`);
+      const hint = response.status === 401 || response.status === 403 ? await authHint(env) : "";
+      throw new Error(`d1 export failed: ${response.status} ${reason}${hint}`);
     }
     if (result?.status === "complete") {
       const dump = await fetch(result.result.signed_url);
@@ -27,7 +39,7 @@ export async function exportDatabase(env) {
       // R2 put needs a stream of known length; FixedLengthStream gives it without buffering the dump.
       const length = Number(dump.headers.get("Content-Length"));
       if (!length || dump.headers.get("Content-Encoding")) throw new Error("d1 export download has no known length");
-      const key = `${PREFIX}${new Date().toISOString().slice(0, 10)}.sql`;
+      const key = todayKey();
       await env.MEDIA_ORIGINALS.put(key, dump.body.pipeThrough(new FixedLengthStream(length)));
       return;
     }
@@ -35,6 +47,11 @@ export async function exportDatabase(env) {
     await scheduler.wait(5000);
   }
   throw new Error("d1 export timed out");
+}
+
+// Hourly retry of a failed or missed daily export: runs only while today's file is absent.
+export async function exportIfMissing(env) {
+  if (!(await env.MEDIA_ORIGINALS.head(todayKey()))) await exportDatabase(env);
 }
 
 const listBackups = async (env) => (await env.MEDIA_ORIGINALS.list({ prefix: PREFIX, limit: 100 })).objects;

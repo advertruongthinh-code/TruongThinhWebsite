@@ -1091,6 +1091,10 @@ export const SLOTS = {
       "kind": "text",
       "marks": "small"
     },
+    "hanh-trinh.title-1": {
+      "kind": "text",
+      "marks": "title"
+    },
     "hanh-trinh.text-1": {
       "kind": "text",
       "marks": "small"
@@ -1099,31 +1103,15 @@ export const SLOTS = {
       "kind": "text",
       "marks": "small"
     },
-    "hanh-trinh.text-3": {
-      "kind": "text",
-      "marks": "small"
-    },
-    "hanh-trinh.title-1": {
-      "kind": "text",
-      "marks": "title"
-    },
-    "hanh-trinh.text-4": {
-      "kind": "text",
-      "marks": "small"
-    },
-    "hanh-trinh.text-5": {
-      "kind": "text",
-      "marks": "small"
-    },
     "hanh-trinh.title-2": {
       "kind": "text",
       "marks": "title"
     },
-    "hanh-trinh.text-6": {
+    "hanh-trinh.text-3": {
       "kind": "text",
       "marks": "small"
     },
-    "hanh-trinh.text-7": {
+    "hanh-trinh.text-4": {
       "kind": "text",
       "marks": "small"
     },
@@ -1131,11 +1119,11 @@ export const SLOTS = {
       "kind": "text",
       "marks": "title"
     },
-    "hanh-trinh.text-8": {
+    "hanh-trinh.text-5": {
       "kind": "text",
       "marks": "small"
     },
-    "hanh-trinh.text-9": {
+    "hanh-trinh.text-6": {
       "kind": "text",
       "marks": "small"
     },
@@ -1143,11 +1131,11 @@ export const SLOTS = {
       "kind": "text",
       "marks": "title"
     },
-    "hanh-trinh.text-10": {
+    "hanh-trinh.text-7": {
       "kind": "text",
       "marks": "small"
     },
-    "hanh-trinh.text-11": {
+    "hanh-trinh.text-8": {
       "kind": "text",
       "marks": "small"
     },
@@ -1155,11 +1143,11 @@ export const SLOTS = {
       "kind": "text",
       "marks": "title"
     },
-    "hanh-trinh.text-12": {
+    "hanh-trinh.text-9": {
       "kind": "text",
       "marks": "small"
     },
-    "hanh-trinh.text-13": {
+    "hanh-trinh.text-10": {
       "kind": "text",
       "marks": "small"
     },
@@ -1167,11 +1155,35 @@ export const SLOTS = {
       "kind": "text",
       "marks": "title"
     },
+    "hanh-trinh.text-11": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-12": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-7": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-13": {
+      "kind": "text",
+      "marks": "small"
+    },
     "hanh-trinh.text-14": {
       "kind": "text",
       "marks": "small"
     },
+    "hanh-trinh.title-8": {
+      "kind": "text",
+      "marks": "title"
+    },
     "hanh-trinh.text-15": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-16": {
       "kind": "text",
       "marks": "small"
     },

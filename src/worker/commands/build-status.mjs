@@ -45,7 +45,7 @@ export default {
   method: "GET",
   async run(request, env, ctx, actor) {
     const setting = (key) => env.DB.prepare("SELECT value FROM settings WHERE key = ?").bind(key).first("value");
-    const [paused, dispatchError, lastSaveAt, deployments, github, backupAt, rollbackRuns] = await Promise.all([
+    const [paused, dispatchError, lastSaveAt, deployments, github, backupAt, rollbackRuns, accessDrift] = await Promise.all([
       setting("publish_paused"),
       env.DB.prepare("SELECT value FROM settings WHERE key IN ('dispatch_error:ci.yml', 'dispatch_error:cms-variants.yml') ORDER BY key LIMIT 1").first("value"),
       env.DB.prepare("SELECT MAX(updated_at) AS at FROM records WHERE status = 'published' AND type != 'media'").first("at"),
@@ -53,6 +53,7 @@ export default {
       readRuns(env).catch(() => ({ runs: null, tokenExpiresAt: null })),
       latestBackupAt(env).catch(() => null),
       readRollbackRuns(env).catch(() => null),
+      setting("access_drift"),
     ]);
     return json({
       paused: paused === "1",
@@ -63,7 +64,7 @@ export default {
       rollbackRuns,
       tokenExpiresAt: github.tokenExpiresAt,
       backupAt,
-      ...(actor.role === "owner" ? { accessDrift: null } : {}),
+      ...(actor.role === "owner" ? { accessDrift: accessDrift ? JSON.parse(accessDrift) : null } : {}),
     });
   },
 };
