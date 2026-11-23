@@ -119,7 +119,7 @@ lần dựng tạo lại mọi trang lưới cùng dữ liệu card trong cùng 
 | Alt | Riêng từng media, không trùng trong card | Dùng alt của media trên trang |
 
 Card công trình lưu tham chiếu tới media của trang cộng vùng crop theo khung card, không chép file. Gỡ một media khỏi
-trang khi card đang dùng nó trả 409. Dữ liệu hiện tại (`card.media` là
+trang khi card đang dùng nó trả 400 `card-foreign`; card dưới 2 media là thiếu (`card-min`). Dữ liệu hiện tại (`card.media` là
 file cắt riêng như `can-ho-hero-card-wide.webp`) giữ nguyên dưới dạng chỗ đặt `legacySrc` và đổi sang tham chiếu ở phần 2,
 khi có giao diện crop ([dữ liệu CMS R5](cms-data.md#r5-media-crop-và-biến-thể)).
 
