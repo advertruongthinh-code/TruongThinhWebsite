@@ -18,6 +18,10 @@ database_name = "truong-thinh-cms"
 database_id = "a98c6483-b503-4829-8da9-03bbd2a0eeda"
 migrations_dir = "src/db/migrations"
 
+# The daily D1 export (src/worker/backup.mjs) calls the REST API with this id; keep it equal to database_id above.
+[vars]
+D1_DATABASE_ID = "a98c6483-b503-4829-8da9-03bbd2a0eeda"
+
 [[r2_buckets]]
 binding = "MEDIA_ORIGINALS"
 bucket_name = "truong-thinh-media-originals"

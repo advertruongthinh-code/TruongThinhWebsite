@@ -5,4 +5,12 @@
 // | 18:05      | pruneBackups (S5), checkAccessDrift (P7, part 2)          |
 // | 18:10      | purgeOldTrash (P8, part 2)                                |
 // | 18:15      | pruneAudit, removeOrphans (P8, part 2)                    |
-export async function runCron(event, env, ctx) {}
+import { exportDatabase, pruneBackups } from "./backup.mjs";
+
+const DAILY = { "18:00": [exportDatabase], "18:05": [pruneBackups] }; // later tasks add entries
+
+// Awaited rather than handed to waitUntil, so the invocation stays alive for the whole export poll.
+export async function runCron(event, env) {
+  const time = new Date(event.scheduledTime).toISOString().slice(11, 16);
+  await Promise.all((DAILY[time] ?? []).map((job) => job(env).catch((error) => console.error(job.name, error))));
+}
