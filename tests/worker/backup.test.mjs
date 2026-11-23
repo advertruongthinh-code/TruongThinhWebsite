@@ -13,7 +13,7 @@ const originalFetch = globalThis.fetch;
 function stubFetch(apiReplies, dump = "CREATE TABLE records;") {
   globalThis.fetch = async (url, init) => {
     calls.push({ url: String(url), body: init?.body && JSON.parse(init.body) });
-    if (String(url).includes("/d1/database/")) return apiReplies.shift();
+    if (String(url).includes("api.cloudflare.com")) return apiReplies.shift();
     return new Response(dump, { headers: { "Content-Length": String(Buffer.byteLength(dump)) } });
   };
 }
@@ -62,8 +62,9 @@ test("a failed dump download throws and writes nothing", async () => {
 });
 
 test("an API refusal reports the Cloudflare error code, and a dump without length is not written", async () => {
-  stubFetch([reply({ result: null, errors: [{ code: 10000, message: "Authentication error" }] }, 403)]);
-  await assert.rejects(exportDatabase(env()), /d1 export failed: 403 10000 Authentication error/);
+  stubFetch([reply({ result: null, errors: [{ code: 10000, message: "Authentication error" }] }, 403), reply({ result: { status: "active" } })]);
+  await assert.rejects(exportDatabase(env()), /d1 export failed: 403 10000 Authentication error; token verify: 200 active; account id is 32 hex: false/);
+  assert.equal(calls[1].url, "https://api.cloudflare.com/client/v4/user/tokens/verify");
   const e = env();
   stubFetch([reply({ result: { status: "complete", result: { signed_url: "https://x/dump.sql" } } })]);
   globalThis.fetch = ((inner) => async (url, init) => (String(url).includes("dump") ? new Response("x") : inner(url, init)))(globalThis.fetch);
