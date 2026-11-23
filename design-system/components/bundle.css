@@ -4496,24 +4496,9 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .about-journey__ln--fy { fill: #fff27f; }
 .about-journey__ln--fk { fill: #2b2a29; }
 .about-journey__ln--accent-fill { fill: var(--art-accent); }
-/* Warm light through the cut holes of the 2012 lamp. */
-.about-journey__ln--glow { fill: #fff27f; stroke-width: 1.2; }
-
 .about-journey__ln--thin,
-.about-journey__ln--thin-closed,
-.about-journey__ln--engrave {
+.about-journey__ln--thin-closed {
   stroke-width: 1.2;
-}
-
-.about-journey__ln--thick { stroke-width: 5; }
-.about-journey__ln--num { stroke-width: 9; }
-
-/* Fold lines of the papercraft net: dashed, so they fade in instead of drawing. */
-.about-journey__ln--dash {
-  stroke-width: 1.4;
-  stroke-dasharray: 6 5;
-  stroke-dashoffset: 0;
-  opacity: clamp(0, (var(--p, 1) - var(--a, 0)) * 20, 1);
 }
 
 .about-journey__ln--accent,
@@ -4522,15 +4507,9 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   stroke-width: 3.2;
 }
 
-.about-journey__ln--accent-face {
-  fill: var(--art-face);
-  stroke: var(--art-accent);
-  stroke-width: 3.2;
-}
 
 .about-journey__ln--lc { stroke: #00a0e3; stroke-width: 3; }
 .about-journey__ln--lm { stroke: #e5097f; stroke-width: 3; }
-.about-journey__ln--ly { stroke: #e8c400; stroke-width: 3; }
 
 /* Colour is painted on: brush passes clipped to each shape run while its outline draws (owner 2026-11-23: paint, not fade). */
 .about-journey__ln--brushed { fill: none; }
@@ -4543,15 +4522,13 @@ html.motion-fallback .site-menu.is-active .menu-inner {
   stroke-dashoffset: calc(1 - clamp(0, (var(--p, 1) - var(--a, 0)) / var(--b, 1), 1));
 }
 
-.about-journey__brush--face,
-.about-journey__brush--accent-face { stroke: var(--art-face); }
+.about-journey__brush--face { stroke: var(--art-face); }
 .about-journey__brush--side { stroke: var(--art-side); }
 .about-journey__brush--paper { stroke: var(--paper); }
 .about-journey__brush--ink { stroke: var(--art-line, var(--ink)); }
 .about-journey__brush--fc { stroke: #7fcff1; }
 .about-journey__brush--fm { stroke: #f283bf; }
-.about-journey__brush--fy,
-.about-journey__brush--glow { stroke: #fff27f; }
+.about-journey__brush--fy { stroke: #fff27f; }
 .about-journey__brush--fk { stroke: #2b2a29; }
 .about-journey__brush--accent-fill { stroke: var(--art-accent); }
 
