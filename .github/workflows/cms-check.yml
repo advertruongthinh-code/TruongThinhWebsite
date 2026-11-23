@@ -3,6 +3,9 @@ name: CMS check
 # Calls the admin snapshot 30 times with the CMS service token (cms-plan S4, Q12 CPU check).
 on:
   workflow_dispatch:
+  # Also runs on a PR that changes this file: dispatch only works once the file is on main (first run is S4's own PR).
+  pull_request:
+    paths: [.github/workflows/cms-check.yml]
 
 permissions:
   contents: read
