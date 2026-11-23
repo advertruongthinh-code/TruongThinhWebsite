@@ -1,9 +1,11 @@
 // settleVariants (CMS plan P3, Q6 step 4): every Cron minute, marks pending variants ready once their manifest.json is in the
 // public bucket (error on a size mismatch, after 45 minutes for an image or 90 for a video), recounts pending of the records using them, and publishes.
-import { wantBuild } from "./dispatch.mjs";
+import { wantBuildStatement } from "./dispatch.mjs";
 import { contentRevStatement } from "./records.mjs";
 
 const ALWAYS = { sql: "1", args: [] };
+// Published records whose latest version is complete but not yet live.
+const GOING_LIVE = "type != 'media' AND status = 'published' AND pending = 0 AND (live_version IS NULL OR live_version != version)";
 
 export async function settleVariants(env, _ctx) {
   const { results } = await env.DB.prepare("SELECT key, media_id, created_at FROM variants WHERE status = 'pending' ORDER BY created_at LIMIT 20").all();
@@ -25,13 +27,14 @@ export async function settleVariants(env, _ctx) {
   if (!ready.length && !failed.length) return;
   const at = new Date(now).toISOString(), failedJson = JSON.stringify(failed);
   const settled = JSON.stringify([...ready, ...failed.map((item) => item.k)]);
-  const written = await env.DB.batch([
+  await env.DB.batch([
     env.DB.prepare("UPDATE variants SET status = 'ready', error = NULL, settled_at = ? WHERE status = 'pending' AND key IN (SELECT value FROM json_each(?))").bind(at, JSON.stringify(ready)),
     env.DB.prepare("UPDATE variants SET status = 'error', error = (SELECT json_extract(value, '$.r') FROM json_each(?) WHERE json_extract(value, '$.k') = variants.key), settled_at = ? WHERE status = 'pending' AND key IN (SELECT json_extract(value, '$.k') FROM json_each(?))").bind(failedJson, at, failedJson),
     env.DB.prepare("UPDATE records SET pending = (SELECT COUNT(*) FROM record_media m JOIN variants v ON v.key = m.variant_key WHERE m.type = records.type AND m.id = records.id AND v.status != 'ready') WHERE EXISTS (SELECT 1 FROM record_media m WHERE m.type = records.type AND m.id = records.id AND m.variant_key IN (SELECT value FROM json_each(?)))").bind(settled),
-    env.DB.prepare("UPDATE records SET live_version = version WHERE type != 'media' AND status = 'published' AND pending = 0 AND (live_version IS NULL OR live_version != version)"),
-    // cms-data R2: this batch may write records, so content_rev rises with it.
+    // cms-data R2: this batch may write records, so content_rev rises with it; before the want, which copies it.
     contentRevStatement(env, ALWAYS),
+    // A record about to go live wants a content build (Q8), in the same batch so a lost isolate cannot drop it.
+    wantBuildStatement(env, { sql: `EXISTS (SELECT 1 FROM records WHERE ${GOING_LIVE})`, args: [] }),
+    env.DB.prepare(`UPDATE records SET live_version = version WHERE ${GOING_LIVE}`),
   ]);
-  if (written[3].meta.changes > 0) await wantBuild(env);
 }

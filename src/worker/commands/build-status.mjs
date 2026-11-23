@@ -1,6 +1,6 @@
 // GET /api/admin/build-status (CMS plan Q9, P4): publish state, deployment markers, recent CI runs, token expiry.
 import { latestBackupAt } from "../backup.mjs";
-import { WORKFLOWS } from "../dispatch.mjs";
+import { cronStale, flushBuild, WORKFLOWS } from "../dispatch.mjs";
 import { json } from "../http.mjs";
 
 const RUN_FIELDS = ["id", "status", "conclusion", "event", "display_title", "created_at", "html_url"];
@@ -45,7 +45,7 @@ export default {
   method: "GET",
   async run(request, env, ctx, actor) {
     const setting = (key) => env.DB.prepare("SELECT value FROM settings WHERE key = ?").bind(key).first("value");
-    const [paused, dispatchError, lastSaveAt, deployments, github, backupAt, rollbackRuns, accessDrift] = await Promise.all([
+    const [paused, dispatchError, lastSaveAt, deployments, github, backupAt, rollbackRuns, accessDrift, cronAt] = await Promise.all([
       setting("publish_paused"),
       env.DB.prepare("SELECT value FROM settings WHERE key IN ('dispatch_error:ci.yml', 'dispatch_error:cms-variants.yml') ORDER BY key LIMIT 1").first("value"),
       env.DB.prepare("SELECT MAX(updated_at) AS at FROM records WHERE status = 'published' AND type != 'media'").first("at"),
@@ -54,11 +54,17 @@ export default {
       latestBackupAt(env).catch(() => null),
       readRollbackRuns(env).catch(() => null),
       setting("access_drift"),
+      setting("cron_at"),
     ]);
+    // Dead Cron fallback (dispatch.mjs CRON_STALE_MS): opening the status page sends a wanted build.
+    const stale = cronStale(cronAt);
+    if (stale) ctx?.waitUntil?.(flushBuild(env, new Date()));
     return json({
       paused: paused === "1",
       dispatchError: dispatchError ?? null,
       lastSaveAt: lastSaveAt ?? null,
+      cronAt: cronAt ?? null,
+      cronStale: stale,
       deployments,
       runs: github.runs,
       rollbackRuns,

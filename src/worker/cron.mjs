@@ -1,6 +1,6 @@
 // One Cron Trigger "* * * * *" (CMS plan Q11). runCron picks the jobs by the UTC hour and minute of event.scheduledTime:
 // | UTC minute | Job                                                       |
-// | every      | settleVariants (P3) and flushBuild (Q8: wanted content build; a failed dispatch retries at minutes divisible by 5), except daily job minutes |
+// | every      | flushBuild (Q8): cron_at heartbeat; except daily job minutes, the wanted content build (a failed dispatch retries at minutes divisible by 5) and settleVariants (P3) |
 // | 18:00      | exportDatabase (S5)                                       |
 // | 18:05      | pruneBackups (S5), checkAccessDrift (P7)                  |
 // | 18:10      | purgeOldTrash (P8, part 2)                                |
@@ -18,10 +18,11 @@ const jobsAt = (time) => DAILY[time] ?? (time.endsWith(":33") ? [exportIfMissing
 export async function runCron(event, env, ctx) {
   const scheduled = new Date(event.scheduledTime);
   const time = scheduled.toISOString().slice(11, 16);
-  // A daily job minute skips settleVariants and flushBuild, so the export's fetches and the R2 reads never share one invocation's limits.
+  // A daily job minute skips settleVariants and the build dispatch, so the export's fetches and the R2 reads never share one invocation's limits.
   const jobs = jobsAt(time);
   if (!jobs) ctx?.waitUntil(settleVariants(env, ctx).catch((error) => console.error("settleVariants", error)));
-  if (!jobs) ctx?.waitUntil(flushBuild(env, scheduled.getUTCMinutes()).catch((error) => console.error("flushBuild", error)));
+  // The heartbeat never skips a minute; it costs one D1 call.
+  ctx?.waitUntil(flushBuild(env, scheduled, { cron: true, send: !jobs }).catch((error) => console.error("flushBuild", error)));
   // String(error) keeps the message; Workers Logs showed only the stack of a logged Error.
   await Promise.all((jobs ?? []).map((job) => job(env).catch((error) => console.error(job.name, String(error)))));
 }

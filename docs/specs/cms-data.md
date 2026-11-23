@@ -43,7 +43,7 @@ Database `truong-thinh-cms` (vùng `apac`, binding `DB`), một migration `src/d
 | `record_media` | `type`, `id`, `media_id`, `variant_key` | Media và biến thể mà phiên bản mới nhất của bản ghi dùng |
 | `slug_history` | `type`, `locale`, `slug` | `id`, `changed_at` |
 | `audit_log` | `seq` | `at`, `email`, `command`, `type`, `id`, `result`, `detail` (JSON phiên bản cuối, chỉ lệnh `purge`) |
-| `settings` | `key` | `value`; khóa `publish_paused`, `dispatch_error`, `build_wanted`, `build_sent` (Cron gọi dựng khi hai giá trị khác nhau, [CMS R6](cms.md#r6-xuất-bản-và-rollback)), `access_drift`, `orphan_cursor`, `cms_live` |
+| `settings` | `key` | `value`; khóa `publish_paused`, `dispatch_error`, `build_wanted`, `build_sent` (Cron gọi dựng khi hai giá trị khác nhau, [CMS R6](cms.md#r6-xuất-bản-và-rollback)), `cron_at` (nhịp tim Cron), `access_drift`, `orphan_cursor`, `cms_live` |
 
 `records.type` là một trong `media`, `news`, `project`, `advertising-card`, `hero-slide`, `client-logo`,
 `home-projects`, `menu`, `contact`, `page-copy`; kiểu đơn có đúng một dòng `id = 'main'`, không tạo, không xóa.

@@ -170,6 +170,7 @@ và tự mất khi hết nguyên nhân. Nhân viên chỉ thấy dòng đầu.
 | --- | --- |
 | Lần dựng gần nhất lỗi | "Lần đưa lên staging gần nhất bị lỗi. Xem lý do." (mở panel Trạng thái) |
 | `dispatchError` có giá trị | "CMS chưa gọi được lần dựng, đang tự thử lại mỗi 5 phút." |
+| `cronStale` (Cron không chạy quá 5 phút, [CMS R6](cms.md#r6-xuất-bản-và-rollback)) | "Cron của CMS không chạy từ <giờ>: lần lưu tự gọi dựng thay Cron. Kiểm tra Triggers của Worker." |
 | Token GitHub còn dưới 14 ngày | "Token GitHub hết hạn ngày <ngày>. Tạo token mới và nhập lại secret." |
 | File export D1 mới nhất quá 2 ngày | "Bản sao lưu gần nhất đã <n> ngày. Kiểm tra sao lưu." |
 | `accessDrift` không rỗng | "Danh sách đăng nhập lệch với bảng tài khoản: <n> email." (mở panel Tài khoản) |

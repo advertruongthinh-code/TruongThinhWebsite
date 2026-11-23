@@ -162,9 +162,25 @@ jobs:
           case "${{ needs.suite.result }}" in success|skipped) ;; *) exit 1 ;; esac
           case "${{ needs.red-before.result }}" in success|skipped) ;; *) exit 1 ;; esac
 
+  # Nightly dead-Cron check of the CMS admin Worker (cms.md R6, owner 2026-11-23): red when its Cron heartbeat is stale.
+  cms-cron:
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - run: node scripts/cms/check-cron.mjs
+        env:
+          CMS_ADMIN_ORIGIN: ${{ vars.CMS_ADMIN_ORIGIN }}
+          CMS_ACCESS_CLIENT_ID: ${{ secrets.CMS_ACCESS_CLIENT_ID }}
+          CMS_ACCESS_CLIENT_SECRET: ${{ secrets.CMS_ACCESS_CLIENT_SECRET }}
+
   # A red nightly run opens or updates one Notion card in Tasks, a green one closes it (spec ci-test-suites R13, owner 2026-11-22).
   nightly-card:
-    needs: static-release
+    needs: [static-release, cms-cron]
     if: ${{ always() && github.event_name == 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
@@ -180,7 +196,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
-          RESULT: ${{ needs.static-release.result }}
+          RESULT: ${{ needs.static-release.result == 'success' && needs.cms-cron.result == 'success' && 'success' || 'failure' }}
 
   # Deploy demo runs only on main (push or Automerge dispatch) when static-release, i.e. the fast suite, is green; the nightly run does not deploy.
   # Deploy only when the fast suite ran (code changed) and static-release is green. Without !cancelled() a skipped job anywhere

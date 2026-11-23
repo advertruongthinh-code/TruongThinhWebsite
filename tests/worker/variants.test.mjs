@@ -31,12 +31,12 @@ function setup() {
   return { DB, env, record, media, variant, manifest, one, fetches, selects: () => selects };
 }
 
-test("an idle cron minute costs exactly two queries (settleVariants and flushBuild)", async () => {
+test("an idle cron minute costs one SELECT plus the heartbeat batch", async () => {
   const { env, selects } = setup();
   const waits = [];
   await runCron({ scheduledTime: Date.parse("2026-11-23T10:01:00Z") }, env, { waitUntil: (promise) => waits.push(promise) });
   await Promise.all(waits);
-  assert.equal(selects(), 2);
+  assert.equal(selects(), 1, "the fake counts the batch of flushBuild apart");
 });
 
 test("a manifest of the right size makes the variant ready and a published record live, raising content_rev", async () => {

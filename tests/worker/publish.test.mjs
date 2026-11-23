@@ -22,6 +22,8 @@ function setup({ status, headers = {}, runs = [] } = {}) {
   const DB = createD1(SCHEMA);
   DB.sqlite.exec(SEED);
   DB.sqlite.prepare("INSERT INTO accounts VALUES ('a@example.com', 'owner', 'active', 'x', 'x', 'x', 'x')").run();
+  // A live Cron: saves leave the dispatch to it (the dead-Cron tests overwrite cron_at).
+  DB.sqlite.prepare("INSERT INTO settings VALUES ('cron_at', ?)").run(new Date().toISOString());
   const env = {
     DB,
     MEDIA_PUBLIC: createR2(),
@@ -187,4 +189,55 @@ test("cron retries a failed ci.yml dispatch at minute 05 only; cms-variants erro
   put("publish_paused", "1");
   await cron("10:05");
   assert.equal(calls.length, 0);
+});
+
+test("dead Cron (cron_at over 5 minutes old): a published save and a build-status read send the wanted build themselves", async () => {
+  const { saveNews, call, calls, put, setting } = setup();
+  put("cron_at", new Date(Date.now() - 6 * 60_000).toISOString());
+  await saveNews();
+  assert.equal(calls.filter(({ method }) => method === "POST").length, 1, "the save dispatched without Cron");
+  assert.equal(setting("build_sent"), setting("build_wanted"));
+  put("cron_at", "");
+  put("build_wanted", "x");
+  calls.length = 0;
+  const status = await call("build-status", undefined);
+  assert.equal(status.body.cronStale, true);
+  assert.equal(calls.filter(({ method }) => method === "POST").length, 1, "the status page read dispatched without Cron");
+});
+
+test("a live Cron: build-status reports cronStale false; a daily job minute writes the heartbeat but sends nothing", async () => {
+  const { saveNews, call, calls, cron, put, setting } = setup();
+  assert.equal((await call("build-status", undefined)).body.cronStale, false);
+  await saveNews();
+  put("cron_at", "2026-01-01T00:00:00.000Z");
+  await cron("18:05");
+  assert.notEqual(setting("cron_at"), "2026-01-01T00:00:00.000Z");
+  assert.equal(calls.length, 0);
+  await cron("18:06");
+  assert.equal(calls.length, 1);
+});
+
+test("trash of a published record wants a build in its own batch; trash of a draft does not", async () => {
+  const { call, DB, setting } = setup();
+  const { id } = DB.sqlite.prepare("SELECT id FROM records WHERE type = 'news' AND status = 'published' ORDER BY position LIMIT 1").get();
+  assert.equal((await call("trash", { type: "news", id })).status, 200);
+  assert.equal(setting("build_wanted"), setting("content_rev"));
+  const rev = setting("build_wanted");
+  assert.equal((await call("restore", { type: "news", id })).status, 200);
+  assert.notEqual(setting("build_wanted"), rev, "restoring a published record wants a build too");
+  DB.sqlite.prepare("UPDATE records SET status = 'draft' WHERE type = 'news' AND id = ?").run(id);
+  const before = setting("build_wanted");
+  assert.equal((await call("trash", { type: "news", id })).status, 200);
+  assert.equal(setting("build_wanted"), before);
+});
+
+test("pause, save, resume: exactly one dispatch, and cron adds none", async () => {
+  const { saveNews, call, calls, cron, put } = setup();
+  put("publish_paused", "1");
+  await saveNews();
+  await cron("10:06");
+  assert.equal(calls.length, 0);
+  assert.equal((await call("resume-publish", {})).status, 200);
+  await cron("10:07");
+  assert.equal(calls.filter(({ method }) => method === "POST").length, 1);
 });
