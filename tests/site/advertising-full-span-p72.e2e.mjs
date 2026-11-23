@@ -49,8 +49,9 @@ try {
         assert(Math.abs(state.frameHeight - state.imageHeight) <= 1, `${label}: top/bottom overflow`);
         // Over 28% only into the gap and 50px stacked primary no longer keeps (owner 2026-11-23), or when a short image leaves
         // that room to a long description (owner 2026-11-22).
+        // The short-image case: the image stands at its natural height (as wide as the frame, no side glass) and info takes the rest.
         assert(state.infoHeight + state.gap <= 1000 * 0.28 + state.gap + 50 + 1 || Math.abs(state.primaryBottom - 1000) <= 1.5
-          || Math.abs(state.imageWidth - state.frameWidth) <= 1, `${label}: description exceeds cap`);
+          || (!capped && state.glass !== "true" && state.primaryHeight < 900), `${label}: description exceeds cap`);
         assert.equal(state.horizontalOverflow, 0, `${label}: horizontal overflow`);
         if (capped) {
           // A tall image stops at the gap and 50px above the screen bottom; that room goes to the description, so primary ends

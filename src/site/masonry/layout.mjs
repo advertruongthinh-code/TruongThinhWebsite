@@ -359,13 +359,16 @@ export function computeDetailGeometry(options = {}) {
     height = Math.max(imageZoneHeight, minimumDescriptionHeight);
     descriptionHeight = height;
   } else {
-    // Inside the peek cap info takes up to 28% of the viewport, or the room a short image leaves (owner 2026-11-22).
-    const baseDescriptionCap = Math.min(Math.max(viewportHeight * 0.28 - internalGap, peekCap - internalGap - width / ratio),
-      peekCap - internalGap - 1);
+    // Inside the peek cap info takes up to 28% of the viewport, or the room a short image leaves (owner 2026-11-22). A viewport too
+    // so short that the info floor passes 28% sizes the image from the full height instead.
+    const imageCap = minimumDescriptionHeight <= viewportHeight * 0.28 - internalGap
+      && peekCap - internalGap - minimumDescriptionHeight > minimumImageZoneHeight ? peekCap : heightCap;
+    const baseDescriptionCap = Math.min(Math.max(viewportHeight * 0.28 - internalGap, imageCap - internalGap - width / ratio),
+      imageCap - internalGap - 1);
     const baseDescription = Math.max(minimumDescriptionHeight,
       measuredDescriptionHeight > 0 ? Math.min(measuredDescriptionHeight, baseDescriptionCap) : baseDescriptionCap);
     imageZoneWidth = width;
-    imageZoneHeight = Math.max(minimumImageZoneHeight, Math.min(width / ratio, peekCap - baseDescription - internalGap));
+    imageZoneHeight = Math.max(minimumImageZoneHeight, Math.min(width / ratio, imageCap - baseDescription - internalGap));
     const descriptionRoom = heightCap - imageZoneHeight - internalGap;
     descriptionHeight = Math.max(minimumDescriptionHeight,
       measuredDescriptionHeight > 0 ? Math.min(measuredDescriptionHeight, descriptionRoom) : descriptionRoom);

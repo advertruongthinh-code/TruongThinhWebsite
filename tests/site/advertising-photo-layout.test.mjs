@@ -129,6 +129,8 @@ test("stacked primary gives the room down to the screen bottom to a clipped desc
   const long = computeDetailGeometry({ ...options, descriptionHeight: 300 });
   const clipped = computeDetailGeometry({ ...options, descriptionHeight: 2000 });
   assert.equal(short.mode, "pinterest");
+  closeTo(short.descriptionHeight, 150);
+  assert(short.height < short.heightCap);
   // The image keeps the size it has with the gap and 50px peek, whatever the description needs.
   closeTo(long.imageZoneHeight, clipped.imageZoneHeight);
   closeTo(long.descriptionHeight, 300);
@@ -136,6 +138,15 @@ test("stacked primary gives the room down to the screen bottom to a clipped desc
   closeTo(clipped.height, clipped.heightCap);
   closeTo(clipped.top + clipped.height, 1024);
   closeTo(clipped.descriptionHeight, clipped.heightCap - clipped.imageZoneHeight - clipped.internalGap);
+});
+
+test("stacked primary on a very short viewport sizes the image from the full height", () => {
+  const options = { layoutViewportWidth: 300, viewportHeight: 320, columns: 2, headerHeight: 52, imageWidth: 1000, imageHeight: 1000 };
+  for (const minimumDescriptionHeight of [150, 190]) {
+    const geometry = computeDetailGeometry({ ...options, minimumDescriptionHeight, descriptionHeight: 400 });
+    assert(geometry.imageZoneHeight > 40, `min ${minimumDescriptionHeight}: image zone ${geometry.imageZoneHeight}`);
+    assert(geometry.top + geometry.height <= 320 + 1e-9);
+  }
 });
 
 test("full-span long description takes the room a short image leaves, up to the height cap", () => {
