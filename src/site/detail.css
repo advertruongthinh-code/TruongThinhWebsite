@@ -1227,6 +1227,11 @@
   white-space: nowrap;
 }
 
+/* A decade label ("Những năm 2000") is twice as long as a year: smaller so it stays on one line in the column. */
+.about-journey__year--era {
+  font-size: clamp(2.25rem, 3.6vw, 3.4rem);
+}
+
 .about-journey__copy {
   max-width: 34rem;
   margin: 0;
