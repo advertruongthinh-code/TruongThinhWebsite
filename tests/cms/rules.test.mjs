@@ -32,6 +32,9 @@ test("pool-dup: a card may not reuse the src or sourceId of another published ca
   const data = { id: "moi", productIds: [], media: { src: "/v/a.webp", width: 2, height: 3 }, mediaItems: [{ src: "/v/a.webp", sourceId: "s-1" }] };
   assert.deepEqual(codes(crossErrors("advertising-card", "moi", data, { pool: [card("cu", 1, ["s-1"])] })), ["pool-dup missing"]);
   assert.deepEqual(crossErrors("advertising-card", "moi", data, { pool: [card("cu", 1, ["s-2"]), card("moi", 1, ["s-1"])] }), []);
+  // An R2 photo has no sourceId and each crop has its own src: the media id still ties the two cards.
+  const r2 = { id: "moi", productIds: [], media: { mediaId: "anh", src: "/v/b.webp", width: 1, height: 1 } };
+  assert.deepEqual(codes(crossErrors("advertising-card", "moi", r2, { pool: [card("cu", 1, ["/v/a.webp", "m:anh"])] })), ["pool-dup missing"]);
 });
 
 test("pool-min: a cluster may not lose a ratio class it had; a pool already short does not block", async () => {

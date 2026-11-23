@@ -49,11 +49,12 @@ export function altErrors(type, data) {
   return duplicate ? [missing(duplicate, "alt-dup")] : [];
 }
 
-// Pool entry of a card: { id, clusters, ratio, keys }; keys are the src and sourceId of every media of the card.
+// Pool entry of a card: { id, clusters, ratio, keys }; keys are the src, sourceId and m:<mediaId> of every media of the card.
 export function poolEntry(card, { products = ADVERTISING_PRODUCTS } = {}) {
   const cover = card.media ?? card.mediaItems?.[0];
   const clusters = [...new Set((card.productIds ?? []).map((id) => products.find((product) => product.id === id)?.cluster).filter(Boolean))];
-  const keys = new Set([card.media, ...(card.mediaItems ?? [])].filter(isObject).flatMap((item) => [item.src, item.sourceId]).filter((key) => typeof key === "string" && key));
+  // mediaId too: an R2 media has no sourceId, and two crops of it have two src.
+  const keys = new Set([card.media, ...(card.mediaItems ?? [])].filter(isObject).flatMap((item) => [item.src, item.sourceId, item.mediaId && `m:${item.mediaId}`]).filter((key) => typeof key === "string" && key));
   return { id: card.id, clusters, ratio: cover?.width / cover?.height, keys };
 }
 

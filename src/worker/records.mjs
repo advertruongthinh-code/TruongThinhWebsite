@@ -52,8 +52,10 @@ export async function loadPool(env) {
       coalesce(json_extract(data, '$.media.height'), json_extract(data, '$.mediaItems[0].height')) AS height,
       (SELECT json_group_array(k.value) FROM (
         SELECT json_extract(data, '$.media.src') AS value UNION SELECT json_extract(data, '$.media.sourceId')
+        UNION SELECT 'm:' || json_extract(data, '$.media.mediaId')
         UNION SELECT json_extract(i.value, '$.src') FROM json_each(data, '$.mediaItems') i
-        UNION SELECT json_extract(i.value, '$.sourceId') FROM json_each(data, '$.mediaItems') i) k WHERE k.value IS NOT NULL) AS keys
+        UNION SELECT json_extract(i.value, '$.sourceId') FROM json_each(data, '$.mediaItems') i
+        UNION SELECT 'm:' || json_extract(i.value, '$.mediaId') FROM json_each(data, '$.mediaItems') i) k WHERE k.value IS NOT NULL) AS keys
     FROM records WHERE type = 'advertising-card' AND status = 'published'`).all();
   return results.map((row) => ({
     ...poolEntry({ id: row.id, productIds: JSON.parse(row.products ?? "[]"), media: { width: row.width, height: row.height } }),

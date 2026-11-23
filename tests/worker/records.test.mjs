@@ -266,3 +266,34 @@ test("update-media: an alt that equals the alt of another media of the same card
   const ok = await call("update-media", { id: a, version: media.version, altVi: "Alt mới", altEn: "New alt", tags: [] });
   assert.equal(ok.status, 200, JSON.stringify(ok.body));
 });
+
+test("save: a card that takes another card's photo with a new crop is 400 pool-dup (same mediaId, different src)", async () => {
+  const { call, DB } = setup();
+  const [first, second] = DB.sqlite.prepare("SELECT id FROM records WHERE type = 'advertising-card' AND status = 'published' ORDER BY position LIMIT 2").all().map(({ id }) => id);
+  const taken = (await call("get", undefined, `?type=advertising-card&id=${first}`)).body.data.media;
+  const got = await call("get", undefined, `?type=advertising-card&id=${second}`);
+  const side = Math.min(taken.width, taken.height);
+  const place = ({ sourceId, source, sha256, provenance, ...ref }) => ({ ...ref, mediaId: taken.mediaId, crop: [0, 0, side, side] });
+  const data = { ...got.body.data, media: place(got.body.data.media), mediaItems: got.body.data.mediaItems.slice(0, 1).map(place) };
+  data.coverMediaId = data.mediaItems[0].id;
+  const saved = await call("save", { type: "advertising-card", id: second, version: got.body.version, data });
+  assert.equal(saved.status, 400, JSON.stringify(saved.body));
+  assert.ok(codesOf(saved.body).includes("pool-dup"), JSON.stringify(saved.body));
+});
+
+// Plan E10 section 7: save reads D1 at most once more for media-reuse and once more for the card pool.
+// Main before E10: 18 statements for a news save, 15 for a card save.
+test("save prepares main + 1 statements for a news and main + 2 for a card", async () => {
+  const { call, DB } = setup();
+  const prepare = DB.prepare.bind(DB);
+  let count = 0;
+  DB.prepare = (...args) => { count += 1; return prepare(...args); };
+  for (const [type, expected] of [["news", 18 + 1], ["advertising-card", 15 + 2]]) {
+    const id = firstOf(DB, type);
+    const got = await call("get", undefined, `?type=${type}&id=${id}`);
+    count = 0;
+    const saved = await call("save", { type, id, version: got.body.version, data: got.body.data });
+    assert.equal(saved.status, 200, JSON.stringify(saved.body));
+    assert.equal(count, expected, type);
+  }
+});
