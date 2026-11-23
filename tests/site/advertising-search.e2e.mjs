@@ -2,6 +2,8 @@
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/advertising-search.e2e.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import { matchesFilter } from "../../src/site/masonry/layout.mjs";
 import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, viewportAt } from "./harness.mjs";
 
 const PAGE = `${BASE_URL}/advertising-products/`;
@@ -403,7 +405,6 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     assert(rail.every((entry) => entry.empty !== entry.shown), "hidden exactly when empty");
     assert(rail.some((entry) => entry.empty), "some cluster has no result");
     const target = rail.find((entry) => entry.shown && entry.filter !== "all").filter;
-    const total = await page.locator("[data-masonry-card]").count();
     await backToTop(page);
     let left = false;
     await page.evaluate(() => addEventListener("masonry:search-left", () => { window.__left = true; }, { once: true }));
@@ -413,11 +414,11 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     assert.equal(left, false, "still searching");
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
     assert.equal(await page.getAttribute(`[data-masonry-filter="${target}"]`, "aria-current"), "true");
-    const narrowed = await page.evaluate((slug) => {
-      const ids = [...document.querySelectorAll("[data-masonry-card]")].map((node) => node.dataset.masonryCard);
-      return { count: ids.length };
-    }, target);
-    assert(narrowed.count <= total, "narrowed");
+    // The grid is virtualized, so the mounted-card count is not the result count: every shown card belongs to the clicked cluster.
+    const shown = await page.evaluate(() => [...document.querySelectorAll("[data-masonry-card]")]
+      .filter((node) => !node.hidden).map((node) => node.dataset.masonryCard));
+    const outside = shown.filter((id) => !matchesFilter(ADVERTISING_CARDS.find((card) => card.id === id), target));
+    assert(shown.length > 0 && outside.length === 0, `narrowed to ${target}: ${JSON.stringify(outside)}`);
     await page.click('[data-masonry-filter="all"]');
     await page.waitForTimeout(900);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
