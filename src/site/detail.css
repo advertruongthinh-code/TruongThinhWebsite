@@ -1058,7 +1058,9 @@
   stroke-linejoin: round;
   stroke-dasharray: 1 2;
   stroke-dashoffset: calc(1 - clamp(0, (var(--p, 1) - var(--a, 0)) / var(--b, 1), 1));
-  fill-opacity: clamp(0, (var(--p, 1) - var(--a, 0) - var(--b, 1)) * 10, 1);
+  /* The fill fades in over the first third of the stroke window, so an object drawn in front covers what is behind it
+     while its outline is still being drawn (owner 2026-11-23: no see-through objects). */
+  fill-opacity: clamp(0, (var(--p, 1) - var(--a, 0)) / (var(--b, 1) * 0.35), 1);
 }
 
 /* Moving groups inside a drawing, timed by the same scroll progress: --t runs 0 -> 1 over [--ma, --ma + --mb].
