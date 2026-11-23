@@ -69,7 +69,7 @@ ngay. Đang chuyển route, menu mở hoặc `pageshow` thì header hiện. Chu�
 và `any-pointer: fine`) lên vùng 350px trên cùng màn hình thì header hiện; focus trong header cũng
 giữ hiện. Điện thoại cảm ứng chạy [header đi theo ngón tay](phone-header-scroll.md) thay cho R3.
 
-Trang chi tiết Advertising (`body.is-detail`, owner 2026-11-23) bỏ vùng giữa: máy có hover thì header trôi theo trang như nội dung (`translateY(-scrollY)`, `is-scroll-away`, không transition), trôi hết chiều cao thì `is-hidden`, cuộn lên giữa trang không hiện, chuột lên vùng 350px vẫn hiện; máy không hover (điện thoại, tablet cảm ứng) không gọi lại được nên header luôn dính.
+Trang chi tiết Advertising (`body.is-detail`, owner 2026-11-23) bỏ vùng giữa: máy có hover thì header trôi theo trang như nội dung (`translateY(-scrollY)`, `is-scroll-away`, không transition), trôi hết chiều cao thì `is-hidden`, cuộn lên giữa trang không hiện, chuột lên vùng 350px vẫn hiện; màn cảm ứng không hover giữ hành vi chung (owner 2026-11-23 16:25: điện thoại vẫn [đi theo ngón tay](phone-header-scroll.md)).
 
 ```gherkin
 Given trang dài đã cuộn quá nửa cửa sổ và header đang ẩn
@@ -78,7 +78,7 @@ Then header hiện; cuộn ngược về giữa trang rồi xuống quá 150px t
 
 Given /advertising-products/p/signage-raised-letters-33/ ở 1440×900 với chuột, cuộn 30px rồi quá chiều cao header
 When đưa chuột lên mép trên màn hình; cùng trang ở điện thoại cuộn 600px
-Then header lệch đúng 30px rồi is-hidden, chuột ở mép trên thì hiện; điện thoại header vẫn ở top 0
+Then header lệch đúng 30px rồi is-hidden, chuột ở mép trên thì hiện; điện thoại header lệch hết chiều cao theo ngón tay
 ```
 
 ### R4. Full menu

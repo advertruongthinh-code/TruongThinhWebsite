@@ -3,7 +3,7 @@ import path from "node:path";
 import process from "node:process";
 
 // site-shell R3, Advertising detail (owner 2026-11-23): with a mouse the header scrolls away with the page and comes back
-// by mouse at the top edge; on touch screens it stays stuck.
+// by mouse at the top edge; phones keep following the finger (owner 2026-11-23 16:25).
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.resolve(".tooling/browsers");
 const { chromium, devices } = await import("playwright");
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
@@ -58,11 +58,11 @@ try {
   await ready(phone);
   await phone.evaluate(() => window.scrollTo(0, 600));
   await phone.waitForTimeout(400);
-  const stuck = await headerState(phone);
-  assert(!stuck.hidden && Math.abs(stuck.top) < 1, `phone: header must stay stuck ${JSON.stringify(stuck)}`);
+  const followed = await headerState(phone);
+  assert(Math.abs(followed.top + followed.height) < 1, `phone: header must follow the finger off screen ${JSON.stringify(followed)}`);
   await context.close();
 } finally {
   await browser.close();
 }
 
-console.log("Shared header detail scroll: desktop scroll-away with hover reveal and phone stuck passed");
+console.log("Shared header detail scroll: desktop scroll-away with hover reveal and phone follow passed");
