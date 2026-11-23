@@ -5,18 +5,23 @@ import { verdict } from '../../scripts/tooling/pre-tool-guard.mjs';
 
 function fakeCloudflare(tokens) {
   const calls = [];
+  const created = [];
   const fetchImpl = async (url, { method, body }) => {
     const path = url.replace('https://api.cloudflare.com/client/v4', '');
     calls.push(`${method} ${path}`);
     let result;
     if (path === '/user/tokens' && method === 'GET') result = tokens;
-    else if (path === '/user/tokens' && method === 'POST') result = { id: 'new', value: 'SECRET', ...JSON.parse(body) };
-    else if (path === '/user/tokens/permission_groups') result = [{ id: 'g-d1', name: 'D1 Write' }];
+    else if (path === '/user/tokens' && method === 'POST') { created.push(JSON.parse(body)); result = { id: 'new', value: 'SECRET' }; }
+    else if (path === '/user/tokens/permission_groups') result = [
+      { id: 'g-d1', name: 'D1 Write', scopes: ['com.cloudflare.api.account'] },
+      { id: 'g-access-zone', name: 'Access: Apps and Policies Write', scopes: ['com.cloudflare.api.account.zone'] },
+      { id: 'g-access-account', name: 'Access: Apps and Policies Write', scopes: ['com.cloudflare.api.account'] },
+    ];
     else if (path === '/user/tokens/seed') result = { policies: [{ effect: 'allow', resources: { a: '*' }, permission_groups: [{ id: 'g1', name: 'x' }] }] };
     else if (method === 'DELETE') result = {};
     return { status: 200, json: async () => ({ success: true, result }) };
   };
-  return { calls, fetchImpl };
+  return { calls, created, fetchImpl };
 }
 
 test('roll creates a scoped token, pipes it to the Worker on stdin, then deletes the old one', async () => {
@@ -49,4 +54,10 @@ test('ci-deploy copies the seed token permissions, sets the env secret and never
 test('the guard blocks reading the bootstrap token file', () => {
   assert.match(verdict({ tool_input: { file_path: 'C:/Users/x/.truongthinh/cf-token-admin' } }), /Blocked/);
   assert.match(verdict({ tool_input: { command: 'cat ~/.truongthinh/cf-token-admin' } }), /Blocked/);
+});
+
+test('cms-access asks for the account-scoped Access group, not the zone group with the same name', async () => {
+  const cf = fakeCloudflare([]);
+  await roll('cms-access', { token: 'ADMIN', accountId: 'acc', fetchImpl: cf.fetchImpl, runImpl: async () => {} });
+  assert.deepEqual(cf.created[0].policies[0].permission_groups, [{ id: 'g-access-account' }]);
 });

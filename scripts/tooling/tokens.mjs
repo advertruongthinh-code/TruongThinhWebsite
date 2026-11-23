@@ -57,8 +57,9 @@ export async function policiesFor(entry, { token, accountId, tokens, fetchImpl }
   }
   const groups = await cf(token, '/user/tokens/permission_groups', { fetchImpl });
   const ids = entry.permissions.map((name) => {
-    const g = groups.find((x) => x.name === name);
-    if (!g) throw new Error(`unknown permission group "${name}"`);
+    // Zone and account groups can share a name; the policy below grants account resources, so only account scope fits.
+    const g = groups.find((x) => x.name === name && (x.scopes || []).includes('com.cloudflare.api.account'));
+    if (!g) throw new Error(`no account-scoped permission group "${name}"`);
     return { id: g.id };
   });
   return [{ effect: 'allow', resources: { [`com.cloudflare.api.account.${accountId}`]: '*' }, permission_groups: ids }];
