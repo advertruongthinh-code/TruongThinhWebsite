@@ -2,9 +2,13 @@
 // VI text goes in the tag, EN goes in data-en like existing pages; the localeHtml build swaps to EN.
 // The same data always yields the same HTML; text is plain text only, all HTML characters are escaped.
 import { IMAGE_SRC, escapeHtml } from "./lib-pure.mjs";
+import { variantKeyOf } from "./media-src.mjs";
 import { listHtml, listOf, markedInner, marksErrors, paragraphs, parseMarks, plainText, sideMarksErrors, typoWarnings } from "../../src/cms/inline-marks.mjs";
 
 export const BLOCK_SCHEMA_VERSION = 1;
+
+const VIDEO_SRC = /^\/assets\/content\/[a-z0-9/-]+\.mp4$/;
+const isR2 = (src, extension) => variantKeyOf(src) !== null && src.endsWith(extension);
 export const ZALO_HREF = "https://zalo.me/0949131050";
 
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -401,7 +405,8 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
       else {
         const value = block.video;
         // Same field check the video-single spec ran before.
-        if (!/^\/assets\/content\/[a-z0-9/-]+\.mp4$/.test(value?.src ?? "") || !IMAGE_SRC.test(value?.poster ?? "") || !Number.isInteger(value?.width) || !Number.isInteger(value?.height)) errors.push(`${where}.video: needs src .mp4, poster .webp, width, height`);
+        // A video on the media origin (cms-plan part 2 K5) has an R2 rung .mp4 and an R2 poster .webp.
+        if (!(VIDEO_SRC.test(value?.src ?? "") || isR2(value?.src, ".mp4")) || !(IMAGE_SRC.test(value?.poster ?? "") || isR2(value?.poster, ".webp")) || !Number.isInteger(value?.width) || !Number.isInteger(value?.height)) errors.push(`${where}.video: needs src .mp4, poster .webp, width, height`);
         else if (value.width * 9 !== value.height * 16) errors.push(`${where}: a video must be 16:9`);
         if (block.position !== "wide") errors.push(`${where}: a video must use position wide`);
       }

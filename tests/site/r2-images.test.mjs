@@ -33,7 +33,7 @@ test("which variant files exist comes from the manifest, not the disk", () => {
   // A narrow R2 image has no -240 file: only what the manifest lists.
   const narrow = { [KEY]: { files: [{ name: "m-cover.webp" }, { name: "m-cover.jxl" }] } };
   assert.equal(hasFile(siblingSrc(COVER, "-240", "webp"), narrow, disk), false);
-  assert.throws(() => hasFile(`${ORIGIN}/v/${"e5".repeat(16)}/x.jxl`, variants, disk), /no manifest for key e5e5/);
+  assert.throws(() => hasFile(`${ORIGIN}/v/${"99".repeat(16)}/x.jxl`, variants, disk), /no manifest for key 9999/);
   assert.equal(hasFile("/assets/content/a.jxl", variants, () => true), true);
 });
 
@@ -43,7 +43,7 @@ test("an R2 image is checked against its manifest and the build media origin", (
   assert.deepEqual(variantImageErrors(image, "at", options), []);
   assert.match(variantImageErrors(image, "at", { variants, mediaOrigin: "https://other.test" })[0], /origin must be the build media origin/);
   assert.match(variantImageErrors({ ...image, width: 10 }, "at", options)[0], /width\/height must be 1536x1024/);
-  assert.match(variantImageErrors({ ...image, src: `${ORIGIN}/v/${"e5".repeat(16)}/m.webp` }, "at", options)[0], /no manifest for key e5e5/);
+  assert.match(variantImageErrors({ ...image, src: `${ORIGIN}/v/${"99".repeat(16)}/m.webp` }, "at", options)[0], /no manifest for key 9999/);
   const noJxl = { [KEY]: { ...variants[KEY], files: variants[KEY].files.filter(({ name }) => !name.endsWith(".jxl")) } };
   assert.ok(variantImageErrors(image, "at", { variants: noJxl, mediaOrigin: ORIGIN }).some((error) => /has no \.jxl/.test(error)));
   const noColors = { [KEY]: { ...variants[KEY], colors: undefined } };

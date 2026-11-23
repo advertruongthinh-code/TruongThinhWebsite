@@ -5,7 +5,8 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
-import { contentDirOf, fileImageCheck } from "../site/content-files.mjs";
+import { contentDirOf, fileImageCheck, loadVariants } from "../site/content-files.mjs";
+import { resolveVideoRungs } from "../site/media-src.mjs";
 import { validateHomeProjects } from "../site/home-projects.mjs";
 import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { LINE_END_PUNCT } from "../../src/cms/inline-marks.mjs";
@@ -147,6 +148,8 @@ export async function checkSiteContent(siteRoot) {
     const file = path.join(contentDir, `${kind}.json`);
     pages[kind] = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
   }
+  // R2 videos carry hlsSrc only; their rung files come from variants.json as in the build (cms-plan part 2 K5).
+  resolveVideoRungs(pages, loadVariants(siteRoot));
   const ctx = { checkImage: fileImageCheck(siteRoot), projects: new Map(pages.projects.map((page) => [page.id, page])), news: new Map(pages.news.map((page) => [page.id, page])) };
   for (const [kind, list] of Object.entries(pages)) {
     errors.push(...duplicatePageFields(list, `content/${kind}.json`));
