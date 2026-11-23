@@ -26,6 +26,8 @@ migrations_dir = "src/db/migrations"
 # The daily D1 export (src/worker/backup.mjs) calls the REST API with this id; keep it equal to database_id above.
 [vars]
 D1_DATABASE_ID = "a98c6483-b503-4829-8da9-03bbd2a0eeda"
+# Reusable Access policy "CMS admin owner" of the admin app; the accounts panel edits its email list (src/worker/access.mjs).
+ACCESS_POLICY_ID = "eee64e2d-571f-4ea7-83b8-1afec2342aeb"
 
 [[r2_buckets]]
 binding = "MEDIA_ORIGINALS"
