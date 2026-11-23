@@ -258,5 +258,125 @@
   "thresholds": {
    "960": 50000
   }
+ },
+ "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5": {
+  "recipe": 1,
+  "key": "e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+  "mediaId": "m-video",
+  "hash": "sha256:e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5",
+  "kind": "video",
+  "sourceWidth": 1920,
+  "sourceHeight": 1080,
+  "duration": 12.5,
+  "hasAudio": false,
+  "rungs": [
+   240,
+   480,
+   960,
+   1920
+  ],
+  "files": [
+   {
+    "name": "master.m3u8",
+    "bytes": 1000
+   },
+   {
+    "name": "240.m3u8",
+    "bytes": 1000
+   },
+   {
+    "name": "480.m3u8",
+    "bytes": 1000
+   },
+   {
+    "name": "960.m3u8",
+    "bytes": 1000
+   },
+   {
+    "name": "1920.m3u8",
+    "bytes": 1000
+   },
+   {
+    "name": "240.mp4",
+    "bytes": 1000
+   },
+   {
+    "name": "480.mp4",
+    "bytes": 1000
+   },
+   {
+    "name": "960.mp4",
+    "bytes": 1000
+   },
+   {
+    "name": "1920.mp4",
+    "bytes": 1000
+   }
+  ]
+ },
+ "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6": {
+  "recipe": 1,
+  "key": "f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+  "mediaId": "m-poster",
+  "hash": "sha256:f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6",
+  "crop": [
+   0,
+   0,
+   1920,
+   1080
+  ],
+  "sourceWidth": 1920,
+  "sourceHeight": 1080,
+  "width": 1920,
+  "height": 1080,
+  "files": [
+   {
+    "name": "m-poster-1600.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-poster-240.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-poster-240.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-poster-480.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-poster-480.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-poster-960.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-poster-960.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-poster.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-poster.webp",
+    "bytes": 1000
+   }
+  ],
+  "colors": [
+   "#102030",
+   "#203040",
+   "#304050",
+   "#405060",
+   "#506070",
+   30
+  ],
+  "thresholds": {
+   "960": 50000
+  }
  }
 }

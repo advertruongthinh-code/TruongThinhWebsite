@@ -150,12 +150,11 @@
     "id": "image-a",
     "type": "media-single",
     "position": "wide",
-    "image": {
-     "src": "/assets/content/shared/mat-tien-quan-ca-phe.webp",
-     "width": 1536,
-     "height": 1024,
-     "altVi": "Mặt tiền quán cà phê nhà phố, bảng hiệu gỗ và cửa gỗ",
-     "altEn": "Townhouse cafe frontage with a wooden sign, warm lights and open wooden doors"
+    "video": {
+     "hlsSrc": "https://media.test/v/e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5e5/master.m3u8",
+     "poster": "https://media.test/v/f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6f6/m-poster.webp",
+     "width": 1920,
+     "height": 1080
     }
    },
    {

@@ -33,7 +33,7 @@ test("which variant files exist comes from the manifest, not the disk", () => {
   // A narrow R2 image has no -240 file: only what the manifest lists.
   const narrow = { [KEY]: { files: [{ name: "m-cover.webp" }, { name: "m-cover.jxl" }] } };
   assert.equal(hasFile(siblingSrc(COVER, "-240", "webp"), narrow, disk), false);
-  assert.throws(() => hasFile(`${ORIGIN}/v/${"e5".repeat(16)}/x.jxl`, variants, disk), /no manifest for key e5e5/);
+  assert.throws(() => hasFile(`${ORIGIN}/v/${"99".repeat(16)}/x.jxl`, variants, disk), /no manifest for key 9999/);
   assert.equal(hasFile("/assets/content/a.jxl", variants, () => true), true);
 });
 
@@ -43,7 +43,7 @@ test("an R2 image is checked against its manifest and the build media origin", (
   assert.deepEqual(variantImageErrors(image, "at", options), []);
   assert.match(variantImageErrors(image, "at", { variants, mediaOrigin: "https://other.test" })[0], /origin must be the build media origin/);
   assert.match(variantImageErrors({ ...image, width: 10 }, "at", options)[0], /width\/height must be 1536x1024/);
-  assert.match(variantImageErrors({ ...image, src: `${ORIGIN}/v/${"e5".repeat(16)}/m.webp` }, "at", options)[0], /no manifest for key e5e5/);
+  assert.match(variantImageErrors({ ...image, src: `${ORIGIN}/v/${"99".repeat(16)}/m.webp` }, "at", options)[0], /no manifest for key 9999/);
   const noJxl = { [KEY]: { ...variants[KEY], files: variants[KEY].files.filter(({ name }) => !name.endsWith(".jxl")) } };
   assert.ok(variantImageErrors(image, "at", { variants: noJxl, mediaOrigin: ORIGIN }).some((error) => /has no \.jxl/.test(error)));
   const noColors = { [KEY]: { ...variants[KEY], colors: undefined } };
@@ -124,7 +124,10 @@ test("content contract: an R2 image reused across News posts is one photo by var
   Object.assign(process.env, { TT_CONTENT_DIR: dir, CMS_MEDIA_ORIGIN: ORIGIN });
   try {
     const reuse = (errors) => errors.filter((error) => /News image also used by/.test(error));
-    assert.deepEqual(reuse(await checkSiteContent(path.join(projectRoot, "src/site"))), []);
+    const errors = await checkSiteContent(path.join(projectRoot, "src/site"));
+    assert.deepEqual(reuse(errors), []);
+    // The R2 video has only hlsSrc until resolveVideoRungs fills src from variants.json (E4).
+    assert.deepEqual(errors.filter((error) => error.includes(".video")), []);
     const news = JSON.parse(readFileSync(path.join(dir, "news.json"), "utf8"));
     news[1].cover = { ...news[0].cover };
     writeFileSync(path.join(dir, "news.json"), JSON.stringify(news));

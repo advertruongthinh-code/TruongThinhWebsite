@@ -5,18 +5,20 @@ import path from "node:path";
 import { KINDS } from "./block-pages.mjs";
 import { enMissing } from "../../src/cms/contract.mjs";
 import { validateImage } from "./lib.mjs";
+import { resolveVideoRungs } from "./media-src.mjs";
 
 // TT_CONTENT_DIR points the build at a projected snapshot (cms R6, Q8); empty (the workflow passes "") means the repo. `||`, not `??`.
 export const contentDirOf = (siteRoot) => process.env.TT_CONTENT_DIR || path.join(siteRoot, "content");
 
 // A page with an empty required EN field gets noEn: true (cms-content R2, K3): the build writes its VI page only. The flag is set
 // only when true, so pages with full EN keep their exact data.
-export const loadBlockContent = (siteRoot) => Object.fromEntries(Object.keys(KINDS).map((kind) => {
+// R2 videos get their rung files from variants.json right after loading (cms-plan part 2 K5).
+export const loadBlockContent = (siteRoot) => resolveVideoRungs(Object.fromEntries(Object.keys(KINDS).map((kind) => {
   const file = path.join(contentDirOf(siteRoot), `${kind}.json`);
   const pages = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
   for (const page of pages) if (enMissing(kind === "projects" ? "project" : "news", page).length) page.noEn = true;
   return [kind, pages];
-}));
+})), loadVariants(siteRoot));
 
 // Old slugs of renamed pages (cms Q3); the file exists only in a projected snapshot, so a repo build gets none.
 export const readRedirects = (siteRoot) => {
