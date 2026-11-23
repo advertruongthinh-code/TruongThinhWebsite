@@ -29,7 +29,14 @@ for (const route of routes) {
     });
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("requestfailed", (request) => {
-      failedRequests.push(`${request.method()} ${request.url()}`);
+      // The original-image upgrade (head-inline streamOriginal, progressive-loading R10) reads a JXL original through fetch's stream reader.
+      // When the reader drains the body before the loader reports completion, Chromium logs the fetch as net::ERR_ABORTED although every byte
+      // arrived (CI trace of run 45069280658: the blob built from the stream had the file's full 219578-byte Content-Length). The site never
+      // cancels that fetch, so only this exact case is excused; any other failed request still fails the test.
+      const streamedOriginal = request.resourceType() === "fetch"
+        && request.failure()?.errorText === "net::ERR_ABORTED"
+        && /^\/assets\/content\/.+(?<!-\d+)\.jxl$/.test(new URL(request.url()).pathname);
+      if (!streamedOriginal) failedRequests.push(`${request.method()} ${request.url()}`);
     });
 
     const response = await page.goto(route, { waitUntil: "domcontentloaded" });
