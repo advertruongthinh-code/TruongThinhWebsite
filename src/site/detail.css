@@ -1130,8 +1130,6 @@
 
 .about-journey__ln--lc { stroke: #00a0e3; stroke-width: 3; }
 .about-journey__ln--lm { stroke: #e5097f; stroke-width: 3; }
-.about-journey__ln--ly { stroke: #f2c200; stroke-width: 3; }
-.about-journey__ln--lk { stroke: #2b2a29; stroke-width: 3; }
 
 /* Colour is painted on: brush passes clipped to each shape run while its outline draws (owner 2026-11-23: paint, not fade). */
 .about-journey__ln--brushed { fill: none; }
