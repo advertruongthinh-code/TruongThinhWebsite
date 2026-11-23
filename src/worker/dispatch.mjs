@@ -32,11 +32,15 @@ export async function dispatchWorkflow(env, file, inputs) {
 }
 
 export async function dispatchVariants(env, keys) {
-  const { results } = await env.DB.prepare("SELECT v.key, v.media_id, v.crop, json_extract(r.data, '$.source') AS source, json_extract(r.data, '$.path') AS path FROM variants v JOIN records r ON r.type = 'media' AND r.id = v.media_id WHERE v.key IN (SELECT value FROM json_each(?))")
+  const { results } = await env.DB.prepare("SELECT v.key, v.media_id, v.crop, json_extract(r.data, '$.source') AS source, json_extract(r.data, '$.path') AS path, json_extract(r.data, '$.kind') AS kind FROM variants v JOIN records r ON r.type = 'media' AND r.id = v.media_id WHERE v.key IN (SELECT value FROM json_each(?))")
     .bind(JSON.stringify(keys)).all();
-  const items = results.map((row) => ({ m: row.media_id, c: row.crop.split(",").map(Number), p: row.source === "repo" ? row.path : undefined }));
+  const item = (row) => ({ m: row.media_id, c: row.crop.split(",").map(Number), p: row.source === "repo" ? row.path : undefined });
+  // A video is one dispatch of its own (the job needs up to 90 minutes), never part of an image lot.
+  const videos = results.filter((row) => row.kind === "video").map((row) => [{ ...item(row), k: "video" }]);
+  const items = results.filter((row) => row.kind !== "video").map(item);
   const lots = [];
   for (let start = 0; start < items.length; start += VARIANT_LOT) lots.push(items.slice(start, start + VARIANT_LOT));
+  lots.push(...videos);
   // In parallel: each failing lot may wait 7 s of retries, and waitUntil has a time limit.
   await Promise.all(lots.map((lot) => dispatchWorkflow(env, "cms-variants.yml", { items: JSON.stringify(lot) })));
 }

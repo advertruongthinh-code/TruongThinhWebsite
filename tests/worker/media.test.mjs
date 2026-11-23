@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { seedSql } from "../../scripts/cms/seed.mjs";
 import { variantKey } from "../../src/cms/media-ref.mjs";
+import { dispatchVariants } from "../../src/worker/dispatch.mjs";
 import worker from "../../src/worker/index.js";
 import { createD1 } from "./d1-fake.mjs";
 import { createR2 } from "./r2-fake.mjs";
@@ -256,4 +257,138 @@ test("media-original answers a service token with bytes and X-Hash, a user sessi
   } finally {
     globalThis.fetch = realFetch;
   }
+});
+
+// Video upload (CMS plan P9, Q6 "Video"): MP4 with a same-ratio poster image.
+const MP4 = Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from("ftypisom"), Buffer.alloc(60, 3)]);
+const AVIF = Buffer.concat([Buffer.from([0, 0, 0, 24]), Buffer.from("ftypavif"), Buffer.alloc(60, 3)]);
+const POSTER_QUERY = "slugBase=poster&width=1600&height=900&altVi=Poster&altEn=Poster";
+const videoQuery = (posterId) => `slugBase=clip&width=1920&height=1080&duration=12.5&altVi=Video&altEn=Video${posterId ? `&posterId=${posterId}` : ""}`;
+
+async function withPoster() {
+  const t = setup();
+  const poster = await json(await t.upload(WEBP, { query: POSTER_QUERY }));
+  assert.equal(poster.status, 201);
+  return { ...t, posterId: poster.body.id, video: (bytes = MP4, query = videoQuery(poster.body.id)) => t.upload(bytes, { type: "video/mp4", query }) };
+}
+
+test("a valid MP4 creates a video media with duration, posterId and one record_media row to the poster", async () => {
+  const t = await withPoster();
+  const { status, body } = await json(await t.video());
+  assert.equal(status, 201, JSON.stringify(body));
+  const data = JSON.parse(t.row("media", body.id).data);
+  assert.deepEqual([data.kind, data.mime, data.width, data.height, data.duration, data.posterId], ["video", "video/mp4", 1920, 1080, 12.5, t.posterId]);
+  assert.match(data.originalKey, /^originals\/clip-01\/[0-9a-f-]{36}\.mp4$/);
+  assert.equal(body.variant.key, await variantKey(data.hash, [0, 0, 1920, 1080]));
+  assert.deepEqual(t.DB.sqlite.prepare("SELECT media_id, variant_key FROM record_media WHERE type = 'media' AND id = ?").all(body.id).map((r) => ({ ...r })), [{ media_id: t.posterId, variant_key: "" }]);
+  const trash = await json(await t.post("trash", { type: "media", id: t.posterId, version: 1 }));
+  assert.deepEqual([trash.status, trash.body.error], [409, "in-use"]);
+});
+
+test("a video without or with a bad duration or posterId is 400 and nothing is stored", async () => {
+  const t = await withPoster();
+  const before = t.env.MEDIA_ORIGINALS.objects.size;
+  const good = videoQuery(t.posterId);
+  for (const query of [videoQuery(""), good.replace("duration=12.5&", ""), good.replace("duration=12.5", "duration=0"), good.replace("duration=12.5", "duration=601"), good.replace("duration=12.5", "duration=abc")]) {
+    assert.equal((await t.video(MP4, query)).status, 400, query);
+  }
+  assert.equal(t.env.MEDIA_ORIGINALS.objects.size, before);
+});
+
+test("an unknown, trashed or non-image poster is 400 poster", async () => {
+  const t = await withPoster();
+  const first = await json(await t.video());
+  const poster = async (id) => (await json(await t.video(MP4, videoQuery(id)))).body.error;
+  assert.equal(await poster("nope-01"), "poster");
+  assert.equal(await poster(first.body.id), "poster");
+  t.DB.sqlite.prepare("UPDATE records SET status = 'trashed' WHERE type = 'media' AND id = ?").run(t.posterId);
+  assert.equal(await poster(t.posterId), "poster");
+});
+
+test("a repo or SVG media is not a poster: 400 poster", async () => {
+  const t = await withPoster();
+  const repoId = t.DB.sqlite.prepare("SELECT id FROM records WHERE type = 'media' AND json_extract(data, '$.source') = 'repo' LIMIT 1").get().id;
+  const svgId = "logo-svg-01";
+  t.DB.sqlite.prepare("INSERT INTO records SELECT type, ?, status, prev_status, version, live_version, pending, position, ?, NULL, NULL, json_set(data, '$.id', ?, '$.mime', 'image/svg+xml'), write_id, created_at, created_by, updated_at, updated_by, trashed_at FROM records WHERE type = 'media' AND id = ?").run(svgId, svgId, svgId, t.posterId);
+  for (const id of [repoId, svgId]) {
+    const { status, body } = await json(await t.video(MP4, videoQuery(id)));
+    assert.deepEqual([status, body.error], [400, "poster"], id);
+  }
+});
+
+test("a poster trashed while the video uploads is 409 poster: no video row, no record_media row, object deleted", async () => {
+  const t = await withPoster();
+  const before = t.env.MEDIA_ORIGINALS.objects.size;
+  const put = t.env.MEDIA_ORIGINALS.put.bind(t.env.MEDIA_ORIGINALS);
+  t.env.MEDIA_ORIGINALS.put = async (...args) => {
+    t.DB.sqlite.prepare("UPDATE records SET status = 'trashed' WHERE type = 'media' AND id = ?").run(t.posterId);
+    return put(...args);
+  };
+  const rev = t.rev();
+  const { status, body } = await json(await t.video());
+  assert.deepEqual([status, body.error], [409, "poster"]);
+  assert.equal(t.env.MEDIA_ORIGINALS.objects.size, before);
+  assert.equal(t.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM records WHERE type = 'media' AND id LIKE 'clip-%'").get().n, 0);
+  assert.equal(t.DB.sqlite.prepare("SELECT COUNT(*) AS n FROM record_media WHERE media_id = ?").get(t.posterId).n, 0);
+  assert.equal(t.rev(), rev);
+});
+
+test("a 4:3 poster for a 16:9 video is 400 poster-ratio and R2 gets no new object", async () => {
+  const t = setup();
+  const poster = await json(await t.upload(WEBP, { query: "slugBase=poster&width=1200&height=900&altVi=P&altEn=P" }));
+  const before = t.env.MEDIA_ORIGINALS.objects.size;
+  const { status, body } = await json(await t.upload(MP4, { type: "video/mp4", query: videoQuery(poster.body.id) }));
+  assert.deepEqual([status, body.error], [400, "poster-ratio"]);
+  assert.equal(t.env.MEDIA_ORIGINALS.objects.size, before);
+});
+
+test("AVIF bytes sent as video/mp4 are 400 bytes and the object is deleted", async () => {
+  const t = await withPoster();
+  const before = t.env.MEDIA_ORIGINALS.objects.size;
+  const { status, body } = await json(await t.video(AVIF));
+  assert.deepEqual([status, body.error], [400, "bytes"]);
+  assert.equal(t.env.MEDIA_ORIGINALS.objects.size, before);
+});
+
+test("a video Content-Length of 96 MB is 413 before the body is read", async () => {
+  const t = await withPoster();
+  const body = new ReadableStream({ pull() { throw new Error("body must not be read"); } });
+  assert.equal((await t.upload(body, { type: "video/mp4", query: videoQuery(t.posterId), length: 96_000_000 })).status, 413);
+});
+
+test("dispatchVariants sends one video and two images as two runs; the video run is one item with k video and the full-frame crop", async () => {
+  const t = await withPoster();
+  const video = await json(await t.video());
+  const image = await json(await t.upload(WEBP));
+  const keys = [t.DB.sqlite.prepare("SELECT key FROM variants").all().map((row) => row.key)].flat();
+  assert.equal(keys.length, 3);
+  const realFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (_url, init) => { calls.push(JSON.parse(JSON.parse(init.body).inputs.items)); return new Response(null, { status: 204 }); };
+  try {
+    await dispatchVariants({ ...t.env, GITHUB_ACTIONS_TOKEN: "token" }, keys);
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+  assert.deepEqual(calls.map((items) => items.length).sort(), [1, 2]);
+  assert.deepEqual(calls.find((items) => items.length === 1), [{ m: video.body.id, c: [0, 0, 1920, 1080], k: "video" }]);
+  assert.ok(calls.find((items) => items.length === 2).every((item) => item.k === undefined && [image.body.id, t.posterId].includes(item.m)));
+});
+
+test("update-media of a poster does not rewrite the video record that points at it", async () => {
+  const t = await withPoster();
+  const video = await json(await t.video());
+  const done = await json(await t.post("update-media", { id: t.posterId, version: 1, altVi: "Moi", altEn: "New", tags: [] }));
+  assert.deepEqual([done.status, done.body.updatedRecords], [200, 0]);
+  assert.equal(t.row("media", video.body.id).version, 1);
+});
+
+test("media-file honours Range on a video: 206 with 10 bytes and Content-Range, 200 without Range, Accept-Ranges on both", async () => {
+  const t = await withPoster();
+  const { body } = await json(await t.video());
+  const part = await t.send(`media-file?id=${body.id}`, { headers: { Range: "bytes=0-9" } });
+  assert.deepEqual([part.status, part.headers.get("Content-Range"), part.headers.get("Content-Length"), part.headers.get("Accept-Ranges")], [206, `bytes 0-9/${MP4.length}`, "10", "bytes"]);
+  assert.ok(Buffer.from(await part.arrayBuffer()).equals(MP4.subarray(0, 10)));
+  const full = await t.send(`media-file?id=${body.id}`);
+  assert.deepEqual([full.status, full.headers.get("Accept-Ranges"), full.headers.get("Content-Type")], [200, "bytes", "video/mp4"]);
 });

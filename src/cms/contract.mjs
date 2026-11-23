@@ -42,6 +42,10 @@ export function mediaErrors(media) {
   return [
     ...["altVi", "altEn"].filter((field) => typeof media?.[field] !== "string" || !media[field].trim()).map((field) => `${at}: missing ${field}`),
     ...(isSize(media?.width) && isSize(media?.height) ? [] : [`${at}: width and height must be positive integers`]),
+    ...(media?.kind === "video" ? [
+      ...(typeof media.duration === "number" && media.duration > 0 && media.duration <= 600 ? [] : [`${at}: duration must be a number in (0, 600]`]),
+      ...(typeof media.posterId === "string" && ID.test(media.posterId) ? [] : [`${at}: posterId must be a media id`]),
+    ] : []),
   ];
 }
 
@@ -144,7 +148,8 @@ export async function shapeErrors(type, data, ctx = {}) {
     const media = mediaById.get(ref.mediaId);
     if (!media) errors.push(shape(`${at}: media ${ref.mediaId} does not exist`, "media-unknown"));
     // SVG media go only into client logos, and a logo takes only SVG (K9).
-    else if ((media.mime === SVG) !== (type === "client-logo")) errors.push(shape(`${at}: media ${ref.mediaId} (${media.mime}) cannot be placed in ${type}`, "media-kind"));
+    // Video media go nowhere in part 1 (cms-plan Q6 "Video"); part 2 opens them to the same renderer.
+    else if (media.kind === "video" || (media.mime === SVG) !== (type === "client-logo")) errors.push(shape(`${at}: media ${ref.mediaId} (${media.mime}) cannot be placed in ${type}`, "media-kind"));
     else errors.push(...cropErrors(ref.crop, media, `${at}: media ${ref.mediaId}`));
   }
   // Project card (cms-content R4): card media come from the page's own media; seeded crops (legacySrc) are exempt.

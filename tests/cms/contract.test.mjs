@@ -35,6 +35,18 @@ test("project card with one media is missing; card media outside the page is a s
   assert.ok((await shapeErrors("project", page, ctx)).some(({ code }) => code === "card-foreign"));
 });
 
+test("a placement of a video media is a media-kind shape error, and a video media needs duration and posterId (P9)", async () => {
+  const { ctx, find } = seed();
+  const page = find("project", "can-ho-go-soi");
+  const video = { id: "clip-01", kind: "video", mime: "video/mp4", source: "r2", width: 1920, height: 1080, altVi: "v", altEn: "v", duration: 12.5, posterId: "poster-01" };
+  const mediaById = new Map([...ctx.mediaById, [video.id, video]]);
+  assert.ok((await shapeErrors("project", { ...page, cover: { ...page.cover, mediaId: video.id } }, { ...ctx, mediaById })).some(({ code }) => code === "media-kind"));
+  assert.deepEqual(await fullErrors("media", video, ctx), []);
+  const bad = (await fullErrors("media", { ...video, duration: 0, posterId: "Bad Id" }, ctx)).map(({ message }) => message);
+  assert.deepEqual(bad, ["clip-01: duration must be a number in (0, 600]", "clip-01: posterId must be a media id"]);
+  assert.deepEqual((await fullErrors("media", { ...video, duration: 601 }, ctx)).map(({ message }) => message), ["clip-01: duration must be a number in (0, 600]"]);
+});
+
 test("crop outside the image, unknown media, bad id and unknown block are shape errors", async () => {
   const { ctx, find } = seed();
   const page = find("project", "can-ho-go-soi");
