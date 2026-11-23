@@ -40,14 +40,14 @@ export function createClient(ui) {
     inSearch = true;
     ui.announce(copy.results(ids.length, lastText || copy.imageCount(lastImages)));
   };
-  const finishEmpty = (note = copy.empty) => {
+  const finishEmpty = (note = copy.empty, action) => {
     grid.setPending(false);
     if (inSearch) {
       inSearch = false;
       grid.clearResults(); // its masonry:search-left carries reason "clear" and is ignored
     }
     // A short grey line in the bar (owner 2026-11-18), gone after 4 s like the image notes.
-    ui.notice(note);
+    ui.notice(note, action);
   };
 
   // images: JPEG base64 strings from images.mjs. Text alone gets the keyword fallback at 0.8 s; with images the grid waits for
@@ -57,6 +57,8 @@ export function createClient(ui) {
     if (!text && !images.length) return false;
     stop();
     const my = turn;
+    // Server trouble keeps a note with "Try again" until the visitor acts (owner 2026-11-23).
+    const retry = { label: copy.retry, onClick: () => submit({ text, images }) };
     lastText = text;
     lastImages = images.length;
     ui.session.save({ text, images });
@@ -71,11 +73,15 @@ export function createClient(ui) {
     ui.announce(copy.searching);
     abort = new AbortController();
     let shown = null;
+    // Set once the image wait ends: an answer after that goes behind the offer button if the visitor has moved (owner 2026-11-23).
+    let late = false;
     if (images.length) {
       timers.push(setTimeout(() => {
         if (my !== turn) return;
         grid.setPending(false);
-        ui.notice(copy.slow, { label: copy.retry, onClick: () => submit({ text, images }) });
+        ui.notice(copy.slow, retry);
+        late = true;
+        touched = false;
       }, cfg.timing.imageWaitMs));
     } else {
       timers.push(setTimeout(() => {
@@ -86,7 +92,7 @@ export function createClient(ui) {
           show(ids);
           touched = false;
         } else {
-          timers.push(setTimeout(() => my === turn && (stop(), finishEmpty()), cfg.timing.imageWaitMs - cfg.timing.textWaitMs));
+          timers.push(setTimeout(() => my === turn && (stop(), finishEmpty(copy.trouble, retry)), cfg.timing.imageWaitMs - cfg.timing.textWaitMs));
         }
       }, cfg.timing.textWaitMs));
     }
@@ -105,11 +111,16 @@ export function createClient(ui) {
     if (my !== turn) return true;
     clearTimers();
     if (data?.status !== "ok") {
-      // Image search paused: that note stays instead of "no match", which would blame the visitor's images.
-      const note = images.length ? copy.paused : copy.empty;
+      // Server trouble: keyword results if any, and a note that says so instead of "no match", which would blame the visitor.
       const ids = shown ?? keywordOnly(keyword, order, cfg);
-      if (!shown) ids.length ? show(ids) : finishEmpty(note);
-      if (images.length && (shown || ids.length)) ui.notice(note);
+      const note = images.length ? copy.imageTrouble : copy.trouble;
+      if (!ids.length) return finishEmpty(note, retry), true;
+      const offered = !shown && late && touched;
+      if (offered) grid.offerResults(ids);
+      else if (!shown) show(ids);
+      ui.notice(note, retry);
+      // Screen readers hear the results and the trouble, the note alone would hide the count.
+      if (!offered) ui.announce(`${copy.results(ids.length, text || copy.imageCount(images.length))}. ${note}`);
       return true;
     }
     ui.notice("");
@@ -122,6 +133,9 @@ export function createClient(ui) {
           ui.announce(copy.more);
         }
       }
+    } else if (late && touched && ranked.ids.length) {
+      grid.offerResults(ranked.ids);
+      ui.announce(copy.more);
     } else {
       ranked.ids.length ? show(ranked.ids) : finishEmpty();
     }

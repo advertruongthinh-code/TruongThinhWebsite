@@ -61,10 +61,10 @@ Danh sách (VI / EN): "Tìm hộp đèn, chữ nổi, kệ…" / "Search lightbo
 chữ trắng (vùng bấm 32px); thanh không cao thêm, không còn khay ảnh. Bấm thumbnail thì mở chọn ảnh để thay. Đưa ảnh mới (một hay nhiều file) thì ảnh đầu thay ảnh
 cũ ([Tìm kiếm R8](advertising-search.md#r8-ảnh-khách-đưa-vào)). Bỏ ảnh thì focus về nút ảnh. Phần tìm (1 ảnh gửi API) thuộc thread rà soát tìm kiếm ([Tìm kiếm R8](advertising-search.md#r8-ảnh-khách-đưa-vào)).
 
-**Thông báo.** ("Chưa thấy mẫu phù hợp", thông báo về ảnh của R8, đang chậm, tạm nghỉ): không còn khay, nên thông báo là một lớp chữ đè lên ô chữ (chữ khách gõ
+**Thông báo.** ("Chưa thấy mẫu phù hợp", thông báo về ảnh của R8, đang chậm, lỗi tìm): không còn khay, nên thông báo là một lớp chữ đè lên ô chữ (chữ khách gõ
 tạm trong suốt), trượt vào và ra như chữ gợi ý, chữ `ink` đậm 600 để khác chữ gợi ý; 4 giây rồi chữ khách gõ hiện lại. Khách gõ hoặc bấm vào ô thì thông báo tắt
-ngay. Đang chậm và tạm nghỉ ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)): thông báo ở lại tới khi khách làm gì đó, cuối thông báo có nút chữ "Thử lại" / "Retry". Phone: dùng câu ngắn ("Ảnh chưa đọc
-được, thử JPG" ...), tối đa 28 ký tự. Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
+ngay. Đang chậm và lỗi tìm ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)): thông báo ở lại tới khi khách làm gì đó, cuối thông báo có nút chữ "Thử lại" / "Try again". Phone: dùng câu ngắn ("Ảnh chưa đọc
+được, thử JPG" ...), tối đa 28 ký tự; thông báo có nút thì câu phải vừa phần còn lại ở phone 360px (khoảng 115px VI, 95px EN), nên lỗi tìm dùng "Lỗi tìm kiếm" / "Search error". Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
 
 ### R4. Khe CTA
 
@@ -161,7 +161,9 @@ Owner 2026-11-23: tìm xong (Enter, kính lúp, thêm ảnh) thì trang trượt
 PC và phone. Đầu lưới nằm dưới đáy header một khoảng bằng lề trái, phải của lưới so với mép trang (`--masonry-outer`); header ẩn khi cuộn
 xuống và hiện khi cuộn lên ([phone-header-scroll R2](phone-header-scroll.md#r2-header-đi-theo-quãng-cuộn)), nên cuộn xuống thì khoảng đó tính
 từ mép trên màn hình. Trượt 600ms theo đường `--ease-card`, cùng lúc lưới xếp lại; chạm, lăn chuột hoặc bấm phím thì dừng; giảm chuyển động
-thì nhảy ngay. Bấm chip trong kết quả hoặc bỏ tìm (Esc, nút xoá): chỉ trượt khi lưới mới ngắn hơn làm trang lùi về chỗ thấy CTA; còn lại đứng yên.
+thì nhảy ngay. Tìm lại đúng câu cũ (kết quả y hệt) cũng trượt (owner 2026-11-23). Không có kết quả thì đứng yên; trang chỉ trượt khi kết quả về,
+không trượt lúc bấm. Ảnh về muộn sau khi khách đã cuộn thì thành nút "Có thêm kết quả gợi ý", bấm mới trượt ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)).
+Bấm chip trong kết quả hoặc bỏ tìm (Esc, nút xoá): chỉ trượt khi lưới mới ngắn hơn làm trang lùi về chỗ thấy CTA; còn lại đứng yên.
 
 ```gherkin
 Given trang gốc ở 384px, cuộn tới tận cuối, thanh ở khe CTA
