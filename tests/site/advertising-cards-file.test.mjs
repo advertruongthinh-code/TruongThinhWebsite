@@ -67,3 +67,24 @@ test("a card without titleVi stops the build naming the card", { timeout: 120_00
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /cms-card-1/);
 });
+
+test("an R2 card media without its manifest stops the loader naming the key", { timeout: 60_000 }, (t) => {
+  const { dir } = contentWithNewCard();
+  t.after(() => rmSync(dir, { recursive: true, force: true }));
+  writeFileSync(path.join(dir, "variants.json"), "{}");
+  const result = spawnSync(process.execPath, ["--input-type=module", "-e", 'await import("./src/site/advertising-products/media-manifest.mjs");'], { cwd: projectRoot, env: env(dir, ""), encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, new RegExp(`cms-card-1 media cms-card-1: variants.json has no manifest for key ${KEY}`));
+});
+
+test("the build stops when the card pages do not match cards plus merged ids", { timeout: 300_000 }, (t) => {
+  const { dir } = contentWithNewCard();
+  const out = mkdtempSync(path.join(projectRoot, ".site-output-r2-"));
+  t.after(() => { rmSync(dir, { recursive: true, force: true }); rmSync(out, { recursive: true, force: true }); });
+  // A merged id that is also a live card writes one p/ page for two entries.
+  const merged = JSON.parse(readFileSync(path.join(dir, "advertising-merged.json"), "utf8"));
+  writeFileSync(path.join(dir, "advertising-merged.json"), JSON.stringify({ ...merged, "cms-card-1": ADVERTISING_MEDIA_MANIFEST[0].id }));
+  const result = spawnSync(process.execPath, ["scripts/site/prepare-static-assets.mjs"], { cwd: projectRoot, env: env(dir, out), encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /advertising-products\/p has \d+ pages for \d+ cards and \d+ merged ids/);
+});
