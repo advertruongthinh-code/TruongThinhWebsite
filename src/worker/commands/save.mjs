@@ -94,7 +94,7 @@ export default {
     const { pending = 0, cron_at: cronAt } = results.at(-1).results[0] ?? {};
     if (prepared.redo.length) ctx?.waitUntil?.(dispatchVariants(env, prepared.redo));
     // Dead Cron fallback: the save sends the wanted build itself (CPU of one fetch, only while Cron is down).
-    if (status === "published" && pending === 0 && cronStale(cronAt)) ctx?.waitUntil?.(flushBuild(env, new Date()));
+    if (status === "published" && pending === 0 && cronStale(cronAt)) ctx?.waitUntil?.(flushBuild(env, new Date()).catch((error) => console.error("flushBuild", String(error))));
     return json({ version: newVersion, status, missing, pending });
   },
 };

@@ -58,7 +58,7 @@ export default {
     ]);
     // Dead Cron fallback (dispatch.mjs CRON_STALE_MS): opening the status page sends a wanted build.
     const stale = cronStale(cronAt);
-    if (stale) ctx?.waitUntil?.(flushBuild(env, new Date()));
+    if (stale) ctx?.waitUntil?.(flushBuild(env, new Date()).catch((error) => console.error("flushBuild", String(error))));
     return json({
       paused: paused === "1",
       dispatchError: dispatchError ?? null,
