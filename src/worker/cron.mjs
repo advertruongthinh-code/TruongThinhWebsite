@@ -2,15 +2,16 @@
 // | UTC minute | Job                                                       |
 // | every      | settleVariants (P3), except daily job minutes; minutes divisible by 5 add retryBuild (P4) |
 // | 18:00      | exportDatabase (S5)                                       |
-// | 18:05      | pruneBackups (S5), checkAccessDrift (P7, part 2)          |
+// | 18:05      | pruneBackups (S5), checkAccessDrift (P7)                  |
 // | 18:10      | purgeOldTrash (P8, part 2)                                |
 // | 18:15      | pruneAudit, removeOrphans (P8, part 2)                    |
 // | hh:33      | exportIfMissing (S5): retries the export until today's file exists |
+import { checkAccessDrift } from "./access.mjs";
 import { exportDatabase, exportIfMissing, pruneBackups } from "./backup.mjs";
 import { retryBuild } from "./dispatch.mjs";
 import { settleVariants } from "./variants.mjs";
 
-const DAILY = { "18:00": [exportDatabase], "18:05": [pruneBackups] }; // later tasks add entries
+const DAILY = { "18:00": [exportDatabase], "18:05": [pruneBackups, checkAccessDrift] }; // later tasks add entries
 const jobsAt = (time) => DAILY[time] ?? (time.endsWith(":33") ? [exportIfMissing] : null);
 
 // Awaited rather than handed to waitUntil, so the invocation stays alive for the whole export poll.

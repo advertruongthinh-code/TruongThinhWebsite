@@ -149,3 +149,33 @@ button:disabled { cursor: not-allowed; opacity: 0.55; }
 .dock-menu[hidden] { display: none; }
 .dock-menu button { padding: 6px 10px; border: 0; border-radius: 4px; background: none; text-align: left; }
 .dock-menu button:hover, .dock-menu button:focus-visible { background: var(--paper); }
+
+/* Accounts panel (cms-editor-ops.md R6) */
+.acc-add { display: grid; gap: 10px; margin-bottom: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+.acc-add .field { margin: 0; }
+.acc-add > button { justify-self: start; padding: 6px 18px; border-radius: 6px; }
+.acc-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin: 0; padding: 0; border: 0; }
+.acc-roles legend { margin-bottom: 4px; color: var(--muted); font-size: 13px; }
+.acc-role { display: grid; grid-template-columns: auto 1fr; gap: 2px 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); cursor: pointer; }
+.acc-role input { grid-row: span 2; margin: 2px 0 0; }
+.acc-role small { color: var(--muted); font-size: 12px; }
+.acc-role:has(input:checked) { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.acc-list { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.panel--accounts > * { max-width: 760px; }
+.acc-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); }
+.acc-row.is-locked { background: var(--paper); }
+.acc-row.is-locked .acc-who strong, .acc-row.is-locked .acc-avatar { opacity: 0.55; }
+.acc-avatar { display: grid; flex: none; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #e3ecfb; color: var(--accent); font-weight: 600; }
+.acc-who { display: grid; flex: 1 1 200px; min-width: 0; }
+.acc-controls { display: flex; flex: none; align-items: center; gap: 8px; margin-left: auto; }
+.acc-who strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-who small { color: var(--muted); font-size: 12px; }
+.acc-me { margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: var(--paper); color: var(--muted); font-size: 11px; font-style: normal; font-weight: 400; }
+.panel .acc-row select { width: 120px; margin: 0; }
+.acc-badge { padding: 2px 8px; border-radius: 999px; background: var(--paper); color: var(--muted); font-size: 12px; white-space: nowrap; }
+.acc-badge.is-on { background: #e1f3e6; color: #1d6b35; }
+.acc-action { min-width: 72px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+.acc-action.is-danger, .acc-dialog .is-danger { border-color: var(--danger); color: var(--danger); }
+.acc-dialog { max-width: 420px; border: 1px solid var(--line); border-radius: 8px; }
+.acc-dialog__actions { display: flex; justify-content: flex-end; gap: 8px; }
+.acc-dialog__actions button { padding: 6px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); }

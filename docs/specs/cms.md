@@ -254,7 +254,7 @@ Admin là [editor](cms-editor.md), không thuộc Design System, không đưa to
 | R | Test hoặc command |
 | --- | --- |
 | R1 | chưa có; cần: route trang không chạy Worker, trang mở được khi admin tắt |
-| R2, R5 | `pnpm qa:worker:security` kiểm JWT, service token, bootstrap owner, Origin, Content-Type, vai trò; cần thêm: ma trận quyền, owner cuối, xóa thẳng chỉ owner |
+| R2, R5 | `pnpm qa:worker:security` kiểm JWT, service token, bootstrap owner, Origin, Content-Type, vai trò; `node --test tests/worker/accounts.test.mjs` kiểm tài khoản: Access trước khi thêm, 502 không đổi D1, khóa ghi D1 trước, owner cuối 409, giữ quy tắc khác của policy, lệch Access; cần thêm: ma trận quyền, xóa thẳng chỉ owner |
 | R3, R4, R6 | chưa có; cần integration lưu, thùng rác, version lệch, dựng lỗi giữ bản cũ, rollback chặn dựng |
 | R6 sao lưu | chưa có; cần diễn tập khôi phục, ghi kết quả trong PR slice Storage |
 | R7 | chưa có; cần HTML preview bằng HTML build trên fixture mọi khối, slot trang chuẩn và card |
