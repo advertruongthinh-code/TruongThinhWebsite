@@ -1,4 +1,6 @@
 // Daily D1 export to the private bucket and its 30-day retention (CMS plan Q11, task S5; docs/specs/cms.md R6).
+// Dumps hold account emails: any handler or sweep over MEDIA_ORIGINALS (media-original, P8 removeOrphans) must stay
+// outside backups/ and never serve or delete keys under it.
 const PREFIX = "backups/d1/";
 const KEEP_DAYS = 30;
 const DAY_MS = 86_400_000;
@@ -13,12 +15,20 @@ export async function exportDatabase(env) {
       headers: { Authorization: `Bearer ${env.D1_EXPORT_TOKEN}`, "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    const { result } = await response.json();
-    if (!response.ok || result?.status === "error") throw new Error(`d1 export failed: ${response.status} ${result?.error ?? ""}`);
+    const data = await response.json().catch(() => ({}));
+    const { result } = data;
+    if (!response.ok || result?.status === "error") {
+      const reason = result?.error ?? data.errors?.map(({ code, message }) => `${code} ${message}`).join("; ") ?? "";
+      throw new Error(`d1 export failed: ${response.status} ${reason}`);
+    }
     if (result?.status === "complete") {
       const dump = await fetch(result.result.signed_url);
       if (!dump.ok) throw new Error(`d1 export download failed: ${dump.status}`);
-      await env.MEDIA_ORIGINALS.put(`${PREFIX}${new Date().toISOString().slice(0, 10)}.sql`, dump.body);
+      // R2 put needs a stream of known length; FixedLengthStream gives it without buffering the dump.
+      const length = Number(dump.headers.get("Content-Length"));
+      if (!length || dump.headers.get("Content-Encoding")) throw new Error("d1 export download has no known length");
+      const key = `${PREFIX}${new Date().toISOString().slice(0, 10)}.sql`;
+      await env.MEDIA_ORIGINALS.put(key, dump.body.pipeThrough(new FixedLengthStream(length)));
       return;
     }
     body = { output_format: "polling", current_bookmark: result.at_bookmark };

@@ -13,17 +13,25 @@ const originalFetch = globalThis.fetch;
 function stubFetch(apiReplies, dump = "CREATE TABLE records;") {
   globalThis.fetch = async (url, init) => {
     calls.push({ url: String(url), body: init?.body && JSON.parse(init.body) });
-    return String(url).includes("/d1/database/") ? apiReplies.shift() : new Response(dump);
+    if (String(url).includes("/d1/database/")) return apiReplies.shift();
+    return new Response(dump, { headers: { "Content-Length": String(Buffer.byteLength(dump)) } });
   };
 }
 
 beforeEach(() => {
   calls = [];
   globalThis.scheduler = { wait: async () => {} };
+  // Workers runtime class; in tests a pass-through stream is enough.
+  globalThis.FixedLengthStream = class extends TransformStream {
+    constructor() {
+      super();
+    }
+  };
 });
 afterEach(() => {
   globalThis.fetch = originalFetch;
   delete globalThis.scheduler;
+  delete globalThis.FixedLengthStream;
 });
 
 test("export polls with the bookmark, then streams the dump into backups/d1/<date>.sql", async () => {
@@ -50,6 +58,16 @@ test("a failed dump download throws and writes nothing", async () => {
   stubFetch([reply({ result: { status: "complete", result: { signed_url: "https://x/dump.sql" } } })]);
   globalThis.fetch = ((inner) => async (url, init) => (String(url).includes("dump") ? new Response("", { status: 403 }) : inner(url, init)))(globalThis.fetch);
   await assert.rejects(exportDatabase(e), /download failed: 403/);
+  assert.equal(e.MEDIA_ORIGINALS.objects.size, 0);
+});
+
+test("an API refusal reports the Cloudflare error code, and a dump without length is not written", async () => {
+  stubFetch([reply({ result: null, errors: [{ code: 10000, message: "Authentication error" }] }, 403)]);
+  await assert.rejects(exportDatabase(env()), /d1 export failed: 403 10000 Authentication error/);
+  const e = env();
+  stubFetch([reply({ result: { status: "complete", result: { signed_url: "https://x/dump.sql" } } })]);
+  globalThis.fetch = ((inner) => async (url, init) => (String(url).includes("dump") ? new Response("x") : inner(url, init)))(globalThis.fetch);
+  await assert.rejects(exportDatabase(e), /no known length/);
   assert.equal(e.MEDIA_ORIGINALS.objects.size, 0);
 });
 

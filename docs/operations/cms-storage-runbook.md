@@ -51,7 +51,7 @@ Ba lớp, từ gần tới xa ([cms.md](../specs/cms.md) R6):
 | --- | --- | --- | --- |
 | D1 Time Travel | Cloudflare tự làm | 7 ngày (D1 Free) | Trong D1 |
 | Export hằng ngày | Cron Worker admin lúc 18:00 UTC (01:00 giờ Việt Nam), `src/worker/backup.mjs` | 30 ngày (dọn lúc 18:05 UTC) | Bucket private `truong-thinh-media-originals`, key `backups/d1/<YYYY-MM-DD>.sql` |
-| Bản sao tuần | Task Scheduler trên PC owner, `scripts/cms/backup-pull.ps1` | Theo ổ PC và NAS | `E:\TruongThinhBackup\cms\originals`, rồi NAS |
+| Bản sao tuần | Task Scheduler trên PC owner, `scripts/cms/backup-pull.ps1` (chép thêm, không xóa file đã có) | Theo ổ PC và NAS | `E:\TruongThinhBackup\cms\originals`, rồi `<NAS>\cms-originals` |
 
 `GET /api/admin/build-status` trả `backupAt` (giờ upload của file export mới nhất, hoặc `null`). Quá 2 ngày là export đang hỏng: xem Workers Logs của `truong-thinh-admin`, dòng `exportDatabase`.
 
@@ -59,7 +59,7 @@ Ba lớp, từ gần tới xa ([cms.md](../specs/cms.md) R6):
 
 Owner nhập một lần; agent không đọc giá trị. `D1_DATABASE_ID` là biến thường trong `wrangler.toml` (test giữ nó bằng `database_id`).
 
-1. Cloudflare, My Profile, API Tokens, Create Token, Custom token: tên `tt-d1-export`; Permissions: Account, D1, Edit; Account Resources: tài khoản của site. Create, chép token.
+1. Cloudflare, My Profile, API Tokens, Create Token, Custom token: tên `tt-d1-export`; Permissions: Account, D1, Edit; Account Resources: tài khoản của site; TTL: 1 năm. Create, chép token.
 2. Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets, Add: Type `Secret`, tên `D1_EXPORT_TOKEN`, dán token. Add lần nữa: `Secret`, tên `CF_ACCOUNT_ID`, giá trị là Account ID (cột phải trang Workers & Pages). Bấm Deploy.
 
 ### Khôi phục
@@ -86,7 +86,7 @@ Chạy trên PC sau lần export thật đầu tiên:
 Owner làm một lần trên PC (agent không đăng ký thay):
 
 1. R2, Manage API tokens: tạo token "Object Read only" chỉ cho bucket `truong-thinh-media-originals`.
-2. `rclone config`: remote tên `r2cms`, kiểu S3, provider Cloudflare, dán Access Key ID, Secret Access Key và endpoint của token đó.
+2. `rclone config`: remote tên `r2cms`, kiểu S3, provider Cloudflare, dán Access Key ID, Secret Access Key và endpoint của token đó; đặt mật khẩu cho file cấu hình (mục `s` của `rclone config`). Thư mục sao lưu trên PC và NAS chứa email tài khoản: không chia sẻ.
 3. `schtasks /create /tn "TruongThinh CMS backup" /sc weekly /d SUN /st 02:00 /tr "pwsh -NoProfile -File E:\TruongThinh-Website\scripts\cms\backup-pull.ps1 -NasPath <đường dẫn NAS>"`
 
 ## Migration D1
@@ -104,5 +104,5 @@ Không ghi giá trị. Thread tạo credential điền dòng của nó; card Not
 | Service token Access CMS (`tt-cms-ci`) | S4 bước 8 | 2027-11-23 | Zero Trust, Access, Service Auth |
 | Token R2 bucket public (`tt-r2-public-write`) | S4 bước 5 | Không hết hạn | R2, Manage API tokens |
 | Token CI Cloudflare "Edit Cloudflare Workers" (environment `cloudflare-deploy`) | S4 bước 5 | Không hết hạn | Cloudflare, API Tokens |
-| Token export D1 (`tt-d1-export`, secret Worker `D1_EXPORT_TOKEN`) | S5 | | Cloudflare, API Tokens |
+| Token export D1 (`tt-d1-export`, secret Worker `D1_EXPORT_TOKEN`) | S5 | 1 năm sau ngày tạo (ghi ngày khi tạo) | Cloudflare, API Tokens |
 | Token R2 chỉ đọc bucket private (rclone `r2cms` trên PC) | S5 | | R2, Manage API tokens |

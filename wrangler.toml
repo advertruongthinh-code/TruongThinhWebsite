@@ -43,5 +43,6 @@ simple = { limit = 20, period = 60 }
 [triggers]
 crons = ["* * * * *"]
 
+# Logs only: traces would record the signed URL of the D1 dump (src/worker/backup.mjs).
 [observability]
 enabled = true
