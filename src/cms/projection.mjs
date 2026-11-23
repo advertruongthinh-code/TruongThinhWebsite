@@ -1,9 +1,9 @@
 // Snapshot projection (cms-plan Q2): repo content files <-> CMS records <-> snapshot <-> content files the build reads.
 // Pure module: callers read and write files; fileFacts carries each media file's { hash, bytes } computed by the seed.
-import { HERO_PAGES, OPEN_TYPES, SINGLETON_TYPES } from "./contract.mjs";
+import { HERO_PAGES, OPEN_TYPES, SINGLETON_TYPES, SVG } from "./contract.mjs";
 import { mediaRefs } from "./media-ref.mjs";
 
-const FILES = { news: "news.json", project: "projects.json", "advertising-card": "advertising-cards.json", "hero-slide": "hero-slides.json", "home-projects": "home-projects.json", menu: "menu.json", "page-copy": "page-copy.json", contact: "contact.json" };
+const FILES = { news: "news.json", project: "projects.json", "advertising-card": "advertising-cards.json", "hero-slide": "hero-slides.json", "home-projects": "home-projects.json", menu: "menu.json", "page-copy": "page-copy.json", contact: "contact.json", "client-logo": "client-logos.json" };
 // Media id = file name without extension, cut to the 80-character id limit (a few Advertising audit files are longer).
 const stem = (path) => path.split("/").pop().replace(/\.[^.]+$/, "").slice(0, 80).replace(/-+$/, "");
 
@@ -16,6 +16,8 @@ export function filesToRecords(files, fileFacts = new Map()) {
     "advertising-card": files.cards ?? [],
     "hero-slide": HERO_PAGES.flatMap((page) => (files["hero-slides.json"]?.[page] ?? []).map((slide) => ({ ...slide, page }))),
     "page-copy": Object.entries(files["page-copy.json"] ?? {}).map(([id, data]) => ({ id, ...data })),
+    // order is the array position (records.position); snapshotToFiles writes it back.
+    "client-logo": (files["client-logos.json"] ?? []).map(({ order: _, ...logo }) => logo),
   };
   const records = [];
   const mediaByPath = new Map();
@@ -33,10 +35,16 @@ export function filesToRecords(files, fileFacts = new Map()) {
           for (let n = 2; usedIds.has(id); n += 1) id = `${base.slice(0, 79 - String(n).length).replace(/-+$/, "")}-${n}`;
           usedIds.add(id);
           const name = decorative ? base : undefined;
-          media = { id, kind: "image", source: "repo", path: ref.src, ...fileFacts.get(ref.src), mime: "image/webp", width: ref.width, height: ref.height, altVi: name ?? ref.altVi, altEn: name ?? ref.altEn, tags: [] };
+          // An SVG logo's size is its viewBox rounded, at least 1 (K9).
+          const box = type === "client-logo" ? ref.viewBox.trim().split(/[\s,]+/).map(Number) : null;
+          media = box
+            ? { id, kind: "image", source: "repo", path: ref.src, ...fileFacts.get(ref.src), mime: SVG, width: Math.max(1, Math.round(box[2])), height: Math.max(1, Math.round(box[3])), viewBox: ref.viewBox, altVi: ref.name, altEn: ref.name, tags: [] }
+            : { id, kind: "image", source: "repo", path: ref.src, ...fileFacts.get(ref.src), mime: "image/webp", width: ref.width, height: ref.height, altVi: name ?? ref.altVi, altEn: name ?? ref.altEn, tags: [] };
           mediaByPath.set(ref.src, media);
         }
         ref.mediaId = media.id;
+        // A logo keeps src and viewBox; it has no crop or alt of its own (K9).
+        if (type === "client-logo") continue;
         // Seeded placements kept byte for byte (Q6): project card crops, reused files with another alt, decorative hero slides.
         // Image slots of standard pages are seeded as they are (K7).
         const legacy = type === "page-copy" || type === "project" && data.card?.media?.includes(ref) || decorative || ref.altVi !== media.altVi || ref.altEn !== media.altEn;
@@ -79,6 +87,7 @@ export function snapshotToFiles(snapshot, { mediaOrigin = "" } = {}) {
     else if (type === "menu") files[FILES[type]] = { ...rows[0], groups: rows[0].groups.map((group) => ({ ...group, items: group.items.filter(({ link }) => !link.startsWith("page:project/") || projectIds.has(link.slice(13))) })) };
     else if (type === "page-copy") files[FILES[type]] = Object.fromEntries(rows.map(({ id, ...data }) => [id, data]));
     else if (type === "contact") files[FILES[type]] = rows[0];
+    else if (type === "client-logo") files[FILES[type]] = rows.map(({ id, name, src, viewBox }, index) => ({ id, name, src, viewBox, order: index + 1 }));
     else if (type === "advertising-card") {
       // sourceOrder follows records.position within each category, from 0 (cms-plan part 2 K6).
       const next = new Map();

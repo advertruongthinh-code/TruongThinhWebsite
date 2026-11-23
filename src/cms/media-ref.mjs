@@ -22,7 +22,7 @@ export function mediaRefs(type, data) {
     ...(type === "project" && isObject(data.card) ? list(data.card.media) : []),
   ];
   if (type === "advertising-card") return [...(isObject(data.media) ? [data.media] : []), ...list(data.mediaItems)];
-  if (type === "hero-slide") return [data];
+  if (type === "hero-slide" || type === "client-logo") return [data];
   // Image slots of a standard page: the slot objects that are not text (K7).
   if (type === "page-copy") return Object.values(isObject(data.slots) ? data.slots : {}).filter((slot) => isObject(slot) && !Object.hasOwn(slot, "vi"));
   return [];
@@ -36,9 +36,13 @@ export async function materialize(type, data, mediaById) {
   for (const ref of mediaRefs(type, copy)) {
     const media = ref.legacySrc === undefined ? mediaById.get(ref.mediaId) : undefined;
     if (!media) continue;
-    const crop = ref.crop ?? [0, 0, media.width, media.height];
+    // A logo is never cropped: its one variant is the whole SVG, and the record keeps only src and viewBox (K9).
+    const logo = type === "client-logo";
+    const crop = !logo && ref.crop || [0, 0, media.width, media.height];
     const key = media.source === "repo" && isFullCrop(media, crop) ? "" : await variantKey(media.hash, crop);
-    Object.assign(ref, { crop, src: key ? `/v/${key}/${media.id}.webp` : media.path, width: crop[2], height: crop[3], altVi: media.altVi, altEn: media.altEn });
+    const src = key ? `/v/${key}/${media.id}.${logo ? "svg" : "webp"}` : media.path;
+    if (logo) Object.assign(ref, { src, viewBox: media.viewBox });
+    else Object.assign(ref, { crop, src, width: crop[2], height: crop[3], altVi: media.altVi, altEn: media.altEn });
     uses.set(`${media.id}|${key}`, { mediaId: media.id, key, crop: key ? crop.join(",") : "" });
   }
   return { data: copy, uses: [...uses.values()] };
