@@ -2,7 +2,7 @@
   "home": [
     {
       "id": "home-hero-office-reception-20261024",
-      "src": "/assets/content/projects/home-hero-office-reception-20261024.webp",
+      "src": "/assets/content/projects/quay-le-tan-van-phong.webp",
       "width": 3072,
       "height": 2048,
       "altVi": "",
@@ -19,7 +19,7 @@
   "residential": [
     {
       "id": "residential-hero-kitchen-dining",
-      "src": "/assets/content/projects/residential-hero-kitchen-dining.webp",
+      "src": "/assets/content/projects/tu-bep-chu-l-ban-an-go.webp",
       "width": 3072,
       "height": 2048,
       "altVi": "Tủ bếp gỗ công nghiệp chữ L có đèn hắt, bàn ăn gỗ",
@@ -36,7 +36,7 @@
   "commercial": [
     {
       "id": "commercial-hero-cafe",
-      "src": "/assets/content/projects/commercial-hero-cafe.webp",
+      "src": "/assets/content/projects/quan-cafe-san-vuon-quay-bar.webp",
       "width": 3072,
       "height": 2048,
       "altVi": "Quán cafe sân vườn về đêm, quầy bar đèn hắt, bàn ghế gỗ",

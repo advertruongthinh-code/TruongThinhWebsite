@@ -1223,7 +1223,7 @@ html.motion-enabled .site-menu:not(.is-active) .menu-close__icon {
 /* Without JavaScript the shuffle script assigns no src to any slide; the home hero shows a fixed image (page-home R12). */
 @media (scripting: none) {
   .hero[data-hero-intro] .hero-slides {
-    background: center / cover url("/assets/content/projects/home-hero-lobby-wall-art.webp");
+    background: center / cover url("/assets/content/projects/sanh-le-tan-tranh-tuong-den.webp");
   }
 }
 
@@ -3442,11 +3442,11 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 /* Without JavaScript the shuffle script assigns src to no slide; the hero shows a fixed image like the home page (detail-pages R11). */
 @media (scripting: none) {
   .residential-hero .hero-slides {
-    background: center / cover url("/assets/content/projects/residential-hero-kitchen-dining.webp");
+    background: center / cover url("/assets/content/projects/tu-bep-chu-l-ban-an-go.webp");
   }
 
   .commercial-hero .hero-slides {
-    background: center / cover url("/assets/content/projects/commercial-hero-cafe.webp");
+    background: center / cover url("/assets/content/projects/quan-cafe-san-vuon-quay-bar.webp");
   }
 }
 

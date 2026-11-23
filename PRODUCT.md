@@ -107,7 +107,7 @@ Ràng buộc public:
   [Brand guideline](design-system/brand.md#câu-chuyện-thương-hiệu), owner viết 2026-10-04.
 - Giữ nhận diện Trường Thịnh; logo, màu, motion và favicon theo
   [Brand guideline](design-system/brand.md#logo).
-- Không dùng khuôn mặt nhận diện, ngoại trừ `assets/content/shared/legacy-team.webp` đã được owner duyệt.
+- Không dùng khuôn mặt nhận diện, ngoại trừ `assets/content/shared/tho-lap-thung-tu-go-xuong.webp` đã được owner duyệt.
 
 ## Evidence on Hand
 

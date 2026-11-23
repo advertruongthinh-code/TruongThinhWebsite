@@ -19,7 +19,7 @@
    "en": "A two-bedroom apartment for a family of four: plenty of storage in oak, sage paint and soft cove light. Designed, built and installed by Trường Thịnh."
   },
   "cover": {
-   "src": "/assets/content/projects/can-ho-hero.webp",
+   "src": "/assets/content/projects/thiet-ke-noi-that-can-ho.webp",
    "width": 3072,
    "height": 2048,
    "altVi": "Nội thất căn hộ với quầy bar bếp, sofa và kệ TV gỗ sồi",
@@ -60,7 +60,7 @@
      }
     ],
     "image": {
-     "src": "/assets/content/projects/can-ho-hero.webp",
+     "src": "/assets/content/projects/thiet-ke-noi-that-can-ho.webp",
      "width": 3072,
      "height": 2048,
      "altVi": "Nội thất căn hộ với quầy bar bếp, sofa và kệ TV gỗ sồi",
@@ -88,28 +88,28 @@
     "type": "media-carousel",
     "images": [
      {
-      "src": "/assets/content/projects/can-ho-loi-vao.webp",
+      "src": "/assets/content/projects/tu-giay-kich-tran-can-ho.webp",
       "width": 2048,
       "height": 3072,
       "altVi": "Lối vào căn hộ với tủ giày kịch trần, hốc kệ đèn hắt",
       "altEn": "Apartment entryway with floor-to-ceiling shoe cabinets and a lit niche"
      },
      {
-      "src": "/assets/content/projects/can-ho-bep.webp",
+      "src": "/assets/content/projects/tu-bep-go-cong-nghiep-can-ho.webp",
       "width": 2048,
       "height": 3072,
       "altVi": "Tủ bếp gỗ công nghiệp căn hộ: tủ trên trắng, tủ dưới vân sồi",
       "altEn": "Apartment kitchen with white upper cabinets, oak-look base units and breakfast bar"
      },
      {
-      "src": "/assets/content/projects/can-ho-phong-ngu-2.webp",
+      "src": "/assets/content/projects/phong-ngu-tre-em-can-ho.webp",
       "width": 2048,
       "height": 3072,
       "altVi": "Phòng ngủ trẻ em căn hộ, giường ngăn kéo, bàn học và pegboard xanh",
       "altEn": "Kids' bedroom with storage bed, study desk and green pegboard wall"
      },
      {
-      "src": "/assets/content/projects/can-ho-phong-tam.webp",
+      "src": "/assets/content/projects/tu-lavabo-treo-go-soi.webp",
       "width": 2304,
       "height": 3072,
       "altVi": "Phòng tắm căn hộ với tủ lavabo treo gỗ sồi, mặt đá và gương",
@@ -176,7 +176,7 @@
     "type": "media-single",
     "position": "wide",
     "image": {
-     "src": "/assets/content/projects/can-ho-phong-ngu.webp",
+     "src": "/assets/content/projects/phong-ngu-tu-ao-trang.webp",
      "width": 3072,
      "height": 2048,
      "altVi": "Phòng ngủ căn hộ với giường gỗ sồi và tủ áo trắng kịch trần",
@@ -196,7 +196,7 @@
     "type": "media-single",
     "position": "left-2-3",
     "image": {
-     "src": "/assets/content/projects/can-ho-chi-tiet.webp",
+     "src": "/assets/content/projects/tu-tivi-canh-xanh-reu.webp",
      "width": 3072,
      "height": 2304,
      "altVi": "Cận cảnh tủ TV gỗ sồi với cánh xanh rêu, mạch cánh khít đều",
@@ -263,7 +263,7 @@
    "en": "A narrow, deep two-storey townhouse where a lightwell brings daylight into the middle of the home, with light oak joinery and terrazzo. By Trường Thịnh."
   },
   "cover": {
-   "src": "/assets/content/projects/gieng3-hero.webp",
+   "src": "/assets/content/projects/thiet-ke-nha-pho-gieng-troi.webp",
    "width": 3072,
    "height": 2048,
    "altVi": "Thiết kế nội thất nhà phố có giếng trời, tủ TV gỗ sồi sáng",
@@ -311,7 +311,7 @@
      }
     ],
     "image": {
-     "src": "/assets/content/projects/gieng3-hero.webp",
+     "src": "/assets/content/projects/thiet-ke-nha-pho-gieng-troi.webp",
      "width": 3072,
      "height": 2048,
      "altVi": "Thiết kế nội thất nhà phố có giếng trời, tủ TV gỗ sồi sáng",
@@ -339,21 +339,21 @@
     "type": "media-carousel",
     "images": [
      {
-      "src": "/assets/content/projects/gieng3-loi-vao.webp",
+      "src": "/assets/content/projects/tu-giay-go-soi-loi-vao.webp",
       "width": 2048,
       "height": 3072,
       "altVi": "Lối vào nhà phố với tủ gỗ sồi sáng kịch trần và ghế băng",
       "altEn": "Townhouse entry with floor-to-ceiling light oak cabinets and bench"
      },
      {
-      "src": "/assets/content/projects/gieng3-bep.webp",
+      "src": "/assets/content/projects/tu-bep-go-soi-nha-pho.webp",
       "width": 2048,
       "height": 3072,
       "altVi": "Bếp nhà phố tủ gỗ sồi sáng, bàn ăn gỗ nhìn ra sân sau",
       "altEn": "Townhouse kitchen with light oak cabinets and a dining table by the garden"
      },
      {
-      "src": "/assets/content/projects/gieng3-phong-tam.webp",
+      "src": "/assets/content/projects/phong-tam-op-terrazzo-tu-go.webp",
       "width": 2304,
       "height": 3072,
       "altVi": "Phòng tắm ốp terrazzo, lavabo đặt bàn và tủ treo gỗ sồi sáng",
@@ -420,7 +420,7 @@
     "type": "media-single",
     "position": "wide",
     "image": {
-     "src": "/assets/content/projects/gieng3-phong-ngu.webp",
+     "src": "/assets/content/projects/phong-ngu-vach-lam-go-soi.webp",
      "width": 3072,
      "height": 2048,
      "altVi": "Phòng ngủ nhà phố với vách lam gỗ sồi và tủ áo kịch trần",
@@ -441,14 +441,14 @@
     "layout": "left-large",
     "images": [
      {
-      "src": "/assets/content/projects/gieng3-phong-tho.webp",
+      "src": "/assets/content/projects/tu-tho-go-soi-nha-pho.webp",
       "width": 3072,
       "height": 2048,
       "altVi": "Phòng thờ nhà phố với tủ thờ gỗ sồi sáng giữa hai cửa sổ",
       "altEn": "Townhouse altar room with light oak altar cabinet between two windows"
      },
      {
-      "src": "/assets/content/projects/gieng3-chi-tiet.webp",
+      "src": "/assets/content/projects/tu-tho-go-soi-chi-tiet.webp",
       "width": 3072,
       "height": 2304,
       "altVi": "Cận cảnh cánh tủ thờ gỗ sồi sáng không tay nắm, chân tủ âm",
@@ -516,7 +516,7 @@
    "en": "A coworking floor with open desks, a glass meeting room, team rooms and a pantry, layered with felt, glass and fluted timber. Design and CNC joinery by Trường Thịnh."
   },
   "cover": {
-   "src": "/assets/content/projects/shared-office-open-desks.webp",
+   "src": "/assets/content/projects/noi-that-van-phong-mo.webp",
    "width": 3072,
    "height": 2048,
    "altVi": "Khu bàn làm việc chung với vách nỉ xanh, nội thất văn phòng gỗ",
@@ -571,7 +571,7 @@
      }
     ],
     "image": {
-     "src": "/assets/content/projects/shared-office-open-desks.webp",
+     "src": "/assets/content/projects/noi-that-van-phong-mo.webp",
      "width": 3072,
      "height": 2048,
      "altVi": "Khu bàn làm việc chung với vách nỉ xanh, nội thất văn phòng gỗ",

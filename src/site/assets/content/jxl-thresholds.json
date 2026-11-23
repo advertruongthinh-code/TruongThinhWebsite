@@ -80,7 +80,7 @@
  "assets/content/projects/advertising/kiosk-posm/kiosk-posm-06-brand-activation-kiosks.jxl": {
   "960": 42409
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-07-sampling-counters-v2-audit-a026-v2.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/quay-sampling-dac-san-dua.jxl": {
   "960": 205632,
   "1600": 216486,
   "2048": 222537
@@ -175,7 +175,7 @@
  "assets/content/projects/advertising/kiosk-posm/kiosk-posm-19-sampling-counters.jxl": {
   "960": 41634
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-20-event-reception-counters-audit-a039-v2.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/quay-le-tan-su-kien-cong.jxl": {
   "960": 170547,
   "1600": 182310,
   "2048": 188004
@@ -242,7 +242,7 @@
   "1600": 228424,
   "2048": 235574
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-30-trade-fair-coconut-ingredients.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/gian-hang-hoi-cho-nong-san.jxl": {
   "960": 204113,
   "1600": 218120,
   "2048": 228148
@@ -257,7 +257,7 @@
   "1600": 159002,
   "2048": 164438
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-33-owner-20260924-audit-a052-v1.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/standee-hai-mat-ngoai-troi.jxl": {
   "960": 161178,
   "1600": 167222
  },
@@ -273,7 +273,7 @@
   "960": 172676,
   "1600": 182060
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-35-owner-20260924-audit-a054-v1.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/standee-khung-ong-cua-hang.jxl": {
   "960": 168845,
   "1600": 174942
  },
@@ -290,7 +290,7 @@
   "1600": 175231,
   "2048": 186863
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-37-owner-20260924-audit-a056-v1.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/standee-quang-cao-cay-canh.jxl": {
   "960": 219122,
   "1600": 226316
  },
@@ -311,7 +311,7 @@
   "1600": 272886,
   "2048": 306899
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-40-imagegen-20261018.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/led-neon-chu-tiem-hoa.jxl": {
   "960": 263446,
   "1600": 279629,
   "2048": 308193
@@ -336,7 +336,7 @@
   "1600": 213270,
   "2048": 217461
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-45-imagegen-20261018.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/gian-hang-dac-san-nan-go.jxl": {
   "960": 252170,
   "1600": 263158,
   "2048": 270611
@@ -401,7 +401,7 @@
   "1600": 261400,
   "2048": 269328
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-64-imagegen-20261024.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/kiosk-banh-ngot-sieu-thi.jxl": {
   "960": 148308,
   "1600": 155162,
   "2048": 158059
@@ -444,7 +444,7 @@
   "1600": 147720,
   "2048": 151604
  },
- "assets/content/projects/advertising/kiosk-posm/kiosk-posm-73-ke-trung-bay-20261026.jxl": {
+ "assets/content/projects/advertising/kiosk-posm/ke-trung-bay-my-pham-spa.jxl": {
   "960": 147061,
   "1600": 150796
  },
@@ -496,7 +496,7 @@
   "960": 83619,
   "1600": 115302
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-04-indoor-matrix-led-systems-v2.jxl": {
+ "assets/content/projects/advertising/led-displays-lightboxes/bang-led-ma-tran-trong-nha.jxl": {
   "960": 162599,
   "1600": 177225,
   "2048": 185233
@@ -580,7 +580,7 @@
   "1600": 140194,
   "2048": 140925
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-20-imagegen-20261014.jxl": {
+ "assets/content/projects/advertising/led-displays-lightboxes/hop-den-de-ban-banh-mi.jxl": {
   "960": 175629,
   "1600": 183596,
   "2048": 193156
@@ -590,7 +590,7 @@
   "1600": 211963,
   "2048": 217181
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-22-imagegen-20261014.jxl": {
+ "assets/content/projects/advertising/led-displays-lightboxes/khung-poster-treo-tuong-tiem-banh.jxl": {
   "960": 185822,
   "1600": 200852,
   "2048": 204603
@@ -614,7 +614,7 @@
   "1600": 148948,
   "2048": 152912
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-27-imagegen-20261018.jxl": {
+ "assets/content/projects/advertising/led-displays-lightboxes/chu-noi-led-tren-mai.jxl": {
   "960": 184411,
   "1600": 198208,
   "2048": 205020
@@ -624,7 +624,7 @@
   "1600": 241350,
   "2048": 248591
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-29-imagegen-20261018.jxl": {
+ "assets/content/projects/advertising/led-displays-lightboxes/bang-vay-led-sua-xe.jxl": {
   "960": 191371,
   "1600": 204894,
   "2048": 209167
@@ -649,7 +649,7 @@
   "1600": 276349,
   "2048": 284797
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-34-owner-20261019.jxl": {
+ "assets/content/projects/advertising/led-displays-lightboxes/bang-vay-led-quan-an.jxl": {
   "960": 248102,
   "1600": 257919,
   "2048": 261624
@@ -663,7 +663,7 @@
   "1600": 300949,
   "2048": 304611
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-37-imagegen-20261018.jxl": {
+ "assets/content/projects/advertising/led-displays-lightboxes/tranh-den-led-co-dau.jxl": {
   "960": 142896,
   "1600": 148876,
   "2048": 152844
@@ -727,7 +727,7 @@
   "1600": 250854,
   "2048": 259808
  },
- "assets/content/projects/advertising/led-displays-lightboxes/led-displays-lightboxes-50-imagegen-20261018.jxl": {
+ "assets/content/projects/advertising/led-displays-lightboxes/led-neon-quay-thu-ngan.jxl": {
   "960": 148175,
   "1600": 156360,
   "2048": 160471
@@ -804,7 +804,7 @@
   "960": 173006,
   "1600": 196506
  },
- "assets/content/projects/advertising/mobile-retail/mobile-retail-10-mobile-beverage-counters-v2-audit-a131-v2.jxl": {
+ "assets/content/projects/advertising/mobile-retail/quay-pha-che-di-dong.jxl": {
   "960": 164757,
   "1600": 175185,
   "2048": 178784
@@ -815,7 +815,7 @@
  "assets/content/projects/advertising/mobile-retail/mobile-retail-11-brand-led-retail-counters.jxl": {
   "960": 65352
  },
- "assets/content/projects/advertising/mobile-retail/mobile-retail-11-imagegen-20261018-audit-a132-v2.jxl": {
+ "assets/content/projects/advertising/mobile-retail/xe-ban-hang-luu-dong-go.jxl": {
   "960": 173008,
   "1600": 182236,
   "2048": 186096
@@ -933,7 +933,7 @@
  "assets/content/projects/advertising/office-signs-wayfinding/office-design-02.jxl": {
   "960": 26901
  },
- "assets/content/projects/advertising/office-signs-wayfinding/office-planning-01.jxl": {
+ "assets/content/projects/advertising/office-signs-wayfinding/bien-ten-phong-inox-chan-dinh.jxl": {
   "960": 18580
  },
  "assets/content/projects/advertising/office-signs-wayfinding/bien-so-nha-inox-khac-song.jxl": {
@@ -965,7 +965,7 @@
   "1600": 137242,
   "2048": 141511
  },
- "assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-06-acrylic-desk-nameplates-v2.jxl": {
+ "assets/content/projects/advertising/office-signs-wayfinding/bien-de-ban-mica-chu-l.jxl": {
   "960": 122179,
   "1600": 128459,
   "2048": 130389
@@ -982,7 +982,7 @@
  "assets/content/projects/advertising/office-signs-wayfinding/bien-chi-dan-phong-hop.jxl": {
   "960": 81129
  },
- "assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-10-floor-wayfinding-signs-audit-a163-v1.jxl": {
+ "assets/content/projects/advertising/office-signs-wayfinding/bien-chi-dan-tang-thanh-doc.jxl": {
   "960": 277255,
   "1600": 277255,
   "2048": 277255
@@ -1051,7 +1051,7 @@
   "1600": 154673,
   "2048": 160892
  },
- "assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-34-owner-20261012.jxl": {
+ "assets/content/projects/advertising/office-signs-wayfinding/ky-niem-chuong-in-mau.jxl": {
   "960": 113863,
   "1600": 118914,
   "2048": 120068
@@ -1065,7 +1065,7 @@
   "960": 89526,
   "1600": 98614
  },
- "assets/content/projects/advertising/office-signs-wayfinding/office-signs-wayfinding-37-owner-20261012.jxl": {
+ "assets/content/projects/advertising/office-signs-wayfinding/ky-niem-chuong-de-go-sang.jxl": {
   "960": 123860,
   "1600": 129796,
   "2048": 132808
@@ -1206,7 +1206,7 @@
  "assets/content/projects/advertising/office-signs-wayfinding/cup-go-hinh-la.jxl": {
   "960": 65307
  },
- "assets/content/projects/advertising/office-signs-wayfinding/office-technical-room-door.jxl": {
+ "assets/content/projects/advertising/office-signs-wayfinding/bien-phong-ky-thuat-cua-thep.jxl": {
   "960": 141514,
   "1600": 151590
  },
@@ -1284,12 +1284,12 @@
  "assets/content/projects/advertising/print-decals/tranh-canvas-khung-go-treo-tuong.jxl": {
   "960": 60406
  },
- "assets/content/projects/advertising/print-decals/print-decals-13-imagegen-20261019.jxl": {
+ "assets/content/projects/advertising/print-decals/in-danh-thiep-kien-truc-su.jxl": {
   "960": 88607,
   "1600": 95132,
   "2048": 98823
  },
- "assets/content/projects/advertising/print-decals/print-decals-14-flyers-v2.jxl": {
+ "assets/content/projects/advertising/print-decals/to-roi-khai-truong-banh-mi.jxl": {
   "960": 162031,
   "1600": 173447,
   "2048": 175910
@@ -1320,12 +1320,12 @@
   "1600": 185100,
   "2048": 191149
  },
- "assets/content/projects/advertising/print-decals/print-decals-20-owner-20260924.jxl": {
+ "assets/content/projects/advertising/print-decals/tem-nhan-decal-in-theo-to.jxl": {
   "960": 156184,
   "1600": 167221,
   "2048": 171423
  },
- "assets/content/projects/advertising/print-decals/print-decals-21-owner-20260924.jxl": {
+ "assets/content/projects/advertising/print-decals/decal-mo-dan-kinh-phong-hop.jxl": {
   "960": 115440,
   "1600": 120027,
   "2048": 122791
@@ -1485,7 +1485,7 @@
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-07-acrylic-dimensional-letters.jxl": {
   "960": 33984
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-08-aluminium-and-foam-dimensional-letters-v2.jxl": {
+ "assets/content/projects/advertising/signage-raised-letters/chu-noi-van-phong-cong-ty.jxl": {
   "960": 100526,
   "1600": 105637,
   "2048": 108088
@@ -1510,7 +1510,7 @@
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-11-animated-led-projecting-signs.jxl": {
   "960": 32108
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-12-stainless-steel-and-hiflex-projecting-signs-audit-a248-v1.jxl": {
+ "assets/content/projects/advertising/signage-raised-letters/hop-den-tron-inox-ca-phe.jxl": {
   "960": 140702,
   "1600": 147725,
   "2048": 152854
@@ -1541,7 +1541,7 @@
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-16-hiflex-fabric-light-boxes-v2.jxl": {
   "960": 113389
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-17-imagegen-20261018.jxl": {
+ "assets/content/projects/advertising/signage-raised-letters/hop-den-vuon-tuong-van-phong.jxl": {
   "960": 195059,
   "1600": 206007,
   "2048": 210952
@@ -1551,7 +1551,7 @@
   "1600": 137623,
   "2048": 140322
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-19-acrylic-dimensional-letters-v2.jxl": {
+ "assets/content/projects/advertising/signage-raised-letters/chu-noi-mica-den-led.jxl": {
   "960": 126884,
   "1600": 132099
  },
@@ -1586,7 +1586,7 @@
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-24-owner-20260924.jxl": {
   "960": 61684
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-25-owner-20260924-audit-a261-v1.jxl": {
+ "assets/content/projects/advertising/signage-raised-letters/chu-noi-mica-sang-mat.jxl": {
   "960": 134370,
   "1600": 141227,
   "2048": 144609
@@ -1594,7 +1594,7 @@
  "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-25-owner-20260924.jxl": {
   "960": 51692
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-26-owner-20260924.jxl": {
+ "assets/content/projects/advertising/signage-raised-letters/chu-noi-formex-dat-quay.jxl": {
   "960": 89135,
   "1600": 100074,
   "2048": 105229
@@ -1629,7 +1629,7 @@
   "1600": 142981,
   "2048": 146053
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-33-imagegen-20261018.jxl": {
+ "assets/content/projects/advertising/signage-raised-letters/bang-mica-led-neon-quay-bar.jxl": {
   "960": 188222,
   "1600": 201249
  },
@@ -1657,7 +1657,7 @@
   "1600": 254651,
   "2048": 260820
  },
- "assets/content/projects/advertising/signage-raised-letters/signage-raised-letters-41-imagegen-20261019.jxl": {
+ "assets/content/projects/advertising/signage-raised-letters/bien-vay-phong-kham-hinh-oval.jxl": {
   "960": 217612,
   "1600": 224889
  },
@@ -1723,11 +1723,11 @@
   "1600": 134853,
   "2048": 139391
  },
- "assets/content/projects/can-ho-bep.jxl": {
+ "assets/content/projects/tu-bep-go-cong-nghiep-can-ho.jxl": {
   "960": 73253,
   "1600": 75381
  },
- "assets/content/projects/can-ho-chi-tiet.jxl": {
+ "assets/content/projects/tu-tivi-canh-xanh-reu.jxl": {
   "960": 94632,
   "1600": 103539,
   "2048": 108386
@@ -1737,16 +1737,16 @@
   "1600": 80544,
   "2048": 82568
  },
- "assets/content/projects/can-ho-hero.jxl": {
+ "assets/content/projects/thiet-ke-noi-that-can-ho.jxl": {
   "960": 89617,
   "1600": 93436,
   "2048": 96260
  },
- "assets/content/projects/can-ho-loi-vao.jxl": {
+ "assets/content/projects/tu-giay-kich-tran-can-ho.jxl": {
   "960": 87318,
   "1600": 90157
  },
- "assets/content/projects/can-ho-phong-ngu-2.jxl": {
+ "assets/content/projects/phong-ngu-tre-em-can-ho.jxl": {
   "960": 110311,
   "1600": 121624
  },
@@ -1755,12 +1755,12 @@
   "1600": 74267,
   "2048": 76517
  },
- "assets/content/projects/can-ho-phong-ngu.jxl": {
+ "assets/content/projects/phong-ngu-tu-ao-trang.jxl": {
   "960": 78686,
   "1600": 85287,
   "2048": 87988
  },
- "assets/content/projects/can-ho-phong-tam.jxl": {
+ "assets/content/projects/tu-lavabo-treo-go-soi.jxl": {
   "960": 80023,
   "1600": 83711,
   "2048": 85130
@@ -1831,7 +1831,7 @@
   "1600": 237414,
   "2048": 245352
  },
- "assets/content/projects/commercial-hero-cafe.jxl": {
+ "assets/content/projects/quan-cafe-san-vuon-quay-bar.jxl": {
   "960": 193023,
   "1600": 209022,
   "2048": 216698
@@ -1953,43 +1953,43 @@
  "assets/content/projects/gallery-shop-x2.jxl": {
   "960": 64887
  },
- "assets/content/projects/gieng1-bep.jxl": {
+ "assets/content/projects/bep-go-oc-cho-gieng-troi.jxl": {
   "960": 177162,
   "1600": 188619
  },
- "assets/content/projects/gieng1-chi-tiet.jxl": {
+ "assets/content/projects/tu-tivi-go-oc-cho.jxl": {
   "960": 166953,
   "1600": 183665,
   "2048": 188865
  },
- "assets/content/projects/gieng1-loi-vao.jxl": {
+ "assets/content/projects/tu-giay-ke-tran-loi-vao.jxl": {
   "960": 127857,
   "1600": 134841
  },
- "assets/content/projects/gieng1-phong-ngu.jxl": {
+ "assets/content/projects/phong-ngu-vach-go-oc-cho.jxl": {
   "960": 160233,
   "1600": 180480,
   "2048": 190044
  },
- "assets/content/projects/gieng1-phong-tam.jxl": {
+ "assets/content/projects/phong-tam-lavabo-go-oc-cho.jxl": {
   "960": 202793,
   "1600": 217275,
   "2048": 247996
  },
- "assets/content/projects/gieng1-sinh-hoat.jxl": {
+ "assets/content/projects/noi-that-nha-pho-gieng-troi.jxl": {
   "960": 170181,
   "1600": 183776,
   "2048": 190467
  },
- "assets/content/projects/gieng1-tu-ao.jxl": {
+ "assets/content/projects/tu-ao-go-toi-mau.jxl": {
   "960": 115800,
   "1600": 121287
  },
- "assets/content/projects/gieng3-bep.jxl": {
+ "assets/content/projects/tu-bep-go-soi-nha-pho.jxl": {
   "960": 141785,
   "1600": 157919
  },
- "assets/content/projects/gieng3-chi-tiet.jxl": {
+ "assets/content/projects/tu-tho-go-soi-chi-tiet.jxl": {
   "960": 123419,
   "1600": 133482,
   "2048": 138313
@@ -1999,12 +1999,12 @@
   "1600": 169690,
   "2048": 175834
  },
- "assets/content/projects/gieng3-hero.jxl": {
+ "assets/content/projects/thiet-ke-nha-pho-gieng-troi.jxl": {
   "960": 184063,
   "1600": 204039,
   "2048": 210236
  },
- "assets/content/projects/gieng3-loi-vao.jxl": {
+ "assets/content/projects/tu-giay-go-soi-loi-vao.jxl": {
   "960": 124130,
   "1600": 142589
  },
@@ -2013,12 +2013,12 @@
   "1600": 123404,
   "2048": 127952
  },
- "assets/content/projects/gieng3-phong-ngu.jxl": {
+ "assets/content/projects/phong-ngu-vach-lam-go-soi.jxl": {
   "960": 140256,
   "1600": 149177,
   "2048": 154093
  },
- "assets/content/projects/gieng3-phong-tam.jxl": {
+ "assets/content/projects/phong-tam-op-terrazzo-tu-go.jxl": {
   "960": 157275,
   "1600": 171194,
   "2048": 198159
@@ -2028,7 +2028,7 @@
   "1600": 100110,
   "2048": 102370
  },
- "assets/content/projects/gieng3-phong-tho.jxl": {
+ "assets/content/projects/tu-tho-go-soi-nha-pho.jxl": {
   "960": 129545,
   "1600": 144851,
   "2048": 152835
@@ -2044,17 +2044,17 @@
  "assets/content/projects/hero-v2.jxl": {
   "960": 41081
  },
- "assets/content/projects/home-advertising-products-blue-grid.jxl": {
+ "assets/content/projects/san-pham-bang-hieu-chu-noi.jxl": {
   "960": 181123,
   "1600": 198511,
   "2048": 215229
  },
- "assets/content/projects/home-commercial-cafe.jxl": {
+ "assets/content/projects/thiet-ke-quan-cafe-ban-go.jxl": {
   "960": 223476,
   "1600": 236037,
   "2048": 263687
  },
- "assets/content/projects/home-commercial-cnc-cafe.jxl": {
+ "assets/content/projects/thiet-ke-quan-cafe-go-cnc.jxl": {
   "960": 180731,
   "1600": 187673,
   "2048": 206165
@@ -2104,12 +2104,12 @@
   "1600": 141948,
   "2048": 148458
  },
- "assets/content/projects/home-hero-lobby-wall-art.jxl": {
+ "assets/content/projects/sanh-le-tan-tranh-tuong-den.jxl": {
   "960": 138704,
   "1600": 155827,
   "2048": 161117
  },
- "assets/content/projects/home-hero-office-reception-20261024.jxl": {
+ "assets/content/projects/quay-le-tan-van-phong.jxl": {
   "960": 153048,
   "1600": 163998,
   "2048": 171444
@@ -2162,26 +2162,26 @@
   "1600": 139907,
   "2048": 145418
  },
- "assets/content/projects/home-residential-kitchen-v2.jxl": {
+ "assets/content/projects/tu-bep-nha-pho-gieng-troi.jxl": {
   "960": 147445,
   "1600": 152286,
   "2048": 158386
  },
- "assets/content/projects/homestay-bep.jxl": {
+ "assets/content/projects/thiet-ke-homestay-bep-an.jxl": {
   "960": 227279,
   "1600": 242474
  },
- "assets/content/projects/homestay-chi-tiet.jxl": {
+ "assets/content/projects/tu-go-canh-may-homestay.jxl": {
   "960": 245918,
   "1600": 257983,
   "2048": 261708
  },
- "assets/content/projects/homestay-hero.jxl": {
+ "assets/content/projects/thiet-ke-homestay-nha-vuon.jxl": {
   "960": 318211,
   "1600": 334089,
   "2048": 341513
  },
- "assets/content/projects/homestay-hien-kenh.jxl": {
+ "assets/content/projects/hien-go-homestay-ven-rach.jxl": {
   "960": 262205,
   "1600": 278234,
   "2048": 288116
@@ -2252,21 +2252,21 @@
   "960": 34189,
   "1600": 39678
  },
- "assets/content/projects/homestay-phong-ngu.jxl": {
+ "assets/content/projects/phong-ngu-homestay-vach-may.jxl": {
   "960": 250236,
   "1600": 275048,
   "2048": 286865
  },
- "assets/content/projects/homestay-phong-tam.jxl": {
+ "assets/content/projects/phong-tam-homestay-gach-nung.jxl": {
   "960": 230654,
   "1600": 236496
  },
- "assets/content/projects/homestay-sinh-hoat.jxl": {
+ "assets/content/projects/phong-sinh-hoat-homestay-sofa-may.jxl": {
   "960": 256781,
   "1600": 272312,
   "2048": 277994
  },
- "assets/content/projects/homestay-tu-ao.jxl": {
+ "assets/content/projects/tu-ao-go-canh-may.jxl": {
   "960": 217468,
   "1600": 244394
  },
@@ -2417,35 +2417,35 @@
   "960": 127527,
   "1600": 180256
  },
- "assets/content/projects/ong-bep.jxl": {
+ "assets/content/projects/tu-bep-go-soi-nha-ong.jxl": {
   "960": 105409,
   "1600": 113187
  },
- "assets/content/projects/ong-chi-tiet.jxl": {
+ "assets/content/projects/tu-go-soi-bac-travertine.jxl": {
   "960": 111440,
   "1600": 123646,
   "2048": 126485
  },
- "assets/content/projects/ong-hero.jxl": {
+ "assets/content/projects/thiet-ke-noi-that-nha-ong.jxl": {
   "960": 105906,
   "1600": 116553,
   "2048": 119618
  },
- "assets/content/projects/ong-loi-vao.jxl": {
+ "assets/content/projects/loi-vao-nha-ong-tu-giay.jxl": {
   "960": 90860,
   "1600": 95885
  },
- "assets/content/projects/ong-phong-ngu.jxl": {
+ "assets/content/projects/phong-ngu-nha-pho-go-soi.jxl": {
   "960": 113044,
   "1600": 122124,
   "2048": 126193
  },
- "assets/content/projects/ong-phong-tam.jxl": {
+ "assets/content/projects/phong-tam-tu-lavabo-go-soi.jxl": {
   "960": 92939,
   "1600": 100462,
   "2048": 110019
  },
- "assets/content/projects/ong-tu-ao.jxl": {
+ "assets/content/projects/phong-thay-do-go-soi.jxl": {
   "960": 108449,
   "1600": 114132
  },
@@ -2468,7 +2468,7 @@
   "1600": 118398,
   "2048": 121733
  },
- "assets/content/projects/process-residential-survey-v2.jxl": {
+ "assets/content/projects/khao-sat-do-dac-nha-o.jxl": {
   "960": 99676,
   "1600": 104757
  },
@@ -2480,17 +2480,17 @@
   "1600": 118103,
   "2048": 121136
  },
- "assets/content/projects/residential-detail-x2.jxl": {
+ "assets/content/projects/tu-am-tuong-khu-an.jxl": {
   "960": 62518,
   "1600": 63673,
   "2048": 64365
  },
- "assets/content/projects/residential-hero-kitchen-dining.jxl": {
+ "assets/content/projects/tu-bep-chu-l-ban-an-go.jxl": {
   "960": 124369,
   "1600": 134769,
   "2048": 138697
  },
- "assets/content/projects/residential-space-x2.jxl": {
+ "assets/content/projects/homestay-nha-vuon-phong-sinh-hoat.jxl": {
   "960": 139073,
   "1600": 149241,
   "2048": 151791
@@ -2513,7 +2513,7 @@
   "1600": 159164,
   "2048": 162435
  },
- "assets/content/projects/shared-office-open-desks.jxl": {
+ "assets/content/projects/noi-that-van-phong-mo.jxl": {
   "960": 188986,
   "1600": 199418,
   "2048": 207957
@@ -2597,34 +2597,34 @@
   "1600": 150455,
   "2048": 159673
  },
- "assets/content/projects/xam-bep.jxl": {
+ "assets/content/projects/bep-nha-pho-tu-xanh-xam.jxl": {
   "960": 92054,
   "1600": 96912
  },
- "assets/content/projects/xam-cau-thang.jxl": {
+ "assets/content/projects/cau-thang-go-soi-tu-gam.jxl": {
   "960": 94957,
   "1600": 106826
  },
- "assets/content/projects/xam-phong-khach.jxl": {
+ "assets/content/projects/phong-khach-nha-pho-tu-tivi.jxl": {
   "960": 117570,
   "1600": 124638,
   "2048": 129000
  },
- "assets/content/projects/xam-phong-ngu.jxl": {
+ "assets/content/projects/phong-ngu-vach-tu-xanh-xam.jxl": {
   "960": 97050,
   "1600": 109957,
   "2048": 114175
  },
- "assets/content/projects/xam-phong-tam.jxl": {
+ "assets/content/projects/tu-lavabo-treo-tuong-go-soi.jxl": {
   "960": 97729,
   "1600": 104470,
   "2048": 115315
  },
- "assets/content/projects/xam-tu-ao.jxl": {
+ "assets/content/projects/tu-ao-kich-tran-xanh-xam.jxl": {
   "960": 79123,
   "1600": 84068
  },
- "assets/content/shared/about-materials-samples-20261117.jxl": {
+ "assets/content/shared/mau-van-go-nep-canh-mica.jxl": {
   "960": 39802
  },
  "assets/content/shared/may-dan-canh-xuong-noi-that.jxl": {
@@ -2635,12 +2635,12 @@
   "1600": 156625,
   "2048": 161801
  },
- "assets/content/shared/after-sales.jxl": {
+ "assets/content/shared/bao-tri-tu-bep-go.jxl": {
   "960": 88890,
   "1600": 93063,
   "2048": 94012
  },
- "assets/content/shared/cnc-operator-b.jxl": {
+ "assets/content/shared/xuong-cnc-may-tinh-bang.jxl": {
   "960": 104998,
   "1600": 110021,
   "2048": 112737
@@ -2654,7 +2654,7 @@
  "assets/content/shared/commitment-quality-shop-20261117.jxl": {
   "960": 49147
  },
- "assets/content/shared/consultation-materials.jxl": {
+ "assets/content/shared/tu-van-vat-lieu-noi-that.jxl": {
   "960": 115464,
   "1600": 126543
  },
@@ -2668,12 +2668,12 @@
   "1600": 98983,
   "2048": 102170
  },
- "assets/content/shared/home.jxl": {
+ "assets/content/shared/noi-that-nha-pho-lien-thong.jxl": {
   "960": 128672,
   "1600": 144930,
   "2048": 152610
  },
- "assets/content/shared/installation.jxl": {
+ "assets/content/shared/lap-dat-tu-go-nha-o.jxl": {
   "960": 102485,
   "1600": 105347,
   "2048": 108191
@@ -2696,12 +2696,12 @@
  "assets/content/shared/legacy-hands.jxl": {
   "960": 39792
  },
- "assets/content/shared/legacy-team.jxl": {
+ "assets/content/shared/tho-lap-thung-tu-go-xuong.jxl": {
   "960": 127505,
   "1600": 141934,
   "2048": 148059
  },
- "assets/content/shared/materials-black-hdf-20261117.jxl": {
+ "assets/content/shared/mau-van-go-cong-nghiep.jxl": {
   "960": 39438
  },
  "assets/content/shared/nut-that-day-thung-chac.jxl": {
@@ -2815,13 +2815,13 @@
  "assets/content/shared/tu-ao-kich-tran-nep-bu.jxl": {
   "960": 12573
  },
- "assets/content/shared/process-assembly-residential-20261118.jxl": {
+ "assets/content/shared/xuong-lap-rap-thung-tu-go.jxl": {
   "960": 29904
  },
  "assets/content/shared/survey-modern.jxl": {
   "960": 32370
  },
- "assets/content/shared/workshop-wide-v2.jxl": {
+ "assets/content/shared/xuong-cnc-san-xuat-do-go.jxl": {
   "960": 140333,
   "1600": 152462,
   "2048": 157036

@@ -20,7 +20,7 @@
           }
         ],
         "image": {
-          "src": "/assets/content/projects/can-ho-hero.webp",
+          "src": "/assets/content/projects/thiet-ke-noi-that-can-ho.webp",
           "width": 3072,
           "height": 2048,
           "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố",
@@ -110,14 +110,14 @@
         "layout": "left-large",
         "images": [
           {
-            "src": "/assets/content/projects/gieng3-phong-tho.webp",
+            "src": "/assets/content/projects/tu-tho-go-soi-nha-pho.webp",
             "width": 3072,
             "height": 2048,
             "altVi": "Phòng thờ với tủ thờ gỗ sồi sáng, hai tủ đứng hai bên và hai cửa sổ lớn",
             "altEn": "Altar room with a light oak altar cabinet flanked by tall cabinets and two large windows"
           },
           {
-            "src": "/assets/content/projects/gieng3-chi-tiet.webp",
+            "src": "/assets/content/projects/tu-tho-go-soi-chi-tiet.webp",
             "width": 3072,
             "height": 2304,
             "altVi": "Cận cảnh cánh tủ gỗ sồi sáng dán cạnh, khe cánh đều và chân tủ âm",
@@ -130,7 +130,7 @@
         "type": "media-single",
         "position": "right-2-3",
         "image": {
-          "src": "/assets/content/projects/can-ho-chi-tiet.webp",
+          "src": "/assets/content/projects/tu-tivi-canh-xanh-reu.webp",
           "width": 3072,
           "height": 2304,
           "altVi": "Cận cảnh tủ TV gỗ sồi: cánh vân gỗ và cánh sơn xanh rêu khít mạch, khe tay nắm âm",
@@ -198,7 +198,7 @@
         "en": "Warm oak apartment"
       },
       "cover": {
-        "src": "/assets/content/projects/can-ho-hero.webp",
+        "src": "/assets/content/projects/thiet-ke-noi-that-can-ho.webp",
         "width": 3072,
         "height": 2048,
         "altVi": "Toàn cảnh căn hộ: bếp có quầy bar bên trái, sofa và hệ kệ TV gỗ sồi hướng ra ban công nhìn thành phố",
@@ -214,7 +214,7 @@
         "en": "Light-well townhouse"
       },
       "cover": {
-        "src": "/assets/content/projects/gieng3-hero.webp",
+        "src": "/assets/content/projects/thiet-ke-nha-pho-gieng-troi.webp",
         "width": 3072,
         "height": 2048,
         "altVi": "Toàn cảnh nhà giếng trời 2 tầng: phòng khách có cây xanh dưới giếng trời, hệ tủ TV gỗ sồi sáng, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",
@@ -230,7 +230,7 @@
         "en": "Shared workspace"
       },
       "cover": {
-        "src": "/assets/content/projects/shared-office-open-desks.webp",
+        "src": "/assets/content/projects/noi-that-van-phong-mo.webp",
         "width": 3072,
         "height": 2048,
         "altVi": "Khu bàn làm việc chung với vách ngăn nỉ xanh, đèn bàn và tường logo",
@@ -266,7 +266,7 @@
         "en": "Engineered wood kitchen cabinets: five questions to ask before you order"
       },
       "cover": {
-        "src": "/assets/content/projects/gieng1-bep.webp",
+        "src": "/assets/content/projects/bep-go-oc-cho-gieng-troi.webp",
         "width": 2048,
         "height": 3072,
         "altVi": "Bếp một hàng tủ trên trắng, tủ dưới gỗ óc chó tay nắm âm, mặt đá xám nhạt và vách kính ra giếng trời có cây",
@@ -284,7 +284,7 @@
         "en": "Fitting out a small café: from site survey to opening day"
       },
       "cover": {
-        "src": "/assets/content/projects/home-commercial-cafe.webp",
+        "src": "/assets/content/projects/thiet-ke-quan-cafe-ban-go.webp",
         "width": 2304,
         "height": 3072,
         "altVi": "Quán cà phê với bàn gỗ, ghế bành và quầy bar sáng đèn phía sau",
@@ -302,7 +302,7 @@
         "en": "Light wells and dark timber: townhouses that are bright and warm"
       },
       "cover": {
-        "src": "/assets/content/projects/gieng1-sinh-hoat.webp",
+        "src": "/assets/content/projects/noi-that-nha-pho-gieng-troi.webp",
         "width": 3072,
         "height": 2048,
         "altVi": "Toàn cảnh nhà giếng trời 1 tầng: hệ tủ TV gỗ óc chó kịch trần, giếng trời có cây xanh giữa nhà, cầu thang gỗ tay vịn thép đen và bàn ăn phía sau",

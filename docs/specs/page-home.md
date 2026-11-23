@@ -233,7 +233,7 @@ Reduced motion: chỉ slide đầu (slide khác `display: none`), không zoom, w
 trạng thái cuối), nút dừng `hidden`, scroll cue tĩnh, marquee và hover zoom tắt. `motion-fallback`
 ([shell R7](site-shell.md#r7-veil-khi-tải-trực-tiếp-fallback-và-bfcache)): slide active và mọi target
 reveal ở trạng thái cuối, không slideshow, nút dừng ẩn. Không JavaScript: hero, chữ hiện; không slide nào nhận `src`,
-`.hero-slides` hiện nền cố định `home-hero-lobby-wall-art.webp` qua `@media (scripting: none)`.
+`.hero-slides` hiện nền cố định `sanh-le-tan-tranh-tuong-den.webp` qua `@media (scripting: none)`.
 
 ```gherkin
 Given trình duyệt bật reduced motion

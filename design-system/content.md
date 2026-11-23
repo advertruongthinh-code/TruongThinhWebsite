@@ -59,7 +59,7 @@ Thứ tự bảo trì nội dung: Advertising, Commercial, Residential.
 - Không có khuôn mặt nhận diện được: quay lưng, đi ra xa, đầu khuất sau vật
   hoặc ngoài khung; nhòe chuyển động hay "chỉ thấy tay" không đủ khi tư thế vẫn
   hướng mặt về máy. Kiểm phản chiếu, màn hình, ảnh trên tường. Ngoại lệ duy nhất:
-  `assets/content/shared/legacy-team.webp`.
+  `assets/content/shared/tho-lap-thung-tu-go-xuong.webp`.
 - Không chữ giả, logo giả, watermark, tay hoặc dụng cụ méo. Logo và thông tin
   khách thật chỉ khi đã có quyền công bố; xóa địa chỉ, ảnh gia đình, thông tin
   riêng tư.

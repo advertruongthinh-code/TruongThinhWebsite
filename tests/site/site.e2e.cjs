@@ -853,7 +853,7 @@ function assertPersistentNavigationContracts() {
     "Persistent Home shell does not preload detail styles for soft entries",
   );
   assert(
-    (aboutSource.match(/src="\/assets\/content\/shared\/legacy-team\.webp"/g) || [])
+    (aboutSource.match(/src="\/assets\/content\/shared\/tho-lap-thung-tu-go-xuong\.webp"/g) || [])
       .length === 1 &&
       !/<div class="hero-slides"[^>]*hidden/.test(aboutSource),
     "About still renders a hidden duplicate hero carousel/media request",
@@ -1786,7 +1786,7 @@ async function runPortalAlignmentChecks() {
           }
           assert(
             state.advertisingImage?.src ===
-              "/assets/content/projects/home-advertising-products-blue-grid.webp" &&
+              "/assets/content/projects/san-pham-bang-hieu-chu-noi.webp" &&
               state.advertisingImage.declaredWidth === 2304 &&
               state.advertisingImage.declaredHeight === 3072,
             `Advertising portal image contract drifted at ${locale} ${width}px: ${JSON.stringify(state.advertisingImage)}`,
@@ -9400,7 +9400,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "about hero",
       route: "/about/?media-fallback=about",
-      asset: "**/legacy-team.webp",
+      asset: "**/tho-lap-thung-tu-go-xuong.webp",
       surface: ".about-hero",
       image: ".hero-photo img",
       text: ".hero-content",
@@ -9409,7 +9409,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "service portal",
       route: "/?media-fallback=portal",
-      asset: "**/home-residential-kitchen-v2.webp",
+      asset: "**/tu-bep-nha-pho-gieng-troi.webp",
       surface: "#dich-vu .service-portal:first-child",
       image: "img",
       text: ".portal-copy",
@@ -9429,7 +9429,7 @@ async function runWhiteOverlayMediaFallbackCheck() {
     {
       name: "legacy closer",
       route: "/?media-fallback=legacy",
-      asset: "**/workshop-wide-v2.webp",
+      asset: "**/xuong-cnc-san-xuat-do-go.webp",
       surface: ".legacy-closer",
       image: ":scope > img, :scope > picture > img",
       text: ".legacy-copy",
@@ -10048,9 +10048,9 @@ async function runHomeMotionRegressionCheck() {
       assert(
         JSON.stringify(contract.portalSources) ===
           JSON.stringify([
-            "/assets/content/projects/home-residential-kitchen-v2.webp",
-            "/assets/content/projects/home-commercial-cnc-cafe.webp",
-            "/assets/content/projects/home-advertising-products-blue-grid.webp",
+            "/assets/content/projects/tu-bep-nha-pho-gieng-troi.webp",
+            "/assets/content/projects/thiet-ke-quan-cafe-go-cnc.webp",
+            "/assets/content/projects/san-pham-bang-hieu-chu-noi.webp",
           ]),
         `Home service portal sources changed: ${contract.portalSources.join(", ")}`,
       );
