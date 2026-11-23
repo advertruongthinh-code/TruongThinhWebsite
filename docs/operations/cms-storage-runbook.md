@@ -99,6 +99,16 @@ Owner nhập một lần; agent không đọc giá trị. Admin Worker dùng tok
 4. Kiểm: mở `status.html`, `tokenExpiresAt` có ngày hết hạn và `runs` không phải `null`. Ghi ngày hết hạn vào bảng dưới; đổi token trước hạn bằng cùng các bước.
 5. Lúc tạm dừng xuất bản, các lần lưu không gọi dựng và Cron không gọi lại. Bỏ tạm dừng xong, bấm "Dựng lại" trên `status.html` để staging nhận nội dung đã lưu.
 
+## Tài khoản và Access (P7)
+
+Panel "Tài khoản" của editor (menu Bảng, chỉ owner) thêm người, đổi vai trò, khóa và mở lại; Worker tự sửa danh sách email trong chính sách Access của app admin. Owner nhập ba secret một lần; agent không đọc giá trị.
+
+1. Cloudflare, My Profile, API Tokens, Create Token, Custom token: tên `tt-cms-access`; Permissions: Account, Access: Apps and Policies, Edit; Account Resources: tài khoản của site; TTL 1 năm. Chép token.
+2. Zero Trust, Access, Applications, app của `admin.truongthinhads.vn`: id app nằm trong URL trang sửa app; tab Policies, policy cho owner: id policy nằm trong URL trang sửa policy.
+3. Cloudflare, Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets: thêm ba secret `ACCESS_API_TOKEN`, `ACCESS_APP_ID`, `ACCESS_POLICY_ID`, Deploy. Cách khác trên PC: `pnpm demo:wrangler secret put <tên> --config wrangler.toml`.
+4. Kiểm: thêm một email thử ở panel Tài khoản, thấy email đó trong policy; khóa nó, email biến khỏi policy. Ghi ngày hết hạn token vào bảng dưới.
+5. Thiếu secret hoặc API lỗi: thêm và mở lại báo "Chưa đổi được quyền đăng nhập", không đổi gì; khóa vẫn chặn ngay trong CMS, dòng đó có "Thử lại". Cron 18:05 UTC so policy với bảng tài khoản và ghi lệch vào `access_drift` (panel báo số email lệch), không tự sửa.
+
 ## Quay staging về bản cũ (P6)
 
 1. `status.html`, mục "Quay về bản cũ": mười lần deploy gần nhất (thời điểm, commit, bản chụp hoặc "từ repo"); bấm "Quay về bản này" ở dòng cần về, xác nhận trong hộp thoại. Chỉ owner; staff nhận "Chỉ owner".
@@ -126,3 +136,4 @@ Không ghi giá trị. Thread tạo credential điền dòng của nó; card Not
 | Token export D1 (`tt-d1-export`, secret Worker `D1_EXPORT_TOKEN`) | S5 | 1 năm sau ngày tạo (ghi ngày khi tạo) | Cloudflare, API Tokens |
 | Token R2 chỉ đọc bucket private (rclone `r2cms` trên PC) | S5 | | R2, Manage API tokens |
 | Token GitHub fine-grained (`tt-cms-dispatch`, secret Worker `GITHUB_ACTIONS_TOKEN`) | P4 | 1 năm sau ngày tạo (ghi ngày khi tạo) | GitHub, Developer settings, Fine-grained tokens |
+| Token Access API (`tt-cms-access`, secret Worker `ACCESS_API_TOKEN`) | P7 | 1 năm sau ngày tạo (ghi ngày khi tạo) | Cloudflare, API Tokens |

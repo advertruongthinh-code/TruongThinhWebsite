@@ -2,10 +2,11 @@
 // R8). Drafts are stored in same-origin localStorage so the preview (cms-core.js in the iframe) reads them immediately.
 const { createDockview, themeLight } = window.dockview;
 import { dockOptions, setupDockTools } from "./dock-tools.js";
+import { mountAccounts } from "./ops/accounts.js";
 
 const { stamp, anchorOf, draftKey, savedKey, readDraft, PLACEHOLDER } = window.TTCms;
 
-const PANELS = { pages: "Trang", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp" };
+const PANELS = { pages: "Trang", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp", accounts: "Tài khoản" };
 const VIEWPORTS = [
   { label: "Máy tính", width: 1440, height: 900 },
   { label: "Laptop", width: 1280, height: 800 },
@@ -1026,7 +1027,9 @@ function defaultLayout() {
 // Reopen a closed panel next to a main panel that is still open; with no panel left Dockview places it itself.
 function focusPanel(id) {
   const ref = ["preview", "props", "pages"].find((other) => other !== id && dock.getPanel(other));
-  const panel = dock.getPanel(id) ?? addPanel(id, ref && { referencePanel: ref, direction: "right" });
+  // Accounts needs the wide centre: it opens as a tab beside the preview.
+  const direction = id === "accounts" && ref === "preview" ? "within" : "right";
+  const panel = dock.getPanel(id) ?? addPanel(id, ref && { referencePanel: ref, direction });
   tools.reveal(panel);
 }
 
@@ -1042,6 +1045,11 @@ try {
   defaultLayout();
 }
 tools.onLayoutChange(() => localStorage.setItem(LAYOUT_KEY, JSON.stringify(dock.toJSON())));
+// Accounts is owner-only (cms-editor-ops R6): staff get 403, so the panel leaves the menu and any saved layout.
+if (!(await mountAccounts(panels.accounts, { toast }))) {
+  delete PANELS.accounts;
+  dock.getPanel("accounts")?.api.close();
+}
 
 // After picking one item, close the "Bảng" menu so it does not cover the tab beneath.
 const closeMenu = (action) => () => {

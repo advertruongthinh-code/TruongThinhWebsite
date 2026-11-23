@@ -6,6 +6,7 @@ source:
   - .github/workflows/release.yml
 tests:
   - tests/admin/cms-core.test.mjs
+  - tests/admin/accounts.e2e.mjs
 notion: https://app.notion.com/p/420332849a0e81ffb9e4e85372f1a0f7
 updated: 2026-11-22
 ---
@@ -18,7 +19,7 @@ Phần vận hành của [editor](cms-editor.md): xem nội dung đã lên stagi
 trước, thùng rác, nhật ký, tài khoản và cảnh báo cho owner. Quyền, trạng thái và lệnh thuộc [CMS R2 tới R6](cms.md);
 đường dựng thuộc [dữ liệu CMS R6](cms-data.md#r6-đường-dựng-trong-ci). Spec này định giao diện, thứ tự gọi lệnh và
 hợp đồng của chức năng "Phát hành". Mọi thao tác ở đây là lệnh chạy bằng code cố định; không bước nào cần agent hay
-AI ([CMS](cms.md#bối-cảnh-và-phương-án)). Chưa có code; trang tạm `/admin/status.html` của phần 1 bị thay bằng các
+AI ([CMS](cms.md#bối-cảnh-và-phương-án)). Đã có code: panel Tài khoản (R6, `src/admin/ops/accounts.js`, mở từ menu Bảng thành tab cạnh Xem trước). Trang tạm `/admin/status.html` của phần 1 bị thay bằng các
 panel này.
 
 ## Hành vi
@@ -200,7 +201,8 @@ hẳn" mang màu cảnh báo và luôn qua hộp thoại xác nhận có chữ m
 | R1, R7 | cần: e2e dải trạng thái đổi theo `build-status` giả; cảnh báo theo vai trò |
 | R2 | cần: đơn vị lệnh `release` (khớp dấu, 409 từng lý do, nhật ký); test workflow dừng khi `snapshotId` khác; một lần phát hành thật ở task bật hẳn |
 | R3 | cần: đơn vị `rollback` hai đích; diễn tập rollback site chính ở task bật hẳn |
-| R4, R5, R6 | cần: e2e thùng rác (khôi phục, xóa hẳn gõ tên), nhật ký theo vai trò, tài khoản (owner cuối, 502) |
+| R6 | `node tests/admin/accounts.e2e.mjs` (sau `build-admin`, lệnh giả trong trang): thêm, 502, khóa qua hộp thoại, `accessSynced: false` và Thử lại, owner cuối 409, mở lại, không email trong `localStorage`, nhân viên không thấy panel |
+| R4, R5 | cần: e2e thùng rác (khôi phục, xóa hẳn gõ tên), nhật ký theo vai trò |
 
 ## Gate còn mở
 
