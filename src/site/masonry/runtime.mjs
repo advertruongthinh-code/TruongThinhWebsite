@@ -2267,7 +2267,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const order = (Array.isArray(ids) ? ids : []).map((id) => byId.get(id)).filter((card) => card && !seen.has(card.id) && seen.add(card.id));
     return { key: `search:${fnv1a32(order.map((card) => card.id).join(","))}`, order };
   };
-  if (heldResults) search = searchFor(heldResults);
+  if (heldResults) {
+    search = searchFor(heldResults);
+    // Held results open inside the page's filter when it has any (search-bar R8).
+    if (search.order.some((card) => matchesFilter(card, filter))) searchFilter = filter;
+  }
   heldResults = null;
   // Phone first grid (masonry-live-layout R3, owner 2026-11-16): the page's 2:15 packs of its own filter for a fixed set of seeds.
   // Read only on the 2-column band; a stamp that does not match these cards (page and artifact from different builds) packs live.
@@ -4000,10 +4004,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (toGrid) glideToGrid(toGrid === "always");
   };
   // A filter change (rail click, Back to another category) also leaves search mode.
-  // Search bar only on the root grid (search-bar R8): off on a filter page while not searching, and on any card.
+  // The search bar shows on the grid, filtered or not, and is off on a card (search-bar R8, owner 2026-11-23).
   const syncSearchOff = () => {
     if (!gridCtaSlotNode) return;
-    container.toggleAttribute("data-search-off", Boolean(activePhotoId) || (filter !== "all" && !search));
+    container.toggleAttribute("data-search-off", Boolean(activePhotoId));
   };
   const setActiveFilter = (nextFilter, options) => {
     cancelLayoutWait();
@@ -4035,7 +4039,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     offer.dataset.vi = "Có thêm kết quả gợi ý";
     offer.dataset.en = "More suggested results";
     offer.textContent = locale === "en" ? offer.dataset.en : offer.dataset.vi;
-    offer.addEventListener("click", () => setResults(ids));
+    // Late results with none in the filter open on the whole catalogue (search-bar R8).
+    offer.addEventListener("click", () => setResults(ids, countInScope(ids) ? undefined : { scope: "all" }));
     grid.before(offer);
   };
   const setPending = (pending) => {
@@ -4044,16 +4049,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     grid.setAttribute("aria-busy", String(Boolean(pending)));
   };
   // Search API (masonry-live-layout R6): ids in score order; unknown and repeated ids are skipped, the latest call wins.
-  const setResults = (ids) => {
+  // A search runs inside the filter in use, browse or within results (search-bar R8, owner 2026-11-23); scope "all" widens it.
+  const countInScope = (ids, scope = railFilter()) => searchFor(ids).order.filter((card) => scope === "all" || matchesFilter(card, scope)).length;
+  const setResults = (ids, { scope = railFilter() } = {}) => {
     cancelLayoutWait();
     setPending(false);
     setOffer(null);
     const next = searchFor(ids);
     // The same results again still glide to the grid top (search-bar R9, owner 2026-11-23).
-    if (next.key === search?.key && searchFilter === "all") return glideToGrid(true);
+    if (next.key === search?.key && searchFilter === scope) return glideToGrid(true);
     relayoutTo(() => {
       search = next;
-      searchFilter = "all";
+      searchFilter = scope;
     }, { animate: true, toGrid: "always" });
   };
   const clearResults = () => {
@@ -5712,6 +5719,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     clearResults,
     ensurePhoto,
     offerResults: (ids) => setOffer(Array.isArray(ids) ? ids : null),
+    countInScope,
     getCardLink: (id) => gridHost.rendered.get(id)?.querySelector("a") || null,
     releasePhoto(id) {
       retainedPhotoIds.delete(id);
@@ -6393,9 +6401,11 @@ window.TruongThinhMasonry = {
   replaceTag: (tag) => Boolean(activeInstance?.browseHistory.replaceTag(tag)),
   // Before a grid mounts, the latest results wait for it (masonry-live-layout R6).
   setPending: (pending) => activeInstance?.adapter.setPending(pending),
-  setResults: (ids) => {
-    if (activeInstance) activeInstance.adapter.setResults(ids);
+  setResults: (ids, options) => {
+    if (activeInstance) activeInstance.adapter.setResults(ids, options);
     else heldResults = ids;
   },
+  // How many of the ids the current filter holds (search-bar R8); null before a grid mounts.
+  countInScope: (ids) => activeInstance?.adapter.countInScope(ids) ?? null,
   unmount: unmountMasonry,
 };

@@ -35,10 +35,13 @@ export function createClient(ui) {
     clearTimers();
   };
 
-  const show = (ids) => {
-    grid.setResults(ids);
+  // Results land inside the filter in use (search-bar R8); a group with none of them keeps its grid, says so and offers all.
+  const show = (ids, scope) => {
+    const count = scope ? ids.length : grid.countInScope?.(ids) ?? ids.length;
+    if (!count) return finishEmpty(copy.notInGroup, { label: copy.searchAll, text: true, onClick: () => show(ids, "all") });
+    grid.setResults(ids, scope && { scope });
     inSearch = true;
-    ui.announce(copy.results(ids.length, lastText || copy.imageCount(lastImages)));
+    ui.announce(copy.results(count, lastText || copy.imageCount(lastImages)));
   };
   const finishEmpty = (note = copy.empty, action) => {
     grid.setPending(false);

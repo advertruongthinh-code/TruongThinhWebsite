@@ -253,9 +253,8 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   .replace(`data-masonry-filter="${page.cluster}"`, `data-masonry-filter="${page.cluster}" aria-current="true"`)
   .replace(`data-masonry-chips="${page.cluster}" hidden`, `data-masonry-chips="${page.cluster}"`)
   .replaceAll(`data-masonry-product="${page.filter}"`, `data-masonry-product="${page.filter}" aria-current="true"`)
-  .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`)
-  // The search bar lives on the root page only (search-bar R8); the runtime clears this when a visitor filters back to all.
-  .replace('data-barba-namespace="advertising-products"', 'data-barba-namespace="advertising-products" data-search-off');
+  // Group and product pages keep the search bar, which searches inside them (search-bar R8, owner 2026-11-23).
+  .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);
 for (const page of ADVERTISING_PAGES) {
   const html = withPhonePacks(renderAdvertisingPage(page), page.filter);
   for (const locale of ["vi", "en"]) {

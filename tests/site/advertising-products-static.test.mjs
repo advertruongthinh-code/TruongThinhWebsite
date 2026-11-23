@@ -72,7 +72,9 @@ const kioskFairCard = (id) => artifact.cards.find((card) => card.id === id || ca
 assert.ok(kioskFairIds.every((id) => kioskFairCard(id)), "accepted trade-fair kiosk images appear in the parent-grid artifact");
 assert.ok(kioskFairIds.every((id) => !Object.hasOwn(kioskFairCard(id), "title")), "accepted trade-fair kiosk cards add no image title");
 assert.match(advertisingCss, /\.masonry-grid \{[\s\S]*?--masonry-gap: 15px;/, "mobile grid uses the 15px gap band");
-assert.match(advertisingCss, /\.detail-page \.masonry-section \{[\s\S]*?--masonry-outer: 15px;[\s\S]*?width: calc\(100% - \(2 \* var\(--masonry-outer\)\)\);/, "grid derives symmetric outer bands from one runtime-owned token without a wide-screen content cap");
+assert.match(advertisingCss, /\.detail-page \.masonry-section \{[\s\S]*?width: calc\(100% - \(2 \* var\(--masonry-outer\)\)\);/, "grid derives symmetric outer bands from one runtime-owned token without a wide-screen content cap");
+// The token sits on the page so the phone floating search bar lines up with the grid too (search-bar R5).
+assert.match(advertisingCss, /\.detail-page \{\s*--masonry-outer: 15px;\s*\}/, "the 15px outer band is set on the page, read by the grid and the search bar");
 assert.match(advertisingCss, /@media \(min-width: 751px\)[\s\S]*?--masonry-outer: 25px;/, "middle no-script outer band starts at 751px");
 assert.match(advertisingCss, /@media \(min-width: 961px\)[\s\S]*?--masonry-gap: 25px;/, "middle gap band starts at 961px");
 assert.match(advertisingCss, /@media \(min-width: 1201px\)[\s\S]*?--masonry-gap: 35px;[\s\S]*?--masonry-outer: 35px;/, "wide no-script viewport uses 35px gap and outer bands");

@@ -20,18 +20,20 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
 - Hàng chữ: mép trái tới chữ 18px; bên phải nút xoá chữ (khi đã gõ), vạch 22px, ô ảnh, kính lúp; nút 40px, icon 20px.
   Chữ nhập 16px. Focus: viền trong 1px `ink`; nút và link có outline 2px khi `:focus-visible`.
 - Gợi ý `[data-search-hint]` đổi mỗi 3 giây bằng cú trượt dọc 450ms, dừng khi focus hoặc hover; reduced motion chỉ hiện gợi ý
-  đầu. Có ảnh mà chưa gõ chữ thì hiện "Thêm chữ để tìm sát hơn".
+  đầu. Có ảnh mà chưa gõ chữ thì hiện "Thêm chữ để lọc". Mọi câu vừa nguyên ô chữ phone 360px (khoảng 157px).
 - Một ảnh: thumbnail 30px `[data-search-thumb]` thế chỗ nút ảnh, thanh không cao thêm; bấm thumbnail để thay ảnh, badge bỏ
   14px (vùng bấm 32px). Thêm ảnh khác thì thay ảnh cũ.
-- Thông báo `[data-search-note]` phủ lên ô chữ 4 giây; dòng chậm, lỗi tìm ("Lỗi tìm kiếm", "Lỗi tìm ảnh") giữ lại kèm nút "Thử lại". Gõ chữ thì tắt.
+- Thông báo `[data-search-note]` phủ lên ô chữ 4 giây; dòng chậm, lỗi tìm ("Lỗi tìm kiếm", "Lỗi tìm ảnh") giữ lại kèm nút icon vòng xoay 40px (`aria-label` "Thử lại") ở cuối ô; nút xoá chữ ẩn trong lúc đó. Gõ chữ thì tắt.
   Screen reader đọc số kết quả qua vùng `aria-live` ẩn.
 - Khe CTA: link "Trao đổi ý tưởng" dưới thanh như link trang Công trình; khoảng trên và dưới thanh bằng nhau theo mắt, cụm
   tiêu đề và thanh nằm ở tâm thị giác khi cuộn tới cuối ([R4](../../../docs/specs/search-bar.md#r4-khe-cta)).
 - Đổi chỗ dứt khoát theo vị trí cuộn ([R7](../../../docs/specs/search-bar.md#r7-vào-khe-dứt-khoát)): `dock.mjs` chọn một trong ba chỗ mỗi frame cuộn. Vào và ra khe CTA: Web Animations morph bề rộng, bóng, hàng chip 1s `--ease-card` (CSS transition mất khi chuyển parent). Vào khe đầu trang (cả lúc tải sau lớp phủ): khối kéo dài từ ô vuông 49px ra đủ khe (`.is-stretching`, nội dung bị cắt trong viền). Khi cả thanh đã khuất dưới header, thanh nổi bay lên từ mép dưới 1s `--ease-float` (`.search-host.is-rising`).
 - Tìm xong về đầu lưới ([R9](../../../docs/specs/search-bar.md#r9-tìm-xong-về-đầu-lưới)): `glideToGrid` trong `masonry/runtime.mjs` gọi `TruongThinhMotion.glideTo` (600ms, đường `--ease-card`).
-- Chỉ trang gốc có thanh ([R8](../../../docs/specs/search-bar.md#r8-chỉ-trang-gốc-có-thanh)): trang con và card có `data-search-off`, khe ẩn, thanh nổi trượt xuống rồi ẩn (`.search-host.is-off`).
+- Trang gốc, trang nhóm, trang sản phẩm có thanh; đang lọc thì tìm trong bộ lọc ([R8](../../../docs/specs/search-bar.md#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)). Trang card có `data-search-off`, khe ẩn, thanh nổi trượt xuống rồi ẩn (`.search-host.is-off`).
+- Nhóm không có kết quả: thông báo "Nhóm này chưa có" kèm nút chữ "Tìm tất cả" (`.search-bar__action`, gạch chân 2px) phủ cả hàng nhập; `.has-wide-note` tạm ẩn nút ảnh và kính lúp.
 - Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset`; `body[data-search-place]` và `--search-block-h`
-  đặt nút về đầu trang trên điện thoại ([Floating CTA](../FloatingCta/README.md)). Bàn phím điện thoại mở
+  đặt nút về đầu trang trên tablet ([Floating CTA](../FloatingCta/README.md)). Phone dọc và ngang: thanh nổi và nút chung một hàng cách đáy 16px,
+  thẳng mép lưới (`--masonry-outer` đặt trên `.detail-page`), `.search-host` chừa làn nút 60px bằng padding phải. Bàn phím điện thoại mở
   thì hàng chip gập lại. Ẩn khi menu hoặc detail view mở. Giảm chuyển động: đổi trạng thái ngay.
 
 Preview: trên là thanh nổi, dưới là thanh dừng trong khe CTA.
