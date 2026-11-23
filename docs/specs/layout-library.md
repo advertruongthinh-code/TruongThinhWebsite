@@ -177,6 +177,9 @@ nhất hai lần ở chỗ đó; rộng khung đo trên 48 trang công trình v�
 | `media-single` video | 16:9 | 354 | 718 | 974 | 1210 | 1370 | 1500 |
 | `project-slider` thẻ | từ ảnh bìa, điểm giữ | 200 × 300 | 200 × 300 | 300 × 400 | 300 × 420 | 300 × 420 | 300 × 420 |
 
+CMS coi một crop là đúng tỷ lệ khi lệch không quá 1% (hằng `RATIO_TOLERANCE`); ảnh có trước CMS giữ khung cũ tới khi
+người soạn đổi crop.
+
 Khối phủ (`hero-project`, thẻ `project-slider`, `news-cards`, `banner-links`) đổi tỷ lệ theo thiết bị nên chỉ chọn điểm
 giữ. Card masonry: người soạn chọn khung card trước trong 8 tỷ lệ 3:2, 2:3, 1:1, 4:3, 3:4, 4:5, 16:9, 2:1 (owner
 2026-11-15; [media-card R1](media-card.md)), mọi media của card khớp khung đó theo cùng cách kéo, phóng.
