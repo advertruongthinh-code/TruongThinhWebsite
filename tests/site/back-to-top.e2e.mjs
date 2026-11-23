@@ -118,10 +118,15 @@ for (const [name, viewport] of [["portrait", VIEWPORTS.phone], ["landscape", { w
   });
 }
 
-// Owner 2026-11-23 (search-bar R5): on a phone, portrait and landscape, the floating search bar and the button share one row lined
-// up with the grid: bar from the grid's left edge, 10px gap, button on the grid's right edge, input row and button bottoms equal.
-for (const [name, viewport] of [["portrait", VIEWPORTS.phone], ["landscape", { width: VIEWPORTS.phone.height, height: VIEWPORTS.phone.width }]]) {
-  test(`phone ${name} Advertising root: the button shares the floating bar's row, lined up with the grid`, async () => {
+// Owner 2026-11-23 (search-bar R5): on every touch device, phone and tablet, portrait and landscape, the floating search bar and the
+// button share one row lined up with the grid: bar from the grid's left edge, 10px gap, button on the grid's right edge, input row and
+// button bottoms equal.
+for (const [name, viewport] of [
+  ["phone portrait", VIEWPORTS.phone], ["phone landscape", { width: VIEWPORTS.phone.height, height: VIEWPORTS.phone.width }],
+  ["tablet portrait", { width: 768, height: 1024 }], ["tablet landscape", { width: 1024, height: 768 }],
+  ["large tablet landscape", { width: 1366, height: 1024 }],
+]) {
+  test(`${name} Advertising root: the button shares the floating bar's row, lined up with the grid`, async () => {
     const browser = await launchBrowser();
     const { context, page } = await openPage(browser, viewport, { hasTouch: true, isMobile: true });
     try {

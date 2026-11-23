@@ -24,9 +24,9 @@ audit trang thật với mock (R6).
 không đổi dáng (bỏ đường kẻ ở khe CTA). Ngoại lệ có chủ ý so với mock: chữ ô 16px (mock 15px) và morph 1s (mock 0,6s, quyết định owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` như nay (thế chỗ hàng nhóm dưới tiêu đề hero; trang có lưới masonry bỏ "Cuộn xuống").
 Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe dứt khoát theo vị trí cuộn ([R7](#r7-vào-khe-dứt-khoát)); trang card không có thanh, trang nhóm và trang sản phẩm có thanh và tìm trong nhóm ([R8](#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)).
 
-| | PC và tablet (từ 751px) | Phone (dưới 751px) |
+| | PC (chuột), màn từ 751px | Máy cảm ứng (phone, tablet, mọi chiều); PC dưới 751px |
 | --- | --- | --- |
-| Nổi, chưa có kết quả | rộng `min(560px, 100% - 32px)`, cách đáy 35px, bóng `0 12px 32px rgb(0 0 0 / 18%)` | rộng 100% trừ 16px mỗi bên, cách đáy 16px cộng `safe-area-inset-bottom`, cùng bóng |
+| Nổi, chưa có kết quả | rộng `min(560px, 100% - 32px)`, cách đáy 35px, bóng `0 12px 32px rgb(0 0 0 / 18%)` | máy cảm ứng: từ mép trái lưới tới cách mép phải lưới 60px (làn nút về đầu, [R5](#r5-nút-về-đầu-trang-phone-và-chuyển-động)); PC hẹp: rộng 100% trừ 16px mỗi bên; cách đáy 16px cộng `safe-area-inset-bottom`, cùng bóng |
 | Nổi, có kết quả | rộng `min(760px, 100% - 32px)`, thêm hàng chip phía trên | như trên, thêm hàng chip |
 | Khe đầu trang, khe CTA | rộng bằng khe, tối đa 1000px; không bóng, không hàng chip | rộng bằng khe; không bóng, không hàng chip |
 
@@ -80,8 +80,8 @@ dự phòng cũ: link cách đáy khối ít nhất `--masonry-gap`.
 ### R5. Nút về đầu trang, phone và chuyển động
 
 **Nút về đầu trang (thiết bị cảm ứng, theo điều kiện hiện nay `(hover: none) and (pointer: coarse)`).** Nút luôn là ô 50px nền `paper`, viền 1px `ink`, cùng bóng
-với thanh ([shell](site-shell.md), owner 2026-11-22). Khi thanh nổi trên máy cỡ tablet: nằm hàng riêng phía trên thanh, cách 10px, sát mép phải màn (owner 2026-11-22). Phone dọc và ngang (như
-[phone-header-scroll R6](phone-header-scroll.md), owner 2026-11-23): thanh và nút chung một hàng cách đáy 16px, thẳng mép lưới: thanh từ mép trái lưới tới cách
+với thanh ([shell](site-shell.md), owner 2026-11-22). Mọi máy cảm ứng, phone và tablet, dọc và ngang (owner 2026-11-23: phương án A trên phone, rồi "các thiết bị cảm ứng phải đồng bộ",
+chọn "Thẳng lưới như phone" cho tablet): thanh và nút chung một hàng cách đáy 16px, thẳng mép lưới: thanh từ mép trái lưới tới cách
 mép phải lưới 60px, nút 50px nằm cuối hàng cách thanh 10px, đáy nút bằng đáy thanh; có kết quả thì hàng chip mở phía trên thanh, nút đứng yên. Thanh ở khe thì nút ẩn. Nút nằm dưới khối tìm kiếm (z-index), bóng không phủ lên thanh. Detail view ẩn thanh nên nút về góc thường. `--search-bar-offset` = chiều cao khối (gồm hàng
 chip) + 12px; Floating CTA và nút về đầu trang không cùng hiện nên không cộng hàng nút.
 

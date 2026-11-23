@@ -523,8 +523,8 @@ body.is-detail .search-host {
   font-weight: 500;
 }
 
-/* Back-to-top (search-bar R5): with the bar in a slot it stays out. While the bar floats, it sits on its own
-   row 10px above the block, at the right edge like every other page (owner 2026-11-22); phones share the row (below). */
+/* Back-to-top (search-bar R5): with the bar in a slot it stays out. While the bar floats it shares the bar's row on every touch
+   device (below); PC has no button. */
 body:is([data-search-place="cta"], [data-search-place="top"]) .back-to-top.show {
   transform: translateX(150%);
 }
@@ -535,10 +535,6 @@ body:is(.is-detail, [data-search-place="off"]) .back-to-top {
 }
 
 @media (hover: none) and (pointer: coarse) {
-  body[data-search-place]:not([data-search-place="off"], .is-detail) .back-to-top {
-    bottom: calc(35px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
-  }
-
   /* Keyboard open: only the input row stays above it. */
   .search-bar:not(.is-docked):has(input:focus) .search-bar__shell {
     grid-template-rows: 0fr auto;
@@ -560,12 +556,11 @@ body:is(.is-detail, [data-search-place="off"]) .back-to-top {
   }
 }
 
-/* Phones, portrait and landscape as in phone-header-scroll R6 (owner 2026-11-23, option A): the floating bar and the back-to-top share
-   one row 16px above the bottom, lined up with the grid: the bar from the grid's left edge to 60px short of its right edge (50px
-   button + 10px), the button on that edge. The host keeps its centring (rise and off motions translate by -50%); the button lane is
-   host padding, which lets taps through. */
-@media (hover: none) and (pointer: coarse) and (max-width: 750px),
-  (hover: none) and (pointer: coarse) and (max-height: 750px) {
+/* Every touch device, phone and tablet, portrait and landscape (owner 2026-11-23: option A on phones, then "các thiết bị cảm ứng phải
+   đồng bộ"): the floating bar and the back-to-top share one row 16px above the bottom, lined up with the grid: the bar from the grid's
+   left edge to 60px short of its right edge (50px button + 10px), the button on that edge. The host keeps its centring (rise and off
+   motions translate by -50%); the button lane is host padding, which lets taps through. */
+@media (hover: none) and (pointer: coarse) {
   .search-host {
     box-sizing: border-box;
     bottom: calc(16px + env(safe-area-inset-bottom, 0px));
