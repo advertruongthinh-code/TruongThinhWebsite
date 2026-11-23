@@ -16,14 +16,16 @@ import { CONTACT_HREF } from "./links.mjs";
 
 export const TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu", "client-logo", "contact", "page-copy"];
 export const SINGLETON_TYPES = ["home-projects", "menu", "contact"];
-export const OPEN_TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu", "page-copy", "contact"];
+export const OPEN_TYPES = ["media", "news", "project", "advertising-card", "hero-slide", "home-projects", "menu", "page-copy", "contact", "client-logo"];
 export const ID = /^[a-z0-9][a-z0-9-]{0,79}$/;
+export const SVG = "image/svg+xml";
 export const HERO_PAGES = ["home", "residential", "commercial"];
 
 export function recordName(type, data) {
   if (SINGLETON_TYPES.includes(type)) return "main";
   if (type === "news" || type === "project") return data?.title?.vi;
   if (type === "advertising-card") return data?.titleVi;
+  if (type === "client-logo") return data?.name;
   return data?.id;
 }
 
@@ -124,6 +126,11 @@ export async function shapeErrors(type, data, ctx = {}) {
   if (type === "advertising-card" && !ADVERTISING_PRODUCTS.some(({ id }) => id === data.productIds?.[0])) errors.push(shape(`${at}: a card needs a known main product (productIds[0])`, "card-product"));
   if (type === "page-copy") errors.push(...pageCopyErrors(data, at));
   if (type === "contact") errors.push(...contactErrors(data));
+  // Client logo (K9): the name is the alt; src and viewBox come from the SVG media on save; a logo is never cropped.
+  if (type === "client-logo") {
+    if (typeof data.name !== "string") errors.push(shape(`${at}: name must be a string`, "logo-name"));
+    if (data.crop !== undefined) errors.push(shape(`${at}: a logo is not cropped`, "crop"));
+  }
   // Menu (cms-content R7): 6 groups, item and link shape; a deleted group is a 400.
   if (type === "menu") errors.push(...menuShapeErrors(data, "menu").map((message) => shape(message, "menu-shape")));
   const mediaById = ctx.mediaById ?? new Map();
@@ -136,6 +143,8 @@ export async function shapeErrors(type, data, ctx = {}) {
     if (ref.mediaId === undefined) { errors.push(shape(`${at}: a media placement needs mediaId`, "media-id")); continue; }
     const media = mediaById.get(ref.mediaId);
     if (!media) errors.push(shape(`${at}: media ${ref.mediaId} does not exist`, "media-unknown"));
+    // SVG media go only into client logos, and a logo takes only SVG (K9).
+    else if ((media.mime === SVG) !== (type === "client-logo")) errors.push(shape(`${at}: media ${ref.mediaId} (${media.mime}) cannot be placed in ${type}`, "media-kind"));
     else errors.push(...cropErrors(ref.crop, media, `${at}: media ${ref.mediaId}`));
   }
   // Project card (cms-content R4): card media come from the page's own media; seeded crops (legacySrc) are exempt.
@@ -194,6 +203,7 @@ export async function fullErrors(type, data, ctx = {}) {
     if (!card.tagIds.length) messages.push(`${at}: a card needs tagIds`);
     try { validateAdvertisingCardMedia(card); } catch (error) { messages.push(error.message); }
   } else if (type === "media") messages = mediaErrors(data);
+  else if (type === "client-logo" && !isText(data.name)) messages = [`${at}: logo cần tên (alt)`];
   // A button on a channel without a link renders disabled: the save goes through but the record is not complete.
   else if (type === "contact") messages = Object.entries(data.cta ?? {}).filter(([, cta]) => !data.channels?.[cta?.channel]?.href).map(([key, cta]) => `contact: cta ${key} points to ${cta?.channel}, which has no link`);
   return [

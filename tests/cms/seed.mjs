@@ -5,7 +5,7 @@ import { filesToRecords } from "../../src/cms/projection.mjs";
 import { fileImageCheck } from "../../scripts/site/content-files.mjs";
 
 const SITE = new URL("../../src/site/", import.meta.url).pathname;
-export const FILE_NAMES = ["news.json", "projects.json", "hero-slides.json", "home-projects.json", "menu.json", "contact.json"];
+export const FILE_NAMES = ["news.json", "projects.json", "hero-slides.json", "home-projects.json", "menu.json", "contact.json", "client-logos.json"];
 export const repoFiles = () => ({
   ...Object.fromEntries(FILE_NAMES.map((name) => [name, JSON.parse(readFileSync(`${SITE}content/${name}`, "utf8"))])),
   cards: JSON.parse(JSON.stringify(ADVERTISING_MEDIA_MANIFEST)),
