@@ -1425,9 +1425,13 @@ body.is-masonry-browse .masonry-grid {
   text-underline-offset: 0.2em;
 }
 
+/* On the page, not the section: the phone-landscape floating search bar lines up with the grid edges too (search-bar R5). */
+.detail-page {
+  --masonry-outer: 15px;
+}
+
 .detail-page .masonry-section {
   position: relative;
-  --masonry-outer: 15px;
   width: calc(100% - (2 * var(--masonry-outer)));
 }
 
@@ -1439,7 +1443,7 @@ body.is-masonry-browse .masonry-grid {
 }
 
 @media (min-width: 751px) {
-  .detail-page .masonry-section {
+  .detail-page {
     --masonry-outer: 25px;
   }
 }
@@ -1455,7 +1459,7 @@ body.is-masonry-browse .masonry-grid {
     --masonry-gap: 35px;
   }
 
-  .detail-page .masonry-section {
+  .detail-page {
     --masonry-outer: 35px;
   }
 }

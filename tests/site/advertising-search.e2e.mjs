@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import { COPY } from "../../src/site/search/bar.mjs";
 import { matchesFilter } from "../../src/site/masonry/layout.mjs";
 import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, viewportAt } from "./harness.mjs";
 
@@ -112,7 +113,7 @@ test("R6, R9: no keyword match keeps the grid pending until the Worker answers e
     assert(await page.locator("[data-masonry-pending]").count(), "still pending at 1.5 s");
     await page.waitForFunction(() => !document.querySelector("[data-masonry-pending]"), null, { timeout: 4000 });
     assert.match(await liveText(page), /chưa thấy/i);
-    assert.match(await page.locator(".search-bar [data-search-note]").textContent(), /chưa thấy mẫu phù hợp/i, "short notice in the input's place");
+    assert.match(await page.locator(".search-bar [data-search-note]").textContent(), new RegExp(COPY.vi.empty, "i"), "short notice in the input's place");
     assert(await page.locator(".search-bar [data-search-note]").isVisible());
     await page.waitForFunction(() => document.querySelector(".search-bar [data-search-note]").hidden, null, { timeout: 6000 });
     assert.equal(await page.inputValue(".search-bar input"), "xyzzy qwerty", "the typed text comes back");
@@ -288,9 +289,9 @@ test("R8, R4: one image by the button, replaced by the next, without EXIF in the
     await page.locator(".search-bar input").press("Escape");
     assert.equal(await thumbSrc(page), null, "Esc drops the image");
     await page.setInputFiles("[data-search-file]", { name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'/>") });
-    await page.waitForFunction(() => /chưa dùng được/i.test(document.querySelector(".search-bar [data-search-note]").textContent));
+    await page.waitForFunction((text) => document.querySelector(".search-bar [data-search-note]").textContent.includes(text), COPY.vi.unsupported);
     await page.setInputFiles("[data-search-file]", { name: "clip.mp4", mimeType: "video/mp4", buffer: Buffer.from("0000") });
-    await page.waitForFunction(() => /chỉ tìm bằng ảnh/i.test(document.querySelector(".search-bar [data-search-note]").textContent));
+    await page.waitForFunction((text) => document.querySelector(".search-bar [data-search-note]").textContent.includes(text), COPY.vi.videoOnly);
     assert.equal(await thumbSrc(page), null);
     await context.close();
   } finally {
@@ -333,11 +334,11 @@ test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and
     await page.fill(".search-bar input", "biển hiệu");
     const start = Date.now();
     await page.press(".search-bar input", "Enter");
-    await page.waitForFunction(() => /đang chậm/i.test(document.querySelector(".search-bar [data-search-note]").textContent), null, { timeout: 5000 });
+    await page.waitForFunction((text) => document.querySelector(".search-bar [data-search-note]").textContent.includes(text), COPY.vi.slow, { timeout: 5000 });
     const waited = Date.now() - start;
     assert(waited >= 2800 && waited < 4500, `slow note at ${waited} ms`);
     assert.equal(await page.locator("[data-masonry-pending]").count(), 0, "grid no longer pending");
-    assert(await page.locator(".search-bar [data-search-note] button", { hasText: /thử lại/i }).isVisible());
+    assert(await page.locator(`.search-bar [data-search-note] button[aria-label="${COPY.vi.retry}"]`).isVisible(), "retry icon");
     await announced(page, /kết quả/, 6000); // the late answer still applies
     await context.close();
   } finally {
@@ -813,6 +814,38 @@ test("search-bar R8: no bar on a filter page; filtering to a group hides it and 
     await page.waitForTimeout(800);
     assert.deepEqual(await off(), { off: false, hidden: false, slots: false }, "back to all");
     await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+// Owner 2026-11-23: on a phone the floating bar shares its row with the back-to-top button, so its field is 60px narrower; every tip
+// and notice still fits it whole at 360px, and a notice with a retry keeps room for the 40px icon and its 10px gap.
+test("search-bar R3 at 360px: every tip and notice fits the floating phone field, retry notices beside the icon", async () => {
+  const browser = await launchBrowser();
+  try {
+    for (const [locale, url] of [["vi", PAGE], ["en", `${BASE_URL}/en/advertising-products/`]]) {
+      const { context, page } = await open(browser, { width: 360, height: 740, isMobile: true, hasTouch: true }, url);
+      await page.waitForFunction(() => {
+        scrollTo({ top: innerHeight * 3, behavior: "instant" });
+        return document.body.dataset.searchPlace === "float";
+      }, null, { polling: 500, timeout: 10_000 });
+      await page.waitForTimeout(1200);
+      const copy = COPY[locale];
+      const plain = [...copy.tips, copy.imageHint, copy.videoOnly, copy.unsupported, copy.tooLarge, copy.unreadable, copy.paused, copy.searching, copy.empty];
+      const retry = [copy.slow];
+      const { field, wide } = await page.evaluate(({ plain, retry }) => {
+        const field = document.querySelector(".search-host .search-bar__field").getBoundingClientRect().width;
+        const font = getComputedStyle(document.querySelector(".search-host .search-bar__note")).fontFamily;
+        const context = document.createElement("canvas").getContext("2d");
+        // Notices are 600; tips are lighter, so the notice weight bounds both.
+        context.font = `600 16px ${font}`;
+        const width = (text) => context.measureText(text).width;
+        return { field, wide: [...plain.filter((text) => width(text) > field), ...retry.filter((text) => width(text) > field - 50)] };
+      }, { plain, retry });
+      assert.deepEqual(wide, [], `${locale}: too wide for the ${Math.round(field)}px field`);
+      await context.close();
+    }
   } finally {
     await browser.close();
   }
