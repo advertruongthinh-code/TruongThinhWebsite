@@ -5308,7 +5308,7 @@ body.is-masonry-browse .masonry-grid {
 
 /* Kính (docs/specs/glass-surface.md): one component for every glass surface. Backdrop
    blur stacks cumulatively, so step n adds sqrt(L(n)^2 - L(n-1)^2) toward levels 16.07, 57.14 and a ceiling of
-   100px (the three step bands of the arc on phone: 4.5, 12 and 28px, nth-last-child rules below; the nine steps of the arc on PC are set inline by masonry/glass-surface.mjs
+   100px (the one band step of the arc on phone: 100px, nth-last-child rule below; the nine steps of the arc on PC are set inline by masonry/glass-surface.mjs
    through --glass-step-blur, winning over these rules); saturate() and brightness() multiply, so each step
    carries the cube root of 1.7 and 1.04. The arc sets all four to 1, leaving only blur (owner 10/10): the core
    stacks the step band in the fade strip at the arc, so the color would be applied twice, making a dark ridge along the arc.
@@ -5347,9 +5347,7 @@ body.is-masonry-browse .masonry-grid {
 .glass-surface__step:nth-last-child(4) { --glass-step-blur: 54.84px; }
 .glass-surface__step:nth-last-child(3) { --glass-step-blur: 82.07px; }
 
-.glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(5) { --glass-step-blur: 4.5px; }
-.glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(4) { --glass-step-blur: 11.12px; }
-.glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(3) { --glass-step-blur: 25.3px; }
+.glass-surface[data-glass-shape="arc"] > .glass-surface__step:nth-last-child(3) { --glass-step-blur: 100px; }
 
 .glass-surface__step--full {
   -webkit-backdrop-filter: blur(var(--glass-full-blur)) saturate(var(--glass-saturate)) brightness(var(--glass-brightness));
@@ -5367,14 +5365,12 @@ body.is-masonry-browse .masonry-grid {
   opacity: 0.06;
 }
 
-/* The arc runtime sets each layer (masonry/glass-surface.mjs); it spans the viewport over the batch. The core keeps the 28px of the band on phone;
-   on PC the runtime sets inline --glass-full-blur: 100px for the core (the strip's nine steps already carry blur up to the 100px ceiling). */
+/* The arc runtime sets each layer (masonry/glass-surface.mjs); it spans the viewport over the batch. The core is the 100px ceiling on every device. */
 .glass-surface[data-glass-shape="arc"] {
   --glass-saturate: 1;
   --glass-brightness: 1;
   --glass-step-saturate: 1;
   --glass-step-brightness: 1;
-  --glass-full-blur: 28px;
   left: calc(-1 * var(--masonry-outer));
   width: calc(100% + (2 * var(--masonry-outer)));
 }

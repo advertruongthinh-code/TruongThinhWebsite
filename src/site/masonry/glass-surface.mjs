@@ -2,15 +2,15 @@ import { GRAIN_SIZE, grainImages } from "./grain.mjs";
 
 // Kính: one glass component shared by every glass surface (docs/specs/glass-surface.md).
 // The blur steps (increments in detail.css), then a white tint and grain. Levels 16.07, 57.14, 100px (ceiling 100px, owner 06/10); the arc band
-// has three on phone (4.5, 12, 28px; owner, 05/10, for Android phones), and nine on PC (ARC_DESKTOP_LEVELS, owner 2026-11-01).
+// has nine on PC (ARC_DESKTOP_LEVELS, owner 2026-11-01) and one 100px step on phone (owner 2026-11-23, like PC so the CTA is not noisy over the batch).
 const ARC_STEPS = 3;
-// The owner's arc (06/10): apex at -15% of the CTA group (above the title edge, owner 10/10, so the text sits inside the core), radius 3.5 viewport widths, band 1.75 group heights,
+// The owner's arc (06/10): apex at -15% of the CTA group (above the title edge, owner 10/10, so the text sits inside the core), radius 3.5 viewport widths,
+// band 2.5 group heights (owner 2026-11-07 found the glass transition harsh, previously 1.75),
 // pure white from 0.35 card width inside the batch corners, white tint 0.55 on the arc (owner 10/10, previously 0.35).
-const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 1.75, whiteRamp: 0.35, tint: 0.55 });
-// Phone: core 28px (ARC_LEVEL) and one innermost band step. PC (owner 2026-11-01): nine blur steps growing geometrically from 4.5px
+const ARC = Object.freeze({ centre: -0.15, radius: 3.5, band: 2.5, whiteRamp: 0.35, tint: 0.55 });
+// Phone: core 100px and one 100px band step. PC (owner 2026-11-01): nine blur steps growing geometrically from 4.5px
 // up to the 100px ceiling (4.5 x (100 / 4.5)^(i / 8)), running from the outer band edge across the arc boundary and biting into ARC_DESKTOP_BITE of the band width;
 // inside the arc, the core blurs uniformly at 100px (CEILING).
-const ARC_LEVEL = 28;
 const CEILING = 100;
 export const ARC_DESKTOP_LEVELS = Object.freeze([4.5, 6.63, 9.77, 14.4, 21.21, 31.26, 46.06, 67.87, 100]);
 export const ARC_DESKTOP_BITE = 1 / 3;
@@ -19,13 +19,12 @@ const ARC_DESKTOP_OVERLAP = 0.3;
 // The white layer outside the arc reaches 0 at this fraction of the band width (owner 2026-11-01, previously at the band edge).
 const ARC_WHITE_REACH = 0.85;
 // The layer count is fixed per device type, no fps measuring (owner 10/10): PC 10 layers (core 100px, 9 bands); phone 2 layers
-// (core 28px and the innermost band step; owner 10/10). An inner step (81-88% slow frames, round 26) or a second band
+// (core and one band step, both 100px). PC glass on the A04s runs about 19 fps; an inner step (81-88% slow frames, round 26) or a second band
 // step (30% slow frames, round 29) both missed the gate on Android phones. Phone is detected like the skeleton (catalog-runtime).
-// Phone keeps apex 0.35: a higher apex widens the Kính area, and an old A05s swipes 7-9% slow frames (round 34).
-// `width`: band width relative to the group height. PC 2.5 (owner 2026-11-07 found the glass transition harsh, previously 1.75); phone keeps 1.75 because
-// a taller band-step box adds blur rows per frame on Android phones, and the phone softens by spreading the band step across the whole band.
-const PHONE_LAYERS = Object.freeze({ band: 1, centre: 0.35, width: ARC.band });
-const DESKTOP_LAYERS = Object.freeze({ band: ARC_DESKTOP_LEVELS.length, centre: ARC.centre, width: 2.5 });
+// Phone has the PC apex and band (owner 2026-11-23): A04s idle at the CTA stays 60 fps, scrolling over the batch 56 instead of 66 fps.
+// `width`: band width relative to the group height.
+const DESKTOP_LAYERS = Object.freeze({ band: ARC_DESKTOP_LEVELS.length, centre: ARC.centre, width: ARC.band });
+const PHONE_LAYERS = Object.freeze({ ...DESKTOP_LAYERS, band: 1 });
 const arcLayers = () => (globalThis.matchMedia?.("(pointer: coarse)").matches || globalThis.navigator?.maxTouchPoints > 0
   ? PHONE_LAYERS : DESKTOP_LAYERS);
 const geometries = new WeakMap();
@@ -176,7 +175,7 @@ export function layoutArcGlass(glass, geometry) {
   const circle = (top) => `circle at ${width / 2}px ${cy - top}px`;
   const [coreStep, ...steps] = glass.querySelectorAll(".glass-surface__step");
   // The step count in the DOM decides the branch: PC has nine steps, phone three (the two outer steps hidden). Fixed at creation, while arcGlassGeometry reads
-  // arcLayers() each time: if the pointer type changes after creation (DevTools emulation), PC uses the phone apex 0.35 until rebuilt.
+  // arcLayers() each time: if the pointer type changes after creation (DevTools emulation), the step count stays until rebuilt.
   const desktop = steps.length > ARC_STEPS;
   // PC: the core steps back inside the arc boundary by exactly the nine steps' bite.
   const edge = desktop ? radius - band * ARC_DESKTOP_BITE : radius;
@@ -184,8 +183,7 @@ export function layoutArcGlass(glass, geometry) {
   // The lowest inner fade circle on both sides of the box.
   const seam = cy - Math.sqrt(core * core - width * width / 4);
   const top = cy - radius - band;
-  const coreTop = Math.max(top, cy - edge - (desktop ? CEILING : ARC_LEVEL));
-  if (desktop) coreStep.style.setProperty("--glass-full-blur", `${CEILING}px`);
+  const coreTop = Math.max(top, cy - edge - CEILING);
   place(coreStep, coreTop);
   setMask(coreStep, `radial-gradient(${circle(coreTop)}, #000 ${edge - FADE / 2}px, transparent ${edge}px)`);
   if (desktop) {

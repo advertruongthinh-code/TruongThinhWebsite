@@ -84,15 +84,14 @@ try {
       const band = (state.sLast - state.s0) / ((7.7 / 9) * (4 / 3));
       const yIn = state.s0 + band;
       const cluster = state.clusterBottom - state.clusterTop;
-      // R2: apex at -15% of the CTA cluster (above the title edge), phone keeps +35%; only raised to keep the two pure-white ramps
+      // R2: apex at -15% of the CTA cluster (above the title edge) on every device; only raised to keep the two pure-white ramps
       // (each ramp 0.35 of the card width) on the batch bottom.
-      const phone = await page.evaluate(() => matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0);
-      const apexShare = phone ? 0.35 : -0.15;
+      const apexShare = -0.15;
       check(Math.abs(yIn - Math.min(state.clusterTop + apexShare * cluster, state.batchBottom - 0.7 * state.cardWidth)) <= 2,
         `${label}: R2 apex ${yIn.toFixed(1)} is not at ${apexShare * 100}% of the CTA cluster ${state.clusterTop.toFixed(1)}..${state.clusterBottom.toFixed(1)}`);
       check(state.s0 >= state.realBottom - 1, `${label}: R2 band edge ${state.s0} rises above the real photos ${state.realBottom}`);
-      check(Math.abs(band - 1.75 * cluster) <= 2 || Math.abs(state.s0 - state.realBottom) <= 1,
-        `${label}: R2 band ${band.toFixed(1)} is not 1.75 cluster heights`);
+      check(Math.abs(band - 2.5 * cluster) <= 2 || Math.abs(state.s0 - state.realBottom) <= 1,
+        `${label}: R2 band ${band.toFixed(1)} is not 2.5 cluster heights`);
       check(Math.abs(state.centreX - width / 2) <= 1, `${label}: R2 arc centre ${state.centreX} is off the middle of the screen`);
       check(Math.abs(state.centreY - yIn - 3.5 * width) <= 1 || state.centreY - yIn > 3.5 * width,
         `${label}: R2 radius ${(state.centreY - yIn).toFixed(1)} under 3.5 viewport widths`);
@@ -140,7 +139,7 @@ try {
     }
   }
 
-  // Phone (touch, spec S5): still two layers, the CSS 28px core (not inline 100px), one band step shown with a 25.3px increment.
+  // Phone (touch, spec S5): still two layers, a 100px core and one 100px band step.
   {
     const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true });
     const page = await context.newPage();
@@ -163,8 +162,8 @@ try {
         return { total: steps.length, visible: visible.length, coreInline: core.style.getPropertyValue("--glass-full-blur"),
           coreBlur: blur(core), stepBlur: visible.map(blur) };
       });
-      check(JSON.stringify(phone) === JSON.stringify({ total: 3, visible: 1, coreInline: "", coreBlur: "28", stepBlur: ["25.3"] }),
-        `phone arc Kính is not two layers (core 28px and one 25.3px band step) ${JSON.stringify(phone)}`);
+      check(JSON.stringify(phone) === JSON.stringify({ total: 3, visible: 1, coreInline: "", coreBlur: "100", stepBlur: ["100"] }),
+        `phone arc Kính is not two layers (core and one band step, both 100px) ${JSON.stringify(phone)}`);
     } finally {
       await context.close();
     }

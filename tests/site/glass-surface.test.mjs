@@ -31,9 +31,8 @@ assert.deepEqual([...new Set(owners)].sort(),
 // A one-step surface blurs through the product of the steps (the tone checks below).
 assert.match(css, /\.glass-surface__step--full \{[^}]*backdrop-filter: blur\(var\(--glass-full-blur\)\) saturate\(var\(--glass-saturate\)\) brightness\(var\(--glass-brightness\)\);/,
   "R2, R5: one full step equals the steps");
-// R2: one full step is the 100px ceiling; the arc's core keeps the band's 28px on phone (PC sets inline 100px, nine steps in the band).
+// R2: one full step is the 100px ceiling, also the arc's core on every device (owner 2026-11-23).
 assert.match(css, /^\.glass-surface \{[^}]*--glass-full-blur: 100px;/m, "R2: one full step reaches the 100px ceiling");
-assert.match(css, /^\.glass-surface\[data-glass-shape="arc"\] \{[^}]*--glass-full-blur: 28px;/m, "R2: the phone arc's core holds 28px");
 assert.match(ctaBatch, /createGlassSurface\("arc"\)/, "R1: the masonry end uses the arc Kính");
 assert.match(runtime, /createGlassSurface\("even", 0\)/, "R1: the primary uses the even Kính, tint and grain only");
 // The primary photo carries the full step's blur itself: a backdrop-filter there prints a tile seam into Chrome's tab thumbnail.
@@ -50,7 +49,7 @@ const tone = (selector) => css.match(new RegExp(`^${selector} \\{\\s*--glass-sat
   + `\\s*--glass-step-saturate: ([\\d.]+);\\s*--glass-step-brightness: ([\\d.]+);`, "m")).slice(1).map(Number);
 const arc = '\\.glass-surface\\[data-glass-shape="arc"\\]';
 assert.deepEqual(blurLevels(""), [16.1, 57.1, 100], "R2: steps reach the 100px ceiling");
-assert.deepEqual(blurLevels(`${arc} > `), [4.5, 12, 28], "R2: the arc's band steps reach 4.5, 12 and 28px");
+assert.deepEqual(blurLevels(`${arc} > `), [100], "R2: the phone arc's one band step reaches 100px");
 for (const [selector, count, saturation, light] of [["\\.glass-surface", 3, 1.7, 1.04], [arc, 3, 1, 1]]) {
   const [fullSaturate, fullBrightness, saturate, brightness] = tone(selector);
   assert.deepEqual([fullSaturate, fullBrightness], [saturation, light], `R5: one full step carries ${saturation} and ${light}`);
