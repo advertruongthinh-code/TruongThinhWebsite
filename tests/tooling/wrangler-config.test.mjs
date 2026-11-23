@@ -15,3 +15,9 @@ test("the admin Worker runs first only for the API and has one Cron", () => {
   assert.match(admin, /^run_worker_first = \["\/api\/\*"\]$/m);
   assert.match(admin, /^crons = \["\* \* \* \* \*"\]$/m);
 });
+
+test("the admin Worker serves only its custom domain, not workers.dev", () => {
+  const admin = read("wrangler.toml");
+  assert.match(admin, /^workers_dev = false$/m);
+  assert.match(admin, /^pattern = "admin\.truongthinhads\.vn"\ncustom_domain = true$/m);
+});
