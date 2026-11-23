@@ -26,7 +26,9 @@ export function htmlElements(html) {
     elements.push(entry);
     // Script and style bodies are raw text: a tag inside a string there is not an element.
     if (name === "script" || name === "style") {
-      const close = html.toLowerCase().indexOf(`</${name}`, tagPattern.lastIndex);
+      const closing = new RegExp(`</${name}`, "gi");
+      closing.lastIndex = tagPattern.lastIndex;
+      const close = closing.exec(html)?.index ?? -1;
       if (close < 0) continue;
       const closeEnd = html.indexOf(">", close);
       Object.assign(entry, { contentEnd: close, end: closeEnd < 0 ? html.length : closeEnd + 1 });
