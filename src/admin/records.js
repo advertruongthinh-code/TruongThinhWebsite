@@ -16,6 +16,8 @@ const NO_CREATE = new Set([...SINGLE, 'page-copy']);
 const STATUS_LABEL = { draft: 'Nháp', published: 'Đã đăng', trashed: 'Thùng rác' };
 const ID_RE = /^[a-z0-9][a-z0-9-]{0,79}$/;
 
+// Inside the Dockview editor ("Nội dung" panel) the page drops its own title and links.
+if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');
 const $ = (id) => document.getElementById(id);
 const els = {
   type: $('typeSelect'), filter: $('statusFilter'), status: $('status'), list: $('list'),
