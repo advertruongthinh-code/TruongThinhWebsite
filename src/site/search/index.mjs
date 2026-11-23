@@ -196,6 +196,8 @@ export function mount(container, { signal, softNavigation = false } = {}) {
       Object.assign(document.createElement("sup"), { textContent: product.querySelector("sup")?.textContent ?? "" }));
     // Again on the chip in use: back to all results, the query stays.
     button.addEventListener("click", () => {
+      // A pick from the panel by keyboard keeps focus on the bar: the panel turns inert and its chips are rebuilt.
+      if (panel.contains(document.activeElement)) more.focus();
       setPanel(false);
       (pressed ? allFilter() : product)?.click();
     });
@@ -246,6 +248,8 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     const row = entry.target;
     more.hidden = true;
     more.hidden = row.scrollWidth <= row.clientWidth + 1;
+    // No button, no way to close: a panel left open when the row stops overflowing closes with it.
+    if (more.hidden && isOpen()) setPanel(false);
     // The chip in use stays in sight, clear of the pinned button (a pick from the panel may sit far right).
     const pressed = row.querySelector("[aria-pressed=true]");
     if (pressed) {
@@ -321,6 +325,8 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   // The floating buttons stand above the floating bar; the phone's back-to-top sits on its own row above the block (search-bar R5).
   const syncOffset = () => {
     const floating = !dock?.docked && !dock?.off;
+    // Out of the floating place the chip rows hide: the panel closes too, so the bar comes back without it.
+    if (!floating && isOpen()) setPanel(false);
     document.body.dataset.searchPlace = dock?.off ? "off" : dock?.place ?? "float";
     document.body.style.setProperty("--search-bar-offset", `${floating ? bar.offsetHeight + 12 : 0}px`);
     if (!floating) return;

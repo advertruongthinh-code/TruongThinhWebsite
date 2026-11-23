@@ -684,12 +684,22 @@ test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all o
     }));
     assert.deepEqual(row.counts, [...row.counts].sort((a, b) => b - a), "most cards first");
     assert.equal(row.label, `Hiện tất cả (${row.counts.length})`);
+    // The panel's height a quarter into its morph, read with the transition held there so a slow runner cannot skip past it.
+    const quarterHeight = () => page.evaluate(() => {
+      const node = document.querySelector(".search-bar__all");
+      const morph = node.getAnimations().find((animation) => animation.transitionProperty === "grid-template-rows");
+      if (!morph) return node.getBoundingClientRect().height;
+      morph.pause();
+      morph.currentTime = 250;
+      const height = node.getBoundingClientRect().height;
+      morph.play();
+      return height;
+    });
     const panelHeight = () => page.evaluate(() => document.querySelector(".search-bar__all").getBoundingClientRect().height);
     await page.click(".search-bar__more");
-    // It morphs open (owner 2026-11-23): partway after a quarter of the 1s morph, whole after it.
-    await page.waitForTimeout(250);
-    const early = await panelHeight();
-    await page.waitForTimeout(1000);
+    // It morphs open (owner 2026-11-23): partway a quarter into the 1s morph, whole after it.
+    const early = await quarterHeight();
+    await page.waitForTimeout(1200);
     const panel = await page.evaluate(() => {
       const node = document.querySelector(".search-bar__all");
       const box = node.getBoundingClientRect();
@@ -707,11 +717,15 @@ test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all o
     const full = await panelHeight();
     assert(early > 2 && early < full - 20, `the panel grows (${early}px of ${full}px), not a jump`);
     await page.click(".search-bar__all .search-bar__chip:nth-child(2)");
-    await page.waitForTimeout(250);
-    const closing = await panelHeight();
+    const closing = await quarterHeight();
     assert(closing > 2 && closing < full, `the panel shrinks back (${closing}px of ${full}px)`);
-    await page.waitForTimeout(1000);
-    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector(".search-bar__all")).visibility), "hidden", "closed, the panel is gone");
+    await page.waitForTimeout(1200);
+    const closed = await page.evaluate(() => {
+      const node = document.querySelector(".search-bar__all");
+      const more = document.querySelector(".search-bar__more");
+      return { visibility: getComputedStyle(node).visibility, inert: node.inert, expanded: more.getAttribute("aria-expanded"), label: more.getAttribute("aria-label") };
+    });
+    assert.deepEqual(closed, { visibility: "hidden", inert: true, expanded: "false", label: row.label }, "closed, the panel is gone and the button says so");
     const picked = await page.evaluate(() => ({ open: document.querySelector(".search-bar__all").hasAttribute("data-open"), pressed: document.querySelectorAll(".search-bar__chiprow [aria-pressed=true]").length, query: document.querySelector(".search-bar input").value }));
     assert.deepEqual(picked, { open: false, pressed: 1, query: "đèn" });
     // A pick from the panel shows in the row, clear of the pinned button.
