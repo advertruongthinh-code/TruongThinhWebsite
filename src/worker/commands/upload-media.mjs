@@ -23,19 +23,20 @@ export default {
     const [width, height] = [Number(widthText), Number(heightText)];
     const id = await nextMediaId(env, slugBase);
     const target = { type: "media", id };
-    const key = `originals/${id}/original.${ext}`;
+    // One key per request: two uploads racing for the same id never overwrite or delete each other's object.
+    const writeId = crypto.randomUUID();
+    const key = `originals/${id}/${writeId}.${ext}`;
     const object = await env.MEDIA_ORIGINALS.put(key, request.body, { httpMetadata: { contentType: type } });
     const first = await env.MEDIA_ORIGINALS.get(key, { range: { offset: 0, length: 32 } });
     const head = first ? new Uint8Array(await first.arrayBuffer()) : new Uint8Array();
-    if (object.size !== length || !sniff(head, ext)) {
+    if (object.size !== length || !sniff(head, ext) || object.checksums?.md5?.byteLength !== 16) {
       await env.MEDIA_ORIGINALS.delete(key);
       throw new HttpError(400, { error: "bytes" }, target);
     }
     const hash = `md5:${hex(object.checksums.md5)}`;
     const variant = await variantKey(hash, [0, 0, width, height]);
-    const status = altVi && altEn ? "published" : "draft";
+    const status = altVi.trim() && altEn.trim() ? "published" : "draft";
     const text = JSON.stringify({ id, kind: "image", source: "r2", originalKey: key, hash, bytes: length, mime: type, width, height, altVi, altEn, tags: [] });
-    const writeId = crypto.randomUUID();
     const now = new Date().toISOString();
     const G = guard("media", id, writeId);
     try {

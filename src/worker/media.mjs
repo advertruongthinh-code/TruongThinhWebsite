@@ -54,7 +54,7 @@ export async function originalResponse(request, env, id, extraHeaders, onRepo) {
   if (!head) throw new HttpError(404, { error: "not-found" });
   const headers = {
     "Content-Type": data.mime, "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
-    "Content-Security-Policy": "sandbox", "Accept-Ranges": "bytes", ...extraHeaders,
+    "Content-Security-Policy": "sandbox", "Cross-Origin-Resource-Policy": "same-origin", "Accept-Ranges": "bytes", ...extraHeaders,
   };
   const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get("Range") ?? "");
   if (!range || (!range[1] && !range[2])) {

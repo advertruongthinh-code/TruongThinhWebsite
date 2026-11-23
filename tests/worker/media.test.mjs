@@ -53,10 +53,11 @@ test("a valid WebP upload writes the original, the media record, a pending varia
   assert.equal(body.status, "published");
   assert.equal(body.version, 1);
   assert.equal(body.variant.status, "pending");
-  assert.ok(env.MEDIA_ORIGINALS.objects.has("originals/can-ho-01/original.webp"));
   const data = JSON.parse(row("media", "can-ho-01").data);
+  assert.match(data.originalKey, /^originals\/can-ho-01\/[0-9a-f-]{36}\.webp$/);
+  assert.ok(env.MEDIA_ORIGINALS.objects.has(data.originalKey));
   assert.match(data.hash, /^md5:[0-9a-f]{32}$/);
-  assert.deepEqual([data.source, data.originalKey, data.mime, data.bytes, data.width, data.height], ["r2", "originals/can-ho-01/original.webp", "image/webp", WEBP.length, 3000, 2000]);
+  assert.deepEqual([data.source, data.originalKey, data.mime, data.bytes, data.width, data.height], ["r2", data.originalKey, "image/webp", WEBP.length, 3000, 2000]);
   assert.equal(body.variant.key, await variantKey(data.hash, [0, 0, 3000, 2000]));
   const variant = DB.sqlite.prepare("SELECT * FROM variants WHERE media_id = 'can-ho-01'").get();
   assert.deepEqual([variant.key, variant.crop, variant.status], [body.variant.key, "0,0,3000,2000", "pending"]);
@@ -164,7 +165,20 @@ test("update-media on an unused media may clear an alt and then it is a draft; a
   assert.deepEqual({ ...variant }, { status: "pending", error: null });
 });
 
-test("a media used by more than 40 records is 409 too-many-uses", async () => {
+test("update-media is 409 retry and writes nothing when a user record is saved meanwhile", async () => {
+  const t = await withUsers();
+  const batch = t.DB.batch;
+  t.DB.batch = (statements) => {
+    t.DB.sqlite.prepare("UPDATE records SET write_id = 'other-save', data = json_set(data, '$.x', 1) WHERE type = 'news' AND id = ?").run(t.news);
+    return batch(statements);
+  };
+  const { status, body } = await json(await t.post("update-media", { id: t.id, version: 1, altVi: "Moi", altEn: "New", tags: [] }));
+  assert.deepEqual([status, body.error], [409, "retry"]);
+  assert.equal(JSON.parse(t.row("news", t.news).data).x, 1);
+  assert.equal(t.row("media", t.id).version, 1);
+});
+
+test("a media used by more than 37 records is 409 too-many-uses", async () => {
   const t = await withUsers();
   for (let n = 0; n < 41; n++) t.DB.sqlite.prepare("INSERT INTO record_media VALUES ('news', ?, ?, '')").run(`extra-${n}`, t.id);
   for (let n = 0; n < 41; n++) {
