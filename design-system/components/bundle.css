@@ -315,6 +315,11 @@ html.route-enter .site-header {
   transition: none;
 }
 
+/* PC Advertising detail: the header scrolls away with the page, so no transition while it is partly off (site-shell R3). */
+.site-header.is-scroll-away {
+  transition: none;
+}
+
 .site-header.is-route-pinned {
   transform: translateY(0) !important;
 }

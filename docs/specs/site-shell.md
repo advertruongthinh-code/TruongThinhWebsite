@@ -70,17 +70,16 @@ Then nav có inert và aria-hidden, header một hàng, logo và nút menu vẫn
 
 ### R3. Header ẩn khi cuộn xuống
 
-Header chỉ ẩn trong vùng `0.5 × viewport < scrollY < pageHeight - 1.25 × viewport`
-([motion](../../design-system/motion.md#shell)): trong vùng, cuộn xuống quá 150px tính từ chỗ đổi
-chiều thì header `is-hidden`, cuộn lên không làm hiện (owner 2026-11-22); ngoài vùng (đầu và cuối trang) hiện
-ngay. Đang chuyển route, menu mở hoặc `pageshow` thì header hiện. Chuột thật (`any-hover: hover`
-và `any-pointer: fine`) lên vùng 350px trên cùng màn hình thì header hiện; focus trong header cũng
-giữ hiện. Điện thoại cảm ứng chạy [header đi theo ngón tay](phone-header-scroll.md) thay cho R3.
+Header chỉ ẩn trong vùng `0.5 × viewport < scrollY < pageHeight - 1.25 × viewport` ([motion](../../design-system/motion.md#shell)): trong vùng, cuộn xuống quá 150px tính từ chỗ đổi chiều thì header `is-hidden`, cuộn lên không làm hiện (owner 2026-11-22); ngoài vùng (đầu và cuối trang) hiện ngay. Đang chuyển route, menu mở hoặc `pageshow` thì header hiện. Chuột thật (`any-hover: hover` và `any-pointer: fine`) lên vùng 350px trên cùng màn hình thì header hiện; focus trong header cũng giữ hiện. Điện thoại cảm ứng chạy [header đi theo ngón tay](phone-header-scroll.md) thay cho R3. Trang chi tiết Advertising (`body.is-detail`, owner 2026-11-23) bỏ vùng giữa: máy có hover thì header trôi theo trang như nội dung (`translateY(-scrollY)`, `is-scroll-away`, không transition), trôi hết chiều cao thì `is-hidden`, cuộn lên giữa trang không hiện, chuột lên vùng 350px vẫn hiện; máy không hover (điện thoại, tablet cảm ứng) không gọi lại được nên header luôn dính.
 
 ```gherkin
 Given trang dài đã cuộn quá nửa cửa sổ và header đang ẩn
 When cuộn tới cách cuối trang chưa tới 1,25 lần chiều cao cửa sổ
 Then header hiện; cuộn ngược về giữa trang rồi xuống quá 150px thì header ẩn lại; cuộn lên trong vùng giữa thì vẫn ẩn
+
+Given /advertising-products/p/signage-raised-letters-33/ ở 1440×900 với chuột, cuộn 30px rồi quá chiều cao header
+When đưa chuột lên mép trên màn hình; cùng trang ở điện thoại cuộn 600px
+Then header lệch đúng 30px rồi is-hidden, chuột ở mép trên thì hiện; điện thoại header vẫn ở top 0
 ```
 
 ### R4. Full menu

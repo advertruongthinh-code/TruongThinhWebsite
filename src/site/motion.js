@@ -660,7 +660,7 @@
   };
 
   const showHeader = () => {
-    header.classList.remove("is-hidden");
+    header.classList.remove("is-hidden", "is-scroll-away");
     headerOffset = 0;
     header.style.removeProperty("transform");
   };
@@ -770,6 +770,20 @@
       showHeader();
     } else if (document.body.classList.contains("menu-open")) {
       // Scroll locked: do not count delta (phone-header-scroll R4).
+    } else if (document.body.classList.contains("is-detail")) {
+      // Advertising detail (owner 2026-11-23, site-shell R3): with a mouse the header scrolls away with the page like content and
+      // shows again only near the page top or by mouse at the top edge (once fully gone it is is-hidden so forceShow slides it in);
+      // touch screens have no hover to call it back, so there it stays stuck.
+      if (headerFollowStale) {
+        headerFollowHeight = header.offsetHeight;
+        headerFollowStale = false;
+      }
+      headerOffset = headerHoverMedia.matches ? Math.min(settledY, headerFollowHeight) : 0;
+      const gone = headerOffset >= headerFollowHeight;
+      header.classList.toggle("is-hidden", gone);
+      header.classList.toggle("is-scroll-away", headerOffset > 0 && !gone);
+      if (headerOffset && !gone) header.style.transform = `translateY(${-headerOffset}px)`;
+      else header.style.removeProperty("transform");
     } else if (follow) {
       // Offset exactly equals the scroll distance, clamped to [0, header height] and no more than scrollY;
       // when scrolling stops it stays as is (phone-header-scroll R2, R3).
@@ -792,6 +806,8 @@
       if (headerOffset) header.style.transform = `translateY(${-headerOffset}px)`;
       else header.style.removeProperty("transform");
     } else {
+      header.classList.remove("is-scroll-away");
+      header.style.removeProperty("transform");
       const isMiddle =
         scrollY > window.innerHeight * 0.5 &&
         scrollY < pageHeight - window.innerHeight * 1.25;
