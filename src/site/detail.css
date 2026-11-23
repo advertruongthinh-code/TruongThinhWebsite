@@ -1041,7 +1041,7 @@
 }
 
 /* Not armed on a wide screen: the stage keeps the nesting sheet only. */
-.about-journey:not(.is-armed) .about-journey__art:not([data-journey-art="6"]) {
+.about-journey:not(.is-armed) .about-journey__art:not([data-journey-art="7"]) {
   visibility: hidden;
 }
 
@@ -1201,7 +1201,7 @@
 
 .about-journey__node {
   position: absolute;
-  top: calc(var(--i) / 6 * (100% - 12px));
+  top: calc(var(--i) / 7 * (100% - 12px));
   left: -5px;
   width: 12px;
   height: 12px;
@@ -1275,18 +1275,18 @@
     background: var(--paper);
   }
 
-  .about-journey.is-armed [data-journey-art="6"] .about-journey__tool {
+  .about-journey.is-armed [data-journey-art="7"] .about-journey__tool {
     display: inline;
     stroke-dashoffset: calc(1 - clamp(0, (var(--p, 1) - var(--a)) / (var(--b) * 0.8), 1));
     opacity: clamp(0, (var(--a) + var(--b) - var(--p, 1)) * 40, 1);
   }
 
-  .about-journey.is-armed [data-journey-art="6"] :is(.about-journey__part, .about-journey__groove, .about-journey__drill) {
+  .about-journey.is-armed [data-journey-art="7"] :is(.about-journey__part, .about-journey__groove, .about-journey__drill) {
     fill-opacity: clamp(0, (var(--p, 1) - var(--a) - var(--b) * 0.8) * 40, 1);
     stroke-opacity: clamp(0.25, (var(--p, 1) - var(--a) - var(--b) * 0.8) * 40, 1);
   }
 
-  .about-journey.is-armed [data-journey-art="6"] :is(.about-journey__hole, .about-journey__waste, .about-journey__drill-axis) {
+  .about-journey.is-armed [data-journey-art="7"] :is(.about-journey__hole, .about-journey__waste, .about-journey__drill-axis) {
     opacity: clamp(0, (var(--p, 1) - var(--a) - var(--b) * 0.8) * 40, 1);
   }
 }
