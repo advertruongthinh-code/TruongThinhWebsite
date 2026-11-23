@@ -2,9 +2,9 @@
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/advertising-search.e2e.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BASE_URL, SWEEP_WIDTHS, launchBrowser, openPage, viewportAt } from "./harness.mjs";
+import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, viewportAt } from "./harness.mjs";
 
-const PAGE = `${BASE_URL}/vi/advertising-products/`;
+const PAGE = `${BASE_URL}/advertising-products/`;
 const WIDE = { width: 1440, height: 900 };
 const PHONE = { width: 384, height: 724, isMobile: true, hasTouch: true };
 const VECTOR_IDS = ["kiosk-posm-01", "kiosk-posm-02", "kiosk-posm-03"];
@@ -437,7 +437,7 @@ test("R10: soft navigation from the menu does not restore, and leaving the page 
     // The grid is still sliding to the results; a click during a page transition is ignored, so click until the route changes.
     await clickUntil(page, "#header-logo", () => !location.pathname.includes("advertising-products"));
     await page.waitForFunction(() => !document.querySelector(".search-bar"), null, { timeout: 8000 });
-    await clickUntil(page, '[data-site-header] .desktop-nav a[href="/vi/advertising-products/"]', () => location.pathname.includes("advertising-products"));
+    await clickUntil(page, '[data-site-header] .desktop-nav a[href="/advertising-products/"]', () => location.pathname.includes("advertising-products"));
     await page.waitForSelector(".search-bar", { timeout: 20000 });
     await page.waitForTimeout(500);
     assert.equal(await page.locator(".search-bar").count(), 1, "exactly one bar");
@@ -558,9 +558,9 @@ test("R7: keys that move the caret in the input do not scroll the page", async (
   }
 });
 
-// search-bar R7: place changes are decisive; the bar is always in exactly one place with that place's look.
+// search-bar R7: the place follows the scroll position; place changes run a timed motion (owner 2026-11-23).
 for (const viewport of [WIDE, PHONE]) {
-  test(`search-bar R7 at ${viewport.width}px: the bar leaves the top slot only once out of sight and snaps into the CTA slot`, async () => {
+  test(`search-bar R7 at ${viewport.width}px: the bar leaves the top slot only once out of sight, stretches back in and morphs into the CTA slot`, async () => {
     const browser = await launchBrowser();
     try {
       const { context, page } = await open(browser, viewport);
@@ -591,18 +591,37 @@ for (const viewport of [WIDE, PHONE]) {
         assert(now.slotBottom <= now.headerBottom + 20, `left the slot while it was still in sight (${now.slotBottom} > ${now.headerBottom})`);
         break;
       }
+      // Back in the top slot the block stretches out from a square (owner 2026-11-23).
       await to(0);
-      await page.waitForTimeout(400);
+      await page.waitForFunction(() => document.querySelector(".search-bar__shell").getAnimations().some((animation) => animation.effect.getKeyframes()[0].width === "50px"), null, { timeout: 3000 });
+      await page.waitForTimeout(1200);
       assert.equal((await state()).place, "top");
-      // The CTA slot: only the floating width and the slot width, nothing in between.
+      // The CTA slot: the look morphs over about a second, from the floating width to the slot's (owner 2026-11-23).
       const ctaY = await page.evaluate(() => Math.round(document.querySelector("[data-search-dock]").getBoundingClientRect().top + (window.TruongThinhMotion?.getLogicalScroll() ?? scrollY)));
-      const widths = new Set();
-      for (let y = ctaY - innerHeightOf(viewport); y <= ctaY; y += 25) {
+      let y = ctaY - innerHeightOf(viewport);
+      await to(y);
+      await page.waitForTimeout(400);
+      const floatWidth = (await state()).width;
+      while ((await state()).place !== "cta" && y < ctaY + viewport.height) {
+        y += 20;
         await to(y);
-        await page.waitForTimeout(120);
-        widths.add((await state()).width);
       }
-      assert(widths.size <= 2, `widths seen: ${[...widths].join(", ")}`);
+      const widths = await page.evaluate(() => new Promise((resolve) => {
+        const seen = [];
+        const start = performance.now();
+        const frame = () => {
+          const box = document.querySelector(".search-bar__shell").getBoundingClientRect();
+          seen.push(box.left >= -1 && box.right <= innerWidth + 1 ? Math.round(box.width) : -1);
+          if (performance.now() - start < 1300) requestAnimationFrame(frame);
+          else resolve(seen);
+        };
+        requestAnimationFrame(frame);
+      }));
+      const slotWidth = await page.evaluate(() => Math.round(Math.min(1000, document.querySelector("[data-search-dock]").getBoundingClientRect().width)));
+      assert(!widths.includes(-1), "the morph stays inside the screen");
+      assert(new Set(widths).size > 2, `morph frames: ${[...new Set(widths)].join(", ")}`);
+      assert(Math.abs(widths.at(-1) - slotWidth) <= 1, `ends at the slot width ${slotWidth}: ${widths.at(-1)}`);
+      assert(widths.every((width) => width >= Math.min(floatWidth, slotWidth) - 1 && width <= Math.max(floatWidth, slotWidth) + 1), "stays between the two widths");
       await to(1e6);
       await page.waitForTimeout(1200);
       assert.equal((await state()).place, "cta");
@@ -611,6 +630,11 @@ for (const viewport of [WIDE, PHONE]) {
       await to(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY) - Math.round(viewport.height * 0.6));
       await page.waitForTimeout(400);
       assert.equal((await state()).place, "float", "far above the slot the bar floats again");
+      // From the CTA straight back to the top slot it stretches in, as on every entry to the top slot.
+      await to(1e6);
+      await page.waitForTimeout(1200);
+      await to(0);
+      await page.waitForFunction(() => document.querySelector(".search-bar__shell").getAnimations().some((animation) => animation.effect.getKeyframes()[0].width === "50px"), null, { timeout: 3000 });
       await context.close();
     } finally {
       await browser.close();
@@ -670,6 +694,61 @@ test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all o
     await page.waitForTimeout(900);
     const picked = await page.evaluate(() => ({ open: !document.querySelector(".search-bar__all").hidden, pressed: document.querySelectorAll(".search-bar__chiprow [aria-pressed=true]").length, query: document.querySelector(".search-bar input").value }));
     assert.deepEqual(picked, { open: false, pressed: 1, query: "đèn" });
+    // A pick from the panel shows in the row, clear of the pinned button.
+    await page.click(".search-bar__more");
+    await page.click(".search-bar__all .search-bar__chip:last-child");
+    await page.waitForTimeout(900);
+    assert(await page.evaluate(() => {
+      const chip = document.querySelector(".search-bar__chiprow [aria-pressed=true]").getBoundingClientRect();
+      const row = document.querySelector(".search-bar__chiprow").getBoundingClientRect();
+      return chip.left >= row.left - 1 && chip.right <= row.right + 1;
+    }), "the picked chip is in sight");
+    // Picking a chip keeps the whole row (owner 2026-11-23).
+    assert.equal(await page.locator(".search-bar__chiprow .search-bar__chip").count(), row.counts.length);
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+// search-bar R2: a mouse scrolls the chip row by dragging it or with the wheel; a drag is not a click.
+test("search-bar R2 at 1440px: dragging or wheeling over the chip row scrolls it", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, WIDE);
+    await search(page, "đèn");
+    await page.waitForFunction(() => document.querySelector(".search-bar__more") && !document.querySelector(".search-bar__more").hidden, null, { timeout: 10000 });
+    // The search glides the page to the grid top (R9) and the bar moves with it: measure once both have settled.
+    const pageAt = () => page.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+    for (let last = -1, now = await pageAt(); Math.abs(now - last) > 0.01; last = now, now = await pageAt()) await page.waitForTimeout(400);
+    const box = await page.locator(".search-bar__chiprow").boundingBox();
+    const left = () => page.evaluate(() => document.querySelector(".search-bar__chiprow").scrollLeft);
+    await mouseDrag(page, { x: box.x + box.width - 60, y: box.y + box.height / 2 }, { x: box.x + 60, y: box.y + box.height / 2 });
+    assert((await left()) > 100, "a drag scrolls the row");
+    assert.equal(await page.locator(".search-bar__chiprow [aria-pressed=true]").count(), 0, "a drag is not a click");
+    await page.evaluate(() => { document.querySelector(".search-bar__chiprow").scrollLeft = 0; });
+    const pageY = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY);
+    await page.mouse.move(box.x + 200, box.y + box.height / 2);
+    await page.mouse.wheel(0, 200);
+    await page.waitForTimeout(500);
+    assert((await left()) > 100, "the wheel scrolls the row");
+    assert.equal(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY), pageY, "the page stays");
+    // Esc closes a panel opened with the mouse.
+    await page.click(".search-bar__more");
+    await page.keyboard.press("Escape");
+    assert.equal(await page.evaluate(() => document.querySelector(".search-bar__all").hidden), true, "Esc closes the panel");
+    // At the row's end the wheel goes back to the page.
+    await page.evaluate(() => { const row = document.querySelector(".search-bar__chiprow"); row.scrollLeft = row.scrollWidth; });
+    await page.mouse.wheel(0, 300);
+    await page.waitForTimeout(800);
+    assert.notEqual(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll() ?? scrollY), pageY, "at the end the page scrolls");
+    // A drag released off the row does not eat the next real click on a chip.
+    await page.evaluate(() => { document.querySelector(".search-bar__chiprow").scrollLeft = 0; });
+    const row = await page.locator(".search-bar__chiprow").boundingBox();
+    await mouseDrag(page, { x: row.x + row.width - 60, y: row.y + row.height / 2 }, { x: row.x + 60, y: row.y - 200 });
+    await page.waitForTimeout(100);
+    await page.locator(".search-bar__chiprow .search-bar__chip").first().click();
+    await page.waitForFunction(() => document.querySelectorAll(".search-bar__chiprow [aria-pressed=true]").length === 1, null, { timeout: 3000 });
     await context.close();
   } finally {
     await browser.close();
@@ -680,7 +759,7 @@ test("search-bar R2 at 384px: chips sort by cards and a cut-off row offers all o
 test("search-bar R8: no bar on a filter page; filtering to a group hides it and back to all shows it", async () => {
   const browser = await launchBrowser();
   try {
-    const { context, page } = await open(browser, WIDE, `${BASE_URL}/vi/advertising-products/bang-hieu-quang-cao/`);
+    const { context, page } = await open(browser, WIDE, `${BASE_URL}/advertising-products/bang-hieu-quang-cao/`);
     await page.waitForSelector(".search-host", { state: "attached", timeout: 20000 });
     const off = () => page.evaluate(() => ({
       off: document.querySelector("[data-barba-namespace]").hasAttribute("data-search-off"),

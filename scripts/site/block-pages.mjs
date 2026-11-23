@@ -1,7 +1,7 @@
 // Block-built pages (projects R3, news R3, layout-library R4): header, menu and footer frame come from an existing page,
 // the <main> body is the block list from src/site/content/<kind>.json. Routes use VI and EN slugs, one shared source file.
-import { NEWS_GROUPS, newsTeaser, renderBlocks } from "./blocks.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml } from "./lib-pure.mjs";
+import { NEWS_GROUPS, bilingualPicks, newsTeaser, renderBlocks } from "./blocks.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, localePrefix, routeLocale } from "./lib-pure.mjs";
 import { layoutErrors } from "../../src/cms/layouts.mjs";
 
 export { NEWS_GROUPS };
@@ -18,11 +18,13 @@ export const KINDS = {
   news: { dir: "news", frame: () => "about", namespace: "news", schema: "BlogPosting", parent: () => ({ name: "Tin tức", path: "/news/" }) },
 };
 
-export const pageHref = (kind, locale, page) => `/${locale}/${KINDS[kind].dir}/${locale === "vi" ? page.slugVi : page.slugEn}/`;
+export const pageHref = (kind, locale, page) => `${localePrefix(locale)}/${KINDS[kind].dir}/${locale === "vi" ? page.slugVi : page.slugEn}/`;
 export const projectHref = (locale, project) => pageHref("projects", locale, project);
 // One source file per page; the VI and EN routes both point at it, localeHtml switches the language.
 export const pageSource = (kind, page) => `${KINDS[kind].dir}/${page.id}/index.html`;
-export const blockRoutes = (content) => Object.keys(KINDS).flatMap((kind) => (content[kind] ?? []).flatMap((page) => ["vi", "en"].map((locale) => [pageHref(kind, locale, page), pageSource(kind, page)])));
+// A page without EN (noEn, cms-content R2) has its VI route only, so no EN file, no EN sitemap URL.
+const localesOf = (page) => (page.noEn ? ["vi"] : ["vi", "en"]);
+export const blockRoutes = (content) => Object.keys(KINDS).flatMap((kind) => (content[kind] ?? []).flatMap((page) => localesOf(page).map((locale) => [pageHref(kind, locale, page), pageSource(kind, page)])));
 
 const jsonLd = (kind, page) => {
   const url = `${PUBLIC_ORIGIN}${pageHref(kind, "vi", page)}`;
@@ -36,7 +38,7 @@ const jsonLd = (kind, page) => {
         ...(page.published ? { datePublished: page.published, dateModified: page.updated ?? page.published } : {}),
         author: { "@type": "Organization", name: "Trường Thịnh", url: `${PUBLIC_ORIGIN}/` },
       },
-      breadcrumbLd([["Trường Thịnh", "/vi/"], [parent.name, `/vi${parent.path}`], [page.title.vi, pageHref(kind, "vi", page)]]),
+      breadcrumbLd([["Trường Thịnh", "/"], [parent.name, `${parent.path}`], [page.title.vi, pageHref(kind, "vi", page)]]),
     ],
   }).replace(/</g, "\\u003c");
 };
@@ -58,7 +60,7 @@ const articleHead = (page) => {
     '<header class="blk blk-article-head blk-article-head--post section-gap" data-header-tone="ink">',
     // Opening motion like Espacio (owner 2026-11-14): the crumb rises line by line at once, the title 0.3s later, the date fades word by word at 0.9s.
     // The group label links to the group page: group pages have no filter chip on the list page (news R2, owner 2026-11-09).
-    `  <p class="blk-article-head__crumb" data-motion-lines><a class="blk-article-head__news" href="/vi/news/" data-en-href="/en/news/" data-en="News">Tin tức</a><span class="blk-article-head__slash" aria-hidden="true">/</span><a class="blk-article-head__group" href="/vi/news/${page.group}/" data-en-href="/en/news/${page.group}/" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</a></p>`,
+    `  <p class="blk-article-head__crumb" data-motion-lines><a class="blk-article-head__news" href="/news/" data-en-href="/en/news/" data-en="News">Tin tức</a><span class="blk-article-head__slash" aria-hidden="true">/</span><a class="blk-article-head__group" href="/news/${page.group}/" data-en-href="/en/news/${page.group}/" data-en="${escapeHtml(group.en)}">${escapeHtml(group.vi)}</a></p>`,
     `  <h1 class="blk-article-head__title" data-motion-lines data-motion-delay="0.3" data-en="${escapeHtml(page.title.en)}">${escapeHtml(page.title.vi)}</h1>`,
     `  <p class="blk-article-head__date" data-motion-words data-motion-delay="0.9"><time datetime="${page.published}">${day}/${month}/${year}</time></p>`,
     "</header>\n",
@@ -70,7 +72,7 @@ export const renderBlockPage = (kind, template, page, ctx) => {
   const head = [
     // Search title (projects R3): optional `seoTitle` puts the type keyword first; the h1 keeps the display name.
     `<title data-en="${escapeHtml((page.seoTitle ?? page.title).en)} — Trường Thịnh">${escapeHtml((page.seoTitle ?? page.title).vi)} — Trường Thịnh</title>`,
-    ...alternateLinks(pageHref(kind, "vi", page), pageHref(kind, "en", page)),
+    ...alternateLinks(pageHref(kind, "vi", page), page.noEn ? null : pageHref(kind, "en", page)),
     `<meta property="og:image" content="${PUBLIC_ORIGIN}${page.cover.src}" />`,
     `<script type="application/ld+json">${jsonLd(kind, page)}</script>`,
   ].join("\n    ");
@@ -81,15 +83,16 @@ export const renderBlockPage = (kind, template, page, ctx) => {
     [/<title\b[^>]*>[\s\S]*?<\/title>/, () => head, "title"],
     [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(page.description.vi)}${middle}${escapeHtml(page.description.en)}"`, "meta description"],
     [`data-barba-namespace="${frame}"`, `data-barba-namespace="${KINDS[kind].namespace}"`, "namespace"],
-    [`href="/vi/${frame}/" data-language-option="vi"`, `href="${pageHref(kind, "vi", page)}" data-language-option="vi"`, "language vi"],
-    [`href="/en/${frame}/" data-language-option="en"`, `href="${pageHref(kind, "en", page)}" data-language-option="en"`, "language en"],
+    [`href="/${frame}/" data-language-option="vi"`, `href="${pageHref(kind, "vi", page)}" data-language-option="vi"`, "language vi"],
+    // Without EN the language switch goes to the EN list of the kind (cms-content R2).
+    [`href="/en/${frame}/" data-language-option="en"`, `href="${page.noEn ? `/en/${KINDS[kind].dir}/` : pageHref(kind, "en", page)}" data-language-option="en"`, "language en"],
     // A project page belongs to Projects, not to its sector frame: move the navbar mark and the menu mark to Projects;
     // like an advertising card detail, the underline stays hidden until hover (owner 2026-11-13, detail.css `is-project-detail`).
     ...(kind === "projects" ? [
       [' aria-current="page"', "", "frame current page", 2],
       ['<li class="selected">', "<li>", "nav selected"],
-      ['<li><a href="/vi/projects/"', '<li class="selected"><a href="/vi/projects/" aria-current="page"', "nav projects"],
-      ['class="menu-group__title" href="/vi/projects/"', 'class="menu-group__title" href="/vi/projects/" aria-current="page"', "menu projects"],
+      ['<li><a href="/projects/"', '<li class="selected"><a href="/projects/" aria-current="page"', "nav projects"],
+      ['class="menu-group__title" href="/projects/"', 'class="menu-group__title" href="/projects/" aria-current="page"', "menu projects"],
       ['class="detail-page"', 'class="detail-page is-project-detail"', "body project detail"],
     ] : []),
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${kind === "news" ? articleHead(page) : ""}${renderBlocks(page, ctx)}\n      </main>`, "main"],
@@ -100,9 +103,10 @@ export const renderProjectPage = (template, project, ctx) => renderBlockPage("pr
 
 // News list page (news R2): newest first, 12 posts per page. The filter row is "Tất cả" plus each group that has posts (owner
 // 2026-11-15, replacing the year chips); old year pages redirect to /news/ (NEWS_YEAR_REDIRECTS). A group page with fewer than
-// NEWS_GROUP_INDEX_MIN posts is noindex, follow (thin page). VI and EN share the path, differing only in the locale prefix.
+// NEWS_GROUP_INDEX_MIN posts is noindex, follow (thin page). VI and EN lists are built apart: the EN one leaves out posts without
+// EN (cms-content R2), so its groups and page count can differ; hasPair says the other locale has the same path.
 const NEWS_PAGE_SIZE = 12;
-export const newsListPages = (news) => {
+const newsLists = (news) => {
   const sorted = news.toSorted((left, right) => right.published.localeCompare(left.published) || left.id.localeCompare(right.id));
   const lists = [
     { posts: sorted, base: "/news/" },
@@ -118,11 +122,16 @@ export const newsListPages = (news) => {
     }));
   });
 };
+const postsOf = (news, locale) => (locale === "en" ? news.filter((post) => !post.noEn) : news);
+export const newsListPages = (news, locale = "vi") => {
+  const otherPaths = new Set(newsLists(postsOf(news, locale === "en" ? "vi" : "en")).map(({ path: pagePath }) => pagePath));
+  return newsLists(postsOf(news, locale)).map((listPage) => ({ ...listPage, locale, hasPair: otherPaths.has(listPage.path) }));
+};
 // Year filter pages were removed (owner 2026-11-15): each year that has posts keeps its old path as a redirect to /news/.
 export const NEWS_GROUP_INDEX_MIN = 5;
 export const newsYearRedirects = (news) => [...new Set(news.map((post) => post.published.slice(0, 4)))].map((year) => [`/news/${year}/`, "/news/"]);
-export const newsListSource = (listPage) => `${listPage.path.slice(1)}index.html`;
-export const newsListRoutes = (news) => newsListPages(news).flatMap((listPage) => ["vi", "en"].map((locale) => [`/${locale}${listPage.path}`, newsListSource(listPage)]));
+export const newsListSource = (listPage) => `${localePrefix(listPage.locale ?? "vi")}${listPage.path}index.html`.slice(1);
+export const newsListRoutes = (news) => ["vi", "en"].flatMap((locale) => newsListPages(news, locale).map((listPage) => [`${localePrefix(locale)}${listPage.path}`, newsListSource(listPage)]));
 
 // News card following Espacio /en/news: one cover image and the title only (owner 2026-11-11: title, no kicker); large (first post), regular and horizontal variants.
 // Classes are written out in full so the orphan-selectors test sees where each CSS variant is produced. The large card is above the fold, so its image
@@ -132,7 +141,7 @@ const newsCard = (post, variant = "") => {
   // The large card image is the LCP: load early, sizes set to half the page on desktop so an oversized variant is not fetched.
   const loading = variant === "main" ? 'loading="eager" fetchpriority="high" sizes="(max-width: 960px) 100vw, 50vw"' : 'loading="lazy"';
   return [
-    `<a class="blk-news-card${NEWS_CARD_VARIANT[variant] ?? ""}" href="${pageHref("news", "vi", post)}" data-en-href="${pageHref("news", "en", post)}">`,
+    `<a class="blk-news-card${NEWS_CARD_VARIANT[variant] ?? ""}" href="${pageHref("news", "vi", post)}"${post.noEn ? "" : ` data-en-href="${pageHref("news", "en", post)}"`}>`,
     `<span class="blk-news-card__media"><img src="${post.cover.src}" width="${post.cover.width}" height="${post.cover.height}" alt="${escapeHtml(post.cover.altVi)}" data-en-alt="${escapeHtml(post.cover.altEn)}" ${loading} /></span>`,
     `<span class="blk-news-card__title"><span class="blk-news-card__text" data-en="${escapeHtml(post.title.en)}">${escapeHtml(post.title.vi)}</span></span>`,
     "</a>",
@@ -142,23 +151,26 @@ const newsCard = (post, variant = "") => {
 // Home News strip (news R4, owner 2026-11-11: News only on the home page, like espaciohomedesign.com/en right under the hero):
 // the 3 newest posts in 3 columns of teasers (group, title, "Read more" on hover).
 export const renderHomeNews = (news) => {
-  const posts = news.toSorted((left, right) => right.published.localeCompare(left.published) || left.id.localeCompare(right.id)).slice(0, 3);
+  const sorted = news.toSorted((left, right) => right.published.localeCompare(left.published) || left.id.localeCompare(right.id));
+  // EN shows the 3 newest posts that have EN (cms-content R2).
+  const posts = bilingualPicks(sorted.slice(0, 3), sorted.filter((post) => !post.noEn).slice(0, 3));
   if (!posts.length) return "";
   return [
     '<section class="home-news section-gap" aria-labelledby="home-news-title" data-header-tone="ink">',
     '  <h2 class="sr-only" id="home-news-title" data-en="News">Tin tức</h2>',
     '  <div class="home-news__grid">',
-    ...posts.map(newsTeaser),
+    ...posts.map(([post, only]) => newsTeaser(post, only)),
     "  </div>",
     "</section>",
   ].join("\n");
 };
 
 // List page frame (News, Projects) built on the About page: SEO head, namespace, language-switch link, h1 and filter row.
-const renderListFrame = (template, { path: listPath, title, kicker, h1, description, namespace, filterLabel, chips, body, noindex = false, image, ld }) => {
+// enPath: the EN path of the same list, or null when EN has no such page (its language link then goes to enFallback).
+const renderListFrame = (template, { path: listPath, title, kicker, h1, description, namespace, filterLabel, chips, body, noindex = false, image, ld, enPath = `/en${listPath}`, enFallback = enPath }) => {
   const head = [
     `<title data-en="${escapeHtml(title.en)} — Trường Thịnh">${escapeHtml(title.vi)} — Trường Thịnh</title>`,
-    ...alternateLinks(`/vi${listPath}`, `/en${listPath}`),
+    ...alternateLinks(`${listPath}`, enPath),
     ...(noindex ? ['<meta name="robots" content="noindex, follow" />'] : []),
     ...(image ? [`<meta property="og:image" content="${PUBLIC_ORIGIN}${image}" />`] : []),
     ...(ld ? [ld] : []),
@@ -181,8 +193,8 @@ const renderListFrame = (template, { path: listPath, title, kicker, h1, descript
     [/<title\b[^>]*>[\s\S]*?<\/title>/, () => head, "title"],
     [/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/, (_match, before, middle) => `${before}${escapeHtml(description.vi)}${middle}${escapeHtml(description.en)}"`, "meta description"],
     ['data-barba-namespace="about"', `data-barba-namespace="${namespace}"`, "namespace"],
-    ['href="/vi/about/" data-language-option="vi"', `href="/vi${listPath}" data-language-option="vi"`, "language vi"],
-    ['href="/en/about/" data-language-option="en"', `href="/en${listPath}" data-language-option="en"`, "language en"],
+    ['href="/about/" data-language-option="vi"', `href="${listPath}" data-language-option="vi"`, "language vi"],
+    ['href="/en/about/" data-language-option="en"', `href="${enPath ?? enFallback}" data-language-option="en"`, "language en"],
     // Drop the menu's aria-current before inserting the page body, because the pagination bar also uses aria-current="page".
     [' aria-current="page"', "", "menu current page"],
     [/<main id="noi-dung">[\s\S]*?<\/main>/, () => `<main id="noi-dung">\n${main}\n      </main>`, "main"],
@@ -209,19 +221,19 @@ export const renderNewsListPage = (template, listPage) => {
   const suffix = listPage.number > 1 ? { vi: ` — trang ${listPage.number}`, en: ` — page ${listPage.number}` } : { vi: "", en: "" };
   const pager = listPage.count > 1 ? `<nav class="blk-news-pager" aria-label="Trang" data-en-aria-label="Pages">${Array.from({ length: listPage.count }, (_, index) => {
     const pagePath = index ? `${listPage.base}page/${index + 1}/` : listPage.base;
-    return `<a href="/vi${pagePath}"${index + 1 === listPage.number ? ' aria-current="page"' : ""}>${index + 1}</a>`;
+    return `<a href="${pagePath}"${index + 1 === listPage.number ? ' aria-current="page"' : ""}>${index + 1}</a>`;
   }).join("")}</nav>` : "";
   return renderListFrame(template, {
-    path: listPage.path, kicker: { vi: "Tư vấn và xu hướng", en: "Advice and trends" }, h1: listPage.group ? NEWS_GROUPS[listPage.group] : { vi: "Tin tức", en: "News" },
+    path: listPage.path, enPath: listPage.locale === "vi" && !listPage.hasPair ? null : `/en${listPage.path}`, enFallback: "/en/news/", kicker: { vi: "Tư vấn và xu hướng", en: "Advice and trends" }, h1: listPage.group ? NEWS_GROUPS[listPage.group] : { vi: "Tin tức", en: "News" },
     namespace: "news", noindex: Boolean(listPage.group) && listPage.total < NEWS_GROUP_INDEX_MIN,
     title: { vi: name.vi + suffix.vi, en: name.en + suffix.en },
     description: { vi: `${name.vi}. Bài viết từ xưởng nội thất và quảng cáo Trường Thịnh ở Vĩnh Long, miền Tây.`, en: `${name.en}. Articles from the Trường Thịnh interior and signage workshop in Vinh Long, Mekong Delta.` },
     filterLabel: { vi: "Nhóm bài viết", en: "Article groups" },
-    chips: [null, ...listPage.groups].map((group) => ({ href: `/vi/news/${group ? `${group}/` : ""}`, label: group ? NEWS_GROUPS[group].chip : { vi: "Tất cả", en: "All" }, current: group === listPage.group })),
+    chips: [null, ...listPage.groups].map((group) => ({ href: `/news/${group ? `${group}/` : ""}`, label: group ? NEWS_GROUPS[group].chip : { vi: "Tất cả", en: "All" }, current: group === listPage.group })),
     body: `<section class="blk blk-news-list section-gap" data-header-tone="ink">${newsListBody(listPage.posts)}${pager}</section>`,
     image: listPage.posts[0]?.cover.src,
-    ld: collectionLd({ path: `/vi${listPage.path}`, name: name.vi, description: `${name.vi}.`, items: listPage.posts.map((post) => [post.title.vi, pageHref("news", "vi", post)]),
-      crumbs: [["Trường Thịnh", "/vi/"], ["Tin tức", "/vi/news/"], ...(listPage.group ? [[name.vi, `/vi/news/${listPage.group}/`]] : [])] }),
+    ld: collectionLd({ path: `${listPage.path}`, name: name.vi, description: `${name.vi}.`, items: listPage.posts.map((post) => [post.title.vi, pageHref("news", "vi", post)]),
+      crumbs: [["Trường Thịnh", "/"], ["Tin tức", "/news/"], ...(listPage.group ? [[name.vi, `/news/${listPage.group}/`]] : [])] }),
   });
 };
 
@@ -240,13 +252,13 @@ const cardErrors = (card, at) => {
   ]);
 };
 const pageLayoutErrors = (kind, page, at) => layoutErrors(kind, page).map(({ message }) => `${at}: ${message}`);
-export const kindFieldErrors = (kind, page, at) => {
+export const kindFieldErrors = (kind, page, at, { en = "required" } = {}) => {
   if (kind === "projects") return [
     ...(SECTORS.includes(page.sector) ? [] : [`${at}: sector phải là ${SECTORS.join(", ")}`]),
     ...(PROJECT_TYPES[page.type]?.sector === page.sector ? [] : [`${at}: type phải là loại thuộc mảng ${page.sector}: ${Object.keys(PROJECT_TYPES).filter((type) => PROJECT_TYPES[type].sector === page.sector).join(", ")}`]),
     // id is also the source file directory (projects/<id>/index.html); colliding with a filter slug would overwrite the filter page.
     ...[...new Set([page.id, page.slugVi, page.slugEn])].filter((slug) => FILTER_SLUGS.includes(slug)).map((slug) => `${at}: id hoặc slug ${slug} trùng đường dẫn lọc công trình`),
-    ...(page.seoTitle === undefined || (page.seoTitle?.vi && page.seoTitle?.en) ? [] : [`${at}: seoTitle phải có vi và en`]),
+    ...(page.seoTitle === undefined || (page.seoTitle?.vi && (page.seoTitle?.en || en === "optional")) ? [] : [`${at}: seoTitle phải có vi và en`]),
     ...cardErrors(page.card, at),
     // The Zalo CTA block is always the last block, right above the footer (owner 2026-11-22).
     ...(page.blocks?.some((block) => block.type === "contact-quick") && page.blocks.at(-1)?.type !== "contact-quick" ? [`${at}: contact-quick (CTA) must be the last block`] : []),
@@ -275,7 +287,7 @@ export const PROJECT_TYPES = {
   "showroom-cua-hang": { sector: "commercial", label: { vi: "Showroom", en: "Showrooms" } },
   "van-phong": { sector: "commercial", label: { vi: "Văn phòng", en: "Offices" } },
 };
-export const projectTypeHref = (type, locale) => `/${locale}/projects/${type}/`;
+export const projectTypeHref = (type, locale) => `${localePrefix(locale)}/projects/${type}/`;
 const FILTER_SLUGS = [...Object.values(PROJECT_FILTERS), ...Object.keys(PROJECT_TYPES)];
 
 // Featured items of the site menu (content/menu.json, CMS-editable): projects in the chosen order; advertising

@@ -97,7 +97,7 @@ try {
 
   // View mode does not let a link take the iframe away from the preview; Reload still returns to the right preview.
   await page.getByRole("button", { name: "Chế độ sửa" }).click();
-  await frame().evaluate(() => document.querySelector('a[href="/vi/commercial/"]').click());
+  await frame().evaluate(() => document.querySelector('a[href="/commercial/"]').click());
   await page.waitForSelector("#toast:not([hidden])");
   await page.waitForTimeout(500);
   assert.match(frame().url(), /\/admin\/preview\/vi\/residential/);
@@ -196,7 +196,7 @@ try {
   // R7: Advertising Products page, click a card in the preview, rename (the preview rebuilds from the patched catalog), add media.
   await page.locator(".panel--pages .search").fill("advertising-products");
   await page.locator(".tree__item", { hasText: "Sản phẩm quảng cáo" }).first().click();
-  await previewReady("/vi/advertising-products");
+  await previewReady("/advertising-products");
   const tileLocator = frame().locator("[data-masonry-card]").first();
   await tileLocator.waitFor();
   const cardId = await tileLocator.getAttribute("data-masonry-card");
@@ -204,7 +204,7 @@ try {
   await props.getByRole("heading", { name: `Card · ${cardId}` }).waitFor();
   await props.getByLabel("Tên tiếng Việt").fill("Card thử CMS");
   await props.getByLabel("Tên tiếng Việt").blur();
-  await previewReady("/vi/advertising-products");
+  await previewReady("/advertising-products");
   const patched = await frame().evaluate(async (id) => (await window.__TT_ADVERTISING_ARTIFACT__).cards.find((card) => card.id === id).titleVi, cardId);
   assert.equal(patched, "Card thử CMS");
   // The first card may already be a multi-media card (media-card R7), so count from its current items.

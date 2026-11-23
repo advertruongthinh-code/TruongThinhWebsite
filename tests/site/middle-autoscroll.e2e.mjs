@@ -13,7 +13,7 @@ const browser = await chromium.launch({ headless: true, executablePath: process.
 
 const open = async (options) => {
   const page = await browser.newPage(options);
-  await page.goto(`${baseUrl}/vi/`, { waitUntil: "load" });
+  await page.goto(`${baseUrl}/`, { waitUntil: "load" });
   await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
   // Wait for lazy images and sections to finish loading so Locomotive's scroll limit is long enough.
   await page.waitForTimeout(2000);

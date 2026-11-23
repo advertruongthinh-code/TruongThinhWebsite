@@ -30,7 +30,7 @@ try {
   }, selector);
 
   for (const { route, selectors } of withShadow) {
-    await page.goto(`${BASE_URL}/vi/${route}`, { waitUntil: "load" });
+    await page.goto(`${BASE_URL}/${route}`, { waitUntil: "load" });
     await page.evaluate(() => document.fonts.ready);
     for (const selector of selectors) {
       const got = await read(selector);
@@ -44,7 +44,7 @@ try {
     }
   }
   for (const { route, selectors } of withoutShadow) {
-    await page.goto(`${BASE_URL}/vi/${route}`, { waitUntil: "load" });
+    await page.goto(`${BASE_URL}/${route}`, { waitUntil: "load" });
     for (const selector of selectors) {
       const got = await read(selector);
       if (!got) failures.push(`/${route} ${selector}: not found`);

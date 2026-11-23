@@ -404,7 +404,7 @@ assert.match(index, /!frame\.closest\("[^"]*\[data-detail-dialog\][^"]*"\)/, "he
 // No build layout cache (masonry-live-layout R1): the visitor packs the grid, so the build writes no cache files and grid pages
 // start no cache preload.
 assert.ok(!existsSync(new URL("../../.site-output/advertising-products/layout-cache/", import.meta.url)), "no layout cache output");
-for (const file of ["advertising-products/index.html", "vi/advertising-products/index.html", "vi/projects/index.html"]) {
+for (const file of ["advertising-products/index.html", "projects/index.html"]) {
   assert.ok(!(await read(`.site-output/${file}`)).includes("layout-cache"), `${file} references no layout cache`);
 }
 

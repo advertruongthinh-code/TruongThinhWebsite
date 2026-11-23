@@ -9,15 +9,15 @@ const path = require("node:path");
 // Pages are built from the first sampled block in the data (content-independent-tests R4), no hard-coded slug.
 const content = (kind) => JSON.parse(fs.readFileSync(path.join(__dirname, "../../src/site/content", `${kind}.json`), "utf8"));
 const routes = [
-  "/vi/",
-  "/vi/residential/",
-  "/vi/commercial/",
-  "/vi/advertising-products/",
-  "/vi/about/",
-  "/vi/projects/",
-  `/vi/projects/${content("projects")[0].slugVi}/`,
-  "/vi/news/",
-  `/vi/news/${content("news")[0].slugVi}/`,
+  "/",
+  "/residential/",
+  "/commercial/",
+  "/advertising-products/",
+  "/about/",
+  "/projects/",
+  `/projects/${content("projects")[0].slugVi}/`,
+  "/news/",
+  `/news/${content("news")[0].slugVi}/`,
 ];
 
 for (const route of routes) {
@@ -49,13 +49,13 @@ for (const route of routes) {
 
 test("reduced motion keeps content visible", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/vi/", { waitUntil: "domcontentloaded" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.locator("h1")).toBeVisible();
   await expect(page.locator("body")).not.toHaveCSS("visibility", "hidden");
 });
 
 test("locale navigation switches to English and survives reload", async ({ page }) => {
-  await page.goto("/vi/", { waitUntil: "domcontentloaded" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.locator('[data-language-option="en"]').evaluate((link) => link.click());
   await page.waitForURL(/\/en\/$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -66,7 +66,7 @@ test("locale navigation switches to English and survives reload", async ({ page 
 
 test("fail-open menu opens and closes without crashing the page", async ({ page }) => {
   await page.route(/\/motion\.js$/, (route) => route.abort());
-  for (const route of ["/vi/", "/vi/advertising-products/"]) {
+  for (const route of ["/", "/advertising-products/"]) {
     await page.goto(route, { waitUntil: "load" });
     await expect(page.locator("html")).toHaveClass(/motion-fallback/);
     for (const close of [() => page.locator("[data-menu-close]").click(), () => page.keyboard.press("Escape")]) {
@@ -85,7 +85,7 @@ test("direct loads and reload play the route enter veil, then clear it", async (
       if (document.documentElement?.classList.contains("route-enter")) window.routeEnterSeen = true;
     }).observe(document, { subtree: true, attributes: true, attributeFilter: ["class"] });
   });
-  for (const load of [() => page.goto("/vi/advertising-products/", { waitUntil: "load" }), () => page.reload({ waitUntil: "load" })]) {
+  for (const load of [() => page.goto("/advertising-products/", { waitUntil: "load" }), () => page.reload({ waitUntil: "load" })]) {
     await load();
     expect(await page.evaluate(() => window.routeEnterSeen === true), "load skipped the route enter").toBe(true);
     await expect(page.locator("html")).not.toHaveClass(/route-enter/);
@@ -104,7 +104,7 @@ test("scrolling the advertising grid still lets a photo push its own entry", asy
       };
     }
   });
-  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await page.goto("/advertising-products/", { waitUntil: "load" });
   await expect(page.locator("html")).not.toHaveClass(/route-enter/);
   await page.waitForTimeout(1_000);
   await page.mouse.move(400, 400);
@@ -134,12 +134,12 @@ test("scrolling the advertising grid still lets a photo push its own entry", asy
   await expect(page).toHaveURL(new RegExp(`/advertising-products/p/${photo}/`));
   expect(await page.evaluate(() => history.length)).toBe(length + 1);
   await page.goBack();
-  await expect(page).toHaveURL(/\/vi\/advertising-products\/(\?(?!.*photo=).*)?$/);
+  await expect(page).toHaveURL(/\/advertising-products\/(\?(?!.*photo=).*)?$/);
 });
 
 test("crossing the smooth-scroll breakpoint and back keeps the scroll position", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await page.goto("/advertising-products/", { waitUntil: "load" });
   await expect(page.locator("html")).not.toHaveClass(/route-enter/);
   await expect(page.locator("html")).toHaveClass(/has-scroll-smooth/);
   await page.waitForTimeout(1_000);
@@ -157,7 +157,7 @@ test("crossing the smooth-scroll breakpoint and back keeps the scroll position",
 
 test("advertising hero title snaps to its new place on resize, like other pages", async ({ page }) => {
   await page.setViewportSize({ width: 1100, height: 900 });
-  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await page.goto("/advertising-products/", { waitUntil: "load" });
   await expect(page.locator("html")).not.toHaveClass(/route-enter/);
   // Wait for the hero's 2.5s intro zoom to finish.
   await page.waitForTimeout(3_500);
@@ -172,7 +172,7 @@ test("advertising hero title snaps to its new place on resize, like other pages"
 
 test("advertising hero title snaps on resize during the intro zoom", async ({ page }) => {
   await page.setViewportSize({ width: 1100, height: 900 });
-  await page.goto("/vi/advertising-products/", { waitUntil: "load" });
+  await page.goto("/advertising-products/", { waitUntil: "load" });
   await expect(page.locator("html")).toHaveClass(/motion-ready/);
   await expect(page.locator("[data-motion-hero-wrapper-zoom]")).toHaveClass(/is-motion-inview/);
   const titleLeft = () => page.evaluate(() => document.querySelector("#page-title").getBoundingClientRect().left);

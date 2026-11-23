@@ -5,7 +5,7 @@ const { chromium } = await import("playwright");
 const browser = await chromium.launch({ headless: true });
 try {
   const page = await browser.newPage({ viewport: { width: 1567, height: 910 } });
-  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "networkidle" });
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "networkidle" });
   // Suggestion tags are product pages now (taxonomy R5); this is the sampling one of kiosk-posm-07.
   const button = page.locator('[data-masonry-suggestion-tag="displays-booths/sampling-booths-reception-counters"]');
   await button.waitFor();
@@ -17,7 +17,7 @@ try {
   assert.notEqual(second, first, "inactive suggestion crossfades to another related image");
   assert.equal(await image.evaluate(el => getComputedStyle(el).transform), "none", "owner removed the zoom out");
   // A sparse set (under 4 photos) still starts the hold timer as soon as the photo shows.
-  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?photo=signage-raised-letters-20`, { waitUntil: "networkidle" });
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/advertising-products/?photo=signage-raised-letters-20`, { waitUntil: "networkidle" });
   await page.locator("[data-masonry-suggestion-tag]").first().scrollIntoViewIfNeeded();
   await page.waitForTimeout(1000);
   assert.deepEqual(await page.evaluate(() => [...document.querySelectorAll('[data-masonry-suggestion-tag][aria-pressed="false"]')]
@@ -35,14 +35,14 @@ try {
   await page.waitForTimeout(7000);
   assert.ok(await page.evaluate(() => document.querySelector('[data-masonry-suggestion-tag] [data-masonry-suggestion-image-layer="current"]')
     .getAnimations().some(a => a.effect.getKeyframes().length === 0)), `sparse deck (${sparseFirst}) restarts the hold clock after the push`);
-  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "networkidle" });
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-07`, { waitUntil: "networkidle" });
   await button.scrollIntoViewIfNeeded();
   await button.click();
   const active = await image.getAttribute("src");
   await page.waitForTimeout(7000);
   assert.equal(await image.getAttribute("src"), active, "active suggestion does not rotate");
   assert.equal(await image.evaluate(el => getComputedStyle(el).opacity), "0");
-  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/vi/advertising-products/?category=office-signs-wayfinding&photo=office-signs-wayfinding-04`, { waitUntil: "networkidle" });
+  await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/advertising-products/?category=office-signs-wayfinding&photo=office-signs-wayfinding-04`, { waitUntil: "networkidle" });
   await page.waitForSelector("[data-masonry-suggestion-tag]");
   const readSlides = () => [...document.querySelectorAll("[data-masonry-suggestion-tag]")].map(button => ({ tag: button.dataset.masonrySuggestionTag,
     src: button.querySelector('[data-masonry-suggestion-image-layer="current"]').getAttribute("src") }));

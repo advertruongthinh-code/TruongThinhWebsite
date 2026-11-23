@@ -8,7 +8,7 @@ try {
   for (const width of [1567, 920]) {
     const page = await browser.newPage({ viewport: { width, height: 910 } });
     for (const via of ["back", "navbar", "navbar-related"]) {
-      await page.goto(`${base}/vi/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(1150));
       await page.waitForTimeout(500);
@@ -78,7 +78,7 @@ try {
       }, null, { timeout: 5_000 });
       return touch ? page.locator("[data-detail-back]").tap() : page.locator("[data-detail-back]").click();
     };
-    await page.goto(`${base}/vi/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
+    await page.goto(`${base}/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(600));
     await page.waitForTimeout(500);
@@ -127,7 +127,7 @@ try {
     const page = await browser.newPage({ viewport: { width, height: 910 } });
     let previous;
     for (let run = 0; run < 2; run++) {
-      await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
+      await page.goto(`${base}/advertising-products/`, { waitUntil: "networkidle" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.waitForTimeout(1600);
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(document.documentElement.scrollHeight));
@@ -169,21 +169,21 @@ try {
       return { columns: new Set(cards.map((rect) => Math.round(rect.left))).size, gridWidth: grid.width };
     };
     const page = await browser.newPage({ viewport: { width: 1329, height: 912 } });
-    await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
+    await page.goto(`${base}/advertising-products/`, { waitUntil: "networkidle" });
     const hero = await page.$eval("[data-masonry-card]", (node) => node.dataset.masonryCard);
     // Defer every message sent to the Worker by 3 s: the grid prewarm pass after detail is still running when the navbar is clicked.
     await page.addInitScript(() => {
       const post = Worker.prototype.postMessage;
       Worker.prototype.postMessage = function (...args) { setTimeout(() => post.apply(this, args), 3000); };
     });
-    await page.goto(`${base}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${base}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true",
       null, { timeout: 30000 });
     await page.evaluate(() => document.querySelector('.desktop-nav a[href*="advertising-products"]').click());
     await page.waitForTimeout(300);
     await page.setViewportSize({ width: 800, height: 900 });
     const fresh = await browser.newPage({ viewport: { width: 800, height: 900 } });
-    await fresh.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
+    await fresh.goto(`${base}/advertising-products/`, { waitUntil: "networkidle" });
     await fresh.waitForTimeout(900);
     const expected = await fresh.evaluate(columns);
     // The card slides 0.4s to the new layout (slower when the machine is busy); the buggy build stayed stuck in the old layout even after the Worker returned its result.

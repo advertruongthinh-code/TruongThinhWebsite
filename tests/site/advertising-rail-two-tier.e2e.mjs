@@ -15,7 +15,7 @@ if (!process.env.PLAYWRIGHT_BROWSERS_PATH) {
 const { chromium } = await import("playwright");
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined });
 const product = "signage/raised-letters";
-const productPath = "/vi/advertising-products/bang-hieu-quang-cao/chu-noi/";
+const productPath = "/advertising-products/bang-hieu-quang-cao/chu-noi/";
 
 const railState = (page) => page.evaluate(() => ({
   current: [...document.querySelectorAll('[aria-current="true"][data-masonry-filter], [aria-current="true"][data-masonry-product]')]
@@ -27,9 +27,9 @@ const railState = (page) => page.evaluate(() => ({
 
 try {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-  await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });
   await page.waitForSelector("[data-masonry-card]");
-  const html = await (await page.request.get(`${baseUrl}/vi/advertising-products/`)).text();
+  const html = await (await page.request.get(`${baseUrl}/advertising-products/`)).text();
   assert.match(html, new RegExp(`href="${productPath}"[^>]*data-masonry-product="${product}"`), "static HTML already contains the product link");
   assert.deepEqual((await railState(page)).chips, [], "Tất cả has no chip row");
 
@@ -49,7 +49,7 @@ try {
   const documents = [];
   page.on("request", (request) => { if (request.resourceType() === "document") documents.push(request.url()); });
   await page.locator('[data-masonry-filter="signage"]').click();
-  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
+  await page.waitForFunction(() => location.pathname === "/advertising-products/bang-hieu-quang-cao/");
   // Click a cluster: the just-shown chip row runs its entrance (opacity 0 before entering); the kicker stays still (taxonomy R3, owner 2026-11-08).
   const entrance = () => page.evaluate(() => ({
     // The build ties the last two words with a no-break space (hero-typography R7).
@@ -112,15 +112,15 @@ try {
   assert.equal(manyRows.top, oneRow.top, `first chip row vertically fixed: ${JSON.stringify({ oneRow, manyRows })}`);
 
   await page.locator('[data-masonry-filter="signage"]').click();
-  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
+  await page.waitForFunction(() => location.pathname === "/advertising-products/bang-hieu-quang-cao/");
   await page.locator('.rail-chips:not([hidden]) [data-masonry-product="signage/light-boxes"]').click();
-  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/hop-den/");
+  await page.waitForFunction(() => location.pathname === "/advertising-products/bang-hieu-quang-cao/hop-den/");
   // Every product with a chip has its own page (taxonomy R5), so the chip navigates to the product page; the kicker still stays put.
   const menus = "printing-decals/menus";
-  const menuUrl = "/vi/advertising-products/in-an-decal/menu/";
+  const menuUrl = "/advertising-products/in-an-decal/menu/";
   const menuIds = new Set(ADVERTISING_CARDS.filter((card) => card.productIds?.includes(menus)).map((card) => card.id));
   await page.locator('[data-masonry-filter="printing-decals"]').click();
-  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/in-an-decal/");
+  await page.waitForFunction(() => location.pathname === "/advertising-products/in-an-decal/");
   await page.locator(`.rail-chips:not([hidden]) [data-masonry-product="${menus}"]`).click();
   await page.waitForFunction((target) => location.pathname === target, menuUrl);
   await page.waitForTimeout(800);
@@ -130,16 +130,16 @@ try {
   assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
   assert.equal((await page.locator("[data-motion-hero-kicker]").textContent()).replaceAll("\u00a0", " ").trim(), "Sản phẩm tiêu biểu", "kicker unchanged when filtering a product");
   await page.locator('[data-masonry-filter="all"]').click();
-  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/");
+  await page.waitForFunction(() => location.pathname === "/advertising-products/");
   assert.deepEqual((await railState(page)).chips, [], "chip row hidden when returning to Tất cả");
 
   // Filtered and scrolled down: clicking "Sản phẩm quảng cáo" on the navbar returns to "Tất cả" and to the page top.
   await page.locator('[data-masonry-filter="office-signs"]').click();
-  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/bien-van-phong/");
+  await page.waitForFunction(() => location.pathname === "/advertising-products/bien-van-phong/");
   await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(400));
   await page.waitForFunction(() => window.TruongThinhMotion.getLogicalScroll() > 300);
-  await page.locator('[data-site-header] .desktop-nav a[href="/vi/advertising-products/"]').click();
-  await page.waitForFunction(() => location.pathname === "/vi/advertising-products/"
+  await page.locator('[data-site-header] .desktop-nav a[href="/advertising-products/"]').click();
+  await page.waitForFunction(() => location.pathname === "/advertising-products/"
     && window.TruongThinhMotion.getLogicalScroll() < 1);
   assert.deepEqual((await railState(page)).current, ["all"], "navbar resets the filter to Tất cả");
   assert.deepEqual(documents, [], "chip, Tất cả and navbar load no document");
@@ -151,32 +151,32 @@ try {
   assert.equal(await page.locator('link[rel="canonical"]').getAttribute("href"), `https://truongthinhads.vn${menuUrl}`);
   assert.deepEqual((await railState(page)).current, ["printing-decals", menus]);
   // A lost product page URL (dropped below the R5 threshold) returns the cluster 404 and then redirects to the cluster page.
-  const gone = await page.goto(`${baseUrl}/vi/advertising-products/in-an-decal/da-go/?utm=a`);
+  const gone = await page.goto(`${baseUrl}/advertising-products/in-an-decal/da-go/?utm=a`);
   assert.equal(gone.status(), 404);
-  await page.waitForURL(`${baseUrl}/vi/advertising-products/in-an-decal/?utm=a`);
+  await page.waitForURL(`${baseUrl}/advertising-products/in-an-decal/?utm=a`);
   await page.close();
 
   // Reduced motion: kicker and chips go straight to the final state, no animation.
   const calm = await browser.newPage({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-  await calm.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await calm.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });
   await calm.waitForSelector("[data-masonry-card]");
   await calm.locator('[data-masonry-filter="signage"]').click();
-  await calm.waitForFunction(() => location.pathname === "/vi/advertising-products/bang-hieu-quang-cao/");
+  await calm.waitForFunction(() => location.pathname === "/advertising-products/bang-hieu-quang-cao/");
   assert.equal(await calm.evaluate(() => [
     ...document.querySelectorAll("[data-motion-hero-kicker], .rail-chips:not([hidden]) .rail-chip"),
   ].flatMap((node) => node.getAnimations()).filter((animation) => !(animation instanceof CSSTransition)).length), 0, "reduced motion has no entrance");
   await calm.close();
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
-  await phone.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await phone.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });
   await phone.waitForSelector("[data-masonry-card]");
   await phone.locator('[data-masonry-filter="office-signs"]').scrollIntoViewIfNeeded();
   await phone.locator('[data-masonry-filter="office-signs"]').tap();
-  await phone.waitForFunction(() => location.pathname === "/vi/advertising-products/bien-van-phong/");
+  await phone.waitForFunction(() => location.pathname === "/advertising-products/bien-van-phong/");
   const chips = phone.locator('[data-masonry-chips="office-signs"]');
   assert.equal(await chips.evaluate((node) => getComputedStyle(node).overflowX), "auto", "chip row scrolls horizontally");
   await chips.locator('[data-masonry-product="office-signs/room-signs"]').tap();
-  await phone.waitForFunction(() => location.pathname === "/vi/advertising-products/bien-van-phong/bien-phong-ban/");
+  await phone.waitForFunction(() => location.pathname === "/advertising-products/bien-van-phong/bien-phong-ban/");
   const phoneState = await railState(phone);
   assert.deepEqual(phoneState.current, ["office-signs", "office-signs/room-signs"]);
   const inView = await chips.evaluate((node) => {

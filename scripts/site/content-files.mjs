@@ -3,15 +3,26 @@
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { KINDS } from "./block-pages.mjs";
+import { enMissing } from "../../src/cms/contract.mjs";
 import { validateImage } from "./lib.mjs";
 
 // TT_CONTENT_DIR points the build at a projected snapshot (cms R6, Q8); empty (the workflow passes "") means the repo. `||`, not `??`.
 export const contentDirOf = (siteRoot) => process.env.TT_CONTENT_DIR || path.join(siteRoot, "content");
 
+// A page with an empty required EN field gets noEn: true (cms-content R2, K3): the build writes its VI page only. The flag is set
+// only when true, so pages with full EN keep their exact data.
 export const loadBlockContent = (siteRoot) => Object.fromEntries(Object.keys(KINDS).map((kind) => {
   const file = path.join(contentDirOf(siteRoot), `${kind}.json`);
-  return [kind, existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : []];
+  const pages = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
+  for (const page of pages) if (enMissing(kind === "projects" ? "project" : "news", page).length) page.noEn = true;
+  return [kind, pages];
 }));
+
+// Old slugs of renamed pages (cms Q3); the file exists only in a projected snapshot, so a repo build gets none.
+export const readRedirects = (siteRoot) => {
+  const file = path.join(contentDirOf(siteRoot), "redirects.json");
+  return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : [];
+};
 
 // For the build scripts: load data and the order script from the site source root.
 export const readHeroSources = (siteRoot) => ({

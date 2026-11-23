@@ -189,7 +189,7 @@ try {
         // Reload at each width like a real device; JS measures text on mount so resize cannot substitute.
         for (const width of sizes) {
           await page.setViewportSize({ width, height: phone ? 724 : 900 });
-          await page.goto(`${origin}/${locale}/${path}`, { waitUntil: "load" });
+          await page.goto(`${origin}${locale === "en" ? "/en" : ""}/${path}`, { waitUntil: "load" });
           await page.evaluate(() => document.fonts.ready);
           // Hide the background image so the screenshot has only text, independent of the slide. Hide the children too: the active slide sets visibility visible itself,
           // so hiding only .hero-slides still shows the image, and a crossfade or step up to the original (progressive-loading R10) changes the background between two screenshots.
@@ -245,7 +245,7 @@ try {
     try {
       for (const width of [390, 681, 768, 959, 1199, 1440]) {
         await page.setViewportSize({ width, height: 900 });
-        await page.goto(`${origin}/${locale}/`, { waitUntil: "load" });
+        await page.goto(`${origin}${locale === "en" ? "/en" : ""}/`, { waitUntil: "load" });
         await page.evaluate(() => document.fonts.ready);
         // Keep text only: the heritage image is hidden so the screenshot does not depend on the image.
         await page.addStyleTag({ content: ".heritage-image { visibility: hidden !important; }" });

@@ -12,6 +12,7 @@ test-results/
 playwright-report/
 .wrangler/
 .site-output/
+/.site-output-seed-*/
 graphify-out/
 .impeccable/config.local.json
 .claude/settings.local.json

@@ -19,7 +19,7 @@ try {
       // Portrait viewport: the full-span primary only stacks when the viewport is not landscape.
       const page = await browser.newPage({ viewport: { width, height: 1000 } });
       try {
-        await page.goto(`${origin}/${locale}/advertising-products/?category=${category}&photo=${photo}`);
+        await page.goto(`${origin}${locale === "en" ? "/en" : ""}/advertising-products/?category=${category}&photo=${photo}`);
         await page.waitForFunction(() => {
           const view = document.querySelector("[data-detail-view]");
           const image = document.querySelector("[data-detail-image]");

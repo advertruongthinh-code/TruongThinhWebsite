@@ -47,7 +47,7 @@ async function open(viewport, options = {}) {
         lanes: target.querySelectorAll(".card-media__image--lane").length });
     })).observe(document, { subtree: true, attributes: true, attributeFilter: ["data-masonry-active-media-id"] });
   }, slideArtifact());
-  await page.goto(`${BASE_URL}/vi/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), fixtureId);

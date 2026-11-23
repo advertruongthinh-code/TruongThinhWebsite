@@ -7,7 +7,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { chromium } from "playwright";
 
 const BASE = process.env.BASE_URL || "http://127.0.0.1:8787";
-const PATH = process.env.PAGE_PATH || "/vi/advertising-products/?category=led-displays-lightboxes";
+const PATH = process.env.PAGE_PATH || "/advertising-products/?category=led-displays-lightboxes";
 const DURATION_MS = Number(process.env.DURATION_MS || 30_000);
 const runs = Number(process.argv[2] || 3);
 const device = process.env.DEVICE_CDP;

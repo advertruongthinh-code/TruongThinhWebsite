@@ -133,7 +133,7 @@ function attachDiagnostics(page) {
 }
 
 function route(locale, card) {
-  return `/${locale}/advertising-products/?photo=${encodeURIComponent(card.id)}`;
+  return `${locale === "en" ? "/en" : ""}/advertising-products/?photo=${encodeURIComponent(card.id)}`;
 }
 
 function screenshotName(value) {
@@ -1461,12 +1461,12 @@ async function runOneColumnRegression(browser) {
           { related: true },
         );
         stage = "one-column:navbar-return";
-        const desktopNavbar = page.locator(`header .desktop-nav a[href="/${locale}/advertising-products/"]`);
+        const desktopNavbar = page.locator(`header .desktop-nav a[href="${locale === "en" ? "/en" : ""}/advertising-products/"]`);
         if (await desktopNavbar.isVisible()) {
           await desktopNavbar.click();
         } else {
           await page.locator("[data-menu-open]").click();
-          await page.locator(`.menu-group__title[href="/${locale}/advertising-products/"]`).click();
+          await page.locator(`.menu-group__title[href="${locale === "en" ? "/en" : ""}/advertising-products/"]`).click();
         }
         await page.waitForFunction(() => !/\/p\/[^/]+\/$/.test(location.pathname) && document.querySelector("[data-detail-view]")?.hidden === true);
         await page.waitForFunction(() => document.querySelectorAll("[data-project-grid] [data-masonry-card]").length > 0);

@@ -1,0 +1,234 @@
+[
+  {
+    "id": "chon-tu-bep",
+    "layout": "news-2-5",
+    "group": "nha-o",
+    "published": "2026-11-07",
+    "slugVi": "chon-tu-bep-go-cong-nghiep",
+    "slugEn": "choosing-engineered-wood-kitchen-cabinets",
+    "title": {
+      "vi": "Chọn tủ bếp gỗ công nghiệp: năm điều nên hỏi trước khi đặt",
+      "en": "Engineered wood kitchen cabinets: five questions to ask before you order"
+    },
+    "description": {
+      "vi": "Lõi ván, bề mặt, dán cạnh, phụ kiện và cách đo: những điều quyết định tủ bếp dùng bền hay nhanh hỏng.",
+      "en": "Board core, surface, edge banding, hardware and measuring: what decides whether a kitchen lasts."
+    },
+    "cover": {
+      "src": "/assets/content/shared/tu-bep-trang-van-go.webp",
+      "width": 1536,
+      "height": 1024,
+      "altVi": "Tủ bếp gỗ công nghiệp chữ L, tủ trên trắng, tủ dưới vân gỗ",
+      "altEn": "L-shaped laminated kitchen with white upper cabinets and wood-grain base units"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Cùng là tủ bếp gỗ công nghiệp, có bộ dùng mười lăm năm vẫn tốt, có bộ chỉ sau hai mùa mưa đã phồng cánh. Điều làm nên khác biệt thường không nằm ở màu sắc mà ở phần khuất sau cánh tủ. Trước khi đặt đóng tủ bếp, bạn nên hỏi người làm năm câu dưới đây.",
+          "en": "Two engineered-wood kitchens can look the same, yet one lasts fifteen years and the other swells at the doors after two rainy seasons. The difference is rarely the colour; it lies in what sits behind the doors. Before you order a kitchen, ask your maker these five questions."
+        }
+      },
+      {
+        "id": "image-a",
+        "type": "media-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/shared/tu-bep-trang-van-go.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Tủ bếp gỗ công nghiệp chữ L, tủ trên trắng, tủ dưới vân gỗ",
+          "altEn": "L-shaped laminated kitchen with white upper cabinets and wood-grain base units"
+        }
+      },
+      {
+        "id": "core",
+        "type": "paragraph",
+        "text": {
+          "vi": "Câu thứ nhất: tủ dùng lõi ván gì? Khu chậu rửa và máy rửa chén luôn có hơi nước, nên cần lõi xanh chống ẩm. Tủ trên và các hộc khô ráo có thể dùng lõi thường để tiết kiệm chi phí.\n\nCâu thứ hai: bề mặt hoàn thiện bằng gì? Melamine bền, dễ lau và giá vừa phải. Laminate chịu trầy, chịu nhiệt tốt hơn. Sơn cho màu tùy ý nhưng cần giữ gìn kỹ hơn. Bạn nên xin mẫu thật và đặt dưới đèn bếp nhà mình, vì cùng một mã màu có thể trông ấm hay lạnh tùy ánh sáng.",
+          "en": "First: what board core will be used? The area around the sink and dishwasher always has steam, so it needs a green moisture-resistant core. Upper cabinets and dry drawers can use a standard core to save on cost.\n\nSecond: what is the surface finish? Melamine is durable, easy to wipe and reasonably priced. Laminate resists scratches and heat better. Paint offers any colour but needs more care. Ask for real samples and hold them under your own kitchen lights, because the same colour code can look warm or cold depending on the light."
+        }
+      },
+      {
+        "id": "image-bc",
+        "type": "media-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/shared/tu-chau-rua-bep-mo-canh.webp",
+            "width": 1024,
+            "height": 1536,
+            "altVi": "Tủ chậu rửa bếp mở cánh, ống xả và van nước gọn gàng",
+            "altEn": "Open sink base cabinet with neatly routed drain pipes and water valves"
+          },
+          {
+            "src": "/assets/content/shared/ban-le-giam-chan-ngan-keo.webp",
+            "width": 1024,
+            "height": 1536,
+            "altVi": "Cánh tủ bếp trắng với bản lề giảm chấn và ngăn kéo ray hộp",
+            "altEn": "White kitchen cabinet with soft-close hinges and a box-runner drawer pulled out"
+          }
+        ]
+      },
+      {
+        "id": "edges",
+        "type": "paragraph",
+        "text": {
+          "vi": "Câu thứ ba: cạnh ván được dán thế nào? Cạnh dán bằng máy, đường keo mảnh và kín sẽ ngăn nước thấm vào lõi. Chỗ hở keo thường là nơi tủ phồng đầu tiên, nên tủ chậu cần được dán kín cả mặt trong.\n\nCâu thứ tư: dùng phụ kiện gì? Bản lề giảm chấn và ray hộp giúp cánh, ngăn kéo đóng êm và không bị xệ theo năm tháng. Tay nắm có thể chọn theo sở thích, còn ray nên chọn loại chịu được một ngăn kéo đầy nồi.\n\nCâu cuối cùng: ai đo và ai lắp? Khi đơn vị làm tủ tự đo tại nhà và tự lắp đặt, khe cánh sẽ đều, tủ ôm sát tường, mặt đá khớp với chậu và bếp. Trường Thịnh luôn tự đo và tự lắp từng bộ tủ bếp, để bạn yên tâm từ bản vẽ đến ngày sử dụng.",
+          "en": "Third: how are the edges banded? Machine-applied banding with a thin, tight glue line keeps water out of the core. An open glue line is usually where a cabinet swells first, so the sink unit should be sealed inside as well.\n\nFourth: what hardware is fitted? Soft-close hinges and box runners keep doors and drawers closing quietly and stop them sagging over the years. Handles are a matter of taste, but runners should be able to carry a drawer full of pots.\n\nLast: who measures and who installs? When the maker measures on site and fits the kitchen, door gaps stay even, the units sit tight to the wall and the worktop lines up with the sink and hob. Trường Thịnh measures and installs every kitchen itself, so you can rely on it from the drawing to daily use."
+        }
+      },
+      {
+        "id": "image-d",
+        "type": "media-single",
+        "position": "right-2-3",
+        "image": {
+          "src": "/assets/content/shared/ngan-keo-dung-noi-tu-bep.webp",
+          "width": 1024,
+          "height": 1536,
+          "altVi": "Chủ nhà kéo ngăn kéo đựng nồi chảo dưới bếp từ",
+          "altEn": "Homeowner pulling out a deep pot drawer beneath the induction hob"
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần tư vấn tủ bếp?",
+          "en": "Need advice on a kitchen?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards"
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  },
+  {
+    "id": "mo-quan-ca-phe",
+    "layout": "news-2-5",
+    "group": "kinh-doanh",
+    "published": "2026-11-06",
+    "slugVi": "lam-noi-that-quan-ca-phe-nho",
+    "slugEn": "fitting-out-a-small-cafe",
+    "title": {
+      "vi": "Làm nội thất quán cà phê nhỏ: từ khảo sát tới ngày mở cửa",
+      "en": "Fitting out a small café: from site survey to opening day"
+    },
+    "description": {
+      "vi": "Các bước làm nội thất một quán cà phê nhỏ và những việc chủ quán nên chuẩn bị ở mỗi bước.",
+      "en": "The steps of fitting out a small café, and what the owner should prepare at each one."
+    },
+    "cover": {
+      "src": "/assets/content/shared/mat-tien-quan-ca-phe.webp",
+      "width": 1536,
+      "height": 1024,
+      "altVi": "Mặt tiền quán cà phê nhà phố, bảng hiệu gỗ và cửa gỗ",
+      "altEn": "Townhouse cafe frontage with a wooden sign, warm lights and open wooden doors"
+    },
+    "blocks": [
+      {
+        "id": "intro",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một quán cà phê nhỏ giữ chân khách bằng cảm giác dễ chịu ngay khi bước vào. Để có cảm giác đó, bạn cần tính trước những con số rất cụ thể: quầy dài bao nhiêu, ổ điện đặt ở đâu, lối đi rộng bao nhiêu để nhân viên không va vào khách. Làm đúng thứ tự giúp quán khai trương đúng hẹn và không phải sửa đi sửa lại.",
+          "en": "A small café keeps its guests with the comfort they feel the moment they walk in. To get there, you need to plan some very specific numbers: how long the bar is, where the sockets go, how wide the aisle must be so staff never bump into guests. Working in the right order gets the café open on time without costly rework."
+        }
+      },
+      {
+        "id": "image-a",
+        "type": "media-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/shared/mat-tien-quan-ca-phe.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Mặt tiền quán cà phê nhà phố, bảng hiệu gỗ và cửa gỗ",
+          "altEn": "Townhouse cafe frontage with a wooden sign, warm lights and open wooden doors"
+        }
+      },
+      {
+        "id": "steps",
+        "type": "paragraph",
+        "text": {
+          "vi": "Bước đầu tiên luôn là khảo sát. Chúng tôi đo mặt bằng, kiểm tra đường điện nước, xem hướng nắng buổi chiều và lối khách đi từ vỉa hè vào. Sau đó mới bố trí quầy pha chế, khu ngồi và kho sao cho thuận tay người pha.\n\nKhi bạn chốt bản vẽ, xưởng sẽ sản xuất quầy, kệ và bàn trong lúc mặt bằng hoàn thiện phần thô. Hai việc chạy song song nên quán có thể mở cửa sớm hơn nhiều ngày.",
+          "en": "The first step is always a site survey. We measure the space, check the power and water lines, note where the afternoon sun falls and how guests come in from the pavement. Only then do we lay out the bar, seating and storage so they suit the way the barista works.\n\nOnce you sign off the drawings, the workshop builds the bar, shelving and tables while the shell is finished on site. With both running at once, the café can open many days sooner."
+        }
+      },
+      {
+        "id": "image-bc",
+        "type": "media-pair",
+        "layout": "equal",
+        "images": [
+          {
+            "src": "/assets/content/shared/quay-pha-che-bo-cong.webp",
+            "width": 1024,
+            "height": 1536,
+            "altVi": "Quầy pha chế quán cafe bo cong vân gỗ sồi, kệ ly đèn hắt",
+            "altEn": "Curved oak-grain coffee bar with a backlit glassware shelf behind"
+          },
+          {
+            "src": "/assets/content/shared/ghe-bang-quan-ca-phe-nho.webp",
+            "width": 1024,
+            "height": 1536,
+            "altVi": "Ghế băng bọc nệm và bàn tròn nhỏ cạnh cửa kính quán cà phê",
+            "altEn": "Upholstered wall bench with small round tables by a cafe's large window"
+          }
+        ]
+      },
+      {
+        "id": "install",
+        "type": "paragraph",
+        "text": {
+          "vi": "Đồ gỗ được đưa tới và lắp trong vài ngày cuối, khi sơn tường đã khô. Thợ chỉnh từng cánh tủ, thử từng ổ điện và từng bóng đèn trước khi bàn giao. Quầy bar chịu nước và va chạm nhiều nhất, vì vậy sau vài tháng kinh doanh, bạn nên cho kiểm tra lại bản lề và mặt quầy để quán luôn đẹp như ngày đầu.",
+          "en": "The joinery arrives and is fitted in the last few days, once the paint is dry. The fitters adjust every door and test every socket and light before handover. The bar takes the most water and knocks, so after a few months of trading it is worth having the hinges and worktop checked to keep the café looking as good as on day one."
+        }
+      },
+      {
+        "id": "image-d",
+        "type": "media-single",
+        "position": "right-2-3",
+        "image": {
+          "src": "/assets/content/shared/lap-tu-quay-ca-phe.webp",
+          "width": 1024,
+          "height": 1536,
+          "altVi": "Thợ dùng máy khoan pin lắp bản lề cánh tủ quầy quán cà phê",
+          "altEn": "Installer fitting a hinge to a cafe counter cabinet with a cordless drill"
+        }
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở quán?",
+          "en": "Opening a café soon?"
+        }
+      },
+      {
+        "id": "related",
+        "type": "news-cards"
+      },
+      {
+        "id": "all-news",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem tất cả bài viết",
+          "en": "See all articles"
+        },
+        "hrefVi": "/vi/news/",
+        "hrefEn": "/en/news/"
+      }
+    ]
+  }
+]

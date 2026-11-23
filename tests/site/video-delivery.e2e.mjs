@@ -83,7 +83,7 @@ async function open({ hls = true, mediaSource = true } = {}) {
     window.__TT_ADVERTISING_ARTIFACT__ = artifact;
     if (!mediaSource) delete window.MediaSource;
   }, { artifact: fixtureArtifact(hls), mediaSource });
-  await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${base}/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
   // The Advertising hero fills the first screen; intro and smooth scroll must finish mounting before they accept wheel, then scroll so cards enter the screen.
   await page.waitForTimeout(2500);

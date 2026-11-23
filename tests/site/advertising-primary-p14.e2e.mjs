@@ -55,7 +55,7 @@ const contained = (inner, outer, tolerance = 1.5) => Boolean(inner && outer
 function route(locale, id, tag = null) {
   const query = new URLSearchParams({ photo: id });
   if (tag) query.set("tag", tag);
-  return `/${locale}/advertising-products/?${query}`;
+  return `${locale === "en" ? "/en" : ""}/advertising-products/?${query}`;
 }
 
 function safeName(value) {

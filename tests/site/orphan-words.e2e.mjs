@@ -9,15 +9,15 @@ const { chromium } = await import("playwright");
 const origin = process.env.BASE_URL || "http://127.0.0.1:8787";
 const widths = (process.env.ORPHAN_WIDTHS || "384,390,768,1024,1280,1440,1920").split(",").map(Number);
 const routes = [
-  "/vi/", "/en/",
-  "/vi/residential/", "/en/residential/",
-  "/vi/commercial/", "/en/commercial/",
-  "/vi/about/", "/en/about/",
-  "/vi/advertising-products/", "/en/advertising-products/",
-  "/vi/projects/", "/en/projects/",
-  "/vi/projects/nha-pho-japandi-san-vuon-truoc/", "/en/projects/japandi-townhouse-front-garden/",
-  "/vi/projects/can-ho-2pn-be-am/", "/en/projects/warm-beige-two-bedroom-apartment/",
-  "/vi/news/", "/en/news/",
+  "/", "/en/",
+  "/residential/", "/en/residential/",
+  "/commercial/", "/en/commercial/",
+  "/about/", "/en/about/",
+  "/advertising-products/", "/en/advertising-products/",
+  "/projects/", "/en/projects/",
+  "/projects/nha-pho-japandi-san-vuon-truoc/", "/en/projects/japandi-townhouse-front-garden/",
+  "/projects/can-ho-2pn-be-am/", "/en/projects/warm-beige-two-bedroom-apartment/",
+  "/news/", "/en/news/",
   "/en/news/planning-a-built-in-wardrobe/",
 ];
 

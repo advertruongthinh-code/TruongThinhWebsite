@@ -51,12 +51,13 @@ Then lần dựng không chạy, admin báo đúng id bài và trường thiếu
 Mọi trường chữ có cặp VI và EN (`title.vi`, `title.en` hoặc `altVi`, `altEn` như file chiếu hiện tại). VI bắt buộc để
 lưu. Thiếu EN ở một trường bắt buộc thì bài vẫn lên bản VI; bản EN không sinh, không có `hreflang` en, link đổi ngôn ngữ
 của bài đó trỏ trang danh sách EN ([layout-library R4](layout-library.md#r4-dữ-liệu-và-render-tĩnh)). Admin hiện bài thiếu
-EN trong một danh sách riêng. Định dạng chữ theo R8; không nhận HTML, CSS hay script thô.
+EN trong một danh sách riêng. Chỉ News và công trình được thiếu EN; card Advertising, slide hero và alt của media vẫn
+cần đủ EN mới lên site; slot của trang chuẩn để trống EN thì bản EN hiện chữ VI (owner 2026-11-23). Định dạng chữ theo R8; không nhận HTML, CSS hay script thô.
 
 ```gherkin
 Given bài news có đủ VI, thiếu description.en
 When lưu bài
-Then /vi/news/<slugVi>/ lên ở lần dựng sau, /en/news/<slugEn>/ không sinh và sitemap không có URL EN của bài
+Then /news/<slugVi>/ lên ở lần dựng sau, /en/news/<slugEn>/ không sinh và sitemap không có URL EN của bài
 ```
 
 ### R3. Media
@@ -179,6 +180,14 @@ xóa mục lớn. Mục con trong từng mục lớn thêm, xóa, sửa tiêu đ
 ([site shell R4](site-shell.md#r4-full-menu)). Cách liên hệ (Zalo, hotline, văn phòng, mạng xã hội) và mọi nút CTA
 (floating CTA, nút Zalo cuối trang, nút trong menu, `contact-quick`) sửa được link và chữ hiển thị ở một chỗ
 (`contact.json`); mọi nơi đọc từ đó, không ghi cứng link trong HTML. Link nội bộ chọn theo id trang, không gõ URL.
+
+`contact.json` là `{ channels, cta }`: `channels` có đúng sáu kênh `zalo`, `hotline`, `office`, `facebook`, `tiktok`,
+`youtube`, mỗi kênh `{ href, text? }`, `href` rỗng là chưa có; `cta` là `{ <khóa>: { vi, en, channel } }` với khóa
+`floating`, `floating-project`, `menu`, `contact-quick` và `<trang>-<n>` cho nút trong thân trang. `menu.json` là
+`{ groups }` với đúng 6 nhóm `{ title, aria?, link, items: [{ label, link }] }`, tối đa 12 mục con mỗi nhóm; navbar
+PC đọc bốn nhóm đầu. Link có một cú pháp cho menu, chữ và CTA: `page:<trang>` hoặc `page:<loại>/<id>` (trang cố định,
+`project-type`, `about`, `advertising`, `project`, `news`), `contact:<kênh>`, hoặc `https://…`. Link trỏ đích không còn
+thì mục menu bị bỏ, chữ có link thành chữ thường, nút CTA hiện dạng tắt, và lần lưu báo thiếu `link-target`.
 
 ```gherkin
 Given menu có 6 mục lớn

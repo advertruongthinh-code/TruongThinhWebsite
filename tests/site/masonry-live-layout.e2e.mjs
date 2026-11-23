@@ -20,8 +20,8 @@ process.env.PLAYWRIGHT_BROWSERS_PATH ||= path.join(root, ".tooling/browsers");
 const { chromium } = await import("playwright");
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined });
 
-const ADVERTISING = "/vi/advertising-products/";
-const PROJECTS = "/vi/projects/";
+const ADVERTISING = "/advertising-products/";
+const PROJECTS = "/projects/";
 const WIDTHS = [384, 768, 1024, 1201, 1440, 1920];
 // Crop is capped at 5% of the media height; the media ratio then drifts by at most 1 / 0.95 - 1.
 const MAX_CROP = 0.05;
@@ -199,7 +199,7 @@ try {
         await page.goBack();
         await page.waitForFunction(() => !location.pathname.includes("/p/") && !document.body.classList.contains("is-detail"));
         await sameAsBefore("card then Back");
-        await page.goto(`${base}/vi/`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
         await page.goBack({ waitUntil: "domcontentloaded" });
         await page.waitForSelector("[data-project-grid] [data-masonry-item]", { state: "attached" });
         await sameAsBefore("home page then Back");
@@ -242,7 +242,7 @@ try {
       if (url === ADVERTISING) {
         // Back to a prebuilt seed takes the same prebuilt entries: same coordinates.
         const at = (items) => Object.fromEntries(items.map(({ id, left, top }) => [id, [left, top]]));
-        await page.goto(`${base}/vi/`, { waitUntil: "domcontentloaded" });
+        await page.goto(`${base}/`, { waitUntil: "domcontentloaded" });
         await page.goBack({ waitUntil: "domcontentloaded" });
         await page.waitForSelector("[data-project-grid] [data-masonry-item]", { state: "attached" });
         const again = await settled(page);
@@ -252,7 +252,7 @@ try {
       }
       await page.close();
     }
-    const { page } = await open(ADVERTISING, 384, { height: 800, setup: (target) => target.route(/\/vi\/advertising-products\/$/, async (route) => {
+    const { page } = await open(ADVERTISING, 384, { height: 800, setup: (target) => target.route(/\/advertising-products\/$/, async (route) => {
       const response = await route.fetch();
       await route.fulfill({ response, body: (await response.text()).replace(/"stamp":\d+/, '"stamp":1') });
     }) });

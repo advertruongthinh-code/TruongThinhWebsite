@@ -11,7 +11,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     for (const detail of [true, false]) {
       const query = detail ? "?category=signage-raised-letters&photo=signage-raised-letters-02&tag=product-signage-raised-letters-product-12" : "";
-      await page.goto(`${baseUrl}/${locale}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
       // Direct-load veil blocks pointer input until the page finishes mounting.
       await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
       const card = page.locator(detail ? "[data-masonry-related-card]" : "[data-masonry-card]").first();
@@ -66,7 +66,7 @@ try {
       viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
     });
     const query = detail ? "?category=signage-raised-letters&photo=signage-raised-letters-02&tag=product-signage-raised-letters-product-12" : "";
-    await page.goto(`${baseUrl}/vi/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     const selector = detail ? "[data-masonry-related-card]" : "[data-masonry-card]";

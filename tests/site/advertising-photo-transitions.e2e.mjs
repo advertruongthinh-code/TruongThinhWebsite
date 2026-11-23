@@ -130,7 +130,7 @@ async function quiet(page) {
 // Let the hover transition (150ms) finish before reading the color: wait for the button's own animation, not a fixed number of ms.
 const settleHover = (control) => control.evaluate((node) => Promise.all(node.getAnimations().map((animation) => animation.finished.catch(() => {}))));
 async function openA(page) {
-  await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+  await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
   await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
   const card = page.locator(`[data-masonry-card="${A}"] > a`);
@@ -175,7 +175,7 @@ async function m02bFixture(page, locale, direct = false, seed = null) {
     });
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
-  const target = href(`/${locale}/advertising-products/?category=signage-raised-letters${direct ? `&photo=${mediaCardId}` : ""}`);
+  const target = href(`${locale === "en" ? "/en" : ""}/advertising-products/?category=signage-raised-letters${direct ? `&photo=${mediaCardId}` : ""}`);
   // Pin the visit seed through the runtime handoff so the related order (and virtual reachability) is deterministic.
   if (seed) {
     await page.addInitScript(({ key, url, value }) => {
@@ -429,7 +429,7 @@ async function measureTransition(page, flow) {
     await page.waitForFunction(() => !document.querySelector("[data-detail-morph]"));
     return timing;
   }
-  const selector = 'header .desktop-nav a[href="/vi/advertising-products/"]';
+  const selector = 'header .desktop-nav a[href="/advertising-products/"]';
   await ready(page, A);
   await armInputTimingProbe(page, selector);
   await page.locator(selector).click();
@@ -442,11 +442,11 @@ async function measureTransition(page, flow) {
 
 async function prepareFlow(page, flow) {
   if (flow === "parent-to-photo") {
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
     return;
   }
-  await page.goto(href(`/vi/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
+  await page.goto(href(`/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
   await ready(page, A);
   if (flow === "related-to-photo") await prepareRelatedTarget(page);
 }
@@ -715,7 +715,7 @@ try {
     const evidence = [];
     for (const locale of ["vi", "en"]) {
       stage(`${locale}-grid-click`);
-      await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
+      await page.goto(href(`${locale === "en" ? "/en" : ""}/advertising-products/`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
       const card = page.locator(`[data-masonry-card="${A}"] > a`);
@@ -760,7 +760,7 @@ try {
     const evidence = [];
     for (const locale of ["vi", "en"]) {
       stage(`${locale}-close-A`);
-      await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
+      await page.goto(href(`${locale === "en" ? "/en" : ""}/advertising-products/`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
       await page.locator(`[data-masonry-card="${A}"] > a`).click();
@@ -1056,7 +1056,7 @@ try {
   // R7: the tap task only writes history, the next task only paints the primary; the related solver and card mount run afterwards.
   await caseRun("related-tap-defers-related", { width: 412, height: 915 }, async (page) => {
     const visibleRelated = () => [...document.querySelectorAll("[data-masonry-related-card]")].filter((card) => !card.hidden).length;
-    await page.goto(href("/vi/advertising-products/?photo=kiosk-posm-10"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/?photo=kiosk-posm-10"), { waitUntil: "domcontentloaded" });
     await ready(page, "kiosk-posm-10");
     await page.waitForFunction(visibleRelated);
     const link = page.locator("[data-masonry-related-card] > a").first();
@@ -1160,7 +1160,7 @@ try {
     return evidence;
   });
   await caseRun("viewer-control-affordances", { width: 1329, height: 912 }, async (page, stage) => {
-    await page.goto(href("/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-01"));
+    await page.goto(href("/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-01"));
     await ready(page, "signage-raised-letters-01");
     await page.locator("[data-detail-expand]").click();
     // No close or zoom buttons (owner 2026-11-14): + and - step the zoom, Escape closes.
@@ -1211,7 +1211,7 @@ try {
     const evidence = [];
     for (const locale of ["vi", "en"]) {
       stage(`${locale}-swipe-from-backdrop-mid-zoom`);
-      await page.goto(href(`/${locale}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`));
+      await page.goto(href(`${locale === "en" ? "/en" : ""}/advertising-products/?category=kiosk-posm&photo=kiosk-posm-37`));
       await ready(page, "kiosk-posm-37");
       // A touch screen keeps only the expand button for screen readers (viewer touch R7).
       await page.evaluate(() => document.querySelector("[data-detail-expand]").click());
@@ -1236,7 +1236,7 @@ try {
   await caseRun("p13-position-stuffing-and-remount", { width: 1329, height: 912 }, async (page, stage) => {
     stage("parent-prepaint");
     await installStuffingProbe(page, "[data-masonry-card]", "[data-project-grid]");
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await stuffingSettled(page);
     const parentRecords = await page.evaluate(() => window.__ttP13Stuffing.records);
     const parentStuffing = assertStuffingRecord(parentRecords, "parent stuffing", () => 0);
@@ -1290,7 +1290,7 @@ try {
     });
     await installStuffingProbe(relatedPage, "[data-masonry-related-card]", "[data-detail-related-grid]");
     await installRelatedMediaProbe(relatedPage);
-    await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
+    await relatedPage.goto(href(`/advertising-products/?photo=${A}`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
     await stuffingSettled(relatedPage);
     const relatedState = await relatedPage.evaluate(readRelatedHeads);
@@ -1318,7 +1318,7 @@ try {
       `related initial media shows before its reveal from Flow ${JSON.stringify(initialMedia?.frames.filter((frame) => frame.blur || (frame.fading && !frame.skeleton)
         || (frame.skeleton && !frame.fading && frame.opacity > 0.01 && frame.cover > 0.01)).slice(0, 5).concat(initialMedia?.frames.slice(-1) || []))}`);
     // Framing tags are still supported as deep links after the detail chips were removed.
-    await relatedPage.goto(href(`/vi/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
+    await relatedPage.goto(href(`/advertising-products/?photo=${A}&tag=format-portrait`), { waitUntil: "domcontentloaded" });
     await ready(relatedPage, A);
     await stuffingSettled(relatedPage);
     const tagState = await relatedPage.evaluate(readRelatedHeads);
@@ -1414,7 +1414,7 @@ try {
 
     stage("reduced-motion");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
     await page.locator(`[data-masonry-card="${A}"] > a`).click();
     await ready(page, A);
@@ -1701,7 +1701,7 @@ try {
   });
   await caseRun("history-grid-pointer-retained-morph", { width: 1440, height: 900 }, async (page, stage) => {
     stage("grid-Back-with-pointer-retained");
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     const link = page.locator("[data-masonry-card] > a").first();
     const photoId = await link.evaluate((node) => node.closest("[data-masonry-card]").dataset.masonryCard);
@@ -1733,7 +1733,7 @@ try {
       }, { once: true });
     });
     stage("Back-with-visible-scrollbar");
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id, { scrollIntoView: true }), A);
     // Scroll as click() would, so the grid position that Back restores is the one read here.
@@ -1779,19 +1779,19 @@ try {
     };
     const evidence = [];
     stage("direct-load-static");
-    await page.goto(href("/vi/advertising-products/?photo=" + A), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/?photo=" + A), { waitUntil: "domcontentloaded" });
     await ready(page, A);
     evidence.push(await read("direct"));
     stage("reduced-motion-static");
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
     await page.locator('[data-masonry-card="' + A + '"] > a').click();
     await ready(page, A);
     evidence.push(await read("reduced"));
     stage("grid-click-static");
     await page.emulateMedia({ reducedMotion: "no-preference" });
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await ensureParentTarget(page);
     await page.locator('[data-masonry-card="' + A + '"] > a').click();
     await ready(page, A);
@@ -1862,7 +1862,7 @@ try {
   await caseRun("animation-dependency-failure-fail-open", { width: 390, height: 844 }, async (page, stage) => {
     stage("abort-gsap");
     await page.route("**/*gsap*", (route) => route.abort());
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.()
       && document.querySelectorAll("[data-project-grid] .masonry-card").length > 0);
     const state = await page.evaluate(() => ({ grid: document.querySelectorAll("[data-project-grid] .masonry-card").length, locked: [document.body.style.overflow, document.documentElement.style.overflow] }));
@@ -2057,7 +2057,7 @@ try {
       for (const width of [320, 390, 820, 1440]) {
         stage(`matrix-${locale}-${width}`);
         await page.setViewportSize({ width, height: width < 500 ? 844 : 900 });
-        await page.goto(href(`/${locale}/advertising-products/`), { waitUntil: "domcontentloaded" });
+        await page.goto(href(`${locale === "en" ? "/en" : ""}/advertising-products/`), { waitUntil: "domcontentloaded" });
         await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
         const state = await readCta();
         assertCta(state, `${locale}-${width}`);
@@ -2068,7 +2068,7 @@ try {
 
     stage("filter-resize-recompute");
     await page.setViewportSize({ width: 1440, height: 900 });
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     const initial = await readCta();
     const titleMotion = await page.evaluate(async () => {
@@ -2150,7 +2150,7 @@ try {
   await caseRun("square-controls-hover-and-return", { width: 1440, height: 900 }, async (page, stage) => {
     const assertNoBack = async () => assert.equal(await page.locator("[data-detail-return]").count(), 0, "standalone Back must be removed");
     stage("parent-no-back");
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await assertNoBack();
     stage("open-B"); await openA(page); await chooseB(page); await ready(page, B);
@@ -2215,24 +2215,24 @@ try {
     await page.goForward(); await ready(page, B);
 
     stage("navbar-return-current-photo");
-    await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
+    await page.locator('[data-site-header] a[href="/advertising-products/"]').click();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, B);
     await assertNoBack();
 
     stage("direct-photo-navbar-fallback");
-    await page.goto(href(`/vi/advertising-products/?photo=${B}`), { waitUntil: "domcontentloaded" });
+    await page.goto(href(`/advertising-products/?photo=${B}`), { waitUntil: "domcontentloaded" });
     await ready(page, B);
-    await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
+    await page.locator('[data-site-header] a[href="/advertising-products/"]').click();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, B);
     assert.equal(new URL(page.url()).search, "", "a direct photo has no picked group and lands on All");
     await assertNoBack();
 
     stage("different-route-unmount");
-    await page.goto(href(`/vi/advertising-products/?photo=${B}`), { waitUntil: "domcontentloaded" });
+    await page.goto(href(`/advertising-products/?photo=${B}`), { waitUntil: "domcontentloaded" });
     await ready(page, B);
-    await page.locator('[data-site-header] a[href="/vi/commercial/"]').click();
+    await page.locator('[data-site-header] a[href="/commercial/"]').click();
     await page.waitForFunction(() => document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "commercial");
     await assertNoBack();
     return { compact, expandHover, reducedMotion };
@@ -2243,7 +2243,7 @@ try {
     // The URL carries the cluster slug per locale (taxonomy R4).
     const groupSlug = ADVERTISING_CATEGORIES.find((category) => category.slug === group).slugVi;
     const openFromGroup = async (id = A) => {
-      await page.goto(href(`/vi/advertising-products/?category=${group}`), { waitUntil: "domcontentloaded" });
+      await page.goto(href(`/advertising-products/?category=${group}`), { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
       // A's saved anchor offset must match across stages: a click under the route veil makes Playwright
       // retry with a different scroll alignment, and html scroll-behavior lets it stop midway while scrolling.
@@ -2254,10 +2254,10 @@ try {
       await ready(page, id);
     };
     const navbarReturn = async (focusId) => {
-      await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
+      await page.locator('[data-site-header] a[href="/advertising-products/"]').click();
       await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
         && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, focusId);
-      assert.equal(new URL(page.url()).pathname, `/vi/advertising-products/${groupSlug}/`, "navbar keeps the picked group in the URL");
+      assert.equal(new URL(page.url()).pathname, `/advertising-products/${groupSlug}/`, "navbar keeps the picked group in the URL");
       assert.equal(await page.locator('[data-masonry-filter][aria-current="true"]').getAttribute("data-masonry-filter"), group,
         "the picked group stays active on the filter rail");
       const cards = await page.evaluate(() => [...document.querySelectorAll("[data-project-grid] [data-masonry-card]")]
@@ -2302,9 +2302,9 @@ try {
     assert(Math.abs(back.top - originB) <= 2, `B returns to its old offset: ${back.top} != ${originB}`);
 
     stage("direct-photo-lands-on-all");
-    await page.goto(href(`/vi/advertising-products/?category=${group}&photo=${A}`), { waitUntil: "domcontentloaded" });
+    await page.goto(href(`/advertising-products/?category=${group}&photo=${A}`), { waitUntil: "domcontentloaded" });
     await ready(page, A);
-    await page.locator('[data-site-header] a[href="/vi/advertising-products/"]').click();
+    await page.locator('[data-site-header] a[href="/advertising-products/"]').click();
     await page.waitForFunction((id) => !/\/p\/[^/]+\/$/.test(new URL(location.href).pathname)
       && document.activeElement?.closest("[data-masonry-card]")?.dataset.masonryCard === id, A);
     assert.equal(new URL(page.url()).search, "", "a direct photo has no picked group and lands on All");
@@ -2313,7 +2313,7 @@ try {
 
   await caseRun("skeleton-global-boundary-fade", { width: 1440, height: 900 }, async (page, stage) => {
     stage("grid-skeleton-only");
-    await page.goto(href("/vi/advertising-products/"), { waitUntil: "domcontentloaded" });
+    await page.goto(href("/advertising-products/"), { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-masonry-cta-skeleton]")?.dataset.masonryCtaReady === "true");
     const state = await page.evaluate(() => {
       const skeleton = document.querySelector("[data-masonry-cta-skeleton]");

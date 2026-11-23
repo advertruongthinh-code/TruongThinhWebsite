@@ -114,7 +114,7 @@ const toggleTag = async (page, tag) => {
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 try {
   const probe = await browser.newPage({ viewport: { width: 1569, height: 912 } });
-  await probe.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+  await probe.goto(`${baseUrl}/advertising-products/`, { waitUntil: "domcontentloaded" });
   await probe.waitForSelector("[data-masonry-card]");
   const hero = await probe.$eval("[data-masonry-card]", (node) => node.dataset.masonryCard);
   await probe.close();
@@ -122,7 +122,7 @@ try {
   for (const [locale, viewport] of [["vi", { width: 1569, height: 912 }], ["en", { width: 390, height: 844 }]]) {
     const page = await browser.newPage({ viewport, ...(viewport.width < 500 ? { isMobile: true, hasTouch: true, deviceScaleFactor: 2 } : {}) });
     page.on("pageerror", (error) => errors.push(`${locale}: ${error.message}`));
-    await page.goto(`${baseUrl}/${locale}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await ready(page);
     const end = await measureEnd(page);
     const label = `${locale} ${viewport.width}x${viewport.height}`;
@@ -151,7 +151,7 @@ try {
     }
 
     // Back to masonry: the CTA returns to the grid.
-    await page.goto(`${baseUrl}/${locale}/advertising-products/`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("[data-masonry-cta-skeleton][data-masonry-cta-ready]");
     const grid = await page.evaluate(() => ({
       inGrid: Boolean(document.querySelector("[data-project-grid] [data-masonry-cta-skeleton]")),
@@ -165,7 +165,7 @@ try {
   // Open detail from masonry then Back on the same page: the host switches back and forth.
   const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
   page.on("pageerror", (error) => errors.push(`soft: ${error.message}`));
-  await page.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForSelector("[data-masonry-card] a");
   await page.waitForTimeout(800);
   await page.locator("[data-masonry-card] a").first().click();
@@ -200,7 +200,7 @@ try {
   const heroes = await (async () => {
     const list = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     await pinBrowseSeed(list, DETOUR_SEED);
-    await list.goto(`${baseUrl}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+    await list.goto(`${baseUrl}/advertising-products/`, { waitUntil: "domcontentloaded" });
     await list.waitForSelector("[data-masonry-card]");
     const ids = await list.$$eval("[data-masonry-card]", (nodes) => nodes.map((node) => node.dataset.masonryCard));
     await list.close();
@@ -213,7 +213,7 @@ try {
     const search = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     await pinBrowseSeed(search, DETOUR_SEED);
     search.on("pageerror", (error) => errors.push(`${hero}: ${error.message}`));
-    await search.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await search.goto(`${baseUrl}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await ready(search);
     const tags = await search.$$eval("[data-masonry-suggestion-tag]", (nodes) => nodes.map((node) => node.dataset.masonrySuggestionTag));
     // Every tag of the hero: cases needing a detour usually come from a tag that sharply narrows related (the column next to primary empties).
@@ -256,7 +256,7 @@ try {
       requestAnimationFrame(tick);
     });
     const fresh = await context.newPage();
-    await fresh.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await fresh.goto(`${baseUrl}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await ready(fresh);
     await fresh.evaluate(async () => {
       const motion = window.TruongThinhMotion;
@@ -275,7 +275,7 @@ try {
 
   // Reduced motion: changing the tag places frames directly, the CTA stays flush with the footer.
   const reduced = await browser.newPage({ viewport: { width: 1569, height: 912 }, reducedMotion: "reduce" });
-  await reduced.goto(`${baseUrl}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+  await reduced.goto(`${baseUrl}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
   await ready(reduced);
   const reducedTag = await reduced.$eval("[data-masonry-suggestion-tag]", (node) => node.dataset.masonrySuggestionTag).catch(() => null);
   if (reducedTag) {

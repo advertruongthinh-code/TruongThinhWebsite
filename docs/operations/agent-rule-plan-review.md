@@ -43,7 +43,7 @@ Task là dài khi estimate trong plan, hoặc diff thực tế trước merge, k
 | File nóng ([routing](agent-rule-model-routing.md#bảng-mặc-định)) | từ 2 |
 | Vùng bị chạm: `src/site/`, CMS (`src/worker/`, `src/admin/`, `src/db/`), `scripts/` và `.github/workflows/`, `design-system/` | từ 2 vùng |
 
-Lý do (suy luận): task từ `200 LOC` đã phải ghi estimate trên card; 400 là gấp đôi, cũng là mức một lần review còn đọc kỹ được. Task dưới ngưỡng giữ self-review five-axis và `ponytail-review` như cũ ([AGENTS.md](../../AGENTS.md#branch-pr-và-merge)).
+Lý do (suy luận): task từ `200 LOC` đã phải ghi estimate trên card; 400 là gấp đôi, cũng là mức một lần review còn đọc kỹ được. Task dưới ngưỡng giữ self-review five-axis, `ponytail-review` và gọi [vai kiểm tra](agent-rule-verification-roles.md#tầng-rủi-ro-gọi-vai-nào) theo tầng.
 
 ### Quy trình
 
@@ -54,8 +54,7 @@ Lý do (suy luận): task từ `200 LOC` đã phải ghi estimate trên card; 40
    - `using-agent-skills` định tuyến, ghi dòng `Skill:` cho từng skill.
    - `code-review-and-quality` (five-axis) trên toàn diff, đọc cả code liên quan, không chỉ dòng đổi; `ponytail-review` target link PR.
    - Đối chiếu từng task trong plan và từng `R` trong spec: thiếu, sai, thừa phạm vi.
-   - Persona `code-reviewer` luôn chạy; thêm `security-auditor` khi chạm CMS, input người dùng, secret; `test-engineer` khi thêm hoặc đổi test; `web-performance-auditor` khi chạm motion, ảnh, tải trang. Persona chạy dạng sibling review theo [Skill lifecycle](agent-rule-workflow-tools.md#skill-lifecycle) mục 6; reviewer hợp nhất kết quả.
-   - UI đổi: `impeccable` `audit` trên URL của `pnpm dev`.
+   - Persona và vai kiểm tra theo [tầng 3](agent-rule-verification-roles.md#tầng-rủi-ro-gọi-vai-nào), chạy dạng sibling review theo [Skill lifecycle](agent-rule-workflow-tools.md#skill-lifecycle) mục 6; reviewer hợp nhất kết quả.
    - Kiểm lại claim bằng tool (chạy test, Graphify blast radius); finding chưa tái hiện được ghi là nghi vấn.
 5. Kết quả là review trên PR: mỗi finding có mức (chặn merge, nên sửa, nhỏ), `file:dòng`, nguyên nhân, cách sửa; cuối ghi kết luận đạt hoặc cần sửa.
 6. Implementer sửa finding chặn merge và nên sửa, reviewer kiểm lại đúng các finding đó. Sau hai vòng vẫn còn finding chặn merge thì reviewer báo điều phối, không mở vòng ba.

@@ -99,7 +99,7 @@ Worker đếm byte; owner thấy chưa đủ chất lượng nên bỏ. Riêng b
 - Đã settle thì không có vệt, skeleton hay Kính lần nữa cho ảnh đó. Ảnh lỗi theo [tải ảnh R8](media-delivery.md#r8-dấu-báo-lỗi-tải-media).
 
 ```gherkin
-Given ảnh hero /vi/residential/ tải chậm
+Given ảnh hero /residential/ tải chậm
 When file còn đang về
 Then khung chỉ thấy vệt sáng; khung nhận is-media-settled sau load và decode
 And server nhận đúng một request cho file đó
@@ -126,7 +126,7 @@ Advertising gồm khung masonry) và `document.fonts.ready` xong; không chờ �
 đếm từ lúc veil bắt đầu mở ([mở trực tiếp R2](first-load-parity.md#r2-motion-chữ-hero-khi-mở-trực-tiếp-giống-chuyển-mềm)).
 
 ```gherkin
-Given /vi/residential/ mở bằng link, ảnh hero bị trễ 3s, font về trước khi mount xong
+Given /residential/ mở bằng link, ảnh hero bị trễ 3s, font về trước khi mount xong
 When ghi hình từ lúc điều hướng
 Then veil bắt đầu mở ngay khi mount xong, hero còn vệt sáng, chữ hero chạy motion như chuyển mềm
 
@@ -151,7 +151,7 @@ Không preload ảnh ngoài ngoại lệ hero trang chủ đã có. Không đẩ
 khởi động runtime sớm (card "Tăng tốc hiện 8 card đầu") làm 8 card đủ ảnh chậm hơn vì tranh băng thông với vendor JS.
 
 ```gherkin
-Given /vi/advertising-products/ mở với cache trống, Slow 4G
+Given /advertising-products/ mở với cache trống, Slow 4G
 When đọc waterfall tới lúc 8 card đầu có ảnh
 Then font và CSS bắt đầu trước mọi ảnh, vendor JS và artifact bắt đầu trước ảnh card
 ```
@@ -164,7 +164,7 @@ Then font và CSS bắt đầu trước mọi ảnh, vendor JS và artifact bắ
 - Video theo [video thích ứng](video-delivery.md), ở tầng 3, không chen trước ảnh trong viewport.
 
 ```gherkin
-Given /vi/ ở 1440px, hero đang ở slide 1
+Given / ở 1440px, hero đang ở slide 1
 When trang vào tầng 3
 Then slide 2 chỉ tải khi tới lượt hydrate, không tải trước
 ```
@@ -238,7 +238,7 @@ bản vừa khung: mọi item masonry (`[data-masonry-item]`: card lưới, card
 - Ảnh đã là bản gốc, đã ra khỏi màn hình hoặc bị gỡ thì bỏ. Code ở script `<head>` (`head-inline.js`), một chỗ cho mọi trang.
 
 ```gherkin
-Given /vi/residential/ ở 1440px, hero đã hiện bản 1600
+Given /residential/ ở 1440px, hero đã hiện bản 1600
 When trang đứng yên
 Then hero đổi sang bản gốc sau khi bản gốc tải và decode xong, bản gốc chỉ được request một lần
 And lúc trang đang cuộn không ảnh nào đổi sang bản gốc

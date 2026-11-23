@@ -79,7 +79,7 @@ try {
   // Phone page load: cards wait on the color layer from the first frame.
   {
     const { context, page } = await open(phone);
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']"));
     assertPhoneWait("phone load", await cardStates(page));
     // First frames: every card in view whose image has not loaded carries the layer on every sampled frame (no blank frame), keeps one image node and never animates
@@ -136,7 +136,7 @@ try {
       };
       requestAnimationFrame(tick);
     });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 14000, null, { timeout: 30_000 });
     const fades = await page.evaluate(() => [...window.__fades.values()]);
     assert.ok(fades.length, "phone: some card image fades in over 600ms when it arrives");
@@ -153,7 +153,7 @@ try {
   // Phone with reduced motion: the layer stays still on color 1, the image is not hidden by a second layer.
   {
     const { context, page } = await open({ ...phone, reducedMotion: "reduce" });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']"));
     const still = await page.evaluate(() => {
       const card = document.querySelector("[data-project-grid] [data-masonry-card][data-media-wait='colors']");
@@ -184,7 +184,7 @@ try {
         }
       }))).observe(document, { childList: true, subtree: true });
     });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card]"));
     await page.waitForTimeout(500);
     for (const y of [9000, 2000, 12000]) {
@@ -227,7 +227,7 @@ try {
       };
       requestAnimationFrame(tick);
     });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 3000);
     const cards = new Map();
     for (const [card, image, animations, opacity, filter] of await page.evaluate(() => window.__waitTrace)) {
@@ -265,7 +265,7 @@ try {
         return append.apply(this, nodes);
       };
     });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 3000);
     const stills = await page.evaluate(() => window.__stills);
     assert.ok(stills.idle > 0 && stills.busy === 0, `desktop load: card stills drawn only at idle ${JSON.stringify(stills)}`);
@@ -299,7 +299,7 @@ try {
       };
       proto.drawArrays = function (...args) { if (shared(this)) window.__link.draws++; return drawArrays.apply(this, args); };
     });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => performance.now() > 3000);
     const link = await page.evaluate(() => window.__link);
     assert.equal(link.syncReads, 0, `desktop parallel compile: no LINK_STATUS read in the linking frame ${JSON.stringify(link)}`);
@@ -313,7 +313,7 @@ try {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 } });
     const cdp = await context.newCDPSession(page);
     await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
     await page.mouse.move(1437, 200);
     await page.waitForFunction(() => Number(getComputedStyle(document.querySelector(".c-scrollbar")).opacity) === 1);
@@ -341,7 +341,7 @@ try {
   // Tall PC: every card waiting in view runs Flow (no per-layer cap; the old context budget was 12) on the grid's one canvas.
   {
     const { context, page } = await open({ viewport: { width: 1920, height: 3000 } });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
     for (let y = 400; y <= 2400; y += 400) {
       await page.evaluate((value) => window.TruongThinhMotion.setLogicalScroll(value), y);
@@ -360,7 +360,7 @@ try {
   // Reduced motion: the card waits on the still Flow frame of its preset, not running, and nothing is blurred.
   {
     const { context, page } = await open({ viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card] [data-masonry-loading-skeleton]"));
     await page.waitForTimeout(500);
     const states = await cardStates(page);
@@ -386,7 +386,7 @@ try {
         return upload.apply(this, args);
       };
     });
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
     for (let y = 400; y <= 1200; y += 400) {
       await page.evaluate((value) => window.TruongThinhMotion.setLogicalScroll(value), y);
@@ -434,14 +434,14 @@ try {
     });
     const live = () => page.evaluate(() => window.__glContexts.filter((gl) => !gl.isContextLost()).length);
     const settled = (path) => page.waitForFunction((value) => location.pathname === value && window.barba && !window.barba.transitions.isRunning, path);
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card] [data-masonry-flow-state='running']"));
     const counts = [await live()];
     for (let round = 0; round < 2; round += 1) {
-      await page.evaluate(() => window.barba.go("/vi/projects/"));
-      await settled("/vi/projects/");
-      await page.evaluate(() => window.barba.go("/vi/advertising-products/"));
-      await settled("/vi/advertising-products/");
+      await page.evaluate(() => window.barba.go("/projects/"));
+      await settled("/projects/");
+      await page.evaluate(() => window.barba.go("/advertising-products/"));
+      await settled("/advertising-products/");
       await page.waitForFunction(() => document.querySelector("[data-project-grid] [data-masonry-card] [data-masonry-flow-state='running']"));
       counts.push(await live());
     }
@@ -454,7 +454,7 @@ try {
   {
     const { context, page, slow } = await open(phone);
     slow.on = false;
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "networkidle" });
     await page.evaluate(() => scrollTo(0, 1000));
     await page.waitForTimeout(1500);
     slow.on = true;
@@ -488,7 +488,7 @@ try {
   {
     const { context, page, slow } = await open({ viewport: { width: 1440, height: 900 } });
     slow.on = false;
-    await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
+    await page.goto(base + "/advertising-products/", { waitUntil: "networkidle" });
     const cdp = await context.newCDPSession(page);
     await cdp.send("Network.setCacheDisabled", { cacheDisabled: true });
     await cdp.send("Network.emulateNetworkConditions",

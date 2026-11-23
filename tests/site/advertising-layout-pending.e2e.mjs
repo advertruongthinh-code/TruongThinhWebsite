@@ -17,7 +17,7 @@ const { chromium } = await import("playwright");
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined });
 // Long enough that the background packing of every chip (it may start the Signage pack before the click) is still running.
 const FILTER_DELAY_MS = 6000;
-const gridPath = "/vi/advertising-products/";
+const gridPath = "/advertising-products/";
 
 const state = (page) => page.evaluate(() => ({
   current: document.querySelector('[aria-current="true"][data-masonry-filter]')?.dataset.masonryFilter ?? null,

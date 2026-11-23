@@ -16,7 +16,7 @@ const browser = await chromium.launch({ headless: true });
 const failures = [];
 try {
   const probe = await browser.newPage({ viewport: { width: 1329, height: 912 } });
-  await probe.goto(`${base}/vi/advertising-products/`, { waitUntil: "networkidle" });
+  await probe.goto(`${base}/advertising-products/`, { waitUntil: "networkidle" });
   const heroes = (await probe.$$eval("[data-masonry-card]", (nodes) => nodes.map((node) => node.dataset.masonryCard)))
     .slice(0, heroCount);
   await probe.close();
@@ -32,7 +32,7 @@ try {
         setTimeout(() => post.apply(this, args), 3000);
       };
     });
-    await page.goto(`${base}/vi/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${base}/advertising-products/?photo=${hero}`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => document.querySelector("[data-detail-view]")?.dataset.masonryDetailReady === "true",
       null, { timeout: 40000 });
     await page.evaluate(() => document.querySelector('.desktop-nav a[href*="advertising-products"]').click());

@@ -10,7 +10,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1569, height: 912 } });
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
-    await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}/${locale}/advertising-products/?category=signage-raised-letters&photo=${hero}&tag=${tag}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${process.env.BASE_URL || "http://127.0.0.1:8787"}${locale === "en" ? "/en" : ""}/advertising-products/?category=signage-raised-letters&photo=${hero}&tag=${tag}`, { waitUntil: "domcontentloaded" });
     const button = page.locator(`[data-masonry-suggestion-tag="${tag}"]`);
     await button.waitFor();
     // A direct load keeps the route veil over the page until mount; a click before that makes Playwright scroll to retry.

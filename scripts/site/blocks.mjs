@@ -2,25 +2,31 @@
 // VI text goes in the tag, EN goes in data-en like existing pages; the localeHtml build swaps to EN.
 // The same data always yields the same HTML; text is plain text only, all HTML characters are escaped.
 import { IMAGE_SRC, escapeHtml } from "./lib-pure.mjs";
+import { listHtml, listOf, markedInner, marksErrors, paragraphs, parseMarks, plainText, sideMarksErrors, typoWarnings } from "../../src/cms/inline-marks.mjs";
 
 export const BLOCK_SCHEMA_VERSION = 1;
 export const ZALO_HREF = "https://zalo.me/0949131050";
 
 const KEBAB = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-// ponytail: only internal /vi|/en links or Zalo; extend when the CMS needs checked external links.
-const SAFE_HREF = /^(?:\/(?:vi|en)\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
+// ponytail: only internal links (VI at the root, EN under /en) or Zalo; extend when the CMS needs checked external links.
+const SAFE_HREF = /^(?:\/[a-z0-9/-]*|https:\/\/zalo\.me\/\d+)$/;
 
-// ponytail: v1 text is just plain paragraphs split by blank lines; bold, italic, in-paragraph links when the CMS needs them.
-const paragraphs = (text) => text.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
-const localized = (tag, text, attributes = "") => `<${tag}${attributes} data-en="${escapeHtml(text.en)}">${escapeHtml(text.vi)}</${tag}>`;
+// Text is plain paragraphs split by blank lines; marked text (cms-plan part 2 K2) renders as leaf segments inside the element.
+// Text without marks or breaks keeps the plain path, so existing data renders the same HTML.
+const localized = (tag, text, attributes = "") => `<${tag}${attributes} data-en="${escapeHtml(text.en ?? "")}">${escapeHtml(text.vi)}</${tag}>`;
+const marked = (tag, text, attributes, ctx) => {
+  const inner = markedInner(text.vi, text.en, ctx);
+  return inner === null ? localized(tag, text, attributes) : `<${tag}${attributes}>${inner}</${tag}>`;
+};
 // hero-typography R7: the orphan tie keeps the last two words on one line; at the 40px phone title a pair over 15 characters
 // ("wardrobe measured?") is wider than the 354px column, so such a title gets a smaller phone size instead.
 const LONG_TAIL_CHARS = 15;
-const hasLongTail = (text) => [text.vi, text.en].some((value) => value.trim().split(/\s+/).slice(-2).join(" ").length > LONG_TAIL_CHARS);
-const localizedParagraphs = (text, attributes = "") => {
+const hasLongTail = (text) => [text.vi, text.en ?? ""].some((value) => value.trim().split(/\s+/).slice(-2).join(" ").length > LONG_TAIL_CHARS);
+// lists: a body paragraph whose every line starts with "• " or "<n>. " becomes <ul> or <ol>.
+const localizedParagraphs = (text, ctx, { lists = false } = {}) => {
   const vi = paragraphs(text.vi);
   const en = paragraphs(text.en);
-  return vi.map((part, index) => localized("p", { vi: part, en: en[index] }, attributes)).join("\n");
+  return vi.map((part, index) => (lists && listOf(part) ? listHtml(part, en[index] ?? "", ctx) : marked("p", { vi: part, en: en[index] ?? "" }, "", ctx))).join("\n");
 };
 const image = (media, attributes = 'loading="lazy"') =>
   `<img src="${media.src}" width="${media.width}" height="${media.height}" alt="${escapeHtml(media.altVi)}" data-en-alt="${escapeHtml(media.altEn)}" ${attributes} />`;
@@ -41,10 +47,18 @@ export const NEWS_GROUPS = {
 
 // News teaser like the espaciohomedesign.com news block (home strip and "Other news" at the end of an article, news R3, R4, measured 2026-11-11):
 // small cover left, group in capitals, title, and "Read more" that fades in on hover. The whole item is one link.
-export const newsTeaser = (post) => {
+// VI and EN pick lists rendered once (cms-content R2): an item only VI shows gets data-vi-only, one only EN shows gets data-en-only,
+// and localeHtml drops each from the other locale. Returns [item, attribute] in VI order, then the EN-only items.
+export const bilingualPicks = (vi, en) => [
+  ...vi.map((item) => [item, en.includes(item) ? "" : " data-vi-only"]),
+  ...en.filter((item) => !vi.includes(item)).map((item) => [item, " data-en-only"]),
+];
+// EN link of a page, or none for a page without EN (its EN route does not exist).
+const enHrefAttr = (page, dir) => (page.noEn ? "" : ` data-en-href="/en/${dir}/${page.slugEn}/"`);
+export const newsTeaser = (post, only = "") => {
   const group = NEWS_GROUPS[post.group];
   return [
-    `    <a class="home-news__item" href="/vi/news/${post.slugVi}/" data-en-href="/en/news/${post.slugEn}/">`,
+    `    <a class="home-news__item" href="/news/${post.slugVi}/"${enHrefAttr(post, "news")}${only}>`,
     `      <span class="home-news__media">${image(post.cover)}</span>`,
     '      <span class="home-news__text">',
     `        ${localized("span", group, ' class="home-news__group"')}`,
@@ -56,12 +70,12 @@ export const newsTeaser = (post) => {
 };
 // Hero tagline line: "ấm như *gỗ sồi*" becomes plain text, then the italic part as <em>, then the rest; each part keeps its own EN so the locale
 // swap (data-en) does not drop the italic. VI and EN may put the italic at different places in the line.
-// An intentional title line break carries the pause, so a line never ends with , . or ; (owner 2026-11-14, hero-typography R7).
-export const LINE_END_PUNCT = /[,.;]\s*$/;
-const ITALIC = /^([^*]*)(?:\*([^*]+)\*([^*]*))?$/;
+// An intentional title line break carries the pause, so a line never ends with , . or ; (owner 2026-11-14, hero-typography R7, typoWarnings).
 const taglineParts = (text) => {
-  const [, before, italic = "", after = ""] = text.match(ITALIC);
-  return [before, italic, after];
+  const tokens = parseMarks(text);
+  const italic = tokens.findIndex(({ t }) => t === "i");
+  if (italic < 0) return [tokens[0]?.s ?? "", "", ""];
+  return [tokens[italic - 1]?.s ?? "", tokens[italic].s, tokens[italic + 1]?.s ?? ""];
 };
 const taglineLine = (line) => {
   const vi = taglineParts(line.vi);
@@ -84,7 +98,8 @@ const NEWS_CARD_COUNT = 3;
 const autoProjectIds = (ctx, page) => [...ctx.projects.values()].filter((project) => project.sector === page.sector && project.id !== page.id).map((project) => project.id);
 // Syllables plus syllable pairs, since a Vietnamese word is often two syllables ("tủ bếp"). The title counts 3 times.
 const newsTokens = (post) => {
-  const text = [post.title?.vi, post.title?.vi, post.title?.vi, post.description?.vi, ...(post.blocks ?? []).flatMap((block) => [block.text?.vi, block.title?.vi])];
+  const blockText = (post.blocks ?? []).flatMap((block) => [block.text?.vi, block.title?.vi]).filter((part) => typeof part === "string").map(plainText);
+  const text = [post.title?.vi, post.title?.vi, post.title?.vi, post.description?.vi, ...blockText];
   return text.filter((part) => typeof part === "string").flatMap((part) => {
     const words = part.normalize("NFC").toLowerCase().match(/\p{L}+/gu) ?? [];
     return [...words, ...words.slice(1).map((word, index) => `${words[index]} ${word}`)];
@@ -118,16 +133,28 @@ export const autoNewsIds = (ctx, page) => {
     .map(({ post }) => post.id);
 };
 
+// "Other news" for VI and EN: chosen ids minus posts without EN; picked ones are ranked again among the posts that have EN.
+const enNewsMaps = new WeakMap();
+const enNews = (news) => {
+  if (!enNewsMaps.has(news)) enNewsMaps.set(news, new Map([...news].filter(([, post]) => !post.noEn)));
+  return enNewsMaps.get(news);
+};
+const newsPicks = (block, ctx, page) => {
+  if (block.newsIds) return [block.newsIds, block.newsIds.filter((id) => !ctx.news.get(id).noEn)];
+  const vi = autoNewsIds(ctx, page);
+  return [vi, enNews(ctx.news).size === ctx.news.size ? vi : autoNewsIds({ ...ctx, news: enNews(ctx.news) }, page)];
+};
+
 // Each block: required fields by type and the HTML builder. ctx holds the project and News lists so blocks can look them up.
 // media-single renders an image (old image-single) or a 16:9 video (old video-single); class names are unchanged.
-const renderImage = (block) => [
+const renderImage = (block, ctx) => [
   `<section class="blk blk-image ${IMAGE_POSITION[block.position]} section-gap" data-header-tone="ink">`,
-  `  <figure class="blk-image__figure">${image(block.image)}${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
+  `  <figure class="blk-image__figure">${image(block.image)}${block.caption ? marked("figcaption", block.caption, "", ctx) : ""}</figure>`,
   "</section>",
 ].join("\n");
-const renderVideo = (block) => [
+const renderVideo = (block, ctx) => [
   '<section class="blk blk-video section-gap" data-header-tone="ink">',
-  `  <figure class="blk-video__figure"><video src="${block.video.src}" poster="${block.video.poster}" width="${block.video.width}" height="${block.video.height}" muted playsinline controls preload="metadata"></video>${block.caption ? localized("figcaption", block.caption) : ""}</figure>`,
+  `  <figure class="blk-video__figure"><video src="${block.video.src}" poster="${block.video.poster}" width="${block.video.width}" height="${block.video.height}" muted playsinline controls preload="metadata"></video>${block.caption ? marked("figcaption", block.caption, "", ctx) : ""}</figure>`,
   "</section>",
 ].join("\n");
 
@@ -158,32 +185,37 @@ const BLOCKS = {
   },
   "section-title": {
     text: ["text"],
+    marks: { text: "title" },
     // Lines rise in on view like Espacio's titular ("animate-lines", detail-pages R6).
-    render: (block) => `<section class="blk blk-title section-gap" data-header-tone="ink">${localized("h2", block.text, " data-motion-lines")}</section>`,
+    render: (block, ctx) => `<section class="blk blk-title section-gap" data-header-tone="ink">${marked("h2", block.text, " data-motion-lines", ctx)}</section>`,
   },
   paragraph: {
     text: ["text"],
-    render: (block) => `<section class="blk blk-paragraph section-gap" data-header-tone="ink">${localizedParagraphs(block.text)}</section>`,
+    marks: { text: "body" },
+    render: (block, ctx) => `<section class="blk blk-paragraph section-gap" data-header-tone="ink">${localizedParagraphs(block.text, ctx, { lists: true })}</section>`,
   },
   "paragraph-columns": {
     text: ["text"],
-    render: (block) => `<section class="blk blk-paragraph blk-paragraph--columns section-gap" data-header-tone="ink">${localizedParagraphs(block.text)}</section>`,
+    marks: { text: "body" },
+    render: (block, ctx) => `<section class="blk blk-paragraph blk-paragraph--columns section-gap" data-header-tone="ink">${localizedParagraphs(block.text, ctx, { lists: true })}</section>`,
   },
   "media-single": {
     optionalText: ["caption"],
+    marks: { caption: "small" },
     enums: { position: Object.keys(IMAGE_POSITION) },
     oneOf: ["image", "video"], // exactly one; a video is always wide and 16:9 (cms-content R5)
-    render: (block) => block.video ? renderVideo(block) : renderImage(block),
+    render: (block, ctx) => block.video ? renderVideo(block, ctx) : renderImage(block, ctx),
   },
   // Portrait image with a paragraph beside it, Espacio's most used single-image variant (".-layout-parrafo -layout-right", 22 of 48 project
   // pages, measured 2026-11-14): image one third, text in the paragraph column on the right; phone stacks image then text.
   "media-text": {
     text: ["text"],
+    marks: { text: "body" },
     media: ["image"],
-    render: (block) => [
+    render: (block, ctx) => [
       '<section class="blk blk-image-text section-gap" data-header-tone="ink">',
       `  <figure class="blk-image-text__figure">${image(block.image)}</figure>`,
-      `  <div class="blk-paragraph blk-image-text__copy">${localizedParagraphs(block.text)}</div>`,
+      `  <div class="blk-paragraph blk-image-text__copy">${localizedParagraphs(block.text, ctx, { lists: true })}</div>`,
       "</section>",
     ].join("\n"),
   },
@@ -209,20 +241,22 @@ const BLOCKS = {
   },
   "facts-grid": {
     list: { items: [2, 4], text: ["label", "text"] },
-    render: (block) => [
+    marks: { label: "small", text: "small" },
+    render: (block, ctx) => [
       `<section class="blk blk-facts ${FACTS_COLUMNS[block.items.length]} section-gap" data-header-tone="ink">`,
       '  <ol class="blk-facts__list">',
       // Each fact rises 60px and fades in, 0.15s after the previous one (Espacio "animate-up animate-opacity").
-      ...block.items.map((item, index) => `    <li class="blk-facts__item" data-motion-up data-motion-delay="${index * 0.15}">${localized("h3", item.label, ' class="blk-facts__label"')}${localized("p", item.text, ' class="blk-facts__text"')}</li>`),
+      ...block.items.map((item, index) => `    <li class="blk-facts__item" data-motion-up data-motion-delay="${index * 0.15}">${marked("h3", item.label, ' class="blk-facts__label"', ctx)}${marked("p", item.text, ' class="blk-facts__text"', ctx)}</li>`),
       "  </ol>",
       "</section>",
     ].join("\n"),
   },
   "contact-quick": {
     text: ["title"],
-    render: (block) => [
+    marks: { title: "title" },
+    render: (block, ctx) => [
       `<section class="blk blk-contact section-gap" id="${CONTACT_ID}" data-header-tone="ink">`,
-      `  ${localized("h2", block.title, ` class="blk-contact__title${hasLongTail(block.title) ? " blk-contact__title--long-tail" : ""}"`)}`,
+      `  ${marked("h2", block.title, ` class="blk-contact__title${hasLongTail(block.title) ? " blk-contact__title--long-tail" : ""}"`, ctx)}`,
       `  <a class="blk-contact__zalo" href="${ZALO_HREF}" target="_blank" rel="noopener" data-en="Chat on Zalo">Nhắn Zalo</a>`,
       "</section>",
     ].join("\n"),
@@ -235,16 +269,17 @@ const BLOCKS = {
       const variants = ["project-card--high", "project-card--low"];
       // On a project page the strip lists the other projects, so it gets Espacio's centred italic "Other projects" heading.
       const onProjectPage = ctx.projects.has(page.id);
+      const ids = block.projectIds ?? autoProjectIds(ctx, page);
       return [
         // The strip slides in from 60px right (Espacio "animate-left"); motion.js adds the horizontal parallax of the home rail to the track.
         '<section class="blk blk-projects section-gap" data-header-tone="ink" data-motion-left>',
         ...(onProjectPage ? ['  <h2 class="blk-projects__title" data-motion-words data-en="Other projects">Công trình khác</h2>'] : []),
         '  <div class="blk-projects__track">',
-        ...(block.projectIds ?? autoProjectIds(ctx, page)).map((id, index) => {
+        ...bilingualPicks(ids, ids.filter((id) => !ctx.projects.get(id).noEn)).map(([id, only], index) => {
           const project = ctx.projects.get(id);
           const cover = project.cover;
           return [
-            `    <a class="project-card ${variants[index % 2]} blk-projects__card" href="/vi/projects/${project.slugVi}/" data-en-href="/en/projects/${project.slugEn}/">`,
+            `    <a class="project-card ${variants[index % 2]} blk-projects__card" href="/projects/${project.slugVi}/"${enHrefAttr(project, "projects")}${only}>`,
             `      <span class="project-card__media">${image(cover)}</span>`,
             `      ${localized("span", project.title, ' class="blk-projects__name"')}`,
             "    </a>",
@@ -263,7 +298,8 @@ const BLOCKS = {
   quote: {
     text: ["text"],
     optionalText: ["author"],
-    render: (block) => `<section class="blk blk-quote section-gap" data-header-tone="ink"><blockquote>${localizedParagraphs(block.text)}${block.author ? localized("cite", block.author) : ""}</blockquote></section>`,
+    marks: { text: "quote" },
+    render: (block, ctx) => `<section class="blk blk-quote section-gap" data-header-tone="ink"><blockquote>${localizedParagraphs(block.text, ctx)}${block.author ? localized("cite", block.author) : ""}</blockquote></section>`,
   },
   "news-cards": {
     ids: "news",
@@ -272,41 +308,71 @@ const BLOCKS = {
       '<section class="blk blk-news-cards section-gap" data-header-tone="ink">',
       '  <h2 class="blk-news-cards__title" data-en="Other news">Tin khác</h2>',
       '  <div class="home-news__grid">',
-      ...(block.newsIds ?? autoNewsIds(ctx, page)).map((id) => newsTeaser(ctx.news.get(id))),
+      ...bilingualPicks(...newsPicks(block, ctx, page)).map(([id, only]) => newsTeaser(ctx.news.get(id), only)),
       "  </div>",
       "</section>",
     ].join("\n"),
   },
   "banner-links": {
     list: { items: [1, 3], text: ["title"], media: ["image"], href: ["hrefVi", "hrefEn"] },
-    render: (block) => [
+    marks: { title: "title" },
+    render: (block, ctx) => [
       `<section class="blk blk-banners ${BANNER_COLUMNS[block.items.length]} section-gap" data-header-tone="ink">`,
-      ...block.items.map((item) => `  <a class="blk-banner" href="${item.hrefVi}" data-en-href="${item.hrefEn}">${image(item.image)}${localized("span", item.title, ' class="blk-banner__title"')}</a>`),
+      ...block.items.map((item) => `  <a class="blk-banner" href="${item.hrefVi}"${item.hrefEn ? ` data-en-href="${item.hrefEn}"` : ""}>${image(item.image)}${marked("span", item.title, ' class="blk-banner__title"', ctx)}</a>`),
       "</section>",
     ].join("\n"),
   },
 };
 export const BLOCK_TYPES = Object.keys(BLOCKS);
 
+// Every text field of a page's blocks: [path, value, marks kind]; path is relative to the page ("blocks[2].text"). Hero lines
+// have no marks kind (null): they keep their own italic rule. Used by the mark check and by enMissing (cms-plan part 2 K3).
+// Empty EN links of list items (banner-links hrefEn): a page with one is VI only (cms-content R2).
+export const blockEmptyEnHrefs = (page) => (Array.isArray(page?.blocks) ? page.blocks : []).flatMap((block, index) => (BLOCKS[block?.type]?.list?.href ?? []).includes("hrefEn") && Array.isArray(block.items)
+  ? block.items.flatMap((item, line) => (item?.hrefEn ? [] : [`blocks[${index}].items[${line}].hrefEn`])) : []);
+export function blockTextFields(page) {
+  const fields = [];
+  for (const [index, block] of (Array.isArray(page?.blocks) ? page.blocks : []).entries()) {
+    const spec = BLOCKS[block?.type];
+    if (!spec) continue;
+    const at = `blocks[${index}]`;
+    const kind = (field) => spec.marks?.[field] ?? "plain";
+    for (const field of spec.text ?? []) fields.push([`${at}.${field}`, block[field], kind(field)]);
+    for (const field of spec.optionalText ?? []) if (block[field] !== undefined) fields.push([`${at}.${field}`, block[field], kind(field)]);
+    for (const field of Object.keys(spec.lines ?? {})) for (const [line, value] of (Array.isArray(block[field]) ? block[field] : []).entries()) fields.push([`${at}.${field}[${line}]`, value, null]);
+    if (spec.list && Array.isArray(block.items)) {
+      for (const [item, value] of block.items.entries()) for (const field of spec.list.text ?? []) fields.push([`${at}.items[${item}].${field}`, value?.[field], kind(field)]);
+    }
+  }
+  return fields;
+}
+
+// Mark errors (level shape, with code) of every block text field, by the block's marks table; other fields are plain (K2).
+// The Worker reports them as shape errors, the build as page errors.
+export const blockMarksErrors = (page, at = page?.id ?? "page") => blockTextFields(page).flatMap(([field, value, kind]) =>
+  kind && typeof value?.vi === "string" && typeof value?.en === "string" ? marksErrors(value.vi, value.en, kind).map((error) => ({ ...error, message: `${at}.${field}: ${error.message}` })) : []);
+
 // Validate one page (project or News post). Returns the error list, does not stop at the first error.
 // checkImage(image, where) returns the errors of one image reference: fileImageCheck(siteRoot) in the build, a record check in the Worker.
-export async function validateBlockPage(page, { checkImage, projects = new Map(), news = new Map(), at = page?.id ?? "page" }) {
+// en: "optional" (News and projects, cms-content R2): an empty EN field is not an error, a filled one is checked as before.
+export async function validateBlockPage(page, { checkImage, projects = new Map(), news = new Map(), at = page?.id ?? "page", en = "required" }) {
   if (typeof checkImage !== "function") throw new Error("validateBlockPage: checkImage is required");
   const errors = [];
   const text = (value, where) => {
     if (!value || typeof value.vi !== "string" || !value.vi.trim()) errors.push(`${where}: missing VI text`);
-    if (!value || typeof value.en !== "string" || !value.en.trim()) errors.push(`${where}: missing EN text`);
+    if (!value || typeof value.en !== "string" || !value.en.trim()) { if (en !== "optional") errors.push(`${where}: missing EN text`); }
     else if (typeof value.vi === "string" && paragraphs(value.vi).length !== paragraphs(value.en).length) errors.push(`${where}: paragraph counts differ between VI and EN`);
   };
   const media = async (value, where) => { errors.push(...await checkImage(value, where)); };
   const href = (value, where) => { if (!SAFE_HREF.test(value ?? "")) errors.push(`${where}: invalid link`); };
 
   if (!KEBAB.test(page?.id ?? "")) errors.push(`${at}: id must be kebab-case`);
-  for (const field of ["slugVi", "slugEn"]) if (!KEBAB.test(page?.[field] ?? "")) errors.push(`${at}: ${field} must be unaccented kebab-case`);
+  for (const field of ["slugVi", "slugEn"]) if (!(field === "slugEn" && en === "optional" && !page?.slugEn) && !KEBAB.test(page?.[field] ?? "")) errors.push(`${at}: ${field} must be unaccented kebab-case`);
   text(page?.title, `${at}.title`);
   text(page?.description, `${at}.description`);
   await media(page?.cover, `${at}.cover`);
   if (!Array.isArray(page?.blocks) || !page.blocks.length) return [...errors, `${at}: needs at least one block`];
+  errors.push(...blockMarksErrors(page, at).map(({ message }) => message));
 
   const blockIds = new Set();
   for (const [index, block] of page.blocks.entries()) {
@@ -323,8 +389,12 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
       if (!Array.isArray(list) || list.length < min || list.length > max) { errors.push(`${where}.${field}: needs ${min} to ${max} lines`); continue; }
       for (const [index, line] of list.entries()) {
         text(line, `${where}.${field}[${index}]`);
-        if ([line?.vi, line?.en].some((value) => typeof value === "string" && !ITALIC.test(value))) errors.push(`${where}.${field}[${index}]: at most one *italic* part`);
-        if ([line?.vi, line?.en].some((value) => typeof value === "string" && LINE_END_PUNCT.test(value))) errors.push(`${where}.${field}[${index}]: a line must not end with , . or ;`);
+        for (const value of [line?.vi, line?.en].filter((side) => typeof side === "string")) {
+          const found = sideMarksErrors(value, ["i"]);
+          if (found.length) errors.push(...found.map(({ message }) => `${where}.${field}[${index}]: ${message}`));
+          else if (parseMarks(value).filter(({ t }) => t === "i").length > 1) errors.push(`${where}.${field}[${index}]: at most one *italic* part`);
+        }
+        if ([line?.vi, line?.en].some((value) => typeof value === "string" && typoWarnings(`${value}\n`).some(({ code }) => code === "line-end-punct"))) errors.push(`${where}.${field}[${index}]: a line must not end with , . or ;`);
       }
     }
     for (const field of spec.media ?? []) await media(block[field], `${where}.${field}`);
@@ -354,7 +424,7 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
       for (const [item, value] of list.entries()) {
         for (const field of spec.list.text ?? []) text(value?.[field], `${where}.items[${item}].${field}`);
         for (const field of spec.list.media ?? []) await media(value?.[field], `${where}.items[${item}].${field}`);
-        for (const field of spec.list.href ?? []) href(value?.[field], `${where}.items[${item}].${field}`);
+        for (const field of spec.list.href ?? []) if (!(field === "hrefEn" && en === "optional" && !value?.[field])) href(value?.[field], `${where}.items[${item}].${field}`);
       }
     }
     if (spec.ids) {
@@ -373,7 +443,8 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
 // The lookup Map keeps the last entry on duplicates, so report duplicate id and slug within one file first.
 export const duplicatePageFields = (pages, at) => ["id", "slugVi", "slugEn"].flatMap((field) => {
   const seen = new Set();
-  return pages.flatMap((page) => {
+  // A post without EN may have no slugEn; empty values are not duplicates of each other.
+  return pages.filter((page) => page[field]).flatMap((page) => {
     const duplicate = seen.has(page[field]);
     seen.add(page[field]);
     return duplicate ? [`${at}: duplicate ${field} ${page[field]}`] : [];

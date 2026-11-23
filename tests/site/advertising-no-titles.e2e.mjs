@@ -17,7 +17,7 @@ try {
   for (const [locale, categoryLabel] of [["vi", "displays-booths"], ["en", "displays-booths"]]) {
     for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 900 }]) {
       const page = await browser.newPage({ viewport });
-      const browseUrl = `${baseUrl}/${locale}/advertising-products/?category=${categoryLabel}`;
+      const browseUrl = `${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/?category=${categoryLabel}`;
       await page.goto(browseUrl, { waitUntil: "networkidle" });
       await page.waitForSelector("[data-masonry-card]");
       const evidence = await page.evaluate(() => ({
@@ -77,9 +77,9 @@ try {
         `${locale} ${viewport.width}px: related cards carry one hidden hover title with a unique related id: ${JSON.stringify(detail.relatedCaptions.slice(0, 3))}`);
       assert.ok(detail.relatedTiles.every((tile) => Math.abs(tile.height - tile.imageHeight) <= 1), `${locale} ${viewport.width}px: related tile reserves caption height`);
 
-      await page.goto(`${baseUrl}/${locale}/advertising-products/kiosk-posm/`, { waitUntil: "networkidle" });
+      await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/advertising-products/kiosk-posm/`, { waitUntil: "networkidle" });
       // The compatibility page redirects straight to the cluster page by the locale slug (taxonomy R4).
-      await page.waitForURL(new RegExp(`/${locale}/advertising-products/${locale === "en" ? "displays-booths" : "standee-ke-trung-bay"}/$`));
+      await page.waitForURL(new RegExp(`${locale === "en" ? "/en" : ""}/advertising-products/${locale === "en" ? "displays-booths" : "standee-ke-trung-bay"}/$`));
       await page.waitForSelector("[data-masonry-card]");
       await page.close();
     }

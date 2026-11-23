@@ -6,7 +6,7 @@ const os = require("node:os");
 const { chromium } = require("playwright");
 
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:8787";
-const pagePath = process.env.PAGE_PATH || "/vi/";
+const pagePath = process.env.PAGE_PATH || "/";
 const viewports = [320, 390, 768, 1024, 1440].map((width) => ({
   width,
   height: width < 768 ? 844 : 900,

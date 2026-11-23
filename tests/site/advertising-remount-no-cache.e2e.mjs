@@ -44,7 +44,7 @@ try {
       window.__pendingRemoved += [...node.querySelectorAll("img")].filter((image) => !image.complete && !image.dataset.queueSrc).length;
     }))).observe(document, { childList: true, subtree: true });
   });
-  await page.goto(base + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+  await page.goto(base + "/advertising-products/", { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
   await page.waitForTimeout(1500);
   const limit = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);

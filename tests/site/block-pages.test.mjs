@@ -25,18 +25,18 @@ for (const sector of SECTORS) test(`${sector} project page carries its own head,
   assert.ok(project, `projects.json has a ${sector} project`);
   const html = renderProjectPage(templateOf(sector), project, ctx);
   assert.match(html, new RegExp(`<title data-en="${project.seoTitle.en} — Trường Thịnh">${project.seoTitle.vi} — Trường Thịnh</title>`));
-  assert.match(html, new RegExp(`<link rel="canonical" href="https://truongthinhads.vn/vi/projects/${project.slugVi}/" data-en-href="https://truongthinhads.vn/en/projects/${project.slugEn}/" />`));
+  assert.match(html, new RegExp(`<link rel="canonical" href="https://truongthinhads.vn/projects/${project.slugVi}/" data-en-href="https://truongthinhads.vn/en/projects/${project.slugEn}/" />`));
   assert.match(html, /<link rel="alternate" hreflang="x-default"/);
   assert.match(html, /<script type="application\/ld\+json">\{"@context":"https:\/\/schema.org","@graph":\[\{"@type":"Article"/);
   assert.ok(html.includes(`content="${project.description.vi}"`));
-  assert.ok(html.includes(`href="/vi/projects/${project.slugVi}/" data-language-option="vi"`));
+  assert.ok(html.includes(`href="/projects/${project.slugVi}/" data-language-option="vi"`));
   assert.ok(html.includes(`href="/en/projects/${project.slugEn}/" data-language-option="en"`));
   assert.ok(html.includes('data-barba-namespace="project"'));
   assert.ok(!html.includes("detail-pages R5:"), "hero slide script removed");
   assert.equal((html.match(/<h1\b/g) ?? []).length, 1, "one h1 from the hero block");
   // A project page belongs to Projects: the navbar underlines Projects and the menu marks the Projects group, not the sector frame.
-  assert.deepEqual(html.match(/<li class="selected"><a href="[^"]+"/g), ['<li class="selected"><a href="/vi/projects/"']);
-  assert.deepEqual(html.match(/href="[^"]+" aria-current="page"/g), ['href="/vi/projects/" aria-current="page"', 'href="/vi/projects/" aria-current="page"']);
+  assert.deepEqual(html.match(/<li class="selected"><a href="[^"]+"/g), ['<li class="selected"><a href="/projects/"']);
+  assert.deepEqual(html.match(/href="[^"]+" aria-current="page"/g), ['href="/projects/" aria-current="page"', 'href="/projects/" aria-current="page"']);
 });
 
 test("a changed template anchor stops the build instead of shipping a page without SEO", () => {
@@ -61,14 +61,14 @@ test("News list: newest first, 12 per page, group pages with group chips, thin g
   assert.doesNotMatch(renderNewsListPage(frame, pages[2]), /noindex/);
   assert.doesNotMatch(renderNewsListPage(frame, pages[0]), /noindex/);
   const chips = [...renderNewsListPage(frame, pages[4]).matchAll(/class="blk-news-filter__chip" href="([^"]+)"(?: aria-current="true")?/g)].map((match) => match[0].includes("aria-current") ? `${match[1]}*` : match[1]);
-  assert.deepEqual(chips, ["/vi/news/", "/vi/news/nha-o/", "/vi/news/xu-huong/*"]);
+  assert.deepEqual(chips, ["/news/", "/news/nha-o/", "/news/xu-huong/*"]);
   // Espacio layout: the first article is a large card (image loads immediately for LCP), the next 4 are a 2x2 grid, the rest are horizontal row cards (lazy).
   const list = renderNewsListPage(frame, pages[0]);
   const main = list.match(/<div class="blk-news-list__main">([\s\S]*?)<\/div>/)[1];
   const quad = list.match(/<div class="blk-news-list__quad">([\s\S]*?)<\/div>/)[1];
-  assert.deepEqual([...main.matchAll(/<a class="blk-news-card([^"]*)" href="([^"]+)"/g)].map((match) => [match[1], match[2]]), [[" blk-news-card--main", "/vi/news/p12/"]]);
+  assert.deepEqual([...main.matchAll(/<a class="blk-news-card([^"]*)" href="([^"]+)"/g)].map((match) => [match[1], match[2]]), [[" blk-news-card--main", "/news/p12/"]]);
   assert.match(main, /loading="eager" fetchpriority="high" sizes="\(max-width: 960px\) 100vw, 50vw"/);
-  assert.deepEqual([...quad.matchAll(/<a class="blk-news-card" href="([^"]+)"/g)].map((match) => match[1]), ["/vi/news/p11/", "/vi/news/p10/", "/vi/news/p9/", "/vi/news/p8/"]);
+  assert.deepEqual([...quad.matchAll(/<a class="blk-news-card" href="([^"]+)"/g)].map((match) => match[1]), ["/news/p11/", "/news/p10/", "/news/p9/", "/news/p8/"]);
   assert.equal((list.match(/class="blk-news-card blk-news-card--row"/g) ?? []).length, 7);
   const side = list.match(/<div class="blk-news-list__side">([\s\S]*)<\/div>\s*<\/div>/)[1];
   assert.equal((side.match(/loading="lazy"/g) ?? []).length, 11);
@@ -77,7 +77,7 @@ test("News list: newest first, 12 per page, group pages with group chips, thin g
 test("News article head: group label links to its group page in both languages", () => {
   const post = news[0];
   const html = renderBlockPage("news", readPageSource("about/index.html"), post, ctx);
-  assert.ok(html.includes(`<a class="blk-article-head__group" href="/vi/news/${post.group}/" data-en-href="/en/news/${post.group}/"`), "group link VI and EN");
+  assert.ok(html.includes(`<a class="blk-article-head__group" href="/news/${post.group}/" data-en-href="/en/news/${post.group}/"`), "group link VI and EN");
   // Espacio article head: white (ink header), "News / group" crumb, then title, then date.
   assert.match(html, /blk-article-head--post[^>]*data-header-tone="ink"[\s\S]*?blk-article-head__crumb[\s\S]*?<h1[\s\S]*?blk-article-head__date/);
 });
@@ -92,8 +92,8 @@ test("home News strip: 3 newest posts, each with group, title and Read more like
 test("every page links to News from the hamburger menu only", () => {
   for (const file of ["index.html", "about/index.html", "residential/index.html", "commercial/index.html", "advertising-products/index.html", "404.html"]) {
     const html = readPageSource(file);
-    assert.equal((html.match(/href="\/vi\/news\/"/g) ?? []).length, 1, file);
-    assert.match(html, /<a class="menu-option" href="\/vi\/news\/" data-en="News">Tin tức<\/a>/, file);
+    assert.equal((html.match(/href="\/news\/"/g) ?? []).length, 1, file);
+    assert.match(html, /<a class="menu-option" href="\/news\/" data-en="News">Tin tức<\/a>/, file);
   }
 });
 
@@ -137,7 +137,7 @@ test("Projects list: all, sectors with projects, every type; filter slugs are re
   ];
   const artifact = buildProjectArtifact(projects, { a: "rgb(1 2 3)" });
   assert.doesNotThrow(() => validateMasonryCards(artifact.cards, { categoryOrder: artifact.categories.map((entry) => entry.slug), requireNonEmpty: true }));
-  assert.deepEqual(artifact.cards.find((card) => card.id === "a").href, { vi: "/vi/projects/a/", en: "/en/projects/a-en/" });
+  assert.deepEqual(artifact.cards.find((card) => card.id === "a").href, { vi: "/projects/a/", en: "/en/projects/a-en/" });
   assert.deepEqual(artifact.cards.find((card) => card.id === "a").mediaItems.map((item) => item.src), ["/a4.webp", "/a2.webp"]);
   assert.equal(artifact.cards.find((card) => card.id === "a").media.src, "/a4.webp");
   // An image with leftover area relative to the card frame (different ratio) is rejected.
@@ -162,7 +162,7 @@ test("Projects SEO: every filter page has its own title and a meta of at most 15
   assert.equal(new Set(projects.map((project) => project.seoTitle.vi)).size, projects.length, "seoTitle unique");
   assert.deepEqual(kindFieldErrors("projects", { id: "x", slugVi: "x", slugEn: "x", sector: "commercial", type: "van-phong", seoTitle: { vi: "a" } }, "p"), ["p: seoTitle phải có vi và en"]);
   assert.deepEqual(RENAMED_FILTER_SLUGS, { "homestay-hotel": "homestay-khach-san", "cafe-nha-hang": "quan-cafe" });
-  assert.match(renderRedirectPage("/vi/projects/homestay-khach-san/"), /<meta http-equiv="refresh" content="0; url=\/vi\/projects\/homestay-khach-san\/">/);
+  assert.match(renderRedirectPage("/projects/homestay-khach-san/"), /<meta http-equiv="refresh" content="0; url=\/projects\/homestay-khach-san\/">/);
 });
 
 test("menu featured: chosen projects in order; product groups chosen or by card count; unknown ids reported", async () => {

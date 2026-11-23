@@ -1,0 +1,1002 @@
+[
+  {
+    "id": "can-ho-go-soi",
+    "layout": "legacy",
+    "sector": "residential",
+    "type": "can-ho",
+    "slugVi": "can-ho-go-soi-am",
+    "slugEn": "warm-oak-apartment",
+    "title": {
+      "vi": "Căn hộ gỗ sồi ấm",
+      "en": "Warm oak apartment"
+    },
+    "seoTitle": {
+      "vi": "Thiết kế nội thất căn hộ 2 phòng ngủ gỗ sồi",
+      "en": "Oak two-bedroom apartment interior design"
+    },
+    "description": {
+      "vi": "Căn hộ hai phòng ngủ cho gia đình bốn người: nhiều chỗ cất đồ, gỗ sồi, sơn xanh rêu và đèn hắt. Thiết kế, sản xuất tại xưởng và lắp đặt bởi Trường Thịnh.",
+      "en": "A two-bedroom apartment for a family of four: plenty of storage in oak, sage paint and soft cove light. Designed, built and installed by Trường Thịnh."
+    },
+    "cover": {
+      "src": "/assets/content/projects/can-ho-hero.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Nội thất căn hộ với quầy bar bếp, sofa và kệ TV gỗ sồi",
+      "altEn": "Apartment interior with kitchen bar, sofa and oak TV wall unit"
+    },
+    "card": {
+      "width": 3072,
+      "height": 1728,
+      "media": [
+        {
+          "src": "/assets/content/projects/phong-khach-chung-cu-ban-cong-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Phòng khách chung cư, kệ TV gỗ sồi và sofa hướng ban công",
+          "altEn": "Apartment living room with oak TV unit and sofa facing the balcony"
+        },
+        {
+          "src": "/assets/content/projects/phong-ngu-chung-cu-den-hat-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Phòng ngủ chung cư, giường gỗ sồi và vách đầu giường đèn hắt",
+          "altEn": "Apartment bedroom with oak bed and backlit headboard panel"
+        }
+      ]
+    },
+    "blocks": [
+      {
+        "id": "hero",
+        "type": "hero-project",
+        "tagline": [
+          {
+            "vi": "Ngôi nhà nhỏ",
+            "en": "A small home"
+          },
+          {
+            "vi": "ấm như *gỗ sồi*",
+            "en": "as warm as *oak*"
+          }
+        ],
+        "image": {
+          "src": "/assets/content/projects/can-ho-hero.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Nội thất căn hộ với quầy bar bếp, sofa và kệ TV gỗ sồi",
+          "altEn": "Apartment interior with kitchen bar, sofa and oak TV wall unit"
+        }
+      },
+      {
+        "id": "overview-title",
+        "type": "section-title",
+        "text": {
+          "vi": "Đủ chỗ cất đồ, vẫn thoáng",
+          "en": "Room for everything, still airy"
+        }
+      },
+      {
+        "id": "overview",
+        "type": "paragraph",
+        "text": {
+          "vi": "Căn hộ chung cư thường thiếu chỗ cất đồ, nhất là với gia đình có con đang tuổi đi học. Tối về mà nhà bừa bộn thì khó nghỉ ngơi. Ở căn hộ hai phòng ngủ này, chúng tôi bố trí tủ ở mọi chỗ có thể, chọn gỗ sồi làm chất liệu chính, điểm sơn xanh rêu và đèn hắt, để nhà nhiều tủ mà vẫn ấm và nhẹ mắt.",
+          "en": "Apartments are usually short on storage, especially for families with school-age children. Coming home to clutter makes it hard to unwind. In this two-bedroom apartment we fitted storage wherever we could and used oak as the main material, with touches of sage paint and cove lighting, so a home full of cabinets still feels warm and light."
+        }
+      },
+      {
+        "id": "gallery-main",
+        "type": "media-carousel",
+        "images": [
+          {
+            "src": "/assets/content/projects/can-ho-loi-vao.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Lối vào căn hộ với tủ giày kịch trần, hốc kệ đèn hắt",
+            "altEn": "Apartment entryway with floor-to-ceiling shoe cabinets and a lit niche"
+          },
+          {
+            "src": "/assets/content/projects/can-ho-bep.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Tủ bếp gỗ công nghiệp căn hộ: tủ trên trắng, tủ dưới vân sồi",
+            "altEn": "Apartment kitchen with white upper cabinets, oak-look base units and breakfast bar"
+          },
+          {
+            "src": "/assets/content/projects/can-ho-phong-ngu-2.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Phòng ngủ trẻ em căn hộ, giường ngăn kéo, bàn học và pegboard xanh",
+            "altEn": "Kids' bedroom with storage bed, study desk and green pegboard wall"
+          },
+          {
+            "src": "/assets/content/projects/can-ho-phong-tam.webp",
+            "width": 2304,
+            "height": 3072,
+            "altVi": "Phòng tắm căn hộ với tủ lavabo treo gỗ sồi, mặt đá và gương",
+            "altEn": "Apartment bathroom with wall-hung oak vanity, stone top and mirror cabinet"
+          }
+        ]
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 75 m²",
+              "en": "about 75 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Tủ giày, tủ bếp, kệ TV, giường, tủ áo, tủ lavabo",
+              "en": "Shoe cabinet, kitchen, TV unit, bed, wardrobes, vanity"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF chống ẩm melamine vân sồi, MDF sơn xanh rêu, đá nhân tạo",
+              "en": "Moisture-resistant MDF in oak melamine, sage-painted MDF, engineered stone"
+            }
+          }
+        ]
+      },
+      {
+        "id": "bedroom-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Nhiều người muốn phòng ngủ thoáng nhưng vẫn cần chỗ cho quần áo cả bốn mùa. Phòng ngủ ở đây chỉ giữ giường gỗ sồi, vách đầu giường có đèn hắt và tủ đầu giường treo cho sàn trống. Tủ áo trắng kịch trần chứa được nhiều đồ mà không làm phòng chật.",
+          "en": "Many people want an airy bedroom yet still need room for clothes for every season. This bedroom keeps just an oak bed, a backlit headboard wall and floating bedside drawers that leave the floor clear. A white floor-to-ceiling wardrobe holds plenty without crowding the room."
+        }
+      },
+      {
+        "id": "bedroom",
+        "type": "media-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/can-ho-phong-ngu.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng ngủ căn hộ với giường gỗ sồi và tủ áo trắng kịch trần",
+          "altEn": "Apartment bedroom with oak bed and white floor-to-ceiling wardrobe"
+        }
+      },
+      {
+        "id": "detail-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một mảng tủ dài dễ khiến phòng khách nặng nề. Kệ TV ở đây ghép cánh vân sồi với cánh sơn xanh rêu, mạch cánh khít đều và khe tay nắm âm chạy liền, nên cả mảng tủ trông như một khối gọn gàng.",
+          "en": "A long run of cabinets can easily weigh a living room down. Here the TV unit pairs oak doors with sage-painted ones, with tight, even joints and a recessed handle groove running straight through, so the whole wall reads as one neat piece."
+        }
+      },
+      {
+        "id": "detail",
+        "type": "media-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/can-ho-chi-tiet.webp",
+          "width": 3072,
+          "height": 2304,
+          "altVi": "Cận cảnh tủ TV gỗ sồi với cánh xanh rêu, mạch cánh khít đều",
+          "altEn": "Close-up of an oak TV unit with a sage-green door and tight gaps"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Thi công trong chung cư, điều đáng lo nhất là bụi và tiếng ồn làm phiền hàng xóm. Mọi tủ ở đây được đo tại nhà, cắt CNC và dán cạnh tại xưởng Trường Thịnh, lỗ bản lề và ray khoan sẵn, nên ngày lắp chỉ còn ráp và căn chỉnh. Căn hộ lắp xong trong khoảng năm ngày.",
+          "en": "In an apartment block, the biggest worry during fit-out is dust and noise for the neighbours. Every cabinet here was measured on site, then CNC-cut and edge-banded in the Trường Thịnh workshop with holes for hinges and runners pre-drilled, leaving only assembly and adjustment on site. The apartment was fitted in about five days."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một căn hộ nhiều tủ, nhưng người ở chỉ thấy sự gọn.",
+          "en": "A home full of cabinets, where all you notice is the calm."
+        }
+      },
+      {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
+        "id": "more",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
+        },
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Muốn một căn hộ như thế này?",
+          "en": "Want a home like this?"
+        }
+      }
+    ]
+  },
+  {
+    "id": "nha-gieng-troi",
+    "layout": "legacy",
+    "sector": "residential",
+    "type": "nha-pho",
+    "slugVi": "nha-pho-gieng-troi",
+    "slugEn": "light-well-townhouse",
+    "title": {
+      "vi": "Nhà phố giếng trời",
+      "en": "Light-well townhouse"
+    },
+    "seoTitle": {
+      "vi": "Nội thất nhà phố có giếng trời, gỗ sồi sáng",
+      "en": "Light-well townhouse interior in pale oak"
+    },
+    "description": {
+      "vi": "Nhà phố hai tầng hẹp và sâu, giếng trời đưa ánh sáng xuống giữa nhà, tủ gỗ sồi sáng và terrazzo. Thiết kế, sản xuất và lắp đặt bởi Trường Thịnh.",
+      "en": "A narrow, deep two-storey townhouse where a lightwell brings daylight into the middle of the home, with light oak joinery and terrazzo. By Trường Thịnh."
+    },
+    "cover": {
+      "src": "/assets/content/projects/gieng3-hero.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Thiết kế nội thất nhà phố có giếng trời, tủ TV gỗ sồi sáng",
+      "altEn": "Townhouse living room with indoor lightwell garden and light oak TV wall"
+    },
+    "card": {
+      "width": 3072,
+      "height": 1728,
+      "media": [
+        {
+          "src": "/assets/content/projects/phong-khach-nha-pho-cay-xanh-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Phòng khách nhà phố, cây xanh dưới giếng trời và cầu thang thép",
+          "altEn": "Townhouse living room with lightwell planting and black steel stair railing"
+        },
+        {
+          "src": "/assets/content/projects/phong-ngu-nha-pho-dau-giuong-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Phòng ngủ nhà phố, đầu giường đèn hắt và cửa kính ra ban công",
+          "altEn": "Townhouse bedroom with backlit headboard and glass doors to the balcony"
+        },
+        {
+          "src": "/assets/content/projects/phong-tho-nha-pho-den-hat-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Phòng thờ với tủ thờ gỗ sồi đèn hắt và hai tủ đứng",
+          "altEn": "Altar room with backlit oak altar niche flanked by tall cabinets"
+        }
+      ]
+    },
+    "blocks": [
+      {
+        "id": "hero",
+        "type": "hero-project",
+        "tagline": [
+          {
+            "vi": "Ánh sáng rơi",
+            "en": "Daylight falls"
+          },
+          {
+            "vi": "xuống *giữa* nhà",
+            "en": "into the *heart* of the house"
+          }
+        ],
+        "image": {
+          "src": "/assets/content/projects/gieng3-hero.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Thiết kế nội thất nhà phố có giếng trời, tủ TV gỗ sồi sáng",
+          "altEn": "Townhouse living room with indoor lightwell garden and light oak TV wall"
+        }
+      },
+      {
+        "id": "overview-title",
+        "type": "section-title",
+        "text": {
+          "vi": "Nhà hẹp, mà không tối",
+          "en": "Narrow, but never dark"
+        }
+      },
+      {
+        "id": "overview",
+        "type": "paragraph",
+        "text": {
+          "vi": "Nhà phố ngang hẹp và sâu thường tối ở giữa, nhất là khi ba thế hệ cùng sống dưới một mái nhà. Với căn nhà ngang hơn bốn mét, sâu gần hai mươi mét này, chúng tôi mở một giếng trời ngay phòng khách và đặt cây xanh bên dưới. Ánh sáng xuống được cả hai tầng, còn cầu thang gỗ tay vịn thép mảnh giữ tầm nhìn thông suốt từ cửa vào tới bếp.",
+          "en": "Narrow, deep townhouses are usually dark in the middle, especially when three generations share one roof. In this home, just over four metres wide and almost twenty deep, we opened a lightwell over the living room with plants beneath it. Light reaches both floors, and a timber stair with a slim steel handrail keeps the view open from the front door to the kitchen."
+        }
+      },
+      {
+        "id": "gallery-main",
+        "type": "media-carousel",
+        "images": [
+          {
+            "src": "/assets/content/projects/gieng3-loi-vao.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Lối vào nhà phố với tủ gỗ sồi sáng kịch trần và ghế băng",
+            "altEn": "Townhouse entry with floor-to-ceiling light oak cabinets and bench"
+          },
+          {
+            "src": "/assets/content/projects/gieng3-bep.webp",
+            "width": 2048,
+            "height": 3072,
+            "altVi": "Bếp nhà phố tủ gỗ sồi sáng, bàn ăn gỗ nhìn ra sân sau",
+            "altEn": "Townhouse kitchen with light oak cabinets and a dining table by the garden"
+          },
+          {
+            "src": "/assets/content/projects/gieng3-phong-tam.webp",
+            "width": 2304,
+            "height": 3072,
+            "altVi": "Phòng tắm ốp terrazzo, lavabo đặt bàn và tủ treo gỗ sồi sáng",
+            "altEn": "Terrazzo bathroom with vessel basin and wall-hung light oak vanity"
+          }
+        ]
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 150 m² sàn",
+              "en": "about 150 m² floor area"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Tủ giày, kệ TV, tủ bếp, tủ áo, vách lam, tủ thờ",
+              "en": "Shoe cabinet, TV unit, kitchen, wardrobes, slatted screen, altar cabinet"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF chống ẩm melamine vân sồi sáng, mặt terrazzo, thép sơn tĩnh điện",
+              "en": "Moisture-resistant MDF in light oak melamine, terrazzo tops, powder-coated steel"
+            }
+          }
+        ]
+      },
+      {
+        "id": "bedroom-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Phòng ngủ hướng ra ban công thường bị nắng gắt buổi chiều. Thay vì xây một bức tường kín, chúng tôi dùng vách lam gỗ sồi sáng để lọc bớt nắng mà phòng vẫn thoáng. Đầu giường có đèn hắt cho buổi tối, tủ áo trắng đặt sát tường giúp phòng trông rộng hơn.",
+          "en": "Bedrooms facing a balcony often get harsh afternoon sun. Instead of a solid wall, we used light oak slats to filter the sun while keeping the room airy. The headboard has cove lighting for the evening, and a white wardrobe set tight to the wall makes the room feel larger."
+        }
+      },
+      {
+        "id": "bedroom",
+        "type": "media-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/gieng3-phong-ngu.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng ngủ nhà phố với vách lam gỗ sồi và tủ áo kịch trần",
+          "altEn": "Townhouse bedroom with oak slat wall and full-height wardrobe"
+        }
+      },
+      {
+        "id": "altar-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Với nhiều gia đình, phòng thờ cần trang nghiêm nhưng cũng phải có chỗ cất đồ lễ cho gọn. Tủ thờ ở đây đặt giữa hai cửa sổ lớn, cùng chất gỗ với cả nhà, hai tủ đứng hai bên cất đồ lễ, nên mặt bàn thờ lúc nào cũng gọn gàng.",
+          "en": "For many families, the altar room has to feel solemn yet still needs tidy storage for offerings. Here the altar cabinet sits between two large windows in the same timber as the rest of the house, with tall cabinets on either side for ceremonial items, so the altar top always stays neat."
+        }
+      },
+      {
+        "id": "altar",
+        "type": "media-pair",
+        "layout": "left-large",
+        "images": [
+          {
+            "src": "/assets/content/projects/gieng3-phong-tho.webp",
+            "width": 3072,
+            "height": 2048,
+            "altVi": "Phòng thờ nhà phố với tủ thờ gỗ sồi sáng giữa hai cửa sổ",
+            "altEn": "Townhouse altar room with light oak altar cabinet between two windows"
+          },
+          {
+            "src": "/assets/content/projects/gieng3-chi-tiet.webp",
+            "width": 3072,
+            "height": 2304,
+            "altVi": "Cận cảnh cánh tủ thờ gỗ sồi sáng không tay nắm, chân tủ âm",
+            "altEn": "Close-up of light oak altar cabinet doors with a recessed plinth"
+          }
+        ]
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Nhà có nhiều mảng tủ lớn rất dễ trông nặng nề. Toàn bộ tủ ở đây dùng MDF chống ẩm phủ melamine vân sồi sáng, cánh trơn và tay nắm âm. Xưởng cắt CNC theo số đo đã chốt, dán cạnh cùng vân và khoan sẵn lỗ phụ kiện, nên khe cánh đều nhau trên mọi tủ, từ lối vào lên tới phòng thờ.",
+          "en": "A house with many large runs of cabinets can easily feel heavy. All the cabinets here use moisture-resistant MDF in light oak melamine, with plain doors and recessed handles. The workshop CNC-cut everything to the agreed measurements, banded the edges in matching grain and pre-drilled the hardware holes, so the door gaps are even on every cabinet, from the entrance up to the altar room."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một giếng trời, một chất gỗ, và cả nhà sáng lên.",
+          "en": "One lightwell, one timber, and the whole house brightens."
+        }
+      },
+      {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
+        "id": "more",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
+        },
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Nhà phố của bạn cũng cần ánh sáng?",
+          "en": "Does your townhouse need more light?"
+        }
+      }
+    ]
+  },
+  {
+    "id": "van-phong-lam-viec-chung",
+    "layout": "legacy",
+    "sector": "commercial",
+    "type": "van-phong",
+    "slugVi": "van-phong-lam-viec-chung",
+    "slugEn": "shared-workspace",
+    "title": {
+      "vi": "Văn phòng làm việc chung",
+      "en": "Shared workspace"
+    },
+    "seoTitle": {
+      "vi": "Thiết kế văn phòng làm việc chung, phòng họp kính",
+      "en": "Coworking office design with glass meeting rooms"
+    },
+    "description": {
+      "vi": "Một tầng văn phòng làm việc chung với bàn mở, phòng họp kính, phòng nhóm và pantry, chia lớp bằng vách nỉ, kính và gỗ sọc. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A coworking floor with open desks, a glass meeting room, team rooms and a pantry, layered with felt, glass and fluted timber. Design and CNC joinery by Trường Thịnh."
+    },
+    "cover": {
+      "src": "/assets/content/projects/shared-office-open-desks.webp",
+      "width": 3072,
+      "height": 2048,
+      "altVi": "Khu bàn làm việc chung với vách nỉ xanh, nội thất văn phòng gỗ",
+      "altEn": "Open-plan office desks with green felt dividers and wood slat ceiling"
+    },
+    "card": {
+      "width": 3072,
+      "height": 1728,
+      "media": [
+        {
+          "src": "/assets/content/projects/thiet-ke-van-phong-ban-mo-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Thiết kế văn phòng mở: bàn gỗ dài, vách nỉ xanh, trần lam gỗ",
+          "altEn": "Open office design with long wood desks and green felt screens"
+        },
+        {
+          "src": "/assets/content/projects/thiet-ke-van-phong-phong-nhom-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Thiết kế văn phòng: phòng nhóm vách kính khung gỗ, tường nỉ xanh",
+          "altEn": "Small team room with wood-framed glass walls and green felt wall"
+        },
+        {
+          "src": "/assets/content/projects/phong-hop-van-phong-vach-kinh-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Phòng họp văn phòng vách kính nhìn ra thành phố, bàn gỗ dài",
+          "altEn": "Office meeting room behind glass, long wood table and city view"
+        },
+        {
+          "src": "/assets/content/projects/pantry-van-phong-ghe-cao-xanh-khung-ngang.webp",
+          "width": 3072,
+          "height": 1728,
+          "altVi": "Khu pantry văn phòng với ghế cao xanh rêu và bàn đứng tròn",
+          "altEn": "Office pantry with moss-green bar stools and round standing tables"
+        }
+      ]
+    },
+    "blocks": [
+      {
+        "id": "hero",
+        "type": "hero-project",
+        "tagline": [
+          {
+            "vi": "Làm việc chung",
+            "en": "Work together"
+          },
+          {
+            "vi": "nghĩ *riêng*",
+            "en": "think *alone*"
+          }
+        ],
+        "image": {
+          "src": "/assets/content/projects/shared-office-open-desks.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Khu bàn làm việc chung với vách nỉ xanh, nội thất văn phòng gỗ",
+          "altEn": "Open-plan office desks with green felt dividers and wood slat ceiling"
+        }
+      },
+      {
+        "id": "overview-title",
+        "type": "section-title",
+        "text": {
+          "vi": "Ồn khi cần, yên khi muốn",
+          "en": "Busy when you need it, quiet when you want it"
+        }
+      },
+      {
+        "id": "overview",
+        "type": "paragraph",
+        "text": {
+          "vi": "Ở văn phòng làm việc chung, người thuê vừa cần bàn mở để làm việc cùng nhau, vừa cần chỗ gọi điện hay họp mà không làm phiền ai. Trên tầng văn phòng này, vách nỉ xanh, vách kính và gỗ sọc chia không gian thành nhiều lớp riêng tư khác nhau, trong khi ánh sáng vẫn đi qua được.",
+          "en": "In a shared workspace, members need open desks to work together, but also somewhere to take a call or meet without disturbing anyone. On this floor, green felt panels, glass partitions and fluted timber divide the space into layers of privacy, while daylight still passes through."
+        }
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "Trung tâm TP.HCM",
+              "en": "Central Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 320 m²",
+              "en": "about 320 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Bàn làm việc, vách nỉ, phòng họp, phòng nhóm, quầy pantry",
+              "en": "Desks, felt screens, meeting room, team rooms, pantry bar"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF melamine vân sồi, ốp gỗ sọc, vách nỉ tiêu âm, kính cường lực",
+              "en": "Oak melamine MDF, fluted timber cladding, acoustic felt, tempered glass"
+            }
+          }
+        ]
+      },
+      {
+        "id": "meeting-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Dây điện lòng thòng khiến phòng họp trông thiếu chuyên nghiệp. Phòng họp lớn ở đây nằm sát mặt tiền, vách kính nhìn ra phố, bàn dài bằng gỗ đi dây âm dưới mặt bàn và màn hình treo tường, đủ cho mười người họp mà không thấy một sợi dây nào.",
+          "en": "Trailing cables make a meeting room look unprofessional. The large meeting room here sits on the street front behind glass, with cabling hidden under the long timber table and a wall-mounted screen, seating ten without a single wire in sight."
+        }
+      },
+      {
+        "id": "meeting",
+        "type": "media-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/noi-that-van-phong-phong-hop.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Phòng họp vách kính với bàn dài gỗ, nội thất văn phòng hiện đại",
+          "altEn": "Glass-walled meeting room with a long wood table and wall screen"
+        }
+      },
+      {
+        "id": "pantry-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Pantry thường bị xem nhẹ, dù đây là nơi mọi người gặp nhau nhiều nhất trong ngày. Quầy bar ốp gỗ sọc, kệ có đèn hắt và ghế cao xanh rêu ở đây được làm kỹ như quầy một quán cà phê, để ai cũng muốn ở lại thêm vài phút.",
+          "en": "The pantry is often an afterthought, yet it is where people meet most during the day. The fluted timber bar, backlit shelves and moss-green stools here were made with the care of a café counter, so everyone is happy to linger a few minutes more."
+        }
+      },
+      {
+        "id": "pantry",
+        "type": "media-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/pantry-van-phong-quay-bar.webp",
+          "width": 3072,
+          "height": 2048,
+          "altVi": "Pantry văn phòng, quầy bar ốp lam gỗ và kệ đèn hắt",
+          "altEn": "Office pantry with a slatted wood bar counter and lit shelving"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Nhiều phòng nhỏ khác kích thước thường làm chi phí và thời gian thi công đội lên. Ở đây các phòng dùng chung một bảng vật liệu và một bộ chi tiết, nên xưởng sản xuất hàng loạt mà mỗi phòng vẫn khớp kích thước riêng. Nan gỗ phay CNC, vách nỉ cắt theo khung, cửa kính khung gỗ lắp ngoài giờ làm việc của tòa nhà.",
+          "en": "Many small rooms of different sizes usually push up cost and build time. Here the rooms share one material palette and one set of details, so the workshop could batch-produce them while each room still fits its own size. Timber flutes were CNC-routed, felt panels cut to their frames and the timber-framed glass doors fitted outside the building's working hours."
+        }
+      },
+      {
+        "id": "gallery-main",
+        "type": "media-carousel",
+        "images": [
+          {
+            "src": "/assets/content/projects/phong-lam-viec-ca-nhan.webp",
+            "width": 2456,
+            "height": 3072,
+            "altVi": "Phòng làm việc một người, bàn gỗ gắn tường và vách nỉ xanh",
+            "altEn": "Single-person focus room with a wall-mounted wood desk and green felt"
+          },
+          {
+            "src": "/assets/content/projects/phong-hop-nhom-van-phong.webp",
+            "width": 3072,
+            "height": 2048,
+            "altVi": "Phòng họp nhóm bốn chỗ vách kính, bàn gỗ và màn hình treo",
+            "altEn": "Four-seat team room behind glass with wood table and wall screen"
+          },
+          {
+            "src": "/assets/content/projects/phong-nghi-van-phong-giuong-don.webp",
+            "width": 2456,
+            "height": 3072,
+            "altVi": "Phòng nghỉ nhỏ trong văn phòng, giường đơn, rèm xanh và vách lam gỗ",
+            "altEn": "Office nap pod with a single bed, green curtain and wood slats"
+          }
+        ]
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Một tầng làm việc chung, nhưng ai cũng tìm được góc của mình.",
+          "en": "One shared floor, and everyone finds a corner of their own."
+        }
+      },
+      {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
+        "id": "more",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
+        },
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Cần làm văn phòng cho đội của bạn?",
+          "en": "Planning an office for your team?"
+        }
+      }
+    ]
+  },
+  {
+    "id": "tiem-banh-ngot",
+    "layout": "legacy",
+    "sector": "commercial",
+    "type": "quan-cafe",
+    "slugVi": "tiem-banh-ngot",
+    "slugEn": "neighbourhood-bakery",
+    "title": {
+      "vi": "Tiệm bánh ngọt",
+      "en": "Neighbourhood bakery"
+    },
+    "seoTitle": {
+      "vi": "Thiết kế tiệm bánh ngọt, kệ bánh mì gỗ",
+      "en": "Bakery design with wooden bread shelves"
+    },
+    "description": {
+      "vi": "Tiệm bánh góc phố với kệ bánh mì gỗ sáng đèn, quầy bánh kem xanh soi rãnh và bàn ngồi cạnh cửa sổ, để bánh nổi bật từ ngoài phố. Thiết kế và đồ gỗ CNC của Trường Thịnh.",
+      "en": "A corner bakery with lit timber bread shelves, a fluted green cake counter and tables by the windows, so the bread shows from the street. Design and CNC joinery by Trường Thịnh."
+    },
+    "cover": {
+      "src": "/assets/content/projects/ke-banh-mi-go-den-led.webp",
+      "width": 1122,
+      "height": 1402,
+      "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn LED hắt trong tiệm bánh",
+      "altEn": "Multi-tier wooden bread shelving with LED strip lighting in a bakery"
+    },
+    "card": {
+      "width": 1122,
+      "height": 1402,
+      "media": [
+        {
+          "src": "/assets/content/projects/ke-banh-mi-go-den-led.webp",
+          "width": 1122,
+          "height": 1402,
+          "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn LED hắt trong tiệm bánh",
+          "altEn": "Multi-tier wooden bread shelving with LED strip lighting in a bakery"
+        },
+        {
+          "src": "/assets/content/projects/quay-banh-kem-tu-kinh-cong.webp",
+          "width": 1122,
+          "height": 1402,
+          "altVi": "Quầy bánh kem xanh soi rãnh, tủ kính cong và kệ bánh mì gỗ",
+          "altEn": "Fluted green cake counter with curved glass case and lit wooden bread shelves"
+        }
+      ]
+    },
+    "blocks": [
+      {
+        "id": "hero",
+        "type": "hero-project",
+        "tagline": [
+          {
+            "vi": "Ổ bánh *sáng đèn*",
+            "en": "Bread that *glows*"
+          },
+          {
+            "vi": "từ ngoài phố",
+            "en": "from the street"
+          }
+        ],
+        "image": {
+          "src": "/assets/content/projects/thiet-ke-tiem-banh-goc-pho.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Tiệm bánh góc phố, kệ bánh mì gỗ, quầy bánh kem xanh",
+          "altEn": "Corner bakery interior with wooden bread shelves, green cake counter and window seating"
+        }
+      },
+      {
+        "id": "overview-title",
+        "type": "section-title",
+        "text": {
+          "vi": "Bánh là nhân vật chính",
+          "en": "The bread is the star"
+        }
+      },
+      {
+        "id": "overview",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tiệm bánh cần bày được nhiều bánh mà vẫn nổi bật từ ngoài phố. Mặt bằng này nằm ở góc đường, hai mặt là kính, nên kệ bánh mì chạy dọc bức tường kín còn bàn ghế đặt sát cửa sổ. Quầy bánh kem đứng giữa tiệm, khách bước vào là thấy ngay.",
+          "en": "A bakery needs to show plenty of bread and still stand out from the street. This shop sits on a corner with glass on two sides, so the bread shelves run along the solid wall and the tables sit by the windows. The cake counter stands in the middle, the first thing customers see as they walk in."
+        }
+      },
+      {
+        "id": "gallery-main",
+        "type": "media-carousel",
+        "images": [
+          {
+            "src": "/assets/content/projects/quay-banh-kem-tu-kinh-cong.webp",
+            "width": 1122,
+            "height": 1402,
+            "altVi": "Quầy bánh kem xanh soi rãnh, tủ kính cong và kệ bánh mì gỗ",
+            "altEn": "Fluted green cake counter with curved glass case and lit wooden bread shelves"
+          },
+          {
+            "src": "/assets/content/projects/ke-banh-mi-go-den-led.webp",
+            "width": 1122,
+            "height": 1402,
+            "altVi": "Kệ bánh mì gỗ nhiều tầng có đèn LED hắt trong tiệm bánh",
+            "altEn": "Multi-tier wooden bread shelving with LED strip lighting in a bakery"
+          },
+          {
+            "src": "/assets/content/projects/tiem-banh-may-pha-ca-phe.webp",
+            "width": 1122,
+            "height": 1402,
+            "altVi": "Góc máy pha cà phê trong kệ gỗ, túi giấy và hộp bánh xanh",
+            "altEn": "Espresso machine set into wooden shelving with green branded paper bags and boxes"
+          }
+        ]
+      },
+      {
+        "id": "facts",
+        "type": "facts-grid",
+        "items": [
+          {
+            "label": {
+              "vi": "Khu vực",
+              "en": "Location"
+            },
+            "text": {
+              "vi": "TP.HCM",
+              "en": "Ho Chi Minh City"
+            }
+          },
+          {
+            "label": {
+              "vi": "Diện tích",
+              "en": "Area"
+            },
+            "text": {
+              "vi": "khoảng 50 m²",
+              "en": "about 50 m²"
+            }
+          },
+          {
+            "label": {
+              "vi": "Hạng mục",
+              "en": "Scope"
+            },
+            "text": {
+              "vi": "Kệ bánh mì, quầy bánh kem, tủ kính cong, quầy cà phê, bàn ghế",
+              "en": "Bread shelves, cake counter, curved glass case, coffee counter, seating"
+            }
+          },
+          {
+            "label": {
+              "vi": "Vật liệu chính",
+              "en": "Main materials"
+            },
+            "text": {
+              "vi": "MDF chống ẩm vân gỗ sồi, MDF soi rãnh sơn xanh, kính cong cường lực, đèn LED hắt",
+              "en": "Moisture-resistant MDF in oak finish, fluted MDF painted green, curved tempered glass, LED strip lighting"
+            }
+          }
+        ]
+      },
+      {
+        "id": "seat",
+        "type": "media-text",
+        "image": {
+          "src": "/assets/content/projects/ban-tron-go-tiem-banh.webp",
+          "width": 1122,
+          "height": 1402,
+          "altVi": "Bàn tròn gỗ cạnh cửa sổ tiệm bánh, cà phê và bánh sừng bò",
+          "altEn": "Round wooden window table with latte and croissant in a bakery cafe"
+        },
+        "text": {
+          "vi": "Dù nhiều khách mua mang về, tiệm vẫn nên có chỗ ngồi lại. Dọc cửa sổ là bàn tròn mặt gỗ và ghế gỗ uốn, đủ cho một ly cà phê với chiếc bánh vừa ra lò. Ánh sáng tự nhiên từ hai mặt kính giúp bánh trên bàn trông ngon hơn.",
+          "en": "Even when many customers take away, a place to sit still helps. Along the windows are round timber tables and bentwood chairs, enough for a coffee and a fresh pastry. Daylight from two glass sides makes the food on the table look its best."
+        }
+      },
+      {
+        "id": "counter-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Quầy bánh kem là điểm nhấn của cả tiệm. Mặt quầy là tấm MDF chống ẩm phay rãnh tròn bằng CNC, sơn xanh rêu đậm và uốn theo đầu quầy bo tròn. Phía trên là tủ kính cong viền đen mảnh, hai tầng kệ kính để bánh nhìn rõ từ mọi phía.",
+          "en": "The cake counter is the centrepiece of the shop. Its front is moisture-resistant MDF with CNC-routed rounded flutes, painted deep green and bent around the curved end. On top sits a curved glass case with a slim black rim and two glass shelves, so every cake shows from all sides."
+        }
+      },
+      {
+        "id": "counter",
+        "type": "media-single",
+        "position": "wide",
+        "image": {
+          "src": "/assets/content/projects/tiem-banh-quay-xanh-soi-ranh.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Tiệm bánh nhìn ra cửa kính, quầy xanh soi rãnh và tủ kính cong",
+          "altEn": "Bakery view toward glass entrance with fluted green counter and curved display case"
+        }
+      },
+      {
+        "id": "cakes-text",
+        "type": "paragraph",
+        "text": {
+          "vi": "Tủ bánh kem đặt vừa tầm mắt người đứng. Bánh nguyên ổ xếp tầng dưới, bánh nhỏ và tart ở tầng trên, khách chọn nhanh mà nhân viên cũng dễ lấy.",
+          "en": "The cake case sits at standing eye level. Whole cakes go on the lower shelf, small cakes and tarts above, so customers choose quickly and staff reach them easily."
+        }
+      },
+      {
+        "id": "cakes",
+        "type": "media-single",
+        "position": "left-2-3",
+        "image": {
+          "src": "/assets/content/projects/tu-kinh-trung-bay-banh-kem.webp",
+          "width": 1536,
+          "height": 1024,
+          "altVi": "Bánh kem và tart trong tủ kính cong trên quầy xanh soi rãnh",
+          "altEn": "Cakes and tarts in a curved glass display case on a fluted green counter"
+        }
+      },
+      {
+        "id": "workshop",
+        "type": "paragraph",
+        "text": {
+          "vi": "Bánh chỉ thật sự hấp dẫn khi được chiếu sáng đúng cách. Kệ bánh mì ở đây phay sẵn rãnh đi dây trong từng tầng, đèn LED lắp âm nên không thấy bóng, chỉ thấy bánh sáng lên. Mặt quầy dùng MDF chống ẩm vì khu này lau rửa nhiều lần trong ngày. Tiệm lắp đặt trong hai ngày để kịp khai trương.",
+          "en": "Bread only looks truly tempting under the right light. The shelves here have cable channels routed into each tier and recessed LEDs, so you never see a bulb, only the bread glowing. The counter top is moisture-resistant MDF, since it is wiped down many times a day. The shop was fitted in two days to open on time."
+        }
+      },
+      {
+        "id": "closing",
+        "type": "paragraph",
+        "text": {
+          "vi": "Hai mặt kính, một bức tường bánh, từ xa đã thấy tiệm.",
+          "en": "Two glass sides and a wall of bread, you can see the shop from down the street."
+        }
+      },
+      {
+        "id": "others",
+        "type": "project-slider"
+      },
+      {
+        "id": "more",
+        "type": "cta-arrow",
+        "text": {
+          "vi": "Xem toàn bộ công trình",
+          "en": "See all projects"
+        },
+        "hrefVi": "/vi/projects/",
+        "hrefEn": "/en/projects/"
+      },
+      {
+        "id": "contact",
+        "type": "contact-quick",
+        "title": {
+          "vi": "Sắp mở tiệm bánh?",
+          "en": "Opening a bakery?"
+        }
+      }
+    ]
+  }
+]

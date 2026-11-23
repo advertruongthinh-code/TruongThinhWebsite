@@ -61,8 +61,8 @@ try {
     page.on("pageerror", (error) => errors.push(error.message));
     try {
       // List head.
-      let at = `/vi/news/ ${viewport.width}px ${reducedMotion}`;
-      await page.goto(`${origin}/vi/news/`, { waitUntil: "load" });
+      let at = `/news/ ${viewport.width}px ${reducedMotion}`;
+      await page.goto(`${origin}/news/`, { waitUntil: "load" });
       await page.waitForTimeout(4500);
       const list = await page.evaluate(() => {
         const rect = (selector) => document.querySelector(selector)?.getBoundingClientRect() ?? { top: -999, bottom: -999 };

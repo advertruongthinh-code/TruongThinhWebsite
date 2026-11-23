@@ -26,8 +26,8 @@ const sample = page => page.evaluate(() => {
 });
 
 const cases = [
-  { route: "/vi/advertising-products/", viewport: { width: 1440, height: 900 }, scrollY: 0, collapsed: false },
-  { route: "/vi/residential/", viewport: { width: 390, height: 844 }, scrollY: 1500, collapsed: true },
+  { route: "/advertising-products/", viewport: { width: 1440, height: 900 }, scrollY: 0, collapsed: false },
+  { route: "/residential/", viewport: { width: 390, height: 844 }, scrollY: 1500, collapsed: true },
 ];
 
 try {

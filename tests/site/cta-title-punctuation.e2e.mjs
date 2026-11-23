@@ -46,7 +46,7 @@ try {
       for (const width of widths) {
         // Reload at each width: SplitText splits lines on mount like a real device.
         await page.setViewportSize({ width, height: 900 });
-        await page.goto(`${origin}/${locale}/${route}`, { waitUntil: "load" });
+        await page.goto(`${origin}${locale === "en" ? "/en" : ""}/${route}`, { waitUntil: "load" });
         await page.evaluate(() => document.fonts.ready);
         await page.locator(".detail-cta h2").scrollIntoViewIfNeeded();
         // Wait for the reveal to finish: a line not yet shown is still shifted down inside the mask, which breaks the line comparison.

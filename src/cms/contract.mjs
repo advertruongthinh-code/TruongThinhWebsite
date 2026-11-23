@@ -1,6 +1,6 @@
 // Shared record contract of the CMS (cms-plan Q1, Q5, Q10): record types, names and slugs, and the two error levels the
 // Worker and the build both use. Pure module: must not import catalog.mjs (it drags the 733 KB card manifest into the Worker).
-import { BLOCK_TYPES, validateBlockPage } from "../../scripts/site/blocks.mjs";
+import { BLOCK_TYPES, blockEmptyEnHrefs, blockMarksErrors, blockTextFields, validateBlockPage } from "../../scripts/site/blocks.mjs";
 import { kindFieldErrors, menuErrors } from "../../scripts/site/block-pages.mjs";
 import { heroSlideErrors } from "../../scripts/site/hero-slides.mjs";
 import { validateHomeProjects } from "../../scripts/site/home-projects.mjs";
@@ -23,7 +23,7 @@ export function recordName(type, data) {
   return data?.id;
 }
 
-export const recordSlugs = (type, data) => (type === "news" || type === "project" ? { vi: data?.slugVi ?? null, en: data?.slugEn ?? null } : { vi: null, en: null });
+export const recordSlugs = (type, data) => (type === "news" || type === "project" ? { vi: data?.slugVi || null, en: data?.slugEn || null } : { vi: null, en: null });
 
 const isObject = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 const isSize = (value) => Number.isSafeInteger(value) && value > 0;
@@ -62,6 +62,7 @@ export async function shapeErrors(type, data, ctx = {}) {
       if (!BLOCK_TYPES.includes(block?.type)) errors.push(shape(`${at}: blocks[${index}] unknown block type ${block?.type}`));
     }
     errors.push(...layoutErrors(pageKind(type), data).filter((error) => error.level === "shape").map((error) => ({ ...error, message: `${at}: ${error.message}` })));
+    errors.push(...blockMarksErrors(data, at));
   }
   const mediaById = ctx.mediaById ?? new Map();
   for (const ref of mediaRefs(type, data)) {
@@ -85,6 +86,20 @@ export async function shapeErrors(type, data, ctx = {}) {
   return errors;
 }
 
+// Required EN fields that are empty (cms-content R2, K3): a news or project record with any of them builds in VI only.
+// Image alt EN stays required and is not listed here.
+export function enMissing(type, data) {
+  if (type !== "news" && type !== "project") return [];
+  const empty = (value) => typeof value?.en !== "string" || !value.en.trim();
+  return [
+    ...["title", "description"].filter((field) => empty(data?.[field])).map((field) => `${field}.en`),
+    ...(typeof data?.slugEn === "string" && data.slugEn ? [] : ["slugEn"]),
+    ...(type === "project" && data?.seoTitle !== undefined && empty(data.seoTitle) ? ["seoTitle.en"] : []),
+    ...blockTextFields(data).filter(([, value]) => empty(value)).map(([field]) => `${field}.en`),
+    ...blockEmptyEnHrefs(data),
+  ];
+}
+
 // ctx: { checkImage, projects, news (Maps id -> published data), categories }.
 export async function fullErrors(type, data, ctx = {}) {
   const at = data?.id ?? type;
@@ -96,10 +111,11 @@ export async function fullErrors(type, data, ctx = {}) {
     const kind = pageKind(type);
     layout = layoutErrors(kind, data);
     // kindFieldErrors already appends every layout error as text; keep only the field errors and add the missing-level layout ones below.
-    const layoutText = new Set(layout.map(({ message }) => `${at}: ${message}`));
+    // Mark errors are shape errors (shapeErrors reports them); drop their text copy too.
+    const reported = new Set([...layout.map(({ message }) => `${at}: ${message}`), ...blockMarksErrors(data, at).map(({ message }) => message)]);
     messages = [
-      ...await validateBlockPage(data, { checkImage: ctx.checkImage, projects, news: ctx.news ?? new Map() }),
-      ...kindFieldErrors(kind, data, at).filter((message) => !layoutText.has(message)),
+      ...(await validateBlockPage(data, { checkImage: ctx.checkImage, projects, news: ctx.news ?? new Map(), en: "optional" })).filter((message) => !reported.has(message)),
+      ...kindFieldErrors(kind, data, at, { en: "optional" }).filter((message) => !reported.has(message)),
       // cms-content R4: a project card always has 2 or more media, so a page without a card is missing them too.
       ...(type === "project" && !(Array.isArray(data.card?.media) && data.card.media.length >= 2) ? [`${at}: card công trình cần ít nhất 2 media`] : []),
     ];

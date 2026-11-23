@@ -45,7 +45,7 @@ try {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   page.on("console", msg => { if(msg.type() === "error") errors.push(msg.text()); });
   page.on("pageerror", error => errors.push(error.message));
-  await page.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" });
+  await page.goto(base + "/advertising-products/", { waitUntil: "networkidle" });
   await ready(page);
   const direct = await read(page);
   assert.ok(direct.ids.length);
@@ -128,7 +128,7 @@ try {
   const requestsBefore = nativeRequests;
   await nativePage.locator("[data-menu-open]").click();
   await nativePage.locator('[data-language-option="vi"]').click();
-  await nativePage.waitForURL("**/vi/advertising-products/**"); await ready(nativePage);
+  await nativePage.waitForURL("**/advertising-products/**"); await ready(nativePage);
   assert.ok(blockedMotion >= 2, "injection blocks the shell in both documents");
   assert.ok(nativeRequests > requestsBefore, "locale click makes a main document request");
   assert.notEqual(await nativePage.evaluate(() => performance.timeOrigin), originBefore, "native locale constructs a new document");
@@ -146,7 +146,7 @@ try {
         restingPage.on("console", msg => {if(msg.type() === "error") errors.push(msg.text());});
         restingPage.on("pageerror", error => errors.push(error.message));
         try {
-          await restingPage.goto(base + "/vi/advertising-products/", {waitUntil:"networkidle"}); await ready(restingPage);
+          await restingPage.goto(base + "/advertising-products/", {waitUntil:"networkidle"}); await ready(restingPage);
           const restingSeed = (await read(restingPage)).browse.seed;
           const restingOrigin = await restingPage.evaluate(() => performance.timeOrigin);
           // The phone header follows the scroll (phone-header-scroll), so it may have left the logo's spot when the mouse clicks;
@@ -160,7 +160,7 @@ try {
           const scroll = await restingPage.evaluate(() => window.__restingRouteScroll);
           assert.equal(scroll,80,"resting route fixture starts at the exact native offset");
           await restingPage.waitForFunction(() => document.querySelector('[data-barba="container"]')?.dataset.barbaNamespace === "home"
-            && location.pathname === "/vi/" && !window.barba.transitions.isRunning);
+            && location.pathname === "/" && !window.barba.transitions.isRunning);
           await restingPage.goBack(); await ready(restingPage);
           await restingPage.waitForFunction(() => !window.barba.transitions.isRunning);
           await restingPage.waitForTimeout(1200);
@@ -175,11 +175,11 @@ try {
       await stripBackdropFilter(earlyPage, engine);
       earlyPage.on("console", msg => { if (msg.type() === "error") errors.push(msg.text()); });
       earlyPage.on("pageerror", error => errors.push(error.message));
-      await earlyPage.goto(base + "/vi/advertising-products/", { waitUntil: "networkidle" }); await ready(earlyPage);
+      await earlyPage.goto(base + "/advertising-products/", { waitUntil: "networkidle" }); await ready(earlyPage);
       const earlySeed = (await read(earlyPage)).browse.seed;
       const earlyOrigin = await earlyPage.evaluate(() => performance.timeOrigin);
       await earlyPage.locator("#header-logo").click();
-      await earlyPage.waitForFunction(() => location.pathname === "/vi/" && window.barba.transitions.isRunning);
+      await earlyPage.waitForFunction(() => location.pathname === "/" && window.barba.transitions.isRunning);
       await earlyPage.goBack();
       await earlyPage.waitForFunction(origin => performance.timeOrigin !== origin, earlyOrigin);
       await ready(earlyPage);
@@ -193,12 +193,12 @@ try {
   }
   // The old group slug and the cluster slug give the same filter; the URL switches to the cluster page path by locale (taxonomy R4).
   for (const slug of ["print-decals", "printing-decals", "in-an-decal"]) {
-    await page.goto(base + "/vi/advertising-products/?category=" + slug, { waitUntil: "networkidle" }); await ready(page);
+    await page.goto(base + "/advertising-products/?category=" + slug, { waitUntil: "networkidle" }); await ready(page);
     const sample = await read(page);
     assert.equal(sample.browse.category, "printing-decals", slug);
     assert.ok(sample.ids.length && sample.ids.every(id => matchesFilter(ADVERTISING_CARDS.find(card => card.id === id), "printing-decals")), slug);
     const landed = new URL(page.url());
-    assert.equal(landed.pathname + landed.search, "/vi/advertising-products/in-an-decal/", slug);
+    assert.equal(landed.pathname + landed.search, "/advertising-products/in-an-decal/", slug);
     results.push({ case: "category-alias", slug, rendered: sample.ids.length });
   }
   assert.notEqual(await freshSeed(page, () => page.goto(base + "/en/advertising-products/", { waitUntil: "networkidle" }), seedBeforeFallback), seedBeforeFallback, "ordinary direct URL starts a new visit");

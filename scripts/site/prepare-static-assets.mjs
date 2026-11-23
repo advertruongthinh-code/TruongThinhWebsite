@@ -6,20 +6,24 @@ import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
+import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
 import "./sync-brand-lockup.mjs";
 import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
-import { contentDirOf, fileImageCheck, loadBlockContent, readHeroSources } from "./content-files.mjs";
+import { contentDirOf, fileImageCheck, loadBlockContent, readHeroSources, readRedirects } from "./content-files.mjs";
 import { validateHomeProjects } from "./home-projects.mjs";
-import { KINDS, PROJECT_FILTERS, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
+import { KINDS, PROJECT_FILTERS, PROJECT_TYPES, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
 import { buildProjectArtifact, projectListPages, projectListSource, renderProjectListPage, renderRedirectPage } from "./project-list.mjs";
 import { renderBlocks } from "./blocks.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, phonePacksScript, projectRoot, readJson, siteRoot as sourceRoot } from "./lib.mjs";
+import { tieOrphans } from "./tie-orphans.mjs";
+import { htmlElements } from "./html-elements.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, localePrefix, phonePacksScript, projectRoot, readJson, routeLocale, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
-const outputRoot = path.join(projectRoot, ".site-output");
+// TT_SITE_OUT lets a test build into a temp dir instead of the shared .site-output.
+const outputRoot = process.env.TT_SITE_OUT || path.join(projectRoot, ".site-output");
 const vendorAssets = [
   ["node_modules/lazysizes/lazysizes.min.js", "assets/vendor/lazysizes-5.3.2.min.js"],
   ["node_modules/gsap/dist/gsap.min.js", "assets/vendor/gsap-3.15.0.min.js"],
@@ -126,7 +130,7 @@ const renderCompatibilityPage = (category, cluster) => {
   const titleEn = escapeHtml(category.titleEn);
   const statementVi = escapeHtml(category.statementVi);
   const statementEn = escapeHtml(category.statementEn);
-  const targetVi = `/vi/advertising-products/${cluster.slugVi}/`;
+  const targetVi = `/advertising-products/${cluster.slugVi}/`;
   const targetEn = `/en/advertising-products/${cluster.slugEn}/`;
   return [
     "<!doctype html>",
@@ -143,7 +147,7 @@ const renderCompatibilityPage = (category, cluster) => {
     "  <script>",
     "  (() => {",
     "    const targets = " + JSON.stringify({ vi: targetVi, en: targetEn }) + ";",
-    '    const localeMatch = location.pathname.match(new RegExp("^/(vi|en)/advertising-products/"));',
+    '    const localeMatch = location.pathname.match(new RegExp("^/(en)/advertising-products/"));',
     "    const fallbackLanguage = String(document.documentElement?.lang || \"\").toLowerCase();",
     '    const locale = localeMatch?.[1] ?? (fallbackLanguage.startsWith("en") ? "en" : "vi");',
     "    const params = new URLSearchParams(location.search);",
@@ -174,7 +178,7 @@ for (const category of ADVERTISING_LEGACY_CATEGORIES) {
 // Two-tier rail generated from taxonomy.mjs (taxonomy R3): clusters link to cluster pages; product chip rows that meet the chip threshold (R5) come with
 // the image count of each cluster pre-hidden, and the runtime shows the row of the selected cluster. data-en-href is the EN slug URL.
 const productLink = (chip) =>
-  `<a class="rail-chip" href="/vi/advertising-products/${chip.vi}" data-en-href="/en/advertising-products/${chip.en}" data-masonry-product="${chip.filter}"><span data-en="${escapeHtml(chip.labelEn)}">${escapeHtml(chip.labelVi)}</span><sup>${chip.count}</sup></a>`;
+  `<a class="rail-chip" href="/advertising-products/${chip.vi}" data-en-href="/en/advertising-products/${chip.en}" data-masonry-product="${chip.filter}"><span data-en="${escapeHtml(chip.labelEn)}">${escapeHtml(chip.labelVi)}</span><sup>${chip.count}</sup></a>`;
 const advertisingIndexPath = path.join(outputRoot, "advertising-products", "index.html");
 // The runtime only learns its child modules after it loads, and the artifact only loads after detail.js: modulepreload
 // folds three network rounds into one (static-release R1). The list is read from the runtime's static imports, so adding or
@@ -189,7 +193,7 @@ const advertisingTemplate = (await readFile(advertisingIndexPath, "utf8")).repla
 ).replace(
   "<!-- advertising-cluster-filters -->",
   ADVERTISING_CATEGORIES.map(({ slug, slugVi, slugEn, titleVi, titleEn }) =>
-    `<a class="project-filter" href="/vi/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-masonry-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`).join("\n            "),
+    `<a class="project-filter" href="/advertising-products/${slugVi}/" data-en-href="/en/advertising-products/${slugEn}/" data-masonry-filter="${slug}" data-en="${escapeHtml(titleEn)}">${escapeHtml(titleVi)}</a>`).join("\n            "),
 ).replace(
   "<!-- advertising-product-chips -->",
   ADVERTISING_CATEGORIES.map(({ slug, titleVi, titleEn }) =>
@@ -206,7 +210,7 @@ const advertisingListHead = (page, vi, en, crumbs) => {
     ...alternateLinks(vi, en),
     `<meta property="og:image" content="${PUBLIC_ORIGIN}${cards[0].media.src}" />`,
     collectionLd({ path: vi, name: page.labelVi, description: page.descriptionVi ?? page.labelVi,
-      items: cards.slice(0, ADVERTISING_LIST_ITEMS).map((card) => [card.titleVi, `/vi/advertising-products/p/${card.id}/`]), crumbs }),
+      items: cards.slice(0, ADVERTISING_LIST_ITEMS).map((card) => [card.titleVi, `/advertising-products/p/${card.id}/`]), crumbs }),
   ];
 };
 // The root and every cluster and product page carry the phone packs of their own filter (masonry-live-layout R3); card pages none.
@@ -214,19 +218,19 @@ const withPhonePacks = (html, filter) => {
   if (html.split("</main>").length !== 2) throw new Error("advertising template must have exactly one </main> for the phone packs");
   return html.replace("</main>", () => `${phonePacksScript(gridCards, filter)}\n      </main>`);
 };
-await writeFile(advertisingIndexPath, withPhonePacks(advertisingTemplate.replace(/<\/title>/, () => `</title>\n    ${advertisingListHead(ADVERTISING_ROOT_PAGE, "/vi/advertising-products/", "/en/advertising-products/",
-    [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"]]).join("\n    ")}`), "all"), "utf8");
+await writeFile(advertisingIndexPath, withPhonePacks(advertisingTemplate.replace(/<\/title>/, () => `</title>\n    ${advertisingListHead(ADVERTISING_ROOT_PAGE, "/advertising-products/", "/en/advertising-products/",
+    [["Trường Thịnh", "/"], ["Sản phẩm quảng cáo", "/advertising-products/"]]).join("\n    ")}`), "all"), "utf8");
 
 // Cluster and product pages (taxonomy R4): the root page template, changing title, meta, canonical, hreflang, the selected rail item and
 // noscript (intro, links to every page). The source file is written to both locale directories; the ROUTES loop below translates.
-const pageHref = (locale, page) => `/${locale}/advertising-products/${page[locale]}/`;
+const pageHref = (locale, page) => `${localePrefix(locale)}/advertising-products/${page[locale]}/`;
 const pageLinks = ADVERTISING_PAGES.map((page) =>
   `<li><a href="${pageHref("vi", page)}" data-en-href="${pageHref("en", page)}" data-en="${escapeHtml(page.labelEn)}">${escapeHtml(page.labelVi)}</a></li>`).join("");
 const clusterPageOf = (cluster) => ADVERTISING_PAGES.find((entry) => entry.filter === cluster);
 const renderAdvertisingPage = (page) => advertisingTemplate
   .replace(/<title\b[^>]*>[\s\S]*?<\/title>/, [
     `<title data-en="${escapeHtml(page.titleEn)}">${escapeHtml(page.titleVi)}</title>`,
-    ...advertisingListHead(page, pageHref("vi", page), pageHref("en", page), [["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"],
+    ...advertisingListHead(page, pageHref("vi", page), pageHref("en", page), [["Trường Thịnh", "/"], ["Sản phẩm quảng cáo", "/advertising-products/"],
       ...(page.filter === page.cluster ? [] : [[clusterPageOf(page.cluster).labelVi, pageHref("vi", clusterPageOf(page.cluster))]]), [page.labelVi, pageHref("vi", page)]]),
   ].join("\n    "))
   .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/,
@@ -235,7 +239,7 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   // h1 is the page's keyword name (owner 2026-11-15, media-seo R6).
   .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
   .replace(/(<div class="hero-content"[^>]*>)/, (match) => `${pageNameHeading(pageName(page))}\n          ${match}`)
-  .replace('href="/vi/advertising-products/" data-language-option="vi"', `href="${pageHref("vi", page)}" data-language-option="vi"`)
+  .replace('href="/advertising-products/" data-language-option="vi"', `href="${pageHref("vi", page)}" data-language-option="vi"`)
   .replace('href="/en/advertising-products/" data-language-option="en"', `href="${pageHref("en", page)}" data-language-option="en"`)
   .replace(/(data-masonry-filter="all") aria-current="true"/, "$1 aria-current=\"false\"")
   .replace(`data-masonry-filter="${page.cluster}"`, `data-masonry-filter="${page.cluster}" aria-current="true"`)
@@ -247,7 +251,7 @@ const renderAdvertisingPage = (page) => advertisingTemplate
 for (const page of ADVERTISING_PAGES) {
   const html = withPhonePacks(renderAdvertisingPage(page), page.filter);
   for (const locale of ["vi", "en"]) {
-    const destination = path.join(outputRoot, locale, "advertising-products", page[locale], "index.html");
+    const destination = path.join(outputRoot, localePrefix(locale), "advertising-products", page[locale], "index.html");
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, html, "utf8");
   }
@@ -256,7 +260,7 @@ for (const page of ADVERTISING_PAGES) {
 // Card page (media-seo R1, R2, R4, R6): the root page template carrying the name, description, all card media in HTML (AI bots do not
 // run JS), JSON-LD and absolute URLs on the real domain so Google Images and AI bots lead back to the right card. The script right after the
 // static block hides it when JS is on because the runtime builds detail with the same content by path.
-const cardHref = (locale, card) => `/${locale}/advertising-products/p/${card.id}/`;
+const cardHref = (locale, card) => `${localePrefix(locale)}/advertising-products/p/${card.id}/`;
 const cardUrl = (locale, card) => `${PUBLIC_ORIGIN}${cardHref(locale, card)}`;
 const coverOf = (card) => card.mediaItems.find(({ id }) => id === card.coverMediaId) ?? card.mediaItems[0];
 const mediaImage = (item) => (item.kind === "video" ? item.posterSrc : item.src);
@@ -289,7 +293,7 @@ const cardJsonLd = (card) => {
     "@graph": [
       { "@type": "WebPage", "@id": url, url, name: card.titleVi, description: openingOf(card.descriptionVi), inLanguage: "vi",
         primaryImageOfPage: { "@id": `${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}` } },
-      breadcrumbLd([["Trường Thịnh", "/vi/"], ["Sản phẩm quảng cáo", "/vi/advertising-products/"],
+      breadcrumbLd([["Trường Thịnh", "/"], ["Sản phẩm quảng cáo", "/advertising-products/"],
         ...card.clusterIds.slice(0, 1).map((id) => [clusterPageOf(id).labelVi, pageHref("vi", clusterPageOf(id))]), [card.titleVi, cardHref("vi", card)]]),
       ...card.mediaItems.map((item) => ({
         "@type": "ImageObject", "@id": `${PUBLIC_ORIGIN}${mediaImage(item)}`, contentUrl: `${PUBLIC_ORIGIN}${mediaImage(item)}`,
@@ -311,20 +315,25 @@ const renderCardPage = (card) => advertisingTemplate
     // The slogan becomes p.hero-title keeping its look; h1 is the card name in the static block.
     .replace(/<h1 id="page-title"([^>]*)>([\s\S]*?)<\/h1>/, '<p id="page-title" class="hero-title"$1>$2</p>')
     .replace('<main id="noi-dung">', () => `<main id="noi-dung">${renderCardStatic(card)}`)
-    .replace('href="/vi/advertising-products/" data-language-option="vi"', `href="${cardHref("vi", card)}" data-language-option="vi"`)
+    .replace('href="/advertising-products/" data-language-option="vi"', `href="${cardHref("vi", card)}" data-language-option="vi"`)
     .replace('href="/en/advertising-products/" data-language-option="en"', `href="${cardHref("en", card)}" data-language-option="en"`)
     .replace('data-barba-namespace="advertising-products"', 'data-barba-namespace="advertising-products" data-search-off');
 for (const card of ADVERTISING_CARDS) {
   const html = renderCardPage(card);
   for (const locale of ["vi", "en"]) {
-    const destination = path.join(outputRoot, locale, "advertising-products", "p", card.id, "index.html");
+    const destination = path.join(outputRoot, localePrefix(locale), "advertising-products", "p", card.id, "index.html");
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, html, "utf8");
   }
 }
 // Project pages and News articles built from blocks (projects R3, news R3): content-contract already checked the data in the fast suite.
 const blockContent = loadBlockContent(sourceRoot);
-const blockContext = { projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])) };
+const redirects = readRedirects(sourceRoot);
+// Links in marked text resolve against these (cms-plan part 2 K1); contact.json comes with E7, until then a contact: link renders as text.
+const blockContext = {
+  projects: new Map(blockContent.projects.map((page) => [page.id, page])), news: new Map(blockContent.news.map((page) => [page.id, page])),
+  clusters: ADVERTISING_CLUSTERS.map(({ id, slugVi, slugEn }) => ({ slug: id, slugVi, slugEn })), projectTypes: Object.keys(PROJECT_TYPES), contact: null,
+};
 // Project strip (projects R1, page-home R8): Residential and Commercial list their sector's projects in projects.json order and link to the
 // sector filter; the home page lists the projects picked in content/home-projects.json and links to all projects.
 const homeProjectIds = await readJson(path.join(contentDirOf(sourceRoot), "home-projects.json"));
@@ -343,7 +352,7 @@ for (const { file: page, projectIds, more, path: morePath } of projectStrips) {
   const file = path.join(outputRoot, page);
   const html = await readFile(file, "utf8");
   if (!html.includes("<!-- project-strip -->")) throw new Error(`${page} lost <!-- project-strip -->`);
-  const cta = { type: "cta-arrow", text: more, hrefVi: `/vi${morePath}`, hrefEn: `/en${morePath}` };
+  const cta = { type: "cta-arrow", text: more, hrefVi: `${morePath}`, hrefEn: `/en${morePath}` };
   const strip = projectIds.length ? renderBlocks({ blocks: [{ type: "project-slider", projectIds }, cta] }, blockContext) : "";
   await writeFile(file, html.replace("<!-- project-strip -->", () => strip), "utf8");
 }
@@ -365,7 +374,7 @@ for (const [kind, pages] of Object.entries(blockContent)) {
   }
 }
 if (!frameTemplates.has("about")) frameTemplates.set("about", readPageSource("about/index.html"));
-for (const listPage of newsListPages(blockContent.news)) {
+for (const listPage of ["vi", "en"].flatMap((locale) => newsListPages(blockContent.news, locale))) {
   const destination = path.join(outputRoot, newsListSource(listPage));
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, renderNewsListPage(frameTemplates.get("about"), listPage), "utf8");
@@ -386,12 +395,12 @@ for (const listPage of projectListPages(blockContent.projects)) {
 }
 // Moved paths other than merged cards (their compatibility page is written below): a noindex fallback page for the preview
 // server; Cloudflare answers them with a real 301 from _redirects.
-for (const [from, to] of legacyRedirects(blockContent).filter(([from]) => !from.includes("/advertising-products/p/"))) {
+for (const [from, to] of legacyRedirects(blockContent, redirects).filter(([from]) => !from.includes("/advertising-products/p/"))) {
   const destination = path.join(outputRoot, from, "index.html");
   await mkdir(path.dirname(destination), { recursive: true });
   await writeFile(destination, renderRedirectPage(to), "utf8");
 }
-await writeFile(path.join(outputRoot, "_redirects"), redirectsFile(blockContent), "utf8");
+await writeFile(path.join(outputRoot, "_redirects"), redirectsFile(blockContent, redirects), "utf8");
 // Image sitemap (media-seo R5): one url per card page, one image:loc per media (video uses its poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>
   `<url><loc>${cardUrl(locale, card)}</loc>${card.mediaItems.map((item) => `<image:image><image:loc>${PUBLIC_ORIGIN}${mediaImage(item)}</image:loc></image:image>`).join("")}</url>`));
@@ -421,75 +430,20 @@ const escapeAttribute = (value) =>
   );
 
 const embedVietnameseText = (html, filePath) => {
-  const voidElements = new Set([
-    "area",
-    "base",
-    "br",
-    "col",
-    "embed",
-    "hr",
-    "img",
-    "input",
-    "link",
-    "meta",
-    "param",
-    "source",
-    "track",
-    "wbr",
-  ]);
-  const stack = [];
-  const insertions = [];
-  let candidates = 0;
-  let covered = 0;
-  const tagPattern = /<!--[\s\S]*?-->|<![^>]*>|<\/?[a-z][^>]*>/gi;
-  let match;
-  while ((match = tagPattern.exec(html))) {
-    const token = match[0];
-    if (token.startsWith("<!--") || token.startsWith("<!")) continue;
-    const closing = /^<\//.test(token);
-    const name = token.match(/^<\/?([a-z][\w:-]*)/i)?.[1].toLowerCase();
-    if (!name) continue;
-    if (closing) {
-      const index = stack.findLastIndex((entry) => entry.name === name);
-      if (index < 0) continue;
-      const [entry] = stack.splice(index, 1);
-      if (!entry.needsVietnamese) continue;
-      const content = html.slice(entry.contentStart, match.index);
-      const vietnamese = decodeHtmlText(content).replace(/\s+/g, " ").trim();
-      insertions.push({
-        at: entry.tagEnd - 1,
-        value: ` data-vi="${escapeAttribute(vietnamese)}"`,
-      });
-      covered += 1;
-      continue;
-    }
-    const hasEnglish = /\bdata-en=(?:"[^"]*"|'[^']*')/i.test(token);
-    const hasVietnamese = /\bdata-vi=(?:"[^"]*"|'[^']*')/i.test(token);
-    if (hasEnglish) {
-      candidates += 1;
-      if (hasVietnamese) covered += 1;
-    }
-    if (!/\/$/.test(token.slice(0, -1).trim()) && !voidElements.has(name)) {
-      stack.push({
-        contentStart: tagPattern.lastIndex,
-        name,
-        needsVietnamese: hasEnglish && !hasVietnamese,
-        tagEnd: tagPattern.lastIndex,
-      });
-    }
-  }
-  if (covered !== candidates) {
+  const english = /\bdata-en=(?:"[^"]*"|'[^']*')/i;
+  const vietnamese = /\bdata-vi=(?:"[^"]*"|'[^']*')/i;
+  const candidates = htmlElements(html).filter(({ tag }) => english.test(tag));
+  const insertions = candidates.filter(({ tag, contentEnd }) => !vietnamese.test(tag) && contentEnd !== undefined).map(({ contentStart, contentEnd }) => ({
+    at: contentStart - 1,
+    value: ` data-vi="${escapeAttribute(decodeHtmlText(html.slice(contentStart, contentEnd)).replace(/\s+/g, " ").trim())}"`,
+  }));
+  const covered = candidates.filter(({ tag }) => vietnamese.test(tag)).length + insertions.length;
+  if (covered !== candidates.length) {
     throw new Error(
-      `${filePath}: embedded ${covered} Vietnamese values for ${candidates} English text values.`,
+      `${filePath}: embedded ${covered} Vietnamese values for ${candidates.length} English text values.`,
     );
   }
-  let output = html;
-  insertions
-    .sort((left, right) => right.at - left.at)
-    .forEach(({ at, value }) => {
-      output = `${output.slice(0, at)}${value}${output.slice(at)}`;
-    });
-  return output;
+  return insertions.reduceRight((output, { at, value }) => `${output.slice(0, at)}${value}${output.slice(at)}`, html);
 };
 
 // Wrap content WebP <img> tags in <picture>: a progressive JXL <source> (progressive-loading R1) for browsers that can read JXL,
@@ -519,31 +473,6 @@ const responsivePictures = (html) =>
     const phoneSet = set("webp", WEBP_WIDTHS, intrinsic <= WEBP_WIDTHS.at(-1));
     return `<picture>${phone(`${srcset}="${phoneSet}" sizes="${sizes}"`)}<source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
   });
-
-// No orphan word (hero-typography R7): text-wrap: pretty does not always move a long last word, so every plain-text
-// bilingual element (paragraph, label, caption or inline part of a title) ties its last two words with a no-break
-// space in VI, EN and the rendered text. A two-word label stays on one line; a separator such as "·" stays with the
-// word after it. A heading that ends with an italic part ties that part to the word before it.
-const TIE_BLOCK = /<([a-z][\w-]*)\b([^>]*\bdata-en="[^"]*"[^>]*)>([^<]*)<\/\1>/g;
-const TIE_ITALIC_TAIL = /(<\/span>)\s+(<(i|em)\b[^>]*>[^<]*<\/\3>\s*<\/h[1-6]>)/g;
-const tieLastWord = (text) => {
-  const [, lead, body, trail] = text.match(/^(\s*)([\s\S]*?)(\s*)$/);
-  const words = body.split(/\s+/);
-  if (words.length < 2) return text;
-  let glued = words.pop();
-  while (words.length > 1 && !/[\p{L}\p{N}]/u.test(words.at(-1))) glued = `${words.pop()}\u00a0${glued}`;
-  glued = `${words.pop()}\u00a0${glued}`;
-  return `${lead}${[...words, glued].join(" ")}${trail}`;
-};
-// A part followed by the heading's italic tail is tied to that tail instead (TIE_ITALIC_TAIL); tying its own last two words
-// as well would glue "Spaces for business" into one unbreakable run wider than a phone.
-const ITALIC_TAIL_AHEAD = /^\s+<(i|em)\b[^>]*>[^<]*<\/\1>\s*<\/h[1-6]>/;
-const tieElement = (match, name, attributes, content, offset, html) =>
-  ITALIC_TAIL_AHEAD.test(html.slice(offset + match.length)) ? match :
-    `<${name}${attributes.replace(/\bdata-(en|vi)="([^"]*)"/g, (_pair, key, value) => `data-${key}="${tieLastWord(value)}"`)}>${tieLastWord(content)}</${name}>`;
-// Page copy only: <head>, header and menu labels stay as written (exact strings for title, nav and their tests).
-const tieOrphans = (html) => html.replace(/(<main\b[^>]*>)([\s\S]*?)(<\/main>)/, (_match, open, body, close) =>
-  open + body.replace(TIE_BLOCK, tieElement).replace(TIE_ITALIC_TAIL, "$1\u00a0$2") + close);
 
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;
@@ -588,7 +517,7 @@ for (const [mergedId, coverId] of Object.entries(MERGED_CARD_REDIRECTS)) {
   const html = renderCompatibilityPage({ titleVi: cover.titleVi, titleEn: cover.titleEn, statementVi: cover.descriptionVi, statementEn: cover.descriptionEn },
     { slugVi: `p/${coverId}`, slugEn: `p/${coverId}` });
   for (const locale of ["vi", "en"]) {
-    const destination = path.join(outputRoot, locale, "advertising-products", "p", mergedId, "index.html");
+    const destination = path.join(outputRoot, localePrefix(locale), "advertising-products", "p", mergedId, "index.html");
     await mkdir(path.dirname(destination), { recursive: true });
     await writeFile(destination, html, "utf8");
   }
@@ -596,7 +525,7 @@ for (const [mergedId, coverId] of Object.entries(MERGED_CARD_REDIRECTS)) {
 // Self canonical and hreflang (SEO audit 2026-11-22): a route template without its own canonical (home, residential, commercial,
 // about) gets the links of its VI and EN routes, so every indexable page is in sitemap-pages.xml below.
 const localeRoutes = new Map();
-for (const [route, source] of ROUTES) localeRoutes.set(source, { ...localeRoutes.get(source), [route.slice(1, 3)]: route });
+for (const [route, source] of ROUTES) localeRoutes.set(source, { ...localeRoutes.get(source), [routeLocale(route)]: route });
 for (const [source, { vi, en }] of localeRoutes) {
   if (!vi || !en) continue;
   const file = path.join(outputRoot, source);
@@ -605,11 +534,12 @@ for (const [source, { vi, en }] of localeRoutes) {
 }
 await localizeHtmlOutput(outputRoot);
 
+// A VI route now writes over its own source (VI lives at the root), so every source is read before any route is written.
+const sources = new Map(await Promise.all([...new Set(ROUTES.values())].map(async (source) => [source, await readFile(path.join(outputRoot, source), "utf8")])));
 for (const [route, source] of ROUTES) {
-  const html = await readFile(path.join(outputRoot, source), "utf8");
   const destination = path.join(outputRoot, route, "index.html");
   await mkdir(path.dirname(destination), { recursive: true });
-  await writeFile(destination, localeHtml(html, route.startsWith("/en/") ? "en" : "vi"), "utf8");
+  await writeFile(destination, localeHtml(sources.get(source), routeLocale(route)), "utf8");
 }
 
 // Page sitemap (SEO audit 2026-11-15): every indexable route (self canonical, no noindex) except card pages, which
@@ -633,7 +563,7 @@ await writeFile(path.join(outputRoot, "404.html"), localeHtml(notFoundHtml, "vi"
 for (const cluster of ADVERTISING_PAGES.filter(({ filter, cluster }) => filter === cluster)) {
   const html = renderCompatibilityPage({ titleVi: cluster.labelVi, titleEn: cluster.labelEn, statementVi: cluster.descriptionVi, statementEn: cluster.descriptionEn }, cluster);
   for (const locale of ["vi", "en"]) {
-    const destination = path.join(outputRoot, locale, "advertising-products", cluster[locale], "404.html");
+    const destination = path.join(outputRoot, localePrefix(locale), "advertising-products", cluster[locale], "404.html");
     await writeFile(destination, localeHtml(embedVietnameseText(html, destination), locale), "utf8");
   }
 }

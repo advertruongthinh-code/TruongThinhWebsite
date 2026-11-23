@@ -42,7 +42,7 @@ async function measure() {
         .observe({ type: "longtask", buffered: true });
     } catch {}
   });
-  await page.goto(`${BASE}/vi/advertising-products/?photo=${CARD}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE}/advertising-products/?photo=${CARD}`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => {
     const image = document.querySelector("[data-detail-view] [data-detail-image]");
     return image?.complete && image.naturalWidth > 0 && !document.querySelector(".detail-view__hero-frame[data-detail-loading]");

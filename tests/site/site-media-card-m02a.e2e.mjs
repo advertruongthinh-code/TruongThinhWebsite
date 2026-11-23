@@ -87,7 +87,7 @@ async function openFixture(page, locale, { videoCover = false, direct = false, p
   });
   await page.addInitScript((value) => { window.__TT_ADVERTISING_ARTIFACT__ = value; }, artifact);
   const query = direct ? photoOnly ? `?photo=${card.id}` : `?category=${card.category}&photo=${card.id}` : `?category=${card.category}`;
-  await page.goto(`${base}/${locale}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${base}${locale === "en" ? "/en" : ""}/advertising-products/${query}`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()), null, { timeout: 5_000 });
   if (direct) await page.locator("[data-detail-view]").waitFor({ state: "visible" });
   else await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), card.id);

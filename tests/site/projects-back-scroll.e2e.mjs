@@ -27,7 +27,7 @@ try {
     const page = await context.newPage();
     const at = `${device} ${timing}`;
     try {
-      await page.goto(`${base}/vi/projects/`, { waitUntil: "load" });
+      await page.goto(`${base}/projects/`, { waitUntil: "load" });
       await gridReady(page);
       await page.waitForTimeout(800);
       await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(Math.round((document.documentElement.scrollHeight - innerHeight) * 0.4)));
@@ -54,7 +54,7 @@ try {
         await page.waitForTimeout(500);
       }
       await page.goBack();
-      await page.waitForURL((url) => url.pathname === "/vi/projects/", { timeout: 10000 });
+      await page.waitForURL((url) => url.pathname === "/projects/", { timeout: 10000 });
       await gridReady(page);
       await page.waitForTimeout(2500);
       const after = await page.evaluate(read, card.href);

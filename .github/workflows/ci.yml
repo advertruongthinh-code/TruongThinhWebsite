@@ -75,19 +75,10 @@ jobs:
       # GitHub-hosted runners are blank per job, so install Chromium with system deps.
       - run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
       # The adv-browse suite also runs WebKit (random-browse); the other suites run Chromium only.
-      # The ubuntu-latest runner already has most system libraries, so only download the browser (CDN, a few seconds);
-      # apt runs only when the browser cannot open. Do not use --with-deps: apt-get update from the Azure mirror
-      # once hung for 11 minutes (PR 581), and a timeout run as a normal user cannot kill apt run via sudo.
       - name: Install browsers
         env:
           BROWSERS: ${{ matrix.suite == 'adv-browse' && 'chromium webkit' || 'chromium' }}
-        run: |
-          pnpm exec playwright install $BROWSERS
-          probe() { for b in $BROWSERS; do node -e "require('playwright').$b.launch().then(x => x.close())" || return 1; done; }
-          probe || {
-            sudo env "PATH=$PATH" timeout -k 10 240 node_modules/.bin/playwright install-deps $BROWSERS
-            probe
-          }
+        run: scripts/ci/install-browsers.sh
 
       # The script builds itself, opens a preview on its own free port and cleans up the server.
       - run: pnpm qa:suite ${{ matrix.suite }}
@@ -117,20 +108,48 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  # A ready PR that changes src/site/ and adds or changes browser tests must have one of them red on main's src/site/ (spec R13).
+  red-before:
+    needs: select
+    if: github.event_name == 'pull_request' && !github.event.pull_request.draft && needs.select.outputs.suites != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      # HEAD^1 of the PR merge commit is main.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 2
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: echo "PLAYWRIGHT_BROWSERS_PATH=$HOME/.cache/ms-playwright" >> "$GITHUB_ENV"
+      - name: Install browsers
+        env:
+          BROWSERS: chromium
+        run: scripts/ci/install-browsers.sh
+      # The PR body arrives through env, never inside the script text.
+      - env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: node scripts/ci/red-before.mjs --base HEAD^1
+
   # Automerge and Deploy demo read this check; suites that are not selected (skipped) do not count as red. The draft PR run renames
   # the check so Automerge does not merge on a result that covers only the fast suite. If the whole run is cancelled (new push, PR leaves draft) the job is skipped
   # instead of red; Automerge accepts only success, so skipped cannot merge.
   static-release:
     name: ${{ github.event.pull_request.draft && 'static-release-draft' || 'static-release' }}
-    needs: [select, suite]
+    needs: [select, suite, red-before]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
       - run: |
-          echo "select=${{ needs.select.result }} suites=${{ needs.select.outputs.suites }} result=${{ needs.suite.result }}"
+          echo "select=${{ needs.select.result }} suites=${{ needs.select.outputs.suites }} result=${{ needs.suite.result }} red-before=${{ needs.red-before.result }}"
           [ "${{ needs.select.result }}" = success ] || exit 1
           case "${{ needs.suite.result }}" in success|skipped) ;; *) exit 1 ;; esac
+          case "${{ needs.red-before.result }}" in success|skipped) ;; *) exit 1 ;; esac
 
   # A red nightly run opens or updates one Notion card in Tasks, a green one closes it (spec ci-test-suites R13, owner 2026-11-22).
   nightly-card:
@@ -153,8 +172,10 @@ jobs:
           RESULT: ${{ needs.static-release.result }}
 
   # Deploy demo runs only on main (push or Automerge dispatch) when static-release, i.e. the fast suite, is green; the nightly run does not deploy.
+  # Deploy only when the fast suite ran (code changed) and static-release is green. Without !cancelled() a skipped job anywhere
+  # upstream (red-before always skips off a PR) skips the deploy too.
   deploy-demo:
-    needs: static-release
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true
+    needs: [select, static-release]
+    if: ${{ !cancelled() && needs.static-release.result == 'success' && needs.select.outputs.suites != '[]' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true }}
     uses: ./.github/workflows/deploy-demo.yml
     secrets: inherit

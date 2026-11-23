@@ -154,7 +154,7 @@ Then có dòng "Hai media trùng mô tả ảnh" nêu tên hai media; Lưu giữ
 Tab Card của một công trình: chọn khung card trong 8 tỷ lệ, rồi chọn từ 2 media trở lên trong danh sách media của
 chính trang đó (không upload riêng cho card), kéo thả thứ tự, chọn ảnh bìa, crop từng media theo khung card. Alt lấy
 từ media của trang, không sửa ở đây. Gỡ một media khỏi tab Media của bài khi card còn dùng thì tab đó ghi "Card đang
-dùng media này" và lệnh lưu trả 409; người soạn bỏ nó khỏi card trước.
+dùng media này" và lệnh lưu trả 400 `card-foreign`; người soạn bỏ nó khỏi card trước.
 
 ```gherkin
 Given trang công trình có 6 media, card chưa có media nào
@@ -200,7 +200,7 @@ kéo; chip tỷ lệ và nút mốc là nút chữ; mọi thao tác chuột có 
 | R1, R8 | cần: e2e lọc, sửa alt nhiều chỗ dùng, 409 khi xóa media đang dùng, đổi nhãn khi biến thể xong |
 | R2, R3 | cần: e2e hàng chờ với file sai loại, quá cỡ, 429; chụp poster cùng tỷ lệ video |
 | R4, R5 | cần: đơn vị phép tính crop (phủ kín, đổi tỷ lệ giữ tâm, số nguyên trong ảnh); e2e vùng mờ từng mốc |
-| R6, R7 | cần: e2e alt trùng, card công trình dưới 2 media, 409 khi gỡ media card đang dùng |
+| R6, R7 | cần: e2e alt trùng, card công trình dưới 2 media, 400 `card-foreign` khi gỡ media card đang dùng |
 
 ## Gate còn mở
 
