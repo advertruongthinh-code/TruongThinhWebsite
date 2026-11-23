@@ -147,7 +147,7 @@ function renderRollback(data) {
     ? [item([{ text: 'Không đọc được GitHub.' }])]
     : runs.length ? runs.map((r) => {
       const link = document.createElement('a');
-      link.href = r.html_url;
+      if (String(r.html_url).startsWith('https://github.com/')) link.href = r.html_url;
       link.textContent = 'xem run';
       return item([{ text: when(r.created_at) }, { text: r.status === 'completed' ? (RUN_TEXT[r.conclusion] || r.conclusion) : 'đang chạy' }], link);
     }) : [item([{ text: 'Chưa quay về lần nào.' }])]));

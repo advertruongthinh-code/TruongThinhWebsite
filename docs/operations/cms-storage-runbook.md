@@ -106,6 +106,7 @@ Owner nhập một lần; agent không đọc giá trị. Admin Worker dùng tok
 3. Trong lúc tạm dừng, lưu không gọi dựng và `snapshot` trả 423. Xong việc, bấm "Tiếp tục đăng": bỏ tạm dừng và gọi một lần dựng nội dung.
 4. Giới hạn phần 1: rollback chỉ đổi staging, site thật không đổi. Khi `CMS_SNAPSHOT_URL` rỗng, lần merge code kế tiếp vẫn deploy từ repo và đè bản đã quay về. Sau rollback, `build-info.json` của staging là của bản cũ, nên lần dựng nội dung kế tiếp dùng commit cũ đó tới khi có một lần merge code.
 5. Run rollback hiện "bị hủy" (một deploy hay rollback khác chen vào): bấm lại.
+6. Run rollback đỏ ở bước `grep`: bản chọn đã ra khỏi 10 deployment gần nhất của Wrangler (mỗi lần rollback hay deploy không có dấu cũng chiếm một chỗ). Tự đăng vẫn tạm dừng; chọn một bản mới hơn rồi bấm lại.
 
 ## Migration D1
 

@@ -76,7 +76,7 @@ test("a rollback pauses publishing, snapshot answers 423 and GitHub gets rollbac
   assert.equal(t.calls.length, 1);
   assert.match(t.calls[0].url, /\/workflows\/rollback\.yml\/dispatches$/);
   assert.equal(t.calls[0].body, `{"ref":"main","inputs":{"version_id":"${version(10)}"}}`);
-  assert.equal((await t.call("snapshot")).status, 403, "snapshot is service only");
+  await assert.rejects(COMMANDS.snapshot.run(new Request(`${ORIGIN}/api/admin/snapshot`), t.env, {}, { service: true }, new URL(`${ORIGIN}/api/admin/snapshot`)), (error) => error.status === 423);
   assert.deepEqual(t.audits(), [`rollback ${version(10)} ok`]);
 });
 
