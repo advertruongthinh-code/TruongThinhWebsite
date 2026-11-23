@@ -23,7 +23,7 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
   đầu. Có ảnh mà chưa gõ chữ thì hiện "Thêm chữ để lọc". Mọi câu vừa nguyên ô chữ phone 360px (khoảng 157px).
 - Một ảnh: thumbnail 30px `[data-search-thumb]` thế chỗ nút ảnh, thanh không cao thêm; bấm thumbnail để thay ảnh, badge bỏ
   14px (vùng bấm 32px). Thêm ảnh khác thì thay ảnh cũ.
-- Thông báo `[data-search-note]` phủ lên ô chữ 4 giây; dòng chậm, lỗi tìm ("Lỗi tìm kiếm", "Lỗi tìm ảnh") giữ lại kèm nút icon vòng xoay 40px (`aria-label` "Thử lại") ở cuối ô. Gõ chữ thì tắt.
+- Thông báo `[data-search-note]` phủ lên ô chữ 4 giây; dòng chậm, lỗi tìm ("Lỗi tìm kiếm", "Lỗi tìm ảnh") giữ lại kèm nút icon vòng xoay 40px (`aria-label` "Thử lại") ở cuối ô; nút xoá chữ ẩn trong lúc đó. Gõ chữ thì tắt.
   Screen reader đọc số kết quả qua vùng `aria-live` ẩn.
 - Khe CTA: link "Trao đổi ý tưởng" dưới thanh như link trang Công trình; khoảng trên và dưới thanh bằng nhau theo mắt, cụm
   tiêu đề và thanh nằm ở tâm thị giác khi cuộn tới cuối ([R4](../../../docs/specs/search-bar.md#r4-khe-cta)).

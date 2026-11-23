@@ -359,9 +359,14 @@ body.is-detail .search-host {
   visibility: hidden;
 }
 
-/* A notice hides the typed text for its 4 seconds; it reads darker than a tip. */
+/* A notice hides the typed text for its 4 seconds; it reads darker than a tip. The clear button goes with the text, so a phone notice
+   keeps the whole field (owner 2026-11-23). */
 .search-bar.has-note .search-bar__field input {
   color: transparent;
+}
+
+.search-bar.has-note .search-bar__clear {
+  display: none;
 }
 
 .search-bar__note {

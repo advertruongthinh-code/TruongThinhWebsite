@@ -67,7 +67,7 @@ tạm trong suốt), trượt vào và ra như chữ gợi ý, chữ `ink` đậ
 ngay. Đang chậm và lỗi tìm ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)): thông báo ở lại tới khi khách làm gì đó, cuối ô chữ có nút icon vòng xoay 40px như nút ảnh, nhãn `aria-label`/`title` "Thử lại" / "Try again" (owner 2026-11-23, thay nút chữ). Câu ngắn
 như chữ gợi ý: vừa nguyên ô chữ phone 360px (khoảng 157px), câu có nút thử lại vừa phần còn lại (khoảng 107px): "Tìm ảnh chậm" / "Image is slow", "Lỗi tìm kiếm" /
 "Search error", "Lỗi tìm ảnh" / "Image error", "Ảnh lỗi, thử JPG" / "Bad image, try JPG", "File chưa hỗ trợ" / "File not supported", "Ảnh cần dưới 25 MB" /
-"Image over 25 MB". Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
+"Image over 25 MB". Đang có thông báo thì nút xoá chữ ẩn theo chữ khách gõ, nên thông báo có cả ô chữ. Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
 
 ### R4. Khe CTA
 

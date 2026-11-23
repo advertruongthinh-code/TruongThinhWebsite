@@ -892,7 +892,10 @@ test("search-bar R3 at 360px: every tip and notice fits the floating phone field
       const copy = COPY[locale];
       const plain = [...copy.tips, copy.imageHint, copy.videoOnly, copy.unsupported, copy.tooLarge, copy.unreadable, copy.searching, copy.empty];
       const retry = [copy.slow, copy.trouble, copy.imageTrouble];
+      // A notice shows over typed text: the clear button is out while it does.
+      await page.fill(".search-bar input", "hộp đèn");
       const { field, wide } = await page.evaluate(({ plain, retry }) => {
+        document.querySelector(".search-bar").classList.add("has-note");
         const field = document.querySelector(".search-host .search-bar__field").getBoundingClientRect().width;
         const font = getComputedStyle(document.querySelector(".search-host .search-bar__note")).fontFamily;
         const context = document.createElement("canvas").getContext("2d");
