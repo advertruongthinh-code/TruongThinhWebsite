@@ -1801,6 +1801,59 @@ function sizeNode(node, placement, setSize) {
   node.setAttribute("aria-setsize", String(setSize));
 }
 
+// Rail and chip rows stay on one line at every size (owner 2026-11-23): the edge fades while items remain beyond it, a vertical wheel
+// and a mouse drag scroll across, a drag does not open the item under the pointer.
+function bindRowScroll(row, signal) {
+  const sync = () => {
+    const room = row.scrollWidth - row.clientWidth;
+    row.toggleAttribute("data-fade-start", row.scrollLeft > 1);
+    row.toggleAttribute("data-fade-end", room - row.scrollLeft > 1);
+  };
+  const observer = new ResizeObserver(sync);
+  observer.observe(row);
+  signal.addEventListener("abort", () => observer.disconnect(), { once: true });
+  row.addEventListener("scroll", sync, { passive: true, signal });
+  // Locomotive takes the wheel at the container: a row that can still move keeps it.
+  row.addEventListener("wheel", (event) => {
+    if (Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return;
+    const next = Math.max(0, Math.min(row.scrollWidth - row.clientWidth, row.scrollLeft + event.deltaY));
+    if (Math.abs(next - row.scrollLeft) < 1) return;
+    event.preventDefault();
+    event.stopPropagation();
+    row.scrollLeft = next;
+  }, { passive: false, signal });
+  let drag = null;
+  row.addEventListener("pointerdown", (event) => {
+    drag = event.pointerType === "mouse" && event.button === 0 ? { x: event.clientX, left: row.scrollLeft, moved: false } : null;
+  }, { signal });
+  row.addEventListener("pointermove", (event) => {
+    if (!drag || !(event.buttons & 1)) return;
+    const dx = event.clientX - drag.x;
+    if (!drag.moved && Math.abs(dx) < 6) return;
+    if (!drag.moved) row.setPointerCapture(event.pointerId);
+    drag.moved = true;
+    row.scrollLeft = drag.left - dx;
+  }, { signal });
+  row.addEventListener("click", (event) => {
+    if (!drag?.moved) return;
+    drag = null;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+  }, { capture: true, signal });
+  row.addEventListener("dragstart", (event) => event.preventDefault(), { signal });
+}
+
+// Bring the current item of a one-line row into view, centred, along the row only so the page does not move.
+function revealCurrent(row) {
+  const current = row.hidden ? null : row.querySelector('[aria-current="true"]');
+  if (!current || row.scrollWidth - row.clientWidth <= 1) return;
+  const frame = row.getBoundingClientRect();
+  const box = current.getBoundingClientRect();
+  const fade = parseFloat(getComputedStyle(row).getPropertyValue("--scroll-fade-size")) || 0;
+  if (box.left >= frame.left + fade - 1 && box.right <= frame.right - fade + 1) return;
+  row.scrollLeft += box.left + box.width / 2 - frame.left - frame.width / 2;
+}
+
 export async function mountMasonry(container = document.querySelector('[data-barba-namespace="advertising-products"]'), { signal, scroll, softNavigation = false, artifact: providedArtifact, viewer = true } = {}) {
   if (!container || activeInstance?.container === container) return activeInstance?.cleanup || (() => {});
   activeInstance?.cleanup();
@@ -2193,6 +2246,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   const shown = (node) => !node.hidden && !node.hasAttribute("data-search-empty") && !node.closest("[hidden]");
   // Two-tier rail (taxonomy R3): the selected cluster shows a chip row; the product entry matching the filter has aria-current.
   const chipGroups = [...container.querySelectorAll("[data-masonry-chips]")];
+  [filters, ...chipGroups].forEach((row) => bindRowScroll(row, controller.signal));
   // Elements shown after a rail click reuse the Advertising entrance rhythm ([Motion](design-system/motion.md)); reduced motion goes straight to the final state.
   const enterFrom = (nodes, transform, { duration, easing, delay = 0, stagger = 0 }) => {
     if (reducedMotionQuery.matches) return;
@@ -2245,13 +2299,9 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         const chips = [...group.querySelectorAll(".rail-chip")];
         enterFrom(chips, "translate3d(0, 20px, 0)", { duration: 1000, easing: EASE.expoOut, delay: 300, stagger: Math.min(150, 600 / Math.max(1, chips.length - 1)) });
       }
-      // The chip row scrolls horizontally on phones: bring the selected chip into the frame, horizontal axis only so the page is not dragged.
-      // Next frame, so the rail writes above do not force a layout inside the click task.
-      const current = group.hidden ? null : group.querySelector('[aria-current="true"]');
-      if (current) requestAnimationFrame(() => {
-        group.scrollLeft += current.getBoundingClientRect().left - group.getBoundingClientRect().left - parseFloat(getComputedStyle(group).paddingLeft);
-      });
     });
+    // Next frame, so the rail writes above do not force a layout inside the click task.
+    requestAnimationFrame(() => [filters, ...chipGroups].forEach(revealCurrent));
   };
   let filter = initialFilter({ categories, cards, pages });
   // Search mode (masonry-live-layout R6): ranked result ids replace the filter pool, every card one column in score order.
@@ -2267,7 +2317,11 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const order = (Array.isArray(ids) ? ids : []).map((id) => byId.get(id)).filter((card) => card && !seen.has(card.id) && seen.add(card.id));
     return { key: `search:${fnv1a32(order.map((card) => card.id).join(","))}`, order };
   };
-  if (heldResults) search = searchFor(heldResults);
+  if (heldResults) {
+    search = searchFor(heldResults);
+    // Held results open inside the page's filter when it has any (search-bar R8).
+    if (search.order.some((card) => matchesFilter(card, filter))) searchFilter = filter;
+  }
   heldResults = null;
   // Phone first grid (masonry-live-layout R3, owner 2026-11-16): the page's 2:15 packs of its own filter for a fixed set of seeds.
   // Read only on the 2-column band; a stamp that does not match these cards (page and artifact from different builds) packs live.
@@ -3974,8 +4028,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   };
   // Switches the grid to another card set (filter or search results), sliding cards from where they are now. reason tells the search
   // page why search ended (R6): "clear", "filter" (a click: rail, active chip, navbar, breadcrumb) or "history" (Back/Forward).
-  // After a search the page glides so the grid's top sits one outer margin below the header (search-bar R9): always for new
-  // results; for a chip or clearing only when the shorter grid left the CTA in view. Two frames let the slide and site:layout land first.
+  // After a search the page glides so the grid's top sits one outer margin below the header (search-bar R9): always for
+  // results (new or the same again); for a chip or clearing only when the shorter grid left the CTA in view. Two frames let the slide and site:layout land first.
   const glideToGrid = (always) => requestAnimationFrame(() => requestAnimationFrame(() => {
     if (!always && !(gridCta && gridCta.getBoundingClientRect().top < innerHeight)) return;
     const y = getLogicalScroll();
@@ -4000,10 +4054,10 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     if (toGrid) glideToGrid(toGrid === "always");
   };
   // A filter change (rail click, Back to another category) also leaves search mode.
-  // Search bar only on the root grid (search-bar R8): off on a filter page while not searching, and on any card.
+  // The search bar shows on the grid, filtered or not, and is off on a card (search-bar R8, owner 2026-11-23).
   const syncSearchOff = () => {
     if (!gridCtaSlotNode) return;
-    container.toggleAttribute("data-search-off", Boolean(activePhotoId) || (filter !== "all" && !search));
+    container.toggleAttribute("data-search-off", Boolean(activePhotoId));
   };
   const setActiveFilter = (nextFilter, options) => {
     cancelLayoutWait();
@@ -4035,7 +4089,8 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     offer.dataset.vi = "Có thêm kết quả gợi ý";
     offer.dataset.en = "More suggested results";
     offer.textContent = locale === "en" ? offer.dataset.en : offer.dataset.vi;
-    offer.addEventListener("click", () => setResults(ids));
+    // Late results with none in the filter open on the whole catalogue (search-bar R8).
+    offer.addEventListener("click", () => setResults(ids, countInScope(ids) ? undefined : { scope: "all" }));
     grid.before(offer);
   };
   const setPending = (pending) => {
@@ -4044,15 +4099,18 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     grid.setAttribute("aria-busy", String(Boolean(pending)));
   };
   // Search API (masonry-live-layout R6): ids in score order; unknown and repeated ids are skipped, the latest call wins.
-  const setResults = (ids) => {
+  // A search runs inside the filter in use, browse or within results (search-bar R8, owner 2026-11-23); scope "all" widens it.
+  const countInScope = (ids, scope = railFilter()) => searchFor(ids).order.filter((card) => scope === "all" || matchesFilter(card, scope)).length;
+  const setResults = (ids, { scope = railFilter() } = {}) => {
     cancelLayoutWait();
     setPending(false);
     setOffer(null);
     const next = searchFor(ids);
-    if (next.key === search?.key && searchFilter === "all") return;
+    // The same results again still glide to the grid top (search-bar R9, owner 2026-11-23).
+    if (next.key === search?.key && searchFilter === scope) return glideToGrid(true);
     relayoutTo(() => {
       search = next;
-      searchFilter = "all";
+      searchFilter = scope;
     }, { animate: true, toGrid: "always" });
   };
   const clearResults = () => {
@@ -5140,6 +5198,22 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       });
     }
   };
+  // Touch screens float the primary strip on the image, other screens keep it in info above the description (owner 2026-11-23).
+  const touchScreen = env.phone;
+  const placePrimaryThumbs = () => {
+    if (!photoMediaThumbs) return;
+    const floating = touchScreen.matches && heroFrame;
+    photoMediaThumbs.classList.toggle("thumb-dock", Boolean(floating));
+    if (floating) heroFrame.append(photoMediaThumbs);
+    else photoDescriptionBox.before(photoMediaThumbs);
+  };
+  touchScreen.addEventListener("change", placePrimaryThumbs, { signal: controller.signal });
+  // One collapse state for the primary and viewer strips, kept while the page stays open (owner 2026-11-23).
+  document.addEventListener("click", (event) => {
+    if (!event.target.closest?.("[data-thumbs-toggle]")) return;
+    const collapsed = document.documentElement.toggleAttribute("data-thumbs-collapsed");
+    document.querySelectorAll("[data-thumbs-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(!collapsed)));
+  }, { signal: controller.signal });
   const renderPrimaryThumbs = (record) => {
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
@@ -5165,7 +5239,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       photoMediaThumbs.setAttribute("role", "group");
       photoMediaThumbs.addEventListener("scroll", syncScrollHints, { passive: true });
       scrollHintObserver.observe(photoMediaThumbs);
-      photoDescriptionBox.before(photoMediaThumbs);
+      placePrimaryThumbs();
     }
     photoMediaThumbs.setAttribute("aria-label", english ? "Product media" : "Media sản phẩm");
     photoMediaThumbs.style.setProperty("--detail-thumb-ratio", String(thumbRatio(record)));
@@ -5368,7 +5442,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // A touch swipe drags the strip with the finger (R6 like card R3); arrow keys when focus is in the frame change media, the seek bar and
   // volume keep their keys. A finger on the seek bar and volume only seeks and adjusts sound (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {
-    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range']"),
+    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range'], .thumb-dock, [data-thumbs-toggle]"),
     width: primaryWidth,
     canStep: (step) => Boolean(primaryItems()[primaryIndex() + step]),
     drag: (offset) => {
@@ -5711,6 +5785,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     clearResults,
     ensurePhoto,
     offerResults: (ids) => setOffer(Array.isArray(ids) ? ids : null),
+    countInScope,
     getCardLink: (id) => gridHost.rendered.get(id)?.querySelector("a") || null,
     releasePhoto(id) {
       retainedPhotoIds.delete(id);
@@ -6024,18 +6099,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const category = link.dataset.detailCrumb;
     whenLayoutReady(category, () => browseHistory.returnToGrid({ reason: "breadcrumb", category }), link);
   }, { signal: controller.signal });
-  // Escape and the back button take the same path (R10): an image entered directly goes back to the group masonry, otherwise go back one entry.
-  const leavePhoto = () => {
-    if (!browseHistory.escapeDirectPhoto()) history.back();
-  };
-  photoView?.querySelector("[data-detail-back]")?.addEventListener("click", () => {
-    if (browseHistory.current.photo) leavePhoto();
-  }, { signal: controller.signal });
+  // Escape (R10): an image entered directly goes back to the group masonry, otherwise go back one entry.
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape" || event.defaultPrevented || photoDialog?.open
       || document.querySelector('#site-menu')?.open || !browseHistory.current.photo) return;
     event.preventDefault();
-    leavePhoto();
+    if (!browseHistory.escapeDirectPhoto()) history.back();
   }, { signal: controller.signal });
   addEventListener("site:scroll", updateVisualScroll, { signal: controller.signal });
   addEventListener("site:scroll", trackScroll(({ detail }) => detail.y), { passive: true, signal: controller.signal });
@@ -6398,9 +6467,11 @@ window.TruongThinhMasonry = {
   replaceTag: (tag) => Boolean(activeInstance?.browseHistory.replaceTag(tag)),
   // Before a grid mounts, the latest results wait for it (masonry-live-layout R6).
   setPending: (pending) => activeInstance?.adapter.setPending(pending),
-  setResults: (ids) => {
-    if (activeInstance) activeInstance.adapter.setResults(ids);
+  setResults: (ids, options) => {
+    if (activeInstance) activeInstance.adapter.setResults(ids, options);
     else heldResults = ids;
   },
+  // How many of the ids the current filter holds (search-bar R8); null before a grid mounts.
+  countInScope: (ids) => activeInstance?.adapter.countInScope(ids) ?? null,
   unmount: unmountMasonry,
 };

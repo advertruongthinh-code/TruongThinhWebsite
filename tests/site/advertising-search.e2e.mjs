@@ -3,8 +3,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ADVERTISING_CARDS } from "../../src/site/advertising-products/catalog.mjs";
+import { COPY } from "../../src/site/search/bar.mjs";
 import { matchesFilter } from "../../src/site/masonry/layout.mjs";
-import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, viewportAt } from "./harness.mjs";
+import { BASE_URL, SWEEP_WIDTHS, launchBrowser, mouseDrag, openPage, touchSwipe, viewportAt } from "./harness.mjs";
 
 const PAGE = `${BASE_URL}/advertising-products/`;
 const WIDE = { width: 1440, height: 900 };
@@ -112,7 +113,7 @@ test("R6, R9: no keyword match keeps the grid pending until the Worker answers e
     assert(await page.locator("[data-masonry-pending]").count(), "still pending at 1.5 s");
     await page.waitForFunction(() => !document.querySelector("[data-masonry-pending]"), null, { timeout: 4000 });
     assert.match(await liveText(page), /chưa thấy/i);
-    assert.match(await page.locator(".search-bar [data-search-note]").textContent(), /chưa thấy mẫu phù hợp/i, "short notice in the input's place");
+    assert.match(await page.locator(".search-bar [data-search-note]").textContent(), new RegExp(COPY.vi.empty, "i"), "short notice in the input's place");
     assert(await page.locator(".search-bar [data-search-note]").isVisible());
     await page.waitForFunction(() => document.querySelector(".search-bar [data-search-note]").hidden, null, { timeout: 6000 });
     assert.equal(await page.inputValue(".search-bar input"), "xyzzy qwerty", "the typed text comes back");
@@ -288,9 +289,9 @@ test("R8, R4: one image by the button, replaced by the next, without EXIF in the
     await page.locator(".search-bar input").press("Escape");
     assert.equal(await thumbSrc(page), null, "Esc drops the image");
     await page.setInputFiles("[data-search-file]", { name: "logo.svg", mimeType: "image/svg+xml", buffer: Buffer.from("<svg xmlns='http://www.w3.org/2000/svg'/>") });
-    await page.waitForFunction(() => /chưa dùng được/i.test(document.querySelector(".search-bar [data-search-note]").textContent));
+    await page.waitForFunction((text) => document.querySelector(".search-bar [data-search-note]").textContent.includes(text), COPY.vi.unsupported);
     await page.setInputFiles("[data-search-file]", { name: "clip.mp4", mimeType: "video/mp4", buffer: Buffer.from("0000") });
-    await page.waitForFunction(() => /chỉ tìm bằng ảnh/i.test(document.querySelector(".search-bar [data-search-note]").textContent));
+    await page.waitForFunction((text) => document.querySelector(".search-bar [data-search-note]").textContent.includes(text), COPY.vi.videoOnly);
     assert.equal(await thumbSrc(page), null);
     await context.close();
   } finally {
@@ -333,12 +334,18 @@ test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and
     await page.fill(".search-bar input", "biển hiệu");
     const start = Date.now();
     await page.press(".search-bar input", "Enter");
-    await page.waitForFunction(() => /đang chậm/i.test(document.querySelector(".search-bar [data-search-note]").textContent), null, { timeout: 5000 });
+    await page.waitForFunction((text) => document.querySelector(".search-bar [data-search-note]").textContent.includes(text), COPY.vi.slow, { timeout: 5000 });
     const waited = Date.now() - start;
     assert(waited >= 2800 && waited < 4500, `slow note at ${waited} ms`);
     assert.equal(await page.locator("[data-masonry-pending]").count(), 0, "grid no longer pending");
-    assert(await page.locator(".search-bar [data-search-note] button", { hasText: /thử lại/i }).isVisible());
+    assert(await page.locator(`.search-bar [data-search-note] button[aria-label="${COPY.vi.retry}"]`).isVisible(), "retry icon");
     await announced(page, /kết quả/, 6000); // the late answer still applies
+    // Moved after the wait ended: the late answer waits behind the offer button (owner 2026-11-23).
+    await page.press(".search-bar input", "Enter");
+    await page.waitForSelector(".search-bar [data-search-note]", { state: "hidden", timeout: 2000 }); // the old note fades out first
+    await page.waitForFunction((text) => document.querySelector(".search-bar [data-search-note]").textContent.includes(text), COPY.vi.slow, { timeout: 5000 });
+    await touchSwipe(page, { x: 200, y: 400 }, { x: 200, y: 250 });
+    await page.waitForSelector("[data-masonry-offer]", { timeout: 6000 });
     await context.close();
   } finally {
     await browser.close();
@@ -422,6 +429,51 @@ test("R10: a language switch keeps the query; Esc and the x clear it; the rail f
     await page.click('[data-masonry-filter="all"]');
     await page.waitForTimeout(900);
     assert.equal(await page.inputValue(".search-bar input"), "hộp đèn");
+    await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+test("R6 at 384px: server trouble keeps keyword results with a short note and Try again; no keyword match says trouble and stays put", async () => {
+  const browser = await launchBrowser();
+  try {
+    const { context, page } = await open(browser, PHONE, PAGE, { status: 503 });
+    let calls = 0;
+    page.on("request", (request) => request.url().endsWith("/api/search") && calls++);
+    const note = (pattern) => page.waitForFunction((source) => {
+      const node = document.querySelector(".search-bar [data-search-note]");
+      return !node.hidden && new RegExp(source, "i").test(node.textContent) && node.querySelector("button");
+    }, pattern.source, { timeout: 5000 });
+    await search(page, "hộp đèn");
+    await note(/^Lỗi tìm kiếm$/);
+    // The note and its button fit inside the bar on a phone.
+    await barStill(page);
+    const fits = await page.evaluate(() => {
+      const shell = document.querySelector(".search-bar__shell").getBoundingClientRect();
+      return [...document.querySelectorAll(".search-bar [data-search-note] > *")].every((node) => {
+        const box = node.getBoundingClientRect();
+        return box.left >= shell.left - 1 && box.right <= shell.right + 1 && node.scrollWidth <= node.clientWidth + 1;
+      });
+    });
+    assert(fits, "note fits the bar");
+    await page.click(".search-bar [data-search-note] button");
+    await page.waitForTimeout(1500); // a fast second error lands while the first note still fades out
+    assert.equal(calls, 2, "Try again asks the server again");
+    await note(/^Lỗi tìm kiếm$/);
+    // No keyword match: the trouble note, not "no match", and the page does not move.
+    await backToTop(page);
+    const before = await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY);
+    await search(page, "zzqxw");
+    await note(/^Lỗi tìm kiếm$/);
+    await page.waitForTimeout(800);
+    assert.equal(await page.evaluate(() => window.TruongThinhMotion?.getLogicalScroll?.() ?? scrollY), before, "stays put");
+    // An image: the image trouble note.
+    await page.fill(".search-bar input", "");
+    await page.setInputFiles("[data-search-file]", await makeJpeg(page, 20));
+    await page.waitForFunction(() => !document.querySelector(".search-bar [data-search-thumb]").hidden);
+    await page.click(".search-bar [type=submit]");
+    await note(/^Lỗi tìm ảnh$/);
     await context.close();
   } finally {
     await browser.close();
@@ -655,13 +707,20 @@ for (const viewport of [WIDE, PHONE]) {
         if (from === "mid") await to(4000);
         if (from === "cta") await to(1e6);
         await page.waitForTimeout(800);
-        await search(page, "hộp đèn");
-        await page.waitForFunction(() => {
+        const atGridTop = () => page.waitForFunction(() => {
           const grid = document.querySelector("[data-project-grid]").getBoundingClientRect().top;
           const header = Math.max(0, document.querySelector(".site-header").getBoundingClientRect().bottom);
           const outer = Number.parseFloat(getComputedStyle(document.querySelector(".masonry-section")).getPropertyValue("--masonry-outer"));
           return Math.abs(grid - header - outer) <= 2;
         }, null, { timeout: 8000 });
+        await search(page, "hộp đèn");
+        await atGridTop();
+        // The same query again (same results) still glides back (owner 2026-11-23).
+        await page.waitForTimeout(800);
+        await to(from === "top" ? 0 : from === "mid" ? 4000 : 1e6);
+        await page.waitForTimeout(800);
+        await search(page, "hộp đèn");
+        await atGridTop();
         await context.close();
       } finally {
         await browser.close();
@@ -789,30 +848,119 @@ test("search-bar R2 at 1440px: dragging or wheeling over the chip row scrolls it
   }
 });
 
-// search-bar R8: the bar lives on the root page only.
-test("search-bar R8: no bar on a filter page; filtering to a group hides it and back to all shows it", async () => {
+// search-bar R8 (owner 2026-11-23): the bar also shows while filtering (group and product pages, a rail or chip click) and searches
+// inside that filter; a group with no result says so and offers the whole catalogue; card pages have no bar.
+test("search-bar R8: the bar stays on a filter, searches inside it, offers all when the group has none; no bar on a card", async () => {
   const browser = await launchBrowser();
   try {
-    const { context, page } = await open(browser, WIDE, `${BASE_URL}/advertising-products/bang-hieu-quang-cao/`);
+    const signageHit = "signage-raised-letters-01";
+    const { context, page } = await open(browser, WIDE, `${BASE_URL}/advertising-products/bang-hieu-quang-cao/`, { ids: [...VECTOR_IDS, signageHit] });
     await page.waitForSelector(".search-host", { state: "attached", timeout: 20000 });
-    const off = () => page.evaluate(() => ({
+    const state = () => page.evaluate(() => ({
       off: document.querySelector("[data-barba-namespace]").hasAttribute("data-search-off"),
       hidden: getComputedStyle(document.querySelector(".search-host")).visibility === "hidden",
-      slots: [...document.querySelectorAll(".hero-search, [data-search-dock]")].every((node) => getComputedStyle(node).display === "none"),
+      slots: [...document.querySelectorAll(".hero-search, [data-search-dock]")].every((node) => getComputedStyle(node).display !== "none"),
     }));
+    const shownCards = () => page.evaluate(() => [...document.querySelectorAll("[data-masonry-card]")].filter((node) => !node.hidden).map((node) => node.dataset.masonryCard));
+    const outside = (ids, slug) => ids.filter((id) => !matchesFilter(ADVERTISING_CARDS.find((card) => card.id === id), slug));
     await page.waitForTimeout(600);
-    assert.deepEqual(await off(), { off: true, hidden: true, slots: true }, "filter page");
+    assert.deepEqual(await state(), { off: false, hidden: false, slots: true }, "group page");
+
+    // Inside the group: only its cards, and the bar's chips are the group's products that have a result.
+    await search(page, "zzqx");
+    await announced(page, /kết quả/);
+    await page.waitForTimeout(900);
+    let cards = await shownCards();
+    assert(cards.includes(signageHit) && !outside(cards, "signage").length, `inside signage: ${JSON.stringify(cards)}`);
+    const chips = await page.evaluate(() => ({
+      bar: [...document.querySelectorAll(".search-bar__chiprow .search-bar__chip b")].map((node) => node.textContent).sort(),
+      group: [...document.querySelectorAll('[data-masonry-chips="signage"] [data-masonry-product]:not([data-search-empty]) span')].map((node) => node.textContent).sort(),
+    }));
+    assert(chips.bar.length > 0, "chips while searching");
+    assert.deepEqual(chips.bar, chips.group, "only the group's products");
+
+    // Clearing goes back to the filtered list.
+    await page.press(".search-bar input", "Escape");
+    await page.waitForTimeout(900);
+    cards = await shownCards();
+    assert(cards.length > 0 && !outside(cards, "signage").length, "back to the group");
+    assert.equal(await page.getAttribute('[data-masonry-filter="signage"]', "aria-current"), "true");
+
+    // No result in the group: a note with "Tìm tất cả", the grid stays; the button searches the whole catalogue.
+    await page.unroute("**/api/search");
+    await mockApi(page, {});
+    await backToTop(page);
+    await search(page, "zzqy");
+    await page.waitForFunction((text) => document.querySelector(".search-bar__note span")?.textContent === text, COPY.vi.notInGroup, { timeout: 8000 });
+    assert.equal(await page.inputValue(".search-bar input"), "zzqy");
+    cards = await shownCards();
+    assert(cards.length > 0 && !outside(cards, "signage").length, "the grid stays on the group");
+    await page.waitForTimeout(4500);
+    assert.equal(await page.locator(".search-bar__note").isVisible(), true, "the note waits for the visitor");
+    await page.click(`.search-bar__note button:text("${COPY.vi.searchAll}")`);
+    await announced(page, /kết quả/);
+    await page.waitForTimeout(900);
+    cards = await shownCards();
+    assert(cards.includes("kiosk-posm-01"), `whole catalogue: ${JSON.stringify(cards)}`);
+
+    // From the root page a rail click keeps the bar; a card page has none.
     await page.goto(PAGE, { waitUntil: "load" });
     await page.waitForSelector(".search-bar", { timeout: 20000 });
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"), null, { timeout: 20000 });
-    assert.deepEqual(await off(), { off: false, hidden: false, slots: false }, "root page");
     await page.click('[data-masonry-filter="signage"]');
     await page.waitForTimeout(800);
-    assert.deepEqual(await off(), { off: true, hidden: true, slots: true }, "a group picked from the root page");
-    await page.click('[data-masonry-filter="all"]');
-    await page.waitForTimeout(800);
-    assert.deepEqual(await off(), { off: false, hidden: false, slots: false }, "back to all");
+    assert.deepEqual(await state(), { off: false, hidden: false, slots: true }, "a group picked from the root page");
+    await page.goto(`${BASE_URL}/advertising-products/p/kiosk-posm-01/`, { waitUntil: "load" });
+    await page.waitForSelector(".search-host", { state: "attached", timeout: 20000 });
+    await page.waitForTimeout(600);
+    assert.deepEqual(await state(), { off: true, hidden: true, slots: false }, "card page");
     await context.close();
+  } finally {
+    await browser.close();
+  }
+});
+
+// Owner 2026-11-23: on a phone the floating bar shares its row with the back-to-top button, so its field is 60px narrower; every tip
+// and notice still fits it whole at 360px, and a notice with a retry keeps room for the 40px icon and its 10px gap.
+test("search-bar R3 at 360px: every tip and notice fits the floating phone field, retry notices beside the icon", async () => {
+  const browser = await launchBrowser();
+  try {
+    for (const [locale, url] of [["vi", PAGE], ["en", `${BASE_URL}/en/advertising-products/`]]) {
+      const { context, page } = await open(browser, { width: 360, height: 740, isMobile: true, hasTouch: true }, url);
+      await page.waitForFunction(() => {
+        scrollTo({ top: innerHeight * 3, behavior: "instant" });
+        return document.body.dataset.searchPlace === "float";
+      }, null, { polling: 500, timeout: 10_000 });
+      await page.waitForTimeout(1200);
+      const copy = COPY[locale];
+      const plain = [...copy.tips, copy.imageHint, copy.videoOnly, copy.unsupported, copy.tooLarge, copy.unreadable, copy.searching, copy.empty];
+      const retry = [copy.slow, copy.trouble, copy.imageTrouble];
+      // A notice shows over typed text: the clear button is out while it does.
+      await page.fill(".search-bar input", "hộp đèn");
+      const { field, wide } = await page.evaluate(({ plain, retry }) => {
+        document.querySelector(".search-bar").classList.add("has-note");
+        const field = document.querySelector(".search-host .search-bar__field").getBoundingClientRect().width;
+        const font = getComputedStyle(document.querySelector(".search-host .search-bar__note")).fontFamily;
+        const context = document.createElement("canvas").getContext("2d");
+        // Notices are 600; tips are lighter, so the notice weight bounds both.
+        context.font = `600 16px ${font}`;
+        const width = (text) => context.measureText(text).width;
+        return { field, wide: [...plain.filter((text) => width(text) > field), ...retry.filter((text) => width(text) > field - 50)] };
+      }, { plain, retry });
+      assert.deepEqual(wide, [], `${locale}: too wide for the ${Math.round(field)}px field`);
+      // "None in this group" and its "Search all" button take the whole row: the image and search buttons step aside (search-bar R8).
+      const group = await page.evaluate(({ note, action }) => {
+        const bar = document.querySelector(".search-host .search-bar");
+        bar.classList.add("has-wide-note");
+        const field = bar.querySelector(".search-bar__field").getBoundingClientRect().width;
+        const context = document.createElement("canvas").getContext("2d");
+        context.font = `600 16px ${getComputedStyle(bar.querySelector(".search-bar__note")).fontFamily}`;
+        // Text, the 10px gap, the button with its 8px sides.
+        return { field, need: context.measureText(note).width + 10 + context.measureText(action).width + 16 };
+      }, { note: copy.notInGroup, action: copy.searchAll });
+      assert(group.need <= group.field, `${locale}: group note ${Math.round(group.need)}px in ${Math.round(group.field)}px`);
+      await context.close();
+    }
   } finally {
     await browser.close();
   }

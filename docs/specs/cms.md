@@ -54,7 +54,7 @@ chậm hay chập chờn làm chậm lần lưu (R6).
 
 Route trang public (trang tiếng Việt ở gốc `/`, `/en/*`, ảnh, sitemap; `/vi/*` cũ trả 301) là Workers static assets, không chạy Worker, không đọc D1. Worker
 public duy nhất là tìm kiếm ở `/api/*` ([tìm kiếm Advertising](advertising-search.md)); nó không đọc D1 của CMS.
-Admin là một Worker riêng ở `admin.truongthinhads.vn` (trước khi đổi domain: một hostname `workers.dev` riêng), sau một
+Admin là một Worker riêng ở `admin.truongthinhads.vn`, sau một
 ứng dụng Access team `truongthinh` đăng nhập Google. Media public ở `media.truongthinhads.vn` (R2 custom domain). CMS
 hỏng, D1 hết hạn mức hay admin tắt thì site vẫn chạy bản dựng cuối.
 

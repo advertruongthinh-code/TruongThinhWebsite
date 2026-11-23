@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Trường Thịnh CMS - Vận hành</title>
+<style>
+  :root { --bg:#f5f5f3; --fg:#1d1d1b; --muted:#666; --line:#d6d6d0; --card:#fff; --accent:#1f5fbf; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--fg); }
+  header { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; padding:10px 16px; background:var(--card); border-bottom:1px solid var(--line); }
+  header h1 { font-size:18px; margin:0; }
+  a { color:var(--accent); }
+  main { max-width:900px; margin:0 auto; padding:16px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:6px; padding:12px; margin-bottom:16px; }
+  h2 { font-size:16px; margin:0 0 8px; }
+  input, button { font:inherit; }
+  input { padding:6px 8px; border:1px solid var(--line); border-radius:4px; width:100%; max-width:360px; }
+  button { padding:6px 12px; border:1px solid var(--accent); background:var(--accent); color:#fff; border-radius:4px; cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+  h3 { font-size:14px; margin:12px 0 4px; }
+  .deploys { margin:0; padding-left:20px; }
+  .deploys li { display:flex; flex-wrap:wrap; gap:4px 12px; align-items:center; padding:4px 0; border-bottom:1px solid var(--line); }
+  .deploys code { font:13px ui-monospace, Menlo, Consolas, monospace; }
+  button.secondary { background:var(--card); color:var(--accent); }
+  dialog { border:1px solid var(--line); border-radius:6px; max-width:420px; }
+  pre { margin:0; padding:8px; background:#fafaf8; border:1px solid var(--line); border-radius:4px; font:13px/1.4 ui-monospace, Menlo, Consolas, monospace; white-space:pre-wrap; word-break:break-all; min-height:3em; max-height:420px; overflow:auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Trường Thịnh CMS - Vận hành</h1>
+  <a href="./records.html">Quay lại Nội dung</a>
+</header>
+<main>
+  <section>
+    <h2>Trạng thái build</h2>
+    <p id="buildWarnings" role="status" aria-live="polite"></p>
+    <div class="row"><button id="rebuild" type="button">Dựng lại</button></div>
+    <pre id="buildStatus" role="status" aria-live="polite">Đang tải...</pre>
+  </section>
+  <section>
+    <h2>Quay về bản cũ (staging)</h2>
+    <p id="pausedNote" role="status" aria-live="polite"></p>
+    <div class="row"><button id="resume" type="button" hidden>Tiếp tục đăng</button></div>
+    <ol id="deployList" class="deploys"></ol>
+    <h3>Lần quay về gần nhất</h3>
+    <ul id="rollbackRuns" class="deploys"></ul>
+    <pre id="rollbackLog" role="status" aria-live="polite"></pre>
+  </section>
+  <dialog id="rollbackDialog">
+    <form method="dialog">
+      <p id="rollbackQuestion"></p>
+      <p>Tự đăng sẽ tạm dừng tới khi bấm "Tiếp tục đăng".</p>
+      <div class="row">
+        <button value="cancel" type="submit" class="secondary">Hủy</button>
+        <button value="ok" type="submit">Quay về bản này</button>
+      </div>
+    </form>
+  </dialog>
+  <section>
+    <h2>Lưu thử</h2>
+    <label>Mã công trình<br><input id="projectId" type="text" value="nha-pho-indochine"></label>
+    <div class="row">
+      <button id="save1" type="button">Lưu thử 1 lần</button>
+      <button id="save10" type="button">Lưu thử 10 lần</button>
+      <button id="stale10" type="button">Lưu thử lệch version</button>
+    </div>
+    <pre id="log" role="status" aria-live="polite"></pre>
+  </section>
+  <section>
+    <h2>Tải ảnh thử</h2>
+    <label>Ảnh (JPEG, PNG, WebP, AVIF)<br><input id="testFile" type="file" accept="image/jpeg,image/png,image/webp,image/avif"></label>
+    <div class="row">
+      <button id="uploadTest" type="button">Tải ảnh thử</button>
+      <button id="mediaReload" type="button">Tải lại media</button>
+    </div>
+    <label>Video (MP4, tối đa 95 MB)<br><input id="testVideo" type="file" accept="video/mp4"></label>
+    <div class="row">
+      <button id="uploadVideoTest" type="button">Tải video thử</button>
+    </div>
+    <pre id="uploadLog" role="status" aria-live="polite"></pre>
+    <pre id="mediaList" aria-live="polite">Đang tải...</pre>
+  </section>
+</main>
+<script type="module" src="./status.js"></script>
+</body>
+</html>

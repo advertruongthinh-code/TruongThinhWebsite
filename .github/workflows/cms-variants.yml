@@ -1,0 +1,39 @@
+name: CMS variants
+on:
+  workflow_dispatch:
+    inputs:
+      items:
+        type: string
+        required: true
+permissions:
+  contents: read
+jobs:
+  variants:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ contains(inputs.items, '"k":"video"') && 60 || 25 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: bash scripts/tooling/install-jxl.sh
+      - if: contains(inputs.items, '"k":"video"')
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+      - run: aws --version
+      # The script uploads each item as soon as it is built, so a timeout only loses the items not reached yet.
+      - run: node scripts/cms/build-variants.mjs
+        env:
+          ITEMS: ${{ inputs.items }}
+          CMS_ADMIN_ORIGIN: ${{ vars.CMS_ADMIN_ORIGIN }}
+          CMS_ACCESS_CLIENT_ID: ${{ secrets.CMS_ACCESS_CLIENT_ID }}
+          CMS_ACCESS_CLIENT_SECRET: ${{ secrets.CMS_ACCESS_CLIENT_SECRET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_PUBLIC_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_PUBLIC_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_PUBLIC_BUCKET: ${{ vars.R2_PUBLIC_BUCKET }}

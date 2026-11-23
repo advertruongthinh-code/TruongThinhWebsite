@@ -359,9 +359,14 @@ body.is-detail .search-host {
   visibility: hidden;
 }
 
-/* A notice hides the typed text for its 4 seconds; it reads darker than a tip. */
+/* A notice hides the typed text for its 4 seconds; it reads darker than a tip. The clear button goes with the text, so a phone notice
+   keeps the whole field (owner 2026-11-23). */
 .search-bar.has-note .search-bar__field input {
   color: transparent;
+}
+
+.search-bar.has-note .search-bar__clear {
+  display: none;
 }
 
 .search-bar__note {
@@ -376,16 +381,29 @@ body.is-detail .search-host {
   text-overflow: ellipsis;
 }
 
+/* The retry icon (owner 2026-11-23) is a tool button; it ends the field so the notice keeps the rest. */
 .search-bar__note button {
+  margin-left: auto;
+  pointer-events: auto;
+}
+
+/* "Search all" after "None in this group" (search-bar R8, owner 2026-11-23): a text button, so the note takes the whole row and the image
+   and search buttons step aside until the visitor taps or types. */
+.search-bar.has-wide-note :is(.search-bar__sep, .search-bar__media, .search-bar__go) {
+  display: none;
+}
+
+.search-bar__note .search-bar__action {
   flex: none;
-  padding: 0;
+  height: 40px;
+  padding: 0 8px;
   border: 0;
   background: none;
-  color: var(--blue);
+  color: var(--ink);
   font: inherit;
-  text-decoration: underline;
+  text-decoration: underline 2px;
+  text-underline-offset: 5px;
   cursor: pointer;
-  pointer-events: auto;
 }
 
 .search-bar__tool {
@@ -510,8 +528,8 @@ body.is-detail .search-host {
   font-weight: 500;
 }
 
-/* Back-to-top (search-bar R5): with the bar in a slot it stays out. While the bar floats, it sits on its own
-   row 10px above the block, at the right edge like every other page (owner 2026-11-22). */
+/* Back-to-top (search-bar R5): with the bar in a slot it stays out. While the bar floats it shares the bar's row on every touch
+   device (below); PC has no button. */
 body:is([data-search-place="cta"], [data-search-place="top"]) .back-to-top.show {
   transform: translateX(150%);
 }
@@ -522,10 +540,6 @@ body:is(.is-detail, [data-search-place="off"]) .back-to-top {
 }
 
 @media (hover: none) and (pointer: coarse) {
-  body[data-search-place]:not([data-search-place="off"], .is-detail) .back-to-top {
-    bottom: calc(35px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
-  }
-
   /* Keyboard open: only the input row stays above it. */
   .search-bar:not(.is-docked):has(input:focus) .search-bar__shell {
     grid-template-rows: 0fr auto;
@@ -547,9 +561,26 @@ body:is(.is-detail, [data-search-place="off"]) .back-to-top {
   }
 }
 
-@media (hover: none) and (pointer: coarse) and (max-width: 750px) {
+/* Every touch device, phone and tablet, portrait and landscape (owner 2026-11-23: option A on phones, then "các thiết bị cảm ứng phải
+   đồng bộ"): the floating bar and the back-to-top share one row 16px above the bottom, lined up with the grid: the bar from the grid's
+   left edge to 60px short of its right edge (50px button + 10px), the button on that edge. The host keeps its centring (rise and off
+   motions translate by -50%); the button lane is host padding, which lets taps through. */
+@media (hover: none) and (pointer: coarse) {
+  .search-host {
+    box-sizing: border-box;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    width: calc(100% - (2 * var(--masonry-outer, 16px)));
+    padding-right: 60px;
+  }
+
+  .search-bar__shell,
+  .search-bar[data-results]:not(.is-docked) .search-bar__shell {
+    width: 100%;
+  }
+
   body[data-search-place]:not([data-search-place="off"], .is-detail) .back-to-top {
-    bottom: calc(16px + env(safe-area-inset-bottom, 0px) + var(--search-block-h, 50px) + 10px);
+    right: var(--masonry-outer, 16px);
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -569,7 +600,7 @@ body:is(.is-detail, [data-search-place="off"]) .back-to-top {
       <label class="search-bar__sr" for="search-bar-input">Tìm sản phẩm quảng cáo</label>
       <span class="search-bar__field">
         <input id="search-bar-input" type="search" autocomplete="off" enterkeyhint="search" maxlength="300" placeholder="Tìm biển hiệu, hộp đèn, chữ nổi...">
-        <span class="search-bar__hint" data-search-hint aria-hidden="true"><span>Tìm hộp đèn, chữ nổi, kệ…</span></span>
+        <span class="search-bar__hint" data-search-hint aria-hidden="true"><span>Tìm hộp đèn, chữ nổi</span></span>
         <span class="search-bar__note" data-search-note hidden></span>
       </span>
       <button type="button" class="search-bar__tool search-bar__clear" data-search-clear-text aria-label="Xóa chữ" title="Xóa chữ"><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
@@ -593,7 +624,7 @@ body:is(.is-detail, [data-search-place="off"]) .back-to-top {
       <label class="search-bar__sr" for="search-bar-input">Tìm sản phẩm quảng cáo</label>
       <span class="search-bar__field">
         <input id="search-bar-input" type="search" autocomplete="off" enterkeyhint="search" maxlength="300" placeholder="Tìm biển hiệu, hộp đèn, chữ nổi...">
-        <span class="search-bar__hint" data-search-hint aria-hidden="true"><span>Tìm hộp đèn, chữ nổi, kệ…</span></span>
+        <span class="search-bar__hint" data-search-hint aria-hidden="true"><span>Tìm hộp đèn, chữ nổi</span></span>
         <span class="search-bar__note" data-search-note hidden></span>
       </span>
       <button type="button" class="search-bar__tool search-bar__clear" data-search-clear-text aria-label="Xóa chữ" title="Xóa chữ"><svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button>

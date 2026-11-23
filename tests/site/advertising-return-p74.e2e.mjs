@@ -65,19 +65,10 @@ try {
     }
     await page.close();
   }
-  // Back button (R10): top-left corner of the primary frame, steps back one entry like Back; a photo entered directly returns to the group masonry.
-  for (const [width, touch] of [[1440, false], [390, true]]) {
-    const page = await browser.newPage({ viewport: { width, height: 844 }, hasTouch: touch, isMobile: touch });
-    // Scrolling to the top shows the header again (it slides back in); on a slow runner it still covered the button when pressed, so press
-    // once the button is the top element at its centre.
-    const press = async () => {
-      await page.waitForFunction(() => {
-        const button = document.querySelector("[data-detail-back]");
-        const rect = button.getBoundingClientRect();
-        return button.contains(document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2));
-      }, null, { timeout: 5_000 });
-      return touch ? page.locator("[data-detail-back]").tap() : page.locator("[data-detail-back]").click();
-    };
+  // Escape (R10, no back button since owner 2026-11-23): steps back one entry like Back; a photo entered directly returns to the group masonry.
+  for (const width of [1440]) {
+    const page = await browser.newPage({ viewport: { width, height: 844 } });
+    const press = () => page.keyboard.press("Escape");
     await page.goto(`${base}/advertising-products/?category=bien-van-phong`, { waitUntil: "networkidle" });
     await page.waitForFunction(() => window.TruongThinhMasonry?.getAdapter?.());
     await page.evaluate(() => window.TruongThinhMotion.setLogicalScroll(600));
@@ -88,13 +79,7 @@ try {
     const cardId = await card.evaluate(el => el.parentElement.dataset.masonryCard);
     await card.click();
     await page.waitForTimeout(1000);
-    const place = await page.evaluate(() => {
-      const frame = document.querySelector(".detail-view__hero-frame").getBoundingClientRect();
-      const back = document.querySelector("[data-detail-back]").getBoundingClientRect();
-      return { dx: back.left - frame.left, dy: back.top - frame.top, w: back.width, label: document.querySelector("[data-detail-back]").getAttribute("aria-label") };
-    });
-    const inset = width > 750 ? 16 : 8;
-    assert.deepEqual([Math.round(place.dx), Math.round(place.dy), place.w, place.label], [inset, inset, 36, "Quay lại"], JSON.stringify(place));
+    assert.equal(await page.locator("[data-detail-back]").count(), 0, "detail has no back button");
     const aUrl = page.url();
     const related = page.locator("[data-masonry-related-card] > a").first();
     await related.scrollIntoViewIfNeeded();
@@ -120,7 +105,7 @@ try {
     await press();
     await page.waitForTimeout(900);
     assert(!/\/p\/[^/]+\/$/.test(new URL(page.url()).pathname), `${width}: direct photo leaves detail`);
-    console.log(`PASS ${width}: back button place, step back, direct photo`);
+    console.log(`PASS ${width}: Escape steps back, direct photo`);
     await page.close();
   }
   for (const width of [1567, 390]) {

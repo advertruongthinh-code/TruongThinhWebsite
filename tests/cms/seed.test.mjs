@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { seedSql } from "../../scripts/cms/seed.mjs";
 import { snapshotToFiles } from "../../src/cms/projection.mjs";
+import { collectSnapshot } from "../../src/cms/collect-snapshot.mjs";
 import snapshot from "../../src/worker/commands/snapshot.mjs";
 import { createD1 } from "../worker/d1-fake.mjs";
 
@@ -86,8 +87,8 @@ test("an apostrophe in the content survives the SQL quoting", () => {
 
 test("the site built from the seeded D1 snapshot equals the site built from the repo", async () => {
   const DB = seeded();
-  const response = await snapshot.run(new Request("https://admin.test/api/admin/snapshot"), { DB });
-  const files = snapshotToFiles(JSON.parse(await response.text()));
+  const get = async (query) => JSON.parse(await (await snapshot.run(new Request(`https://admin.test/api/admin/snapshot?${query}`), { DB })).text());
+  const files = snapshotToFiles(await collectSnapshot(get));
   const work = mkdtempSync(path.join(tmpdir(), "tt-seed-"));
   let before, after;
   try {

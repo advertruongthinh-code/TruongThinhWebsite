@@ -2,8 +2,13 @@
 name = "truong-thinh-admin"
 main = "src/worker/index.js"
 compatibility_date = "2026-07-31"
-workers_dev = true
+workers_dev = false
 preview_urls = false
+
+# The only admin URL: the user and machine Access apps cover this hostname (docs/specs/cms-data.md R4).
+[[routes]]
+pattern = "admin.truongthinhads.vn"
+custom_domain = true
 
 [assets]
 directory = ".site-output"
@@ -15,8 +20,12 @@ run_worker_first = ["/api/*"]
 [[d1_databases]]
 binding = "DB"
 database_name = "truong-thinh-cms"
-database_id = "REPLACE_IN_S4"
+database_id = "a98c6483-b503-4829-8da9-03bbd2a0eeda"
 migrations_dir = "src/db/migrations"
+
+# The daily D1 export (src/worker/backup.mjs) calls the REST API with this id; keep it equal to database_id above.
+[vars]
+D1_DATABASE_ID = "a98c6483-b503-4829-8da9-03bbd2a0eeda"
 
 [[r2_buckets]]
 binding = "MEDIA_ORIGINALS"
@@ -39,5 +48,6 @@ simple = { limit = 20, period = 60 }
 [triggers]
 crons = ["* * * * *"]
 
+# Logs only: traces would record the signed URL of the D1 dump (src/worker/backup.mjs).
 [observability]
 enabled = true

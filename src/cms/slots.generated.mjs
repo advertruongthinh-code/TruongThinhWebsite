@@ -1045,5 +1045,311 @@ export const SLOTS = {
       "kind": "text",
       "marks": "title"
     }
+  },
+  "about": {
+    "hero.image-1": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "hero.text-1": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hero.text-2": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hero.link": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "tong-quan.title": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "tong-quan.body": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "media.image-1": {
+      "kind": "media",
+      "ratio": 1.3333
+    },
+    "note.body": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "di-san.label": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "di-san.text-1": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "di-san.text-2": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-1": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-1": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-2": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-2": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-3": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-4": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-3": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-5": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-6": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-4": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-7": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-8": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-5": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-9": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-10": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-6": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-11": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-12": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-7": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-13": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-14": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.title-8": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "hanh-trinh.text-15": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "hanh-trinh.text-16": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "cach-lam.label": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "cach-lam.text-1": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "cach-lam.text-2": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "note-2.body": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "editorial-strip.image-1": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "editorial-strip.title-1": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "editorial-strip.body-1": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "editorial-strip.image-2": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "editorial-strip.title-2": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "editorial-strip.body-2": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "editorial-strip.image-3": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "editorial-strip.title-3": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "editorial-strip.body-3": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "editorial-strip.image-4": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "editorial-strip.title-4": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "editorial-strip.body-4": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "editorial-strip.image-5": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "editorial-strip.title-5": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "editorial-strip.body-5": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "cam-ket.label": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "cam-ket.text-1": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "cam-ket.text-2": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.title-1": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "nguyen-tac.image-1": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "nguyen-tac.title-2": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "nguyen-tac.text-1": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.text-2": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.text-3": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.image-2": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "nguyen-tac.title-3": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "nguyen-tac.text-4": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.text-5": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.text-6": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.image-3": {
+      "kind": "media",
+      "ratio": 1.4
+    },
+    "nguyen-tac.title-4": {
+      "kind": "text",
+      "marks": "title"
+    },
+    "nguyen-tac.text-7": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.text-8": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "nguyen-tac.text-9": {
+      "kind": "text",
+      "marks": "small"
+    },
+    "tu-van.image-1": {
+      "kind": "media",
+      "ratio": 1.5
+    },
+    "tu-van.body": {
+      "kind": "text",
+      "marks": "body"
+    },
+    "tu-van.title": {
+      "kind": "text",
+      "marks": "title"
+    }
   }
 };

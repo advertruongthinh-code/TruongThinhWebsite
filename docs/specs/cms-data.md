@@ -9,9 +9,11 @@ source:
   - .github/workflows/rollback.yml
 tests:
   - tests/cms/projection.test.mjs
+  - tests/tooling/fetch-snapshot.test.mjs
+  - tests/tooling/deploy-marker.test.mjs
   - tests/worker/schema.test.mjs
 notion: https://app.notion.com/p/420332849a0e81c9adfcf363d96fcde5
-updated: 2026-11-22
+updated: 2026-11-23
 ---
 
 # Dữ liệu và đường xuất bản của CMS
@@ -66,10 +68,15 @@ Then lệnh trả 409, bài B vẫn ở thùng rác
 
 ### R2. Bản chụp
 
-`GET /api/admin/snapshot` trả JSON `{ schema: 1, takenAt, records: { <kiểu>: [data, ...] }, redirects: [...], held: [...] }`.
-Mỗi mảng gồm `data` của bản ghi `published`, xếp theo `position` rồi `id`; bản ghi còn `pending` dùng `data` của
-`live_version`, chưa có `live_version` thì vào `held`. Kiểu `media` không vào bản chụp. Đang tạm dừng tự đăng thì trả
-423. Worker ghép chuỗi, không phân tích từng bản ghi. Phía build, hàm thuần `snapshotToFiles` (`src/cms/projection.mjs`)
+Bản chụp là `{ schema: 1, takenAt, records: { <kiểu>: [data, ...] }, redirects: [...], held: [...] }`. Mỗi mảng gồm `data`
+của bản ghi `published`, xếp theo `position` rồi `id`; bản ghi còn `pending` dùng `data` của `live_version`, chưa có
+`live_version` thì vào `held`. Kiểu `media` không vào bản chụp. Worker trả theo trang để mỗi lần gọi dưới 10 ms CPU của
+Workers Free (S4 đo cả bản 1,26 MB: 17 tới 38 ms): `GET /api/admin/snapshot` trả mục lục `{ schema, takenAt, stamp,
+pageSize, types: { <kiểu>: số bản ghi }, redirects, held }`, `?type=<kiểu>&page=<n>` trả `{ stamp, type, page, records }`
+với 40 bản ghi mỗi trang. `stamp` ghép `settings.content_rev`, số bản ghi và `updated_at` mới nhất; mọi batch ghi `records`
+hoặc `slug_history` (lệnh, Cron) tăng `content_rev` trong cùng batch. Hàm thuần `collectSnapshot`
+(`src/cms/collect-snapshot.mjs`) đọc mục lục, đọc mọi trang, đọc lại mục lục, và đọc lại từ đầu khi `stamp` khác (tối đa
+ba lần), kiểm số bản ghi từng kiểu bằng mục lục. Đang tạm dừng tự đăng thì trả 423. Worker ghép chuỗi, không phân tích từng bản ghi. Phía build, hàm thuần `snapshotToFiles` (`src/cms/projection.mjs`)
 đổi bản chụp thành file chiếu, chỉ cho kiểu đang mở; file khác trong thư mục nội dung lấy từ repo:
 
 | Kiểu | File | Cách chiếu |
@@ -109,8 +116,9 @@ Then /news/a/ và /news/b/ trả 301 thẳng tới /news/c/
 
 ### R4. Preview URL của `workers.dev`
 
-`wrangler.static.toml` và `wrangler.toml` đều ghi `preview_urls = false`. Admin Worker dùng `workers_dev = true` tới khi
-đổi domain, sau đó `workers_dev = false` và custom domain `admin.truongthinhads.vn`.
+`wrangler.static.toml` và `wrangler.toml` đều ghi `preview_urls = false`. Admin Worker chỉ chạy ở custom domain
+`admin.truongthinhads.vn` (hai ứng dụng Access "Người dùng" và "Máy" phủ hostname này), `workers_dev = false` nên URL
+`workers.dev` cũ tắt (owner 2026-11-23).
 
 ```gherkin
 Given một Worker vừa deploy bản mới
@@ -121,7 +129,7 @@ Then không trả 200
 ### R5. Media, crop và biến thể
 
 Media có hai nguồn: `repo` (file `.webp` trong `src/site/assets/content/`, trường `path`) và `r2` (bản gốc ở bucket
-private, key `originals/<mediaId>/original.<ext>`). Bản gốc giữ nguyên byte, không bao giờ phát ra ngoài; ảnh upload
+private, key `originals/<mediaId>/<writeId>.<ext>`, ghi ở `data.originalKey`; mỗi lần upload một key nên hai upload chạy đua không ghi đè nhau). Bản gốc giữ nguyên byte, không bao giờ phát ra ngoài; ảnh upload
 là JPEG, PNG, WebP, AVIF, tối đa 25 MB. Logo SVG (tối đa 200 KB, qua bộ kiểm an toàn) không cắt, không sinh biến thể:
 file ghi thẳng `v/<key>/<mediaId>.svg` ở bucket public kèm manifest, kích thước lấy từ `viewBox` làm tròn. Kích thước media là kích thước sau khi xoay theo EXIF; job
 biến thể xoay trước khi cắt. Chỗ đặt media trong nội dung là `{ mediaId, crop: [x, y, w, h] }`; Worker tự ghi `src`,
@@ -233,7 +241,7 @@ cho owner tới khi [editor](cms-editor.md) có panel Trạng thái, Nhật ký 
 | R2, R3 | chưa có; cần test khứ hồi `tests/cms/projection.test.mjs`, test redirect trong `tests/site/` |
 | R4 | `node --test tests/tooling/wrangler-config.test.mjs` |
 | R5 | chưa có; cần `tests/cms/build-variants.test.mjs`, `tests/worker/variants.test.mjs` |
-| R6 | chưa có; cần `tests/tooling/fetch-snapshot.test.mjs` và một lần đo thật trên CI |
+| R6 | `tests/tooling/fetch-snapshot.test.mjs` (bản chụp chia trang, 423, 500, bỏ qua bản trùng), `tests/tooling/deploy-marker.test.mjs` (khóa dấu deployment), `tests/tooling/wrangler-config.test.mjs` (bước chỉ cho staging); còn một lần đo thật trên CI |
 | R7 | chưa có; cần `pnpm qa:worker` |
 
 ## Gate còn mở

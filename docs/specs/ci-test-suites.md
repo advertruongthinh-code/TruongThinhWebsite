@@ -109,7 +109,7 @@ Owner chọn 2026-10-26 ("Chỉ fast"): đủ bộ tốn khoảng 106 phút job 
 chủ yếu do owner và agent review tìm ra. Vì vậy:
 
 - PR (nháp hay sẵn sàng), push và `workflow_dispatch` không có input: chỉ `fast` khi R3 chọn ít nhất một bộ, không thì không bộ nào. Mục tiêu: xong trong khoảng 3 phút.
-- `schedule` mỗi đêm lúc 19:00 UTC (02:00 giờ Việt Nam) trên `main`, hoặc `workflow_dispatch` với `full: true`: mọi bộ.
+- `schedule` mỗi đêm lúc 19:00 UTC (02:00 giờ Việt Nam) trên `main`, hoặc `workflow_dispatch` với `full: true`: mọi bộ. `workflow_dispatch` với `content: true` (admin CMS gọi sau khi lưu, [đường dựng CMS](cms-data.md#r6-đường-dựng-trong-ci)): không bộ nào vì code không đổi; run mang tên `CMS content build` (`run-name`), dùng nhóm concurrency `ci-content` thay cho `ci-<ref>`, job `deploy-demo` vẫn chạy với `content: true` (chỉ staging), `deploy-admin` không chạy.
 
 Mỗi bộ được chọn là một job trong matrix, `fail-fast: false`, chạy trên `ubuntu-latest`. Job tự build `.site-output/`, mở preview ở port trống riêng và đặt `BASE_URL`, nên các bộ không giẫm nhau. Một bộ đỏ không dừng bộ khác, và tên job là tên bộ để nhìn là biết phần nào hỏng. Job đỏ đính kèm log preview, `test-results/` và `.tmp/` (report, screenshot của test e2e) của bộ đó.
 
@@ -135,7 +135,7 @@ And check của PR ghi rõ bộ adv-grid đỏ
 Job `static-release` chạy sau mọi bộ (`if: !cancelled()`), xanh khi mọi bộ được chọn xanh, đỏ khi có bộ đỏ hoặc bị hủy. Cả lượt CI bị hủy (push mới, PR rời nháp) thì check skipped, không đỏ; Automerge chỉ nhận `success`. Bộ không được chọn không tính là đỏ. Lượt PR nháp đặt tên check là `static-release-draft`; Automerge vẫn đọc check `static-release` và không merge PR nháp.
 
 Trên PR và push, `static-release` chính là kết quả `fast`, nên Deploy demo chờ `static-release` tức là chỉ chờ `fast`
-(owner chọn 2026-10-26). Lượt đêm không deploy. Lượt đêm đỏ: GitHub đánh dấu workflow đỏ và job summary nêu id bộ, lệnh
+(owner chọn 2026-10-26). Lần dựng nội dung không chọn bộ nào mà vẫn deploy staging (R4). Lượt đêm không deploy. Lượt đêm đỏ: GitHub đánh dấu workflow đỏ và job summary nêu id bộ, lệnh
 đỏ; điều phối xem lượt đêm mỗi sáng và giao thread sở hữu bộ đó sửa. Không thêm kênh báo.
 
 ```gherkin
@@ -244,7 +244,7 @@ Then mọi bộ được chọn vì harness nằm trong shared
 
 ### R13. Test đã thấy đỏ
 
-PR sẵn sàng (không nháp) có code, đổi `src/site/` và thêm hoặc sửa file `tests/site/*.e2e.mjs`, `*.test.mjs`: job `red-before` dựng lại `src/site/` của `main` (giữ test của PR), build, mở preview rồi chạy từng file test đó. Xanh khi ít nhất một file đỏ; mọi file xanh thì job đỏ, vì test chưa từng đỏ chưa chứng minh thay đổi ([kim tự tháp niềm tin](../operations/agent-rule-verification-roles.md#kim-tự-tháp-niềm-tin) tầng 2). PR chỉ dời code hoặc chỉ sửa test cũ ghi dòng `Test đỏ trước: không áp dụng - <lý do>` (không tính dòng còn `<`). `static-release` cần job này xanh hoặc skipped.
+PR sẵn sàng (không nháp) có code, đổi `src/site/` và thêm hoặc sửa file `tests/site/*.e2e.mjs`, `*.test.mjs`: job `red-before` dựng lại `src/site/` của `main` (giữ test của PR), build, mở preview rồi chạy từng file test đó, dừng ở file đỏ đầu tiên (owner 2026-11-23: một file đỏ là đủ; chạy hết thì `detail-view` đẩy job quá 12 phút ở PR 1098). Xanh khi ít nhất một file đỏ; mọi file xanh thì job đỏ, vì test chưa từng đỏ chưa chứng minh thay đổi ([kim tự tháp niềm tin](../operations/agent-rule-verification-roles.md#kim-tự-tháp-niềm-tin) tầng 2). PR chỉ dời code hoặc chỉ sửa test cũ ghi dòng `Test đỏ trước: không áp dụng - <lý do>` (không tính dòng còn `<`). `static-release` cần job này xanh hoặc skipped.
 Test chạy tay (`manual`, `pending`) không tính. Local: `node scripts/ci/red-before.mjs` (so với `origin/main`; `src/site/` phải sạch, script trả lại bản của branch khi xong).
 
 ```gherkin

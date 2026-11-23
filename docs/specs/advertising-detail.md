@@ -19,7 +19,7 @@ tests:
   - tests/site/related-scroll-device.mjs
   - tests/site/advertising-photo-header.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-14
+updated: 2026-11-23
 ---
 
 # Detail Advertising
@@ -55,17 +55,18 @@ And không có clone ảnh giữa card và primary
 `computeDetailGeometry` (`masonry/layout.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
 không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột cao `min(W/r, H)`
 ([player R6](primary-video-player.md#r6-khung-primary-cao-theo-media-ngang)), info một cột cao bằng vùng ảnh; `H` là viewport dưới header
-thu gọn (R10) trừ gap, safe area và `50px` để related lộ dưới, ở mọi viewport kể cả primary chiếm hết cột (owner 2026-11-07). `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap, hoặc tới hết phần ảnh (cao tự nhiên) chừa lại nếu lớn hơn, nên mô tả còn cuộn thì primary luôn chạm `H` (owner 2026-11-22); vùng ảnh rộng
-hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa `H`, nên dưới primary luôn còn gap và `50px` related. Ảnh `contain` trong vùng;
+thu gọn (R10) trừ safe area; từ 3 cột trừ thêm gap và `50px` để related lộ dưới, kể cả primary chiếm hết cột (owner 2026-11-07); lưới 2 cột thì primary chạm đáy màn hình, không chừa (owner 2026-11-23). `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap, hoặc tới hết phần ảnh (cao tự nhiên) chừa lại nếu lớn hơn, nên mô tả còn cuộn thì primary luôn chạm `H` (owner 2026-11-22); vùng ảnh rộng
+hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa `H`, nên từ 3 cột dưới primary luôn còn gap và `50px` related, 2 cột thì mô tả còn cuộn primary kéo sát đáy, mô tả vừa thì primary co theo chữ. Ảnh `contain` trong vùng;
 dư quá `0.5px` thì `data-detail-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn) cùng nhóm, thumbnail, CTA thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
 thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi).
 
 ```gherkin
-Given viewport 1569×912 (4 cột), 820×912 (3 cột) và 891×360 (3 cột, điện thoại ngang)
+Given viewport 1569×912 (4 cột), 820×912 (3 cột), 891×360 (3 cột, điện thoại ngang) và 360×800 (2 cột, mô tả dài)
 When mở cùng một ảnh ngang
 Then 1569px: layout split, primary span 3, ảnh hai cột, khung cao theo ảnh, chừa ít nhất 50px ở đáy viewport
 And 820px: layout pinterest, primary span 3, ảnh và info vừa phần dưới header trừ gap và 50px, info không quá 28% viewport
 And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao bằng vùng ảnh, related xếp dưới primary
+And 360px: layout pinterest, primary span 2, đáy primary chạm đáy viewport, mô tả cuộn bên trong
 ```
 
 ### R3. Info: nhóm, mô tả, CTA
@@ -175,7 +176,7 @@ And không frame nào vẽ ở Y của entry khác
 Nút `Xem lớn hơn` (vuông 48px, nhãn mở khi hover; màn cảm ứng thay bằng chạm ảnh, [viewer chạm R7](advertising-viewer-touch-zoom.md#r7-màn-cảm-ứng-chạm-ảnh-primary-để-mở)) mở `dialog#detail-dialog` bằng `showModal` sau khi khóa cuộn
 logic (`createDetailViewer`). Ảnh morph bằng transform từ khung primary tới vừa khung `300ms`, đóng ngược `250ms`,
 `cubic-bezier(0.55, 0, 0, 1)`; nền viewer mọi máy là lớp tối `0.85` màu `rgba(32, 33, 32)` cộng blur [Kính](glass-surface.md) `blur(50px) saturate(1.7) brightness(1.04)`;
-điện thoại cũng blur ([gate phone Android](scroll-feel.md#r7-trên-60fps-trên-phone-android) đo lại khi có máy), hiện, tắt bằng opacity cùng nhịp; focus vào chính hộp thoại. Viewer không có nút đóng và nút `+`, `−` (owner 2026-11-14): phím `+` (hoặc `=`), `-` bước nấc zoom như wheel (video không zoom, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), status phần trăm cho trình đọc màn hình; PC dãy thumbnail xếp dọc sát trái, ảnh cách mép và cách dãy `16px` (R8 của [viewer chạm](advertising-viewer-touch-zoom.md#r8-màn-cảm-ứng-nút-viewer-ẩn-khỏi-mắt)). Wheel bước nấc zoom quanh con trỏ,
+điện thoại cũng blur ([gate phone Android](scroll-feel.md#r7-trên-60fps-trên-phone-android) đo lại khi có máy), hiện, tắt bằng opacity cùng nhịp; focus vào chính hộp thoại. Viewer không có nút đóng và nút `+`, `−` (owner 2026-11-14): phím `+` (hoặc `=`), `-` bước nấc zoom như wheel (video không zoom, [player R8](primary-video-player.md#r8-mở-lớn-video-trong-viewer)), status phần trăm cho trình đọc màn hình; dãy thumbnail nổi và lề quanh ảnh theo [viewer chạm R8](advertising-viewer-touch-zoom.md#r8-dãy-thumbnail-nổi-và-lề-viewer). Wheel bước nấc zoom quanh con trỏ,
 chặn cuộn trang; chuột giữa về vừa khung; Tab xoay vòng nút đang hiện; kéo, phím mũi tên (40px) pan, kẹp theo ảnh đã phóng. Đóng bằng Escape (chỉ
 đóng viewer, không rời detail), chạm hoặc click nền (vuốt bắt đầu từ nền không đóng), vuốt dọc ảnh ở fit trên màn cảm ứng, Back hoặc lỗi ảnh (tức thì); đóng thì mở khóa
 cuộn, focus về nút mở (resize lúc mở đẩy nút khỏi màn hình thì cuộn tức thì cho nút về giữa). Đổi ảnh primary hay về masonry thì đóng viewer. Nút `Xem lớn hơn` không bao giờ bị khóa, icon phóng to đứng yên (owner 2026-11-14, bỏ khóa và vòng loading của 2026-11-11): ảnh primary chưa tải xong thì viewer vẫn mở ngay, ảnh chờ dưới lớp chờ của viewer ([media-card R6](media-card.md#r6-media-trong-primary)); viewer không bao giờ hiện ảnh của lần mở trước: đóng viewer thì ảnh trong viewer bị gỡ `src` (owner 2026-11-11). Viewer mở thì khung primary dưới nền chỉ còn zoom blur phủ kín, kể cả media vừa khít khung, không
@@ -190,8 +191,7 @@ And Escape đóng viewer về khung primary, URL vẫn là detail, scroll là Y1
 
 ### R10. Navbar và Escape trên detail
 
-Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All. Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
-Nút quay lại `←` (như nút quay lại của Pinterest; `[data-detail-back]`, nhãn `Quay lại`/`Back`) nằm góc trên trái vùng media của primary, mọi máy kể cả màn cảm ứng; dùng đúng kiểu `image-action` của nút `Xem lớn hơn` (R9), chỉ đổi icon mũi tên trái. Bấm làm đúng như Escape: ảnh vào thẳng thì `escapeDirectPhoto`, còn lại `history.back()`, nên lùi từng entry (C về B, B về A, A về masonry) và giữ cuộn, focus theo R8.
+Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All. Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)). Detail không có nút quay lại trên mọi máy (owner 2026-11-23 bỏ nút `←` góc trên trái): rời detail bằng Back của trình duyệt, vuốt quay lại hoặc Escape như trên.
 Detail không có hero nên header luôn ở dạng thu gọn của [shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop) (`is-collapsed`, nền trắng, viền) ở mọi `scrollY`; trước đây đầu detail dùng dạng trong suốt cao 103px ở 1440px, 73px ở 390px, thu gọn cao 81px và 71px. Mở detail từ masonry thì lockup FLIP như khi cuộn; đóng về masonry thì header theo `scrollY` của masonry. Ẩn, hiện theo chiều cuộn ([shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống)) giữ nguyên; R2 tính phần dưới header theo cao dạng thu gọn.
 
 ```gherkin

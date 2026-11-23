@@ -151,7 +151,7 @@ And card có cover dọc thì khung vẫn cao hết phần viewport, zoom blur h
 Mũi tên "<", ">" của primary và nút mở lớn (viewer không có nút, owner 2026-11-14) cùng một kiểu: ô `36px` nền trắng, không viền, góc vuông, icon nét mảnh `16px` nét `2px` như chevron. Nút mở lớn
 chỉ còn icon, tên "Xem lớn hơn" / "View larger" qua `aria-label`, không bung chữ khi hover. Player PC là một hàng, ô riêng cùng hàng: nút phát, giờ, thanh tua, nút tiếng cao `36px`, icon `16px`, tâm thẳng tâm nút mở lớn; icon tiếng dừng
 trước nút mở lớn `8px`; nút mở lớn vẫn là ô trắng riêng. Cảm ứng giữ cỡ R1; viewer cảm ứng vẫn ẩn nút theo
-[viewer R8](advertising-viewer-touch-zoom.md#r8-màn-cảm-ứng-nút-viewer-ẩn-khỏi-mắt).
+[viewer R8](advertising-viewer-touch-zoom.md#r8-dãy-thumbnail-nổi-và-lề-viewer).
 
 ```gherkin
 Given primary card nhiều media trên desktop, đang ở video
@@ -163,7 +163,7 @@ And nút mở lớn không có chữ hiện ra, kể cả khi hover
 ### R8. Mở lớn video trong viewer
 
 Nút mở lớn hiện cả với video và mở video vào viewer như ảnh: nền blur như ảnh, không nền đen; video phát tiếp đúng giây
-và đúng trạng thái phát, dừng, tiếng; có thanh player (PC theo R7 và R9, cảm ứng theo R1). Dãy thumbnail của viewer (PC xếp dọc sát trái, owner 2026-11-14), như dãy của primary, đổi media của card
+và đúng trạng thái phát, dừng, tiếng; có thanh player (PC theo R7 và R9, cảm ứng theo R1). Dãy thumbnail của viewer (dãy nổi theo [viewer chạm R8](advertising-viewer-touch-zoom.md#r8-dãy-thumbnail-nổi-và-lề-viewer), owner 2026-11-23), như dãy của primary, đổi media của card
 (media trượt như primary); viewer không có hai mũi tên. Bấm thumbnail hoặc phím khi media đang trượt thì theo dải ngắt
 được ([media-card R3](media-card.md#r3-đổi-media-trên-card)): dải chạy tiếp từ chỗ đang thấy, media đích cũ thành bóng thứ
 hai vẫn trượt cùng dải, media mới vào kề làn ngoài cùng theo chiều bấm, làn ra khỏi khung bị bỏ khi dải đổi đích (DRY 4.2). Video không phóng to: không nút phóng to, thu nhỏ,
@@ -172,9 +172,8 @@ không con lăn, không pinch; ảnh vẫn theo
 thì primary đứng ở media vừa xem, video ở đúng giây. Player không còn nút toàn màn hình; Fullscreen API không dùng nữa.
 
 PC: bấm video thì phát hoặc dừng. Cảm ứng: chạm video trong viewer phát hoặc dừng như R1; vuốt đóng không bắt đầu
-trên video, đóng bằng chạm nền hoặc nút back. Dãy thumbnail viewer ẩn trên cảm ứng (mặc
-định Thread chọn). Thanh tua trong viewer PC chạy tới lề phải `16px` vì không có nút mở lớn. PC: dãy
-thumbnail tự ẩn (trượt sang trái `1rem`, mờ `0.3s`) khi chuột đứng yên 3s, rê chuột hoặc bấm phím thì hiện lại; chuột trên dãy
+trên video, đóng bằng chạm nền hoặc nút back. Thanh tua trong viewer PC chạy tới lề phải `16px` vì không có nút mở lớn. PC: dãy
+thumbnail tự ẩn (trượt hết ra mép như khi thu, owner 2026-11-23) khi chuột đứng yên 3s, rê chuột hoặc bấm phím thì hiện lại; chuột trên dãy
 hoặc focus bàn phím trong dãy giữ dãy hiện. Mũi tên trái, phải đổi media như bấm thumbnail; ảnh đang phóng to thì mũi tên
 kéo ảnh như viewer R5.
 

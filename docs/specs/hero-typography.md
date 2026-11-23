@@ -8,7 +8,7 @@ tests:
   - tests/site/text-mask-hidden.e2e.mjs
   - tests/site/orphan-words.e2e.mjs
 notion: https://app.notion.com/p/3fd332849a0e81bfac09f20245186976
-updated: 2026-11-14
+updated: 2026-11-23
 ---
 
 # Chữ hero kiểu espacio, xuống dòng chốt và khoảng cách dòng đều
@@ -61,7 +61,7 @@ phẩm Advertising (`.hero > .hero-content > h1` hoặc `p.hero-title`, trừ ki
   dưới cùng `1fr`; thiếu chỗ thì hàng giãn, không đè. Hero About không có kicker ở mọi bề rộng (owner audit
   2026-10-18).
 - Rail và chip Advertising trên phone neo như PC: khối `.hero-browse` neo theo đáy hero, chừa sẵn một hàng chip, nên
-  rail đứng một chỗ dù trang có hàng chip hay không; hàng chip thêm tràn xuống dưới. Từ 751px khối này là
+  rail đứng một chỗ dù trang có hàng chip hay không; hàng chip chỉ một hàng ([taxonomy R3](advertising-taxonomy.md#r3-rail-cụm-và-sản-phẩm)). Từ 751px khối này là
   `display: contents`, bố cục cũ giữ nguyên.
 - Kicker cách nét chữ title như nhau ở mọi hero: `margin-bottom: clamp(1.5rem, 3.8vh, 2.2rem)` trừ `--hero-ink-drop`
   (khoảng trống trên nét hoa của dòng 1 so với "Ể", đo bằng canvas), nên title không dấu không bị cách xa hơn.

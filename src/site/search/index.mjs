@@ -43,13 +43,15 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   document.body.append(host);
 
   const announce = (text) => { liveNode.textContent = text; };
-  // Notices take the input's place for 4 seconds (search-bar R3); slow and paused stay, with "Try again", until the visitor acts.
+  // Notices take the input's place for 4 seconds (search-bar R3); slow and error notes stay, with "Try again", until the visitor acts.
   let noteTimer;
+  let noteTurn = 0; // a note shown during the fade-out of the last one stays: the late fade end must not hide it
   const notice = (text, action) => {
     clearTimeout(noteTimer);
+    const turn = ++noteTurn;
     if (!text) {
       if (noteNode.hidden) return;
-      const done = () => { noteNode.hidden = true; noteNode.replaceChildren(); bar.classList.remove("has-note"); syncHint(); };
+      const done = () => { if (turn !== noteTurn) return; noteNode.hidden = true; noteNode.replaceChildren(); bar.classList.remove("has-note", "has-wide-note"); syncHint(); };
       if (reduced()) return done();
       noteNode.animate([{ transform: "none", opacity: 1 }, { transform: "translateY(-60%)", opacity: 0 }], { duration: 450, easing: "cubic-bezier(0.16, 1, 0.3, 1)" })
         .finished.then(done, done);
@@ -58,12 +60,18 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     announce(text);
     noteNode.replaceChildren(Object.assign(document.createElement("span"), { textContent: text }));
     if (action) {
-      const button = Object.assign(document.createElement("button"), { type: "button", textContent: action.label });
+      // Retry is an icon, so the notice keeps room beside it in the phone field (search-bar R3, owner 2026-11-23); a text action
+      // ("Search all", R8) takes the whole row instead.
+      const button = action.text
+        ? Object.assign(document.createElement("button"), { type: "button", className: "search-bar__action", textContent: action.label })
+        : Object.assign(document.createElement("button"), { type: "button", className: "search-bar__tool", title: action.label, innerHTML: icon("retry") });
+      if (!action.text) button.setAttribute("aria-label", action.label);
       button.addEventListener("click", () => { notice(""); action.onClick(); });
       noteNode.append(button);
     }
     noteNode.hidden = false;
     bar.classList.add("has-note");
+    bar.classList.toggle("has-wide-note", Boolean(action?.text));
     if (!reduced()) noteNode.animate([{ transform: "translateY(60%)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 450, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
     if (!action) noteTimer = setTimeout(() => notice(""), 4000);
   };
@@ -262,11 +270,11 @@ export function mount(container, { signal, softNavigation = false } = {}) {
   signal?.addEventListener("abort", () => rowObserver.disconnect(), { once: true });
   let chipsQueued = false;
   // The group picked on the hero sets which products the row offers; picking one of them keeps the whole row (owner 2026-11-23), so
-  // the scope is read only while no product is picked.
+  // while searching the scope is read only while no product is picked. A search started on a product keeps its group's row (R8).
   let scope = container;
   function syncChips() {
     chipsQueued = false;
-    if (!container.querySelector("[data-masonry-product][aria-current=\"true\"]")) {
+    if (!client.active || !container.querySelector("[data-masonry-product][aria-current=\"true\"]")) {
       const cluster = [...container.querySelectorAll("[data-masonry-filter][aria-current=\"true\"]")].find((node) => node.dataset.masonryFilter !== "all");
       scope = (cluster && container.querySelector(`[data-masonry-chips="${cluster.dataset.masonryFilter}"]`)) || container;
     }

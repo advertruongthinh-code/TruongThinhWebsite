@@ -22,11 +22,11 @@ audit trang thật với mock (R6).
 
 **Một khối ở ba chỗ.** Thanh là một khối liền: nền `paper`, viền 1px `ink`, góc vuông. Ba chỗ dùng cùng khối đó; đổi chỗ chỉ đổi vị trí, bề rộng và bóng,
 không đổi dáng (bỏ đường kẻ ở khe CTA). Ngoại lệ có chủ ý so với mock: chữ ô 16px (mock 15px) và morph 1s (mock 0,6s, quyết định owner 2026-11-18). Đầu trang: khe `[data-search-dock-top]` như nay (thế chỗ hàng nhóm dưới tiêu đề hero; trang có lưới masonry bỏ "Cuộn xuống").
-Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe dứt khoát theo vị trí cuộn ([R7](#r7-vào-khe-dứt-khoát)); chỉ trang gốc có thanh ([R8](#r8-chỉ-trang-gốc-có-thanh)).
+Giữa trang: nổi trong lớp cố định ở đáy, ngang giữa. Cuối lưới: khe `[data-search-dock]` dưới tiêu đề CTA. Thanh vào và rời khe dứt khoát theo vị trí cuộn ([R7](#r7-vào-khe-dứt-khoát)); trang card không có thanh, trang nhóm và trang sản phẩm có thanh và tìm trong nhóm ([R8](#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)).
 
-| | PC và tablet (từ 751px) | Phone (dưới 751px) |
+| | PC (chuột), màn từ 751px | Máy cảm ứng (phone, tablet, mọi chiều); PC dưới 751px |
 | --- | --- | --- |
-| Nổi, chưa có kết quả | rộng `min(560px, 100% - 32px)`, cách đáy 35px, bóng `0 12px 32px rgb(0 0 0 / 18%)` | rộng 100% trừ 16px mỗi bên, cách đáy 16px cộng `safe-area-inset-bottom`, cùng bóng |
+| Nổi, chưa có kết quả | rộng `min(560px, 100% - 32px)`, cách đáy 35px, bóng `0 12px 32px rgb(0 0 0 / 18%)` | máy cảm ứng: từ mép trái lưới tới cách mép phải lưới 60px (làn nút về đầu, [R5](#r5-nút-về-đầu-trang-phone-và-chuyển-động)); PC hẹp: rộng 100% trừ 16px mỗi bên; cách đáy 16px cộng `safe-area-inset-bottom`, cùng bóng |
 | Nổi, có kết quả | rộng `min(760px, 100% - 32px)`, thêm hàng chip phía trên | như trên, thêm hàng chip |
 | Khe đầu trang, khe CTA | rộng bằng khe, tối đa 1000px; không bóng, không hàng chip | rộng bằng khe; không bóng, không hàng chip |
 
@@ -52,19 +52,22 @@ Then hàng chip có nút mũi tên "Hiện tất cả (19)" ở cuối; bấm th
 
 **Chữ gợi ý.** Ô trống, không focus, không rê chuột thì chữ mờ (`muted`) đổi mỗi 3 giây; câu cũ trượt lên 60% và mờ đi, câu mới trượt từ dưới lên,
 `--dur-fade` `--ease-expo-out`. Focus, rê chuột hoặc đã có chữ thì dừng ở câu đang hiện. Giảm chuyển động: không đổi, chỉ hiện câu đầu. Đang có ảnh mà chưa gõ chữ thì
-hiện cố định "Thêm chữ để tìm sát hơn" / "Add words to narrow it down". Mỗi câu tối đa 28 ký tự để vừa ô chữ phone 390px (khoảng 215px); dài hơn thì cắt bằng "…".
-Danh sách (VI / EN): "Tìm hộp đèn, chữ nổi, kệ…" / "Search lightboxes, letters…"; "Thử: chữ nổi inox" / "Try: steel letters"; "Mẹo: tìm bằng một ảnh mẫu" /
-"Tip: search with a photo"; "Gõ không dấu cũng được" / "Typos are fine"; "Thử: kệ trưng bày mỹ phẩm" / "Try: cosmetics display". Lớp chữ gợi ý là `aria-hidden`; ô chữ giữ
+hiện cố định "Thêm chữ để lọc" / "Add a few words". Owner 2026-11-23: phone chung hàng với nút về đầu trang ([R5](#r5-nút-về-đầu-trang-phone-và-chuyển-động)) nên ô chữ
+phone 360px chỉ còn khoảng 157px; mỗi câu (khoảng 20 ký tự) phải vừa nguyên ô đó, không bị cắt "…".
+Danh sách (VI / EN): "Tìm hộp đèn, chữ nổi" / "Search lightboxes…"; "Thử: chữ nổi inox" / "Try: steel letters"; "Mẹo: tìm bằng ảnh" /
+"Tip: search by photo"; "Gõ không dấu được" / "Typos are fine"; "Thử: kệ mỹ phẩm" / "Try: display shelves". Lớp chữ gợi ý là `aria-hidden`; ô chữ giữ
 `placeholder` tĩnh cho trình đọc màn hình.
 
 **Ảnh: một tấm.** Ảnh vào bằng nút ảnh, kéo thả (lớp phủ "Thả ảnh vào đây để tìm") hoặc dán. Thumbnail 30px nằm đúng chỗ nút ảnh, góc trên phải có nút bỏ 14px nền `ink`
 chữ trắng (vùng bấm 32px); thanh không cao thêm, không còn khay ảnh. Bấm thumbnail thì mở chọn ảnh để thay. Đưa ảnh mới (một hay nhiều file) thì ảnh đầu thay ảnh
 cũ ([Tìm kiếm R8](advertising-search.md#r8-ảnh-khách-đưa-vào)). Bỏ ảnh thì focus về nút ảnh. Phần tìm (1 ảnh gửi API) thuộc thread rà soát tìm kiếm ([Tìm kiếm R8](advertising-search.md#r8-ảnh-khách-đưa-vào)).
 
-**Thông báo.** ("Chưa thấy mẫu phù hợp", thông báo về ảnh của R8, đang chậm, tạm nghỉ): không còn khay, nên thông báo là một lớp chữ đè lên ô chữ (chữ khách gõ
+**Thông báo.** ("Chưa thấy mẫu nào", thông báo về ảnh của R8, đang chậm, lỗi tìm): không còn khay, nên thông báo là một lớp chữ đè lên ô chữ (chữ khách gõ
 tạm trong suốt), trượt vào và ra như chữ gợi ý, chữ `ink` đậm 600 để khác chữ gợi ý; 4 giây rồi chữ khách gõ hiện lại. Khách gõ hoặc bấm vào ô thì thông báo tắt
-ngay. Đang chậm và tạm nghỉ ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)): thông báo ở lại tới khi khách làm gì đó, cuối thông báo có nút chữ "Thử lại" / "Retry". Phone: dùng câu ngắn ("Ảnh chưa đọc
-được, thử JPG" ...), tối đa 28 ký tự. Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
+ngay. Đang chậm và lỗi tìm ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)): thông báo ở lại tới khi khách làm gì đó, cuối ô chữ có nút icon vòng xoay 40px như nút ảnh, nhãn `aria-label`/`title` "Thử lại" / "Try again" (owner 2026-11-23, thay nút chữ). Câu ngắn
+như chữ gợi ý: vừa nguyên ô chữ phone 360px (khoảng 157px), câu có nút thử lại vừa phần còn lại (khoảng 107px): "Tìm ảnh chậm" / "Image is slow", "Lỗi tìm kiếm" /
+"Search error", "Lỗi tìm ảnh" / "Image error", "Ảnh lỗi, thử JPG" / "Bad image, try JPG", "File chưa hỗ trợ" / "File not supported", "Ảnh cần dưới 25 MB" /
+"Image over 25 MB". Đang có thông báo thì nút xoá chữ ẩn theo chữ khách gõ, nên thông báo có cả ô chữ. Mọi thông báo cũng đọc qua vùng `aria-live` ẩn.
 
 ### R4. Khe CTA
 
@@ -77,7 +80,9 @@ dự phòng cũ: link cách đáy khối ít nhất `--masonry-gap`.
 ### R5. Nút về đầu trang, phone và chuyển động
 
 **Nút về đầu trang (thiết bị cảm ứng, theo điều kiện hiện nay `(hover: none) and (pointer: coarse)`).** Nút luôn là ô 50px nền `paper`, viền 1px `ink`, cùng bóng
-với thanh ([shell](site-shell.md), owner 2026-11-22). Khi thanh nổi: nằm hàng riêng phía trên thanh, cách 10px, sát mép phải màn như mọi trang (owner 2026-11-22). Thanh ở khe thì nút ẩn. Nút nằm dưới khối tìm kiếm (z-index), bóng không phủ lên thanh. Detail view ẩn thanh nên nút về góc thường. `--search-bar-offset` = chiều cao khối (gồm hàng
+với thanh ([shell](site-shell.md), owner 2026-11-22). Mọi máy cảm ứng, phone và tablet, dọc và ngang (owner 2026-11-23: phương án A trên phone, rồi "các thiết bị cảm ứng phải đồng bộ",
+chọn "Thẳng lưới như phone" cho tablet): thanh và nút chung một hàng cách đáy 16px, thẳng mép lưới: thanh từ mép trái lưới tới cách
+mép phải lưới 60px, nút 50px nằm cuối hàng cách thanh 10px, đáy nút bằng đáy thanh; có kết quả thì hàng chip mở phía trên thanh, nút đứng yên. Thanh ở khe thì nút ẩn. Nút nằm dưới khối tìm kiếm (z-index), bóng không phủ lên thanh. Detail view ẩn thanh nên nút về góc thường. `--search-bar-offset` = chiều cao khối (gồm hàng
 chip) + 12px; Floating CTA và nút về đầu trang không cùng hiện nên không cộng hàng nút.
 
 **Phone, bàn phím mở.** Ô chữ focus trên phone: hàng chip và nút về đầu trang ẩn, chỉ còn hàng chữ trên bàn phím; thanh không đổi chỗ tới khi blur (như nay).
@@ -135,25 +140,39 @@ When cuộn xuống qua chỗ khe CTA chạm thanh rồi dừng
 Then thanh vào khe và bề rộng đi dần từ bề rộng nổi tới bề rộng khe trong khoảng 1 giây, bóng mờ dần
 ```
 
-### R8. Chỉ trang gốc có thanh
+### R8. Thanh khi đang lọc, tìm trong nhóm
 
-Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/advertising-products/`, `/en/advertising-products/`). Trang Công trình và mọi trang
-con (trang nhóm, trang sản phẩm, trang chi tiết card) không có thanh, không có khe; hero và CTA giữ bố cục như trước khi có thanh (link "Trao đổi ý tưởng" cách
-tiêu đề một khoảng lưới). Muốn tìm thì về trang gốc.
+Owner 2026-11-23 (thay luật "chỉ trang gốc có thanh" ngày 2026-11-22): thanh tìm kiếm có ở trang gốc Sản phẩm quảng cáo, trang nhóm và trang sản phẩm
+(mở thẳng hoặc bấm nhóm, chip ở hero). Hero và CTA của trang nhóm, trang sản phẩm có khe như trang gốc ([R7](#r7-vào-khe-dứt-khoát)). Trang chi tiết card và
+trang Công trình không có thanh, không có khe.
 
-- Trên trang gốc, đang không tìm mà bấm một nhóm hoặc chip ở hero (sang trang con), hoặc mở chi tiết một card: thanh đang nổi trượt xuống khỏi màn hình
-  (450ms `--ease-card`, giảm chuyển động thì tắt ngay) rồi ẩn; thanh đang ở khe mất cùng khe.
-- Đang tìm: bấm chip trong kết quả thì thanh vẫn ở (R2). Bấm một nhóm ở hero là rời tìm (như nay) nên thanh ẩn như trên.
-- Về "Tất cả" hoặc đóng card: thanh hiện lại ngay ở chỗ đúng theo R7.
+- Đang lọc (một nhóm hoặc một sản phẩm) mà tìm: chỉ tìm trong bộ lọc đó. Lưới chỉ hiện kết quả thuộc bộ lọc; hàng chip của thanh chỉ có sản phẩm của nhóm đó
+  (lọc theo sản phẩm thì là các sản phẩm cùng nhóm) còn kết quả.
+- Đang tìm mà bấm nhóm, chip khác: lọc trong kết quả như nay (R2); lần tìm sau tìm trong bộ lọc đang chọn.
+- Bỏ tìm (Esc, nút xoá): lưới về danh sách đang lọc, URL vẫn là trang nhóm.
+- Nhóm không có kết quả: trang đứng yên, lưới giữ danh sách đang lọc, thanh báo "Nhóm này chưa có" / "None in this group" kèm nút chữ "Tìm tất cả" /
+  "Search all". Thông báo phủ cả hàng nhập: nút ảnh và kính lúp tạm ẩn (owner 2026-11-23, vì ô chữ phone 360px chỉ khoảng 157px); thông báo ở lại tới khi
+  khách chạm vào ô, gõ chữ hoặc bấm nút. Bấm "Tìm tất cả" thì kết quả hiện trên cả danh mục (rail về "Tất cả") và trang trượt về đầu lưới (R9).
+- Mở chi tiết một card: thanh đang nổi trượt xuống khỏi màn hình (450ms `--ease-card`, giảm chuyển động thì tắt ngay) rồi ẩn; thanh đang ở khe mất cùng
+  khe. Đóng card: thanh hiện lại ngay ở chỗ đúng theo R7.
 
 ```gherkin
-Given trang gốc ở 1440px, chưa tìm
-When bấm nhóm "Bảng hiệu"
-Then URL sang trang nhóm, không còn thanh và khe; bấm "Tất cả" thì thanh hiện lại trong khe đầu trang
+Given trang nhóm "Bảng hiệu" ở 1440px
+When tìm một câu có kết quả trong nhóm
+Then lưới chỉ có card của nhóm "Bảng hiệu", hàng chip của thanh chỉ có sản phẩm của nhóm này
+
+Given trang nhóm "Bảng hiệu"
+When tìm một câu chỉ có kết quả ở nhóm khác
+Then lưới đứng yên, thanh báo "Nhóm này chưa có" kèm nút "Tìm tất cả"; bấm nút thì lưới hiện kết quả của cả danh mục
+
+Given trang nhóm "Bảng hiệu" đang tìm
+When bấm Esc
+Then lưới về danh sách nhóm "Bảng hiệu"
 ```
 
-Ghi chú kỹ thuật: build gắn `data-search-off` lên container của trang con và trang card; runtime masonry bật, tắt thuộc tính này khi đổi nhóm, mở hoặc đóng card;
-`dock.mjs` chọn chỗ mỗi frame cuộn, chỉ đọc vị trí hai khe và đáy header.
+Ghi chú kỹ thuật: build gắn `data-search-off` lên container của trang card; runtime masonry bật, tắt thuộc tính này khi mở hoặc đóng card. Phạm vi tìm là bộ lọc
+rail đang chọn (`setResults(ids, { scope })`, `countInScope(ids)`); client hỏi `countInScope` trước khi đưa kết quả lên lưới. `dock.mjs` chọn chỗ mỗi frame cuộn,
+chỉ đọc vị trí hai khe và đáy header.
 
 ### R9. Tìm xong về đầu lưới
 
@@ -161,7 +180,9 @@ Owner 2026-11-23: tìm xong (Enter, kính lúp, thêm ảnh) thì trang trượt
 PC và phone. Đầu lưới nằm dưới đáy header một khoảng bằng lề trái, phải của lưới so với mép trang (`--masonry-outer`); header ẩn khi cuộn
 xuống và hiện khi cuộn lên ([phone-header-scroll R2](phone-header-scroll.md#r2-header-đi-theo-quãng-cuộn)), nên cuộn xuống thì khoảng đó tính
 từ mép trên màn hình. Trượt 600ms theo đường `--ease-card`, cùng lúc lưới xếp lại; chạm, lăn chuột hoặc bấm phím thì dừng; giảm chuyển động
-thì nhảy ngay. Bấm chip trong kết quả hoặc bỏ tìm (Esc, nút xoá): chỉ trượt khi lưới mới ngắn hơn làm trang lùi về chỗ thấy CTA; còn lại đứng yên.
+thì nhảy ngay. Tìm lại đúng câu cũ (kết quả y hệt) cũng trượt (owner 2026-11-23). Không có kết quả thì đứng yên; trang chỉ trượt khi kết quả về,
+không trượt lúc bấm. Ảnh về muộn sau khi khách đã cuộn thì thành nút "Có thêm kết quả gợi ý", bấm mới trượt ([Tìm kiếm R6](advertising-search.md#r6-chờ-dự-phòng-và-lỗi)).
+Bấm chip trong kết quả hoặc bỏ tìm (Esc, nút xoá): chỉ trượt khi lưới mới ngắn hơn làm trang lùi về chỗ thấy CTA; còn lại đứng yên.
 
 ```gherkin
 Given trang gốc ở 384px, cuộn tới tận cuối, thanh ở khe CTA

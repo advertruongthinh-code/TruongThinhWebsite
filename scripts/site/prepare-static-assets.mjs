@@ -253,9 +253,8 @@ const renderAdvertisingPage = (page) => advertisingTemplate
   .replace(`data-masonry-filter="${page.cluster}"`, `data-masonry-filter="${page.cluster}" aria-current="true"`)
   .replace(`data-masonry-chips="${page.cluster}" hidden`, `data-masonry-chips="${page.cluster}"`)
   .replaceAll(`data-masonry-product="${page.filter}"`, `data-masonry-product="${page.filter}" aria-current="true"`)
-  .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`)
-  // The search bar lives on the root page only (search-bar R8); the runtime clears this when a visitor filters back to all.
-  .replace('data-barba-namespace="advertising-products"', 'data-barba-namespace="advertising-products" data-search-off');
+  // Group and product pages keep the search bar, which searches inside them (search-bar R8, owner 2026-11-23).
+  .replace(/<noscript>[\s\S]*?<\/noscript>/, `<noscript><p data-en="${escapeHtml(page.introEn)}">${escapeHtml(page.introVi)}</p><ul>${pageLinks}</ul></noscript>`);
 for (const page of ADVERTISING_PAGES) {
   const html = withPhonePacks(renderAdvertisingPage(page), page.filter);
   for (const locale of ["vi", "en"]) {
@@ -610,5 +609,7 @@ for (const cluster of ADVERTISING_PAGES.filter(({ filter, cluster }) => filter =
     await writeFile(destination, localeHtml(embedVietnameseText(html, destination), locale), "utf8");
   }
 }
+// What this build is made of; a CMS content run reads it from staging to rebuild the same commit (docs/specs/cms-data.md R6).
+await writeFile(path.join(outputRoot, "build-info.json"), `${JSON.stringify({ commit: process.env.TT_BUILD_COMMIT || null, snapshotId: process.env.TT_SNAPSHOT_ID || null, snapshotAt: process.env.TT_SNAPSHOT_AT || null })}\n`, "utf8");
 
 console.log(`[prepare-site] copied src/site, generated ${ADVERTISING_LEGACY_CATEGORIES.length} advertising compatibility pages, ${ADVERTISING_PAGES.length * 2} cluster and product pages, ${ADVERTISING_CARDS.length * 2} card pages, and embedded bilingual runtime text`);

@@ -1,14 +1,18 @@
 name: Deploy demo
 
-# Deploy the demo (= staging.truongthinhads.vn) when CI is green on main, or the live site from release.yml
-# (docs/specs/static-release.md R11). Called by ci.yml (job deploy-demo) instead of workflow_run: a CI run dispatched
-# by Automerge with GITHUB_TOKEN does not trigger workflow_run, so the demo used to miss updates after auto-merged PRs.
+# Deploy staging when CI is green on main and on CMS content runs (docs/specs/cms-data.md R6), or the live site
+# from release.yml (docs/specs/static-release.md R11). Reading build-info.json, the snapshot and deploy markers are staging only.
+# Called by ci.yml (job deploy-demo) instead of workflow_run: a CI run dispatched by Automerge with GITHUB_TOKEN does not
+# trigger workflow_run.
 on:
   workflow_call:
     inputs:
       target:
         type: string
         default: staging
+      content:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -21,16 +25,87 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    # The Cloudflare deploy token lives in this environment, which only runs on main can use (cms-plan S4).
+    environment: cloudflare-deploy
+    defaults:
+      run:
+        shell: bash
+    env:
+      TARGET: ${{ inputs.target }}
+      STAGING_ORIGIN: ${{ vars.STAGING_ORIGIN }}
+      CMS_SNAPSHOT_URL: ${{ inputs.target == 'staging' && vars.CMS_SNAPSHOT_URL || '' }}
+      CMS_MEDIA_ORIGIN: ${{ vars.CMS_MEDIA_ORIGIN }}
     steps:
+      - env:
+          CONTENT: ${{ inputs.content }}
+        run: |
+          case "$TARGET" in staging|production) ;; *) echo "bad target"; exit 1 ;; esac
+          if [ "$TARGET" = production ] && [ "$CONTENT" = true ]; then echo "content runs deploy to staging only"; exit 1; fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+      # A content run rebuilds the commit that staging is running, so a save never ships code that has not passed CI.
+      - id: ref
+        env:
+          CONTENT: ${{ inputs.content }}
+          CMS_ACCESS_CLIENT_ID: ${{ secrets.CMS_ACCESS_CLIENT_ID }}
+          CMS_ACCESS_CLIENT_SECRET: ${{ secrets.CMS_ACCESS_CLIENT_SECRET }}
+        run: |
+          set -euo pipefail
+          commit="$GITHUB_SHA"
+          if [ "$CONTENT" = true ]; then
+            # Staging sits behind Cloudflare Access: the service token passes its Service Auth policy.
+            code=$(curl -sS -A "tt-cms-ci" -H "CF-Access-Client-Id: $CMS_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CMS_ACCESS_CLIENT_SECRET" -o "$RUNNER_TEMP/build-info.json" -w "%{http_code}" "$STAGING_ORIGIN/build-info.json")
+            if [ "$code" = 200 ]; then
+              commit=$(jq -r '.commit // ""' "$RUNNER_TEMP/build-info.json")
+              [[ "$commit" =~ ^[0-9a-f]{40}$ ]] || { echo "build-info.json: bad commit"; exit 1; }
+              git merge-base --is-ancestor "$commit" origin/main || { echo "build-info.json: commit is not on main"; exit 1; }
+            elif [ "$code" != 404 ]; then
+              echo "build-info.json: HTTP $code"; exit 1
+            fi
+          fi
+          git checkout --detach "$commit"
+          echo "commit=$commit" >> "$GITHUB_OUTPUT"
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm ${{ inputs.target == 'production' && 'release:site' || 'deploy:demo' }}
+      - id: snapshot
+        if: env.CMS_SNAPSHOT_URL != ''
+        env:
+          CMS_ACCESS_CLIENT_ID: ${{ secrets.CMS_ACCESS_CLIENT_ID }}
+          CMS_ACCESS_CLIENT_SECRET: ${{ secrets.CMS_ACCESS_CLIENT_SECRET }}
+          TT_BUILD_COMMIT: ${{ steps.ref.outputs.commit }}
+        run: node scripts/cms/fetch-snapshot.mjs
+      - if: steps.snapshot.outputs.skip != 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TT_CONTENT_DIR: ${{ steps.snapshot.outputs.content_dir }}
+          TT_BUILD_COMMIT: ${{ steps.ref.outputs.commit }}
+          TT_SNAPSHOT_ID: ${{ steps.snapshot.outputs.snapshot_id }}
+          TT_SNAPSHOT_AT: ${{ steps.snapshot.outputs.snapshot_at }}
+        run: |
+          set -euo pipefail
+          mkdir -p .tmp
+          pnpm qa:content
+          pnpm build:demo
+          pnpm qa:static
+          if [ "$TARGET" = production ]; then env_flag="--env=production"; else env_flag="--env="; fi
+          pnpm demo:wrangler deploy --config wrangler.static.toml "$env_flag" 2>&1 | tee .tmp/deploy.log
+      - if: inputs.target == 'staging' && steps.snapshot.outputs.skip != 'true'
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_PUBLIC_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_PUBLIC_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: auto
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+          R2_PUBLIC_BUCKET: ${{ vars.R2_PUBLIC_BUCKET }}
+          TT_BUILD_COMMIT: ${{ steps.ref.outputs.commit }}
+          TT_SNAPSHOT_ID: ${{ steps.snapshot.outputs.snapshot_id }}
+          TT_SNAPSHOT_AT: ${{ steps.snapshot.outputs.snapshot_at }}
+        run: node scripts/cms/write-deploy-marker.mjs .tmp/deploy.log

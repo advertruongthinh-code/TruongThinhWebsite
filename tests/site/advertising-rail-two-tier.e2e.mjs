@@ -101,14 +101,17 @@ try {
     }, cluster, { timeout: 8000 });
     return page.evaluate((c) => {
       const chips = [...document.querySelectorAll(`[data-masonry-chips="${c}"] .rail-chip`)].map((chip) => chip.getBoundingClientRect());
-      return { top: Math.round(Math.min(...chips.map((r) => r.top))), rows: new Set(chips.map((r) => Math.round(r.top))).size,
+      // Rows by chip height: a chip still settling sub-pixel does not count as a new row.
+      const top = Math.min(...chips.map((r) => r.top));
+      return { top: Math.round(top), rows: new Set(chips.map((r) => Math.round((r.top - top) / r.height))).size,
         scroll: window.TruongThinhMotion.getLogicalScroll() };
     }, cluster);
   };
   const oneRow = await firstRowTop("signage");
   const manyRows = await firstRowTop("office-signs");
   assert.equal(oneRow.rows, 1, "Signage has one chip row");
-  assert.ok(manyRows.rows > 1, "Office signs has multiple chip rows");
+  // Rail and chips stay one line at every size (owner 2026-11-23): a long row starts at the grid edge, fades and scrolls across.
+  assert.equal(manyRows.rows, 1, `Office signs keeps one chip row: ${JSON.stringify(manyRows)}`);
   assert.equal(manyRows.top, oneRow.top, `first chip row vertically fixed: ${JSON.stringify({ oneRow, manyRows })}`);
 
   await page.locator('[data-masonry-filter="signage"]').click();
@@ -166,6 +169,38 @@ try {
     ...document.querySelectorAll("[data-motion-hero-kicker], .rail-chips:not([hidden]) .rail-chip"),
   ].flatMap((node) => node.getAnimations()).filter((animation) => !(animation instanceof CSSTransition)).length), 0, "reduced motion has no entrance");
   await calm.close();
+
+  // 1024px: the Displays chip row is wider than the screen (owner 2026-11-23).
+  const narrow = await browser.newPage({ viewport: { width: 1024, height: 768 } });
+  await narrow.goto(`${baseUrl}/advertising-products/standee-ke-trung-bay/`, { waitUntil: "networkidle" });
+  await narrow.waitForSelector("[data-masonry-card]");
+  await narrow.waitForTimeout(1500);
+  const longRow = narrow.locator(".rail-chips:not([hidden])");
+  const edge = await longRow.evaluate((row) => ({
+    chip: row.querySelector(".rail-chip").getBoundingClientRect().left,
+    grid: document.querySelector("[data-project-grid]").getBoundingClientRect().left,
+    overflow: row.scrollWidth > row.clientWidth,
+    fade: [row.hasAttribute("data-fade-start"), row.hasAttribute("data-fade-end")],
+  }));
+  assert.ok(edge.overflow && Math.abs(edge.chip - edge.grid) <= 1, `long chip row starts at the grid edge: ${JSON.stringify(edge)}`);
+  assert.deepEqual(edge.fade, [false, true], "only the end fades before scrolling");
+  const box = await longRow.boundingBox();
+  await narrow.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  const pageBefore = await narrow.evaluate(() => window.TruongThinhMotion.getLogicalScroll());
+  await narrow.mouse.wheel(0, 200);
+  await narrow.waitForTimeout(400);
+  const wheeled = await narrow.evaluate(() => ({ row: document.querySelector(".rail-chips:not([hidden])").scrollLeft,
+    page: window.TruongThinhMotion.getLogicalScroll() }));
+  assert.ok(wheeled.row > 0 && Math.abs(wheeled.page - pageBefore) < 1, `the wheel scrolls the chip row, not the page: ${JSON.stringify(wheeled)}`);
+  // A mouse drag scrolls back and does not open the chip under the pointer.
+  const path = await narrow.evaluate(() => location.pathname);
+  await narrow.mouse.down();
+  await narrow.mouse.move(box.x + box.width / 2 + 150, box.y + box.height / 2, { steps: 6 });
+  await narrow.mouse.up();
+  await narrow.waitForTimeout(400);
+  assert.deepEqual(await narrow.evaluate(() => [document.querySelector(".rail-chips:not([hidden])").scrollLeft, location.pathname]), [0, path],
+    "dragging scrolls the row back without following a chip");
+  await narrow.close();
 
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await phone.goto(`${baseUrl}/advertising-products/`, { waitUntil: "networkidle" });

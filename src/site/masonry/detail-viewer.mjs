@@ -13,7 +13,7 @@ const TOUCH_SLOP = 10;
 // Two fingers rotate only when twisted past 20° before the zoom changes by more than 20%; an ordinary pinch zoom does not rotate (R11).
 const TWIST_THRESHOLD = 20;
 const ZOOM_LOCK = 1.2;
-// Space between the viewer image, the thumbnail strip and the screen edges on PC (owner 2026-11-14).
+// Space between the viewer image and the thumbnail strip beside it (owner 2026-11-14).
 const VIEWER_GAP = 16;
 // Rotate vector (x, y) by `degrees` clockwise on screen, like CSS rotate().
 const rotate = (x, y, degrees) => {
@@ -80,8 +80,6 @@ export function createDetailViewer({
   let resizeFrame = 0;
   let fitGeometryKey = "";
   const reducedMotion = env.reducedMotion;
-  // A touch screen hides the viewer buttons (R8) so Fit leaves no margin for them: the image touches the screen edge, in landscape too.
-  const touchScreen = env.phone;
 
   document.body.append(dialog);
 
@@ -119,14 +117,15 @@ export function createDetailViewer({
     const stop = previousWidth ? -1 : stops().findIndex((value) => near(scale, value));
     fitGeometryKey = geometryKey();
     const styles = getComputedStyle(dialog);
-    const touch = touchScreen.matches;
-    // No buttons around the image (owner 2026-11-14): 16px on every side; the thumbnail strip on the left takes its width plus 16px on both sides,
-    // mirrored on the right so the image stays centered on the screen. A window up to 750px wide keeps the full width, the strip overlays the image.
-    const narrow = touch || viewport.clientWidth <= 750;
-    const strip = narrow ? 0 : thumbs?.offsetWidth || 0;
-    const insetX = narrow ? 0 : VIEWER_GAP + (strip && strip + VIEWER_GAP);
-    const insetTop = touch ? 0 : (parseFloat(styles.paddingTop) || 0) + VIEWER_GAP;
-    const insetBottom = touch ? 0 : (parseFloat(styles.paddingBottom) || 0) + VIEWER_GAP;
+    // The image keeps the viewer margin on every side (owner 2026-11-23, CSS --viewer-margin). Where the strip sits beside the image it takes its
+    // thumbnail size plus 16px, mirrored on the opposite side so the image stays centered on the screen (owner 2026-11-14).
+    const margin = parseFloat(styles.getPropertyValue("--viewer-margin")) || 0;
+    const beside = styles.getPropertyValue("--viewer-dock").trim() === "beside" && thumbs && !thumbs.hidden;
+    const strip = beside ? (parseFloat(getComputedStyle(thumbs).getPropertyValue("--dock-thumb")) || 0) + VIEWER_GAP : 0;
+    const row = viewport.clientWidth > viewport.clientHeight;
+    const insetX = margin + (row ? 0 : strip);
+    const insetTop = (parseFloat(styles.paddingTop) || 0) + margin + (row ? strip : 0);
+    const insetBottom = (parseFloat(styles.paddingBottom) || 0) + margin + (row ? strip : 0);
     const availableWidth = Math.max(1, viewport.clientWidth - 2 * insetX
       - (parseFloat(styles.paddingLeft) || 0) - (parseFloat(styles.paddingRight) || 0));
     const availableHeight = Math.max(1, viewport.clientHeight - insetTop - insetBottom);

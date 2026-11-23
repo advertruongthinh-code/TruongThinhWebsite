@@ -1,4 +1,7 @@
 name: CI
+# A CMS content run (admin dispatch with content: true) carries its own name so the status page tells it from code runs
+# (Automerge also dispatches CI on main); an empty name keeps GitHub's default.
+run-name: ${{ inputs.content == true && 'CMS content build' || '' }}
 
 on:
   pull_request:
@@ -13,6 +16,10 @@ on:
       full:
         type: boolean
         default: false
+      # CMS content build (docs/specs/cms-data.md R6): no code suites, deploys staging only.
+      content:
+        type: boolean
+        default: false
   # The full suites run nightly at 02:00 Vietnam time; PRs and pushes run only fast (spec ci-test-suites R4).
   schedule:
     - cron: "0 19 * * *"
@@ -21,9 +28,11 @@ permissions:
   contents: read
 
 # A new push cancels the older run of the same PR; on main nothing is cancelled so a run in progress still reaches Deploy demo when merges pile up.
+# Content runs queue in their own group, so a save never waits behind or replaces a code run (cms-plan Q8).
 concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  group: ${{ inputs.content == true && 'ci-content' || format('ci-{0}', github.ref) }}
+  # A content run is never cancelled: a branch dispatch with content true must not cancel the main content deploy before its marker.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && inputs.content != true }}
 
 # Test suites per website part (docs/specs/ci-test-suites.md): select suites, run in parallel, aggregate into the static-release check.
 jobs:
@@ -43,7 +52,9 @@ jobs:
       - id: select
         env:
           FULL: ${{ github.event_name == 'schedule' || inputs.full == true }}
+          CONTENT: ${{ inputs.content == true }}
         run: |
+          if [ "$CONTENT" = true ]; then echo "suites=[]" >> "$GITHUB_OUTPUT"; exit 0; fi
           suites=$(node scripts/ci/suites.mjs --select --event "$GITHUB_EVENT_NAME" --base HEAD^1)
           if [ "$FULL" = true ]; then suites=$(node scripts/ci/suites.mjs --all)
           elif [ "$suites" != "[]" ]; then suites='["fast"]'; fi
@@ -174,8 +185,18 @@ jobs:
   # Deploy demo runs only on main (push or Automerge dispatch) when static-release, i.e. the fast suite, is green; the nightly run does not deploy.
   # Deploy only when the fast suite ran (code changed) and static-release is green. Without !cancelled() a skipped job anywhere
   # upstream (red-before always skips off a PR) skips the deploy too.
+  # A content run selects no suite but still deploys staging.
   deploy-demo:
     needs: [select, static-release]
-    if: ${{ !cancelled() && needs.static-release.result == 'success' && needs.select.outputs.suites != '[]' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true }}
+    if: ${{ !cancelled() && needs.static-release.result == 'success' && (needs.select.outputs.suites != '[]' || inputs.content == true) && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true }}
     uses: ./.github/workflows/deploy-demo.yml
+    with:
+      content: ${{ inputs.content == true }}
+    secrets: inherit
+
+  # Admin Worker of the CMS; does not wait for deploy-demo, so a Worker fix still ships when the site deploy fails.
+  deploy-admin:
+    needs: [select, static-release]
+    if: ${{ !cancelled() && needs.static-release.result == 'success' && needs.select.outputs.suites != '[]' && github.ref == 'refs/heads/main' && github.event_name != 'pull_request' && github.event_name != 'schedule' && inputs.full != true && inputs.content != true }}
+    uses: ./.github/workflows/deploy-admin.yml
     secrets: inherit

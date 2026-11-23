@@ -320,12 +320,13 @@ export function computeDetailGeometry(options = {}) {
   const gridWidth = layoutViewportWidth - (2 * outer);
   const cardWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
   const top = headerHeight + outer + safeTop;
-  const belowPeek = 50;
+  // A two-column grid lets primary reach the screen bottom (owner 2026-11-23); wider grids leave a gap and 50px so related peeks below
+  // primary, even when primary spans every column (owner 2026-11-07).
+  const belowPeek = columns <= 2 ? 0 : 50;
   const span = Math.min(3, columns);
   // Landscape keeps the image beside info; portrait with every column used stacks them.
   const mode = span === columns && layoutViewportWidth <= viewportHeight ? "pinterest" : "split";
-  // Every viewport leaves a gap and 50px so related peeks below primary, even when primary spans every column (owner 2026-11-07).
-  const heightCap = viewportHeight - top - interCardGap - belowPeek - safeBottom;
+  const heightCap = viewportHeight - top - (belowPeek && interCardGap + belowPeek) - safeBottom;
   if (gridWidth <= 0 || cardWidth <= 0 || heightCap <= 0) {
     throw new RangeError("Advertising photo geometry is physically impossible for the available viewport");
   }
@@ -816,7 +817,7 @@ function compileLayoutPhase(options = {}) {
       if (!terminalPhotoPeek || typeof terminalPhotoPeek !== "object" || Array.isArray(terminalPhotoPeek)) throw new Error("Invalid terminal photo peek");
       const fields = ["primaryWidth", "primaryHeight", "primaryTop", "viewportHeight", "safeBottom", "belowPeek", "gap"];
       if (fields.some((field) => !Number.isFinite(terminalPhotoPeek[field]) || terminalPhotoPeek[field] < 0)
-        || terminalPhotoPeek.primaryWidth <= 0 || terminalPhotoPeek.primaryHeight <= 0 || terminalPhotoPeek.viewportHeight <= 0 || terminalPhotoPeek.belowPeek <= 0) {
+        || terminalPhotoPeek.primaryWidth <= 0 || terminalPhotoPeek.primaryHeight <= 0 || terminalPhotoPeek.viewportHeight <= 0) {
         throw new Error("Invalid terminal photo peek");
       }
       terminalPhotoPeek = Object.fromEntries(fields.map((field) => [field, terminalPhotoPeek[field]]));
