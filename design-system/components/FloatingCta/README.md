@@ -22,7 +22,7 @@ Nút liên hệ Zalo nổi ở góc phải dưới mọi trang. Markup `a.floati
 
 - `button.back-to-top`, chỉ trên điện thoại, PC không có (owner 2026-11-22): ô 50px nền `paper`, viền 1px `ink`, bóng như khối [thanh tìm kiếm](../SearchBar/README.md), icon mũi tên lên 25px nét 2.4, không chữ, nhãn `aria-label`. Cách phải 16px. Nằm dưới khối tìm kiếm nổi nên bóng không phủ lên thanh.
 - Trang có masonry, khi trang đã xuống dưới mức đầu masonry (owner 2026-11-23); CTA đã trượt ra từ trước nên hai nút không cùng hiện. Trượt vào từ phải như CTA, 1s `--ease-float`.
-- Trang có thanh tìm kiếm nổi trên điện thoại ([search-bar R5](../../../docs/specs/search-bar.md#r5-nút-về-đầu-trang-phone-và-chuyển-động)): tablet: hàng riêng cách mép trên khối 10px, sát mép phải màn; phone dọc và ngang (owner 2026-11-23): cùng hàng với thanh, cách thanh 10px, thẳng mép phải lưới, đáy bằng đáy thanh. Bàn phím mở thì ẩn. Thanh dừng ở khe CTA thì ẩn ở mọi thiết bị.
+- Trang có thanh tìm kiếm nổi trên máy cảm ứng ([search-bar R5](../../../docs/specs/search-bar.md#r5-nút-về-đầu-trang-phone-và-chuyển-động)): mọi máy cảm ứng, phone và tablet, dọc và ngang (owner 2026-11-23): cùng hàng với thanh, cách thanh 10px, thẳng mép phải lưới, đáy bằng đáy thanh. Bàn phím mở thì ẩn. Thanh dừng ở khe CTA thì ẩn ở mọi thiết bị.
 - Bấm thì trượt 600ms về đầu masonry, đầu lưới cách đáy header một lề `--masonry-outer` (owner 2026-11-23, `TruongThinhMotion.masonryTop`); reduced motion nhảy thẳng.
 
 Preview hiện trạng thái `show`.

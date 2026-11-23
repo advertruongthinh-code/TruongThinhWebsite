@@ -32,7 +32,7 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
 - Trang gốc, trang nhóm, trang sản phẩm có thanh; đang lọc thì tìm trong bộ lọc ([R8](../../../docs/specs/search-bar.md#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)). Trang card có `data-search-off`, khe ẩn, thanh nổi trượt xuống rồi ẩn (`.search-host.is-off`).
 - Nhóm không có kết quả: thông báo "Nhóm này chưa có" kèm nút chữ "Tìm tất cả" (`.search-bar__action`, gạch chân 2px) phủ cả hàng nhập; `.has-wide-note` tạm ẩn nút ảnh và kính lúp.
 - Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset`; `body[data-search-place]` và `--search-block-h`
-  đặt nút về đầu trang trên tablet ([Floating CTA](../FloatingCta/README.md)). Phone dọc và ngang: thanh nổi và nút chung một hàng cách đáy 16px,
+  giữ chỗ cho nút ([Floating CTA](../FloatingCta/README.md)). Mọi máy cảm ứng (phone, tablet, dọc và ngang): thanh nổi và nút chung một hàng cách đáy 16px,
   thẳng mép lưới (`--masonry-outer` đặt trên `.detail-page`), `.search-host` chừa làn nút 60px bằng padding phải. Bàn phím điện thoại mở
   thì hàng chip gập lại. Ẩn khi menu hoặc detail view mở. Giảm chuyển động: đổi trạng thái ngay.
 
