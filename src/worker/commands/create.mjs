@@ -1,14 +1,15 @@
 // POST /api/admin/create (CMS plan P1, Q9): a new draft of a list type; singletons and media are refused.
-import { ID, OPEN_TYPES, SINGLETON_TYPES, recordName, recordSlugs } from "../../cms/contract.mjs";
+import { ID, OPEN_TYPES, recordName, recordSlugs } from "../../cms/contract.mjs";
+import { dispatchVariants } from "../dispatch.mjs";
 import { auditStatement, HttpError, isPlainObject, json, readJson } from "../http.mjs";
-import { contentRevStatement, guard, isUniqueId, isUniqueSlug } from "../records.mjs";
+import { contentRevStatement, FIXED_TYPES, guard, isUniqueId, isUniqueSlug } from "../records.mjs";
 import { prepare, writeStatements } from "./save.mjs";
 
 export default {
   method: "POST",
   async run(request, env, ctx, actor) {
     const { type, id, data } = await readJson(request);
-    if (!OPEN_TYPES.includes(type) || type === "media" || SINGLETON_TYPES.includes(type) || typeof id !== "string" || !ID.test(id) || !isPlainObject(data)) throw new HttpError(400, { error: "shape" });
+    if (!OPEN_TYPES.includes(type) || type === "media" || FIXED_TYPES.includes(type) || typeof id !== "string" || !ID.test(id) || !isPlainObject(data)) throw new HttpError(400, { error: "shape" });
     const target = { type, id };
     if (JSON.stringify(data).length > 512_000) throw new HttpError(400, { error: "too-large" }, target);
     // Checked first: SQLite may report the slug index before the primary key when both clash.
@@ -32,6 +33,7 @@ export default {
       if (isUniqueSlug(error)) throw new HttpError(409, { error: "slug" }, target);
       throw error;
     }
+    if (prepared.redo.length) ctx?.waitUntil?.(dispatchVariants(env, prepared.redo));
     return json({ type, id, version: 1, status: "draft" }, 201);
   },
 };

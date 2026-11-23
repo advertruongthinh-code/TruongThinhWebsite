@@ -1,7 +1,12 @@
 // Shared helpers of the record commands (CMS plan P1, Q3, Q9, Q10): context for the validators, write guard, slug history.
 import { IMAGE_SRC, imageFieldErrors } from "../../scripts/site/lib-pure.mjs";
 import { ADVERTISING_CLUSTERS } from "../site/advertising-products/taxonomy.mjs";
+import { SINGLETON_TYPES } from "../cms/contract.mjs";
 import { isLegacy, mediaRefs } from "../cms/media-ref.mjs";
+import { HttpError } from "./http.mjs";
+
+// cms.md R4: these types only have get and save, are always published, never trashed or created.
+export const FIXED_TYPES = [...SINGLETON_TYPES, "page-copy"];
 
 export const CATEGORIES = ADVERTISING_CLUSTERS.map(({ id }) => ({ slug: id }));
 export const VARIANT_SRC = /^\/v\/[0-9a-f]{32}\/[a-z0-9-]+\.webp$/;
@@ -103,3 +108,17 @@ export async function lastSlide(env, page, id) {
 const message = (error) => String(error?.message ?? error);
 export const isUniqueSlug = (error) => /UNIQUE constraint failed: records\.type, records\.slug_/.test(message(error));
 export const isUniqueId = (error) => /UNIQUE constraint failed: records\.type, records\.id/.test(message(error));
+
+// Cross-record rules (Q10) checked before a record leaves the site by trash or purge. row: { status, page }.
+export async function trashRefusal(env, type, id, row, target) {
+  if (type === "media") {
+    const usedBy = await mediaInUse(env, id);
+    if (usedBy.length) throw new HttpError(409, { error: "in-use", usedBy }, target);
+  }
+  if (type === "project") {
+    const home = await env.DB.prepare("SELECT json_extract(data, '$.ids') AS ids FROM records WHERE type = 'home-projects' AND id = 'main'").first();
+    const ids = home?.ids ? JSON.parse(home.ids) : [];
+    if (Array.isArray(ids) && ids.includes(id) && ids.length - 1 < 3) throw new HttpError(409, { error: "home-projects-min" }, target);
+  }
+  if (type === "hero-slide" && row.status === "published" && await lastSlide(env, row.page, id)) throw new HttpError(409, { error: "last-slide" }, target);
+}

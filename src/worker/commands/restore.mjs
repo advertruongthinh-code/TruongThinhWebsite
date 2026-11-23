@@ -1,14 +1,14 @@
 // POST /api/admin/restore (CMS plan P1, Q3, Q9): back to the status before the trash; a live slug leaves the history.
-import { ID, OPEN_TYPES, SINGLETON_TYPES } from "../../cms/contract.mjs";
+import { ID, OPEN_TYPES } from "../../cms/contract.mjs";
 import { dispatchBuild } from "../dispatch.mjs";
 import { auditStatement, HttpError, json, readJson } from "../http.mjs";
-import { contentRevStatement, guard, isUniqueSlug } from "../records.mjs";
+import { contentRevStatement, FIXED_TYPES, guard, isUniqueSlug } from "../records.mjs";
 
 export default {
   method: "POST",
   async run(request, env, ctx, actor) {
     const { type, id } = await readJson(request);
-    if (!OPEN_TYPES.includes(type) || SINGLETON_TYPES.includes(type) || typeof id !== "string" || !ID.test(id)) throw new HttpError(400, { error: "shape" });
+    if (!OPEN_TYPES.includes(type) || FIXED_TYPES.includes(type) || typeof id !== "string" || !ID.test(id)) throw new HttpError(400, { error: "shape" });
     const target = { type, id };
     const row = await env.DB.prepare("SELECT prev_status, slug_vi, slug_en FROM records WHERE type = ? AND id = ? AND status = 'trashed'").bind(type, id).first();
     if (!row) throw new HttpError(404, { error: "not-found" }, target);

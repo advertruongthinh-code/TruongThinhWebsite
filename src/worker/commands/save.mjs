@@ -3,7 +3,7 @@ import { OPEN_TYPES, ID, SINGLETON_TYPES, fullErrors, recordName, recordSlugs, s
 import { materialize } from "../../cms/media-ref.mjs";
 import { dispatchBuild, dispatchVariants } from "../dispatch.mjs";
 import { auditStatement, HttpError, isPlainObject, json, readJson } from "../http.mjs";
-import { contentRevStatement, guard, isUniqueSlug, lastSlide, mediaUses, slugStatements, validationContext } from "../records.mjs";
+import { contentRevStatement, FIXED_TYPES, guard, isUniqueSlug, lastSlide, mediaUses, slugStatements, validationContext } from "../records.mjs";
 
 const MAX_DATA_CHARS = 512_000;
 
@@ -42,8 +42,8 @@ export default {
   method: "POST",
   async run(request, env, ctx, actor) {
     const { type, id, version, data } = await readJson(request);
-    const single = SINGLETON_TYPES.includes(type);
-    if (!OPEN_TYPES.includes(type) || type === "media" || typeof id !== "string" || !ID.test(id) || (single && id !== "main") || !Number.isInteger(version) || !isPlainObject(data)) throw new HttpError(400, { error: "shape" });
+    const single = FIXED_TYPES.includes(type);
+    if (!OPEN_TYPES.includes(type) || type === "media" || typeof id !== "string" || !ID.test(id) || (SINGLETON_TYPES.includes(type) && id !== "main") || !Number.isInteger(version) || !isPlainObject(data)) throw new HttpError(400, { error: "shape" });
     const target = { type, id };
     if (JSON.stringify(data).length > MAX_DATA_CHARS) throw new HttpError(400, { error: "too-large" }, target);
     const readRow = () => env.DB.prepare("SELECT status, version, data, live_version, slug_vi, slug_en, json_extract(data, '$.page') AS page, updated_at, updated_by FROM records WHERE type = ? AND id = ?").bind(type, id).first();

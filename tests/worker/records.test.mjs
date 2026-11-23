@@ -174,3 +174,22 @@ test("a single type saves only id main and refuses missing fields", async () => 
   assert.equal((await call("save", { type: "contact", id: "main", version: got.body.version, data: got.body.data })).status, 200);
   assert.equal((await call("save", { type: "contact", id: "other", version: 1, data: got.body.data })).status, 400);
 });
+
+test("page-copy is fixed: no create, trash or purge, and missing fields are 400", async () => {
+  const { call } = setup();
+  assert.equal((await call("trash", { type: "page-copy", id: "home" })).status, 400);
+  assert.equal((await call("create", { type: "page-copy", id: "moi", data: { id: "moi", slots: {} } })).status, 400);
+  assert.equal((await call("purge", { type: "page-copy", id: "home", confirm: "home" })).status, 400);
+});
+
+test("purge of a live record follows the trash rules and reports referencedBy", async () => {
+  const { call, DB, row } = setup();
+  const slides = DB.sqlite.prepare("SELECT id FROM records WHERE type = 'hero-slide' AND status = 'published' AND json_extract(data, '$.page') = 'commercial'").all().map((r) => r.id);
+  for (const slide of slides.slice(0, -1)) await call("trash", { type: "hero-slide", id: slide });
+  const last = slides.at(-1);
+  assert.equal((await call("purge", { type: "hero-slide", id: last, confirm: row("hero-slide", last).name })).body.error, "last-slide");
+  const id = firstOf(DB, "news");
+  const purged = await call("purge", { type: "news", id, confirm: row("news", id).name });
+  assert.deepEqual(purged.body, { referencedBy: [] });
+  assert.equal(DB.sqlite.prepare("SELECT COUNT(*) AS n FROM versions WHERE type = 'news' AND id = ?").get(id).n, 0);
+});

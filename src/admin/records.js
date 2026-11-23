@@ -309,6 +309,9 @@ function onNew() {
   let data = { id };
   if (state.record && state.record.data && typeof state.record.data === 'object') {
     data = { ...JSON.parse(JSON.stringify(state.record.data)), id };
+    // Slugs are unique even for drafts: a copied slug would always be refused.
+    delete data.slugVi;
+    delete data.slugEn;
   }
   state.creatingId = id;
   state.conflict = null;
