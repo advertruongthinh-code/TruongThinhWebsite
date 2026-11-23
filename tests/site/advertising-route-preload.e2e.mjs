@@ -18,7 +18,7 @@ try {
     // Fresh context: empty cache, as after Ctrl+Shift+R on the home page.
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     try {
-      await page.goto(`${origin}/${locale}/`);
+      await page.goto(`${origin}${locale === "en" ? "/en" : ""}/`);
       await page.waitForFunction(() => window.barba?.history && !document.documentElement.classList.contains("route-enter"));
       const cdp = await page.context().newCDPSession(page);
       await cdp.send("Network.enable");
@@ -41,7 +41,7 @@ try {
         // Timer instead of rAF: headless produces no frames when the screen does not change, so rAF misses the moment of waiting on the network.
         watch();
       });
-      await page.click(`header nav a[href="/${locale}/advertising-products/"]`);
+      await page.click(`header nav a[href="${locale === "en" ? "/en" : ""}/advertising-products/"]`);
       await page.waitForFunction(() => document.querySelector('[data-barba-namespace="advertising-products"] [data-project-grid] img')
         && !document.body.classList.contains("is-transitioning"), null, { timeout: 15_000 });
       const { covered, shift, starts } = await page.evaluate((names) => ({

@@ -22,7 +22,7 @@ try {
   for (const width of [1050, 1280, 1440, 1920]) {
     for (const deviceScaleFactor of [1, 2]) {
       const page = await browser.newPage({ viewport: { width, height: 900 }, deviceScaleFactor });
-      await page.goto(`${baseUrl}/vi/advertising-products/p/office-signs-wayfinding-01/`, { waitUntil: "networkidle" });
+      await page.goto(`${baseUrl}/advertising-products/p/office-signs-wayfinding-01/`, { waitUntil: "networkidle" });
       await page.waitForSelector(".detail-view__hero-frame.is-media-settled:not([data-detail-loading])");
       const frame = await page.evaluate(() => {
         const { left, top, right, bottom } = document.querySelector(".detail-view__hero-frame").getBoundingClientRect();

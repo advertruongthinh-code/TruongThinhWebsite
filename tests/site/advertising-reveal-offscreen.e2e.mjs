@@ -16,7 +16,7 @@ try {
       return new Promise((resolve) => setTimeout(resolve, 1200)).then(() => decode.call(this));
     };
   });
-  await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "load" });
+  await page.goto(`${base}/advertising-products/`, { waitUntil: "load" });
   await page.waitForTimeout(800);
   const wheel = async (dy, steps) => {
     await page.mouse.move(width / 2, height / 2);

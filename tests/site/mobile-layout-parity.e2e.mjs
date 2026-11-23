@@ -35,8 +35,8 @@ for (const file of servedFiles) {
 }
 const sourceHTML={};
 for(const file of ['index.html','about/index.html','residential/index.html','commercial/index.html','advertising-products/index.html',...(await fs.readdir('src/site/partials')).map(name=>`partials/${name}`)])sourceHTML[file]=hash(await fs.readFile(`src/site/${file}`));
-const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "about/", "advertising-products/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `/${locale}/${route}`));
-const routes = scope === "advertising" ? ["/vi/advertising-products/", "/en/advertising-products/"] : scope === "residential-commercial" ? allRoutes.filter(r => /\/(residential|commercial)\/$/.test(r)) : scope === "home-about" ? allRoutes.filter(r => /^\/(vi|en)\/(about\/)?$/.test(r)) : allRoutes;
+const allRoutes = ["vi", "en"].flatMap(locale => ["", "residential/", "commercial/", "about/", "advertising-products/", ...ADVERTISING_CLUSTERS.map(cluster => `advertising-products/${locale === "vi" ? cluster.slugVi : cluster.slugEn}/`)].map(route => `${locale === "en" ? "/en" : ""}/${route}`));
+const routes = scope === "advertising" ? ["/advertising-products/", "/en/advertising-products/"] : scope === "residential-commercial" ? allRoutes.filter(r => /\/(residential|commercial)\/$/.test(r)) : scope === "home-about" ? allRoutes.filter(r => /^\/(vi|en)\/(about\/)?$/.test(r)) : allRoutes;
 const viewports = [{ width: 320, height: 568 }, { width: 390, height: 844 }, { width: 838, height: 331 }, { width: 838, height: 387 }, { width: 844, height: 390 }];
 const results = [];
 // Resize and route changes re-pick the srcset candidate; the browser cancels the replaced image request
@@ -296,7 +296,7 @@ async function runAboutHistory(browser,engine) {
   const limit=process.env.LAYOUT_ABOUT_LIMIT===undefined?cases.length:Number(process.env.LAYOUT_ABOUT_LIMIT);
   assert.ok(Number.isInteger(limit)&&limit>=0&&limit<=cases.length,"known about-history limit");
   for(const {locale,viewport,from,to} of cases.slice(0,limit)) {
-    const source=`/${locale}/${from}`,destination=`/${locale}/${to}`;
+    const source=`${locale === "en" ? "/en" : ""}/${from}`,destination=`${locale === "en" ? "/en" : ""}/${to}`;
     const label=`About history ${source} -> ${destination} ${viewport.width}x${viewport.height}`;
     const context=await browser.newContext({viewport,hasTouch:true});
     const page=await context.newPage(),issues=[],navigation=[];
@@ -337,7 +337,7 @@ async function runAboutHistory(browser,engine) {
   }
   if(limit!==0&&limit!==cases.length)return;
   for(const locale of ["vi","en"])for(const viewport of [{width:390,height:844},{width:838,height:387}])for(const [from,to] of [["","residential/"],["residential/","commercial/"]]) {
-    const source=`/${locale}/${from}`,destination=`/${locale}/${to}`;
+    const source=`${locale === "en" ? "/en" : ""}/${from}`,destination=`${locale === "en" ? "/en" : ""}/${to}`;
     const label=`Soft Barba ${source} -> ${destination} ${viewport.width}x${viewport.height}`;
     const context=await browser.newContext({viewport,hasTouch:true});
     const page=await context.newPage(),navigation=[],issues=[];
@@ -365,7 +365,7 @@ async function runAboutHistory(browser,engine) {
     finally{await context.close();}
   }
   for(const locale of ["vi","en"]) {
-    const source=`/${locale}/about/`,destination=`/${locale}/advertising-products/?category=kiosk-posm`;
+    const source=`${locale === "en" ? "/en" : ""}/about/`,destination=`${locale === "en" ? "/en" : ""}/advertising-products/?category=kiosk-posm`;
     const context=await browser.newContext({viewport:{width:390,height:844},hasTouch:true});
     const page=await context.newPage();
     try {
@@ -375,7 +375,7 @@ async function runAboutHistory(browser,engine) {
       await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       await page.locator(`#site-menu a[href="${destination}"]`).first().click();
       // The menu still has the old group slug; the runtime changes the URL to the cluster slug per locale (taxonomy R4).
-      await waitForDestination(page,`${base}/${locale}/advertising-products/?category=${locale==='en'?'displays-booths':'standee-ke-trung-bay'}`);
+      await waitForDestination(page,`${base}${locale === "en" ? "/en" : ""}/advertising-products/?category=${locale==='en'?'displays-booths':'standee-ke-trung-bay'}`);
       const after=await documentSnapshot(page);
       assert.notEqual(after.timeOrigin,before.timeOrigin,'About query route uses native navigation');
       assert.equal(after.length,before.length+1,'query route creates one history entry');
@@ -418,7 +418,7 @@ async function runStates(browser,engine) {
   page.on('requestfailed',r=>{if(!supersededImage(r))issues.push(`${r.url()}: ${r.failure()?.errorText}`);});page.on('response',r=>{if(r.status()>=400)issues.push(`${r.url()}: HTTP ${r.status()}`);});
   for(const locale of ['vi','en']) {
     try {
-      await page.goto(`${base}/${locale}/advertising-products/`,{waitUntil:'networkidle'});await page.evaluate(size=>document.documentElement.style.fontSize=`${size}px`,textSize);await ready(page);
+      await page.goto(`${base}${locale === "en" ? "/en" : ""}/advertising-products/`,{waitUntil:'networkidle'});await page.evaluate(size=>document.documentElement.style.fontSize=`${size}px`,textSize);await ready(page);
       await checkCtaReflow(page,engine,`${locale}: ${textSize}px`);
       for(const category of ['all',...ADVERTISING_CATEGORIES.map(({slug})=>slug)]) {
         await page.locator(`[data-masonry-filter="${category}"]`).click();
@@ -475,7 +475,7 @@ async function runStates(browser,engine) {
       const query=new URL(page.url()).search;
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       await page.locator(`#site-menu [data-language-option="${locale==='vi'?'en':'vi'}"]`).click();
-      await page.waitForURL(url=>url.pathname.startsWith(locale==='vi'?'/en/':'/vi/'));assert.equal(new URL(page.url()).search,query,'photo locale preserves category/photo/tag query');await recordState(page,engine,`${locale}: photo locale`,{selector:bodySelector,viewportOnly:true});
+      await page.waitForURL(url=>url.pathname.startsWith(locale==='vi'?'/en/':'/'));assert.equal(new URL(page.url()).search,query,'photo locale preserves category/photo/tag query');await recordState(page,engine,`${locale}: photo locale`,{selector:bodySelector,viewportOnly:true});
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       await page.locator(`#site-menu .menu-group__title[href="/${locale==='vi'?'en':'vi'}/advertising-products/"]`).click();
       await page.waitForFunction(()=>!window.TruongThinhMasonry.getBrowseState().photo);
@@ -500,14 +500,14 @@ async function runStates(browser,engine) {
       await page.reload({waitUntil:'networkidle'});await recordState(page,engine,`history reload ${route}`);
       const original=new URL(page.url()),historyBefore=await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin,index:window.barba?.history?.current?.index??window.barba?.history?.i??null}));
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);
-      const locale=route.startsWith('/vi/')?'en':'vi';await page.locator(`#site-menu [data-language-option="${locale}"]`).click();
-      await page.waitForURL(url=>url.pathname===route.replace(/^\/(vi|en)\//,`/${locale}/`));await recordState(page,engine,`history locale ${route}`);
+      const locale=route.startsWith('/')?'en':'vi';await page.locator(`#site-menu [data-language-option="${locale}"]`).click();
+      await page.waitForURL(url=>url.pathname===route.replace(/^\/(?:en\/)?/,`${locale === "en" ? "/en" : ""}/`));await recordState(page,engine,`history locale ${route}`);
       assert.equal(new URL(page.url()).search,original.search,'locale preserves search');assert.equal(new URL(page.url()).hash,'','locale clears hash');assert.equal(await page.evaluate(()=>document.documentElement.lang),locale,'DOM locale updates');
       // Changing language reloads the target page like F5 (site-shell R5): new document, no extra history entry.
       const historyAfter=await page.evaluate(()=>({length:history.length,timeOrigin:performance.timeOrigin}));
       assert.equal(historyAfter.length,historyBefore.length,'locale replaces the current history entry');assert.notEqual(historyAfter.timeOrigin,historyBefore.timeOrigin,'locale reloads the page like F5');
       await page.waitForFunction(()=>!document.querySelector('#site-menu').open);
-      const localized=page.url(),destination=`/${locale}/${route.includes('/residential/')?'commercial':'residential'}/`;
+      const localized=page.url(),destination=`${locale === "en" ? "/en" : ""}/${route.includes('/residential/')?'commercial':'residential'}/`;
       await page.locator('[data-menu-open]').click();await page.waitForFunction(()=>document.querySelector('#site-menu').open);
       await page.locator(`#site-menu .menu-nav a[href="${destination}"]`).first().click();await page.waitForURL(url=>url.pathname===destination);await waitForDestination(page,new URL(destination,base).href);await recordState(page,engine,`history navigate ${route}`);
       await page.goBack();await page.waitForURL(localized);await waitForDestination(page,localized);await recordState(page,engine,`history Back ${route}`);

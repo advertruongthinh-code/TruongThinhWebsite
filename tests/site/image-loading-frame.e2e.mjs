@@ -5,7 +5,7 @@ import fs from "node:fs/promises";
 import { BASE_URL, VIEWPORTS, launchBrowser, openPage } from "./harness.mjs";
 const output = ".tmp/image-loading-frame";
 const DELAY = 1500;
-const routes = ["/vi/", "/en/", "/vi/residential/", "/en/residential/", "/vi/commercial/", "/en/commercial/", "/vi/about/", "/en/about/"];
+const routes = ["/", "/en/", "/residential/", "/en/residential/", "/commercial/", "/en/commercial/", "/about/", "/en/about/"];
 const viewports = [VIEWPORTS.phone, VIEWPORTS.desktop];
 const isContent = url => new URL(url).pathname.startsWith("/assets/content/") && !url.includes("/client-logos/");
 const results = [];
@@ -118,7 +118,7 @@ try {
   // R6: capture every 100ms while an image is half loaded, no unfinished image may show.
   {
     const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
-    await page.goto(BASE_URL + "/vi/residential/", { waitUntil: "domcontentloaded" });
+    await page.goto(BASE_URL + "/residential/", { waitUntil: "domcontentloaded" });
     let samples = 0;
     for (let tick = 0; tick < 40; tick++, await page.waitForTimeout(100)) {
       const leaked = await page.evaluate(() => [...document.querySelectorAll('img[src^="/assets/content/"]')]
@@ -135,7 +135,7 @@ try {
   {
     const { context, page } = await open({ viewport: viewports[1], delay: 3000 });
     await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.goto(BASE_URL + "/vi/about/", { waitUntil: "domcontentloaded" });
+    await page.goto(BASE_URL + "/about/", { waitUntil: "domcontentloaded" });
     const frames = await page.evaluate(() => [...document.querySelectorAll(".media-gate .media-frame:not(.is-media-settled)")]
       .map(frame => { const style = getComputedStyle(frame, "::before"); return `${style.animationName} ${style.animationDuration} ${style.animationIterationCount}`; }));
     // The global reduced-motion reset must not cut the 2s breathing rhythm down to 0.01ms.
@@ -148,7 +148,7 @@ try {
   {
     // Take the real gradient from the waiting frame then redraw it on a still probe.
     const { context, page } = await open({ viewport: VIEWPORTS.desktop, delay: 3000 });
-    await page.goto(BASE_URL + "/vi/about/", { waitUntil: "domcontentloaded" });
+    await page.goto(BASE_URL + "/about/", { waitUntil: "domcontentloaded" });
     await page.evaluate(() => {
       const frame = document.querySelector(".media-gate .media-frame:not(.is-media-settled)");
       const sweep = getComputedStyle(frame, "::before").backgroundImage;
@@ -176,9 +176,9 @@ try {
 
   // R2: a variant sharp enough for the part of the image shown after cover crop, or the original; no duplicate request.
   for (const [route, selector, viewport] of [
-    ["/vi/residential/", ".detail-gallery__item img", { ...viewports[1], deviceScaleFactor: 1 }],
-    ["/vi/residential/", ".detail-gallery__item img", { ...viewports[1], deviceScaleFactor: 2 }],
-    ["/vi/", ".project-card__media img", { ...viewports[0], deviceScaleFactor: 3 }],
+    ["/residential/", ".detail-gallery__item img", { ...viewports[1], deviceScaleFactor: 1 }],
+    ["/residential/", ".detail-gallery__item img", { ...viewports[1], deviceScaleFactor: 2 }],
+    ["/", ".project-card__media img", { ...viewports[0], deviceScaleFactor: 3 }],
   ]) {
     const { context, page, counts } = await open({ viewport });
     await page.goto(BASE_URL + route, { waitUntil: "load" });
@@ -201,7 +201,7 @@ try {
   }
 
   // P8: no-script still shows every image.
-  for (const route of routes.filter(route => route.startsWith("/vi/"))) {
+  for (const route of routes.filter(route => route.startsWith("/"))) {
     const { context, page } = await open({ delay: false, javaScriptEnabled: false });
     await page.goto(BASE_URL + route, { waitUntil: "load" });
     await scrollThrough(page);
@@ -219,7 +219,7 @@ try {
     const measure = async block => {
       const { context, page } = await open({ delay: 0 });
       if (block) await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
-      await page.goto(BASE_URL + "/vi/about/", { waitUntil: "load" });
+      await page.goto(BASE_URL + "/about/", { waitUntil: "load" });
       await scrollThrough(page);
       await page.waitForTimeout(500);
       const images = await page.evaluate(overlay => [...document.querySelectorAll("img")]
@@ -244,7 +244,7 @@ try {
   }
 
   // R8: hero, CTA and portal load failures draw the error mark on a dark background (white text stays readable), EN changes the text.
-  for (const [route, line] of [["/vi/", '"Không tải được"'], ["/en/residential/", '"Couldn\'t load"']]) {
+  for (const [route, line] of [["/", '"Không tải được"'], ["/en/residential/", '"Couldn\'t load"']]) {
     const { context, page } = await open({ delay: 0 });
     await page.route("**/assets/content/**", route => isContent(route.request().url()) ? route.abort() : route.continue());
     await page.goto(BASE_URL + route, { waitUntil: "load" });
@@ -261,17 +261,17 @@ try {
   // P8: Barba navigation and Back keep the same frame contract.
   {
     const { context, page } = await open();
-    await page.goto(BASE_URL + "/vi/", { waitUntil: "load" });
+    await page.goto(BASE_URL + "/", { waitUntil: "load" });
     await settle(page, true);
     const origin = await page.evaluate(() => performance.timeOrigin);
-    await page.evaluate(() => document.querySelector('a[href="/vi/residential/"]').click());
-    await page.waitForFunction(() => location.pathname === "/vi/residential/" && !window.barba?.transitions.isRunning);
+    await page.evaluate(() => document.querySelector('a[href="/residential/"]').click());
+    await page.waitForFunction(() => location.pathname === "/residential/" && !window.barba?.transitions.isRunning);
     const soft = await snapshot(page);
     assert.ok(soft.length && soft.every(item => item.w > 0 && item.h > 0), "Barba entry reserves frames");
     assert.equal(await page.evaluate(() => performance.timeOrigin), origin, "residential entry is a soft navigation");
     await settle(page, true);
     await page.goBack();
-    await page.waitForFunction(() => location.pathname === "/vi/" && !window.barba?.transitions.isRunning);
+    await page.waitForFunction(() => location.pathname === "/" && !window.barba?.transitions.isRunning);
     await settle(page, true);
     const back = await snapshot(page);
     assert.ok(back.length && back.every(item => item.w > 0 && item.h > 0), "Back restores reserved frames");
@@ -286,7 +286,7 @@ try {
     const phoneView = viewport.width <= 750;
     // Longer delay so the entry layout settles while the card image is still in flight.
     const { context, page, counts } = await open({ viewport, delay: 4000 });
-    await page.goto(BASE_URL + "/vi/advertising-products/", { waitUntil: "domcontentloaded" });
+    await page.goto(BASE_URL + "/advertising-products/", { waitUntil: "domcontentloaded" });
     // Reveal Kính (none left on cards and the primary, owner 2026-11-12), the 20px frosted-glass copies the PC reveal makes
     // (loading-glass-and-page-entry R2, R4) and card image blur (progressive-loading R9): record each one.
     await page.evaluate(() => {
@@ -476,9 +476,9 @@ try {
   assert.deepEqual(primaryReveals[0], { glass: [], frost: 0 }, "phone primary reveals through no Kính and no frosted glass");
   assert.ok(primaryReveals[1].glass.length === 0 && primaryReveals[1].frost > 0, `PC primary reveals through frosted glass ${JSON.stringify(primaryReveals[1])}`);
   // Barba builds the container outside the document: an image that finishes loading before attaching must still settle, with no stuck sweep.
-  for (const route of ["/vi/commercial/", "/vi/residential/"]) {
+  for (const route of ["/commercial/", "/residential/"]) {
     const { context, page } = await open({ delay: 0, viewport: viewports[1] });
-    await page.goto(BASE_URL + "/vi/", { waitUntil: "load" });
+    await page.goto(BASE_URL + "/", { waitUntil: "load" });
     // Click early and the image may load after attaching so the load error is not reproduced; wait like a real viewer.
     await page.waitForTimeout(2000);
     await page.locator(`a[href="${route}"]`).first().click();
@@ -496,7 +496,7 @@ try {
       await new Promise(resolve => setTimeout(resolve, DELAY));
       await route.fulfill({ contentType: "image/png", body: png });
     });
-    await page.goto(BASE_URL + "/vi/", { waitUntil: "load" });
+    await page.goto(BASE_URL + "/", { waitUntil: "load" });
     const add = (id, margin) => page.evaluate(({ id, margin }) => {
       const frame = document.createElement("div");
       frame.id = id;

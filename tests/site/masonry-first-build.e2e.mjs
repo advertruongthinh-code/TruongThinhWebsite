@@ -13,9 +13,9 @@ if (!process.env.PLAYWRIGHT_BROWSERS_PATH) process.env.PLAYWRIGHT_BROWSERS_PATH 
 const { chromium } = await import("playwright");
 const browser = await chromium.launch({ headless: true, executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH || undefined });
 const cases = [
-  { width: 384, height: 730, route: "/vi/advertising-products/" },
-  { width: 1440, height: 900, route: "/vi/advertising-products/" },
-  { width: 384, height: 730, route: "/vi/projects/" },
+  { width: 384, height: 730, route: "/advertising-products/" },
+  { width: 1440, height: 900, route: "/advertising-products/" },
+  { width: 384, height: 730, route: "/projects/" },
 ];
 
 try {

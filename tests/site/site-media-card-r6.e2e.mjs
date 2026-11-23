@@ -53,7 +53,7 @@ async function setup(page, locale, count, videoCover, surface = "related", mode 
   const search = surface === "related"
     ? "?category=signage-raised-letters&photo=signage-raised-letters-02"
     : "?category=signage-raised-letters";
-  await page.goto(`${base}/${locale}/advertising-products/${search}`,
+  await page.goto(`${base}${locale === "en" ? "/en" : ""}/advertising-products/${search}`,
     { waitUntil: "domcontentloaded" });
   // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));

@@ -44,7 +44,7 @@ try {
     const page = await context.newPage();
     slow = false;
     fetched.clear();
-    await page.goto(`${origin}/vi/advertising-products/`);
+    await page.goto(`${origin}/advertising-products/`);
     await page.locator("[data-project-grid] [data-masonry-card] a").first().click();
     const loaded = () => {
       const image = document.querySelector("[data-detail-image]");

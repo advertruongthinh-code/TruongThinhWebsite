@@ -326,7 +326,7 @@ test("related detail solver preserves the complete tagged set and scores its shu
 });
 
 test("history restores the seed on Back, accepts one exact full-navigation locale handoff, and reseeds on reload", () => {
-  let href = "https://example.test/vi/advertising-products/";
+  let href = "https://example.test/advertising-products/";
   let state = null;
   let createdSeed = "visit-a";
   let now = 1000;
@@ -376,7 +376,7 @@ test("history restores the seed on Back, accepts one exact full-navigation local
     states: [{ data: { advertisingBrowse: visitState.advertisingBrowse } }],
   }).seed, "visit-a", "history parser reads Barba's wrapped state after a document reconstruction");
 
-  const destinationHref = `https://example.test${serializedUrl.pathname.replace(/^\/vi\//, "/en/")}${serializedUrl.search}`;
+  const destinationHref = `https://example.test${`/en${serializedUrl.pathname}`}${serializedUrl.search}`;
   advertisingRuntime.writeVisitSeedHandoff(sessionStorage, destinationHref, "visit-a", { now });
   href = destinationHref;
   state = null;
@@ -447,7 +447,7 @@ for (const scenario of [
       browserHistory: { state: { from: "barba", index: 0, states: [{ data: {} }] } },
       restoredHistoryState: { from: "barba", index: 0, states: [{ data: { advertisingBrowse: saved } }] },
       historyFallback: scenario.historyFallback,
-      getHref: () => "https://example.test/vi/advertising-products/?category=kiosk-posm&photo=photo-a&tag=shared",
+      getHref: () => "https://example.test/advertising-products/?category=kiosk-posm&photo=photo-a&tag=shared",
       getNavigationType: () => scenario.navigationType,
       createSeed: () => "new-document-visit",
       sessionStorage: null,
@@ -593,7 +593,7 @@ test("stationary browse persistence avoids duplicate native history writes", () 
       get state() { return state; },
       replaceState(next) { state = structuredClone(next); writes++; },
     },
-    getHref: () => "https://example.test/vi/advertising-products/",
+    getHref: () => "https://example.test/advertising-products/",
     getNavigationType: () => "navigate", createSeed: () => "history-dedup", sessionStorage: null,
     getLogicalScroll: () => 0,
   });

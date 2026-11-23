@@ -166,27 +166,27 @@ const browseFixture = {
   tagRegistry: [{ id: "shared" }, { id: "tag-a" }, { id: "tag-b" }],
 };
 const parsedBrowse = parseBrowseLocation(
-  "https://example.test/vi/advertising-products/?category=kiosk-posm&photo=photo-a&tag=shared",
+  "https://example.test/advertising-products/?category=kiosk-posm&photo=photo-a&tag=shared",
   browseFixture,
 );
 assert.deepEqual(parsedBrowse, { category: "kiosk-posm", photo: "photo-a", tag: "shared" });
 assert.deepEqual(
-  parseBrowseLocation("https://example.test/vi/advertising-products/?category=missing&photo=missing&tag=missing", browseFixture),
+  parseBrowseLocation("https://example.test/advertising-products/?category=missing&photo=missing&tag=missing", browseFixture),
   { category: "all", photo: null, tag: null },
   "invalid browse parameters fail open to the catalog",
 );
 assert.deepEqual(
-  parseBrowseLocation("https://example.test/vi/advertising-products/?photo=missing&tag=shared", browseFixture),
+  parseBrowseLocation("https://example.test/advertising-products/?photo=missing&tag=shared", browseFixture),
   { category: "all", photo: null, tag: null },
   "a tag without a valid detail photo fails open with the invalid photo",
 );
 assert.deepEqual(
-  parseBrowseLocation("https://example.test/vi/advertising-products/?photo=photo-a&tag=missing", browseFixture),
+  parseBrowseLocation("https://example.test/advertising-products/?photo=photo-a&tag=missing", browseFixture),
   { category: "kiosk-posm", photo: "photo-a", tag: null },
   "an invalid tag is removed while its valid detail photo remains active",
 );
 assert.deepEqual(
-  parseBrowseLocation("https://example.test/vi/advertising-products/?category=print-decals&photo=photo-a", browseFixture),
+  parseBrowseLocation("https://example.test/advertising-products/?category=print-decals&photo=photo-a", browseFixture),
   { category: "kiosk-posm", photo: "photo-a", tag: null },
   "valid photo identity normalizes a conflicting category to the photo's parent grid",
 );
@@ -201,32 +201,32 @@ assert.deepEqual(
   "a card page path opens its detail",
 );
 assert.deepEqual(
-  parseBrowseLocation("https://example.test/vi/advertising-products/p/missing/", browseFixture),
+  parseBrowseLocation("https://example.test/advertising-products/p/missing/", browseFixture),
   { category: "all", photo: null, tag: null },
   "an unknown card path fails open to the catalog",
 );
 assert.equal(
   isQueryOnlyNavigation(
-    "https://example.test/vi/advertising-products/?photo=photo-a",
-    "https://example.test/vi/advertising-products/?photo=photo-b",
+    "https://example.test/advertising-products/?photo=photo-a",
+    "https://example.test/advertising-products/?photo=photo-b",
   ),
   true,
 );
 assert.equal(
   isQueryOnlyNavigation(
-    "https://example.test/vi/advertising-products/?photo=photo-a",
-    "https://example.test/vi/residential/",
+    "https://example.test/advertising-products/?photo=photo-a",
+    "https://example.test/residential/",
   ),
   false,
 );
 // The Projects page (projects R2) shares the runtime: a different root is a page change, an unknown slug under /projects/ is a detail page.
 const projectPages = [{ filter: "all", vi: "", en: "" }, { filter: "kinh-doanh", vi: "kinh-doanh", en: "kinh-doanh" }];
-assert.equal(isQueryOnlyNavigation("https://example.test/vi/projects/", "https://example.test/vi/advertising-products/", projectPages), false, "Projects to Advertising is a page change");
-assert.equal(isQueryOnlyNavigation("https://example.test/vi/advertising-products/", "https://example.test/vi/projects/"), false, "Advertising to Projects is a page change");
-assert.equal(isQueryOnlyNavigation("https://example.test/vi/projects/", "https://example.test/vi/projects/kinh-doanh/", projectPages), true, "a Projects filter path is in place");
-assert.equal(isQueryOnlyNavigation("https://example.test/vi/projects/kinh-doanh/", "https://example.test/vi/projects/can-ho-go-soi-am/", projectPages), false, "a project detail path is a page change");
+assert.equal(isQueryOnlyNavigation("https://example.test/projects/", "https://example.test/advertising-products/", projectPages), false, "Projects to Advertising is a page change");
+assert.equal(isQueryOnlyNavigation("https://example.test/advertising-products/", "https://example.test/projects/"), false, "Advertising to Projects is a page change");
+assert.equal(isQueryOnlyNavigation("https://example.test/projects/", "https://example.test/projects/kinh-doanh/", projectPages), true, "a Projects filter path is in place");
+assert.equal(isQueryOnlyNavigation("https://example.test/projects/kinh-doanh/", "https://example.test/projects/can-ho-go-soi-am/", projectPages), false, "a project detail path is a page change");
 assert.deepEqual(
-  parseBrowseLocation("https://example.test/vi/projects/kinh-doanh/?photo=photo-a", { ...browseFixture, pages: projectPages, photos: false }),
+  parseBrowseLocation("https://example.test/projects/kinh-doanh/?photo=photo-a", { ...browseFixture, pages: projectPages, photos: false }),
   { category: "kinh-doanh", photo: null, tag: null },
   "without a viewer ?photo= is ignored and the filter comes from the path",
 );
@@ -237,15 +237,15 @@ assert.equal(
 );
 assert.equal(
   isQueryOnlyNavigation(
-    "https://example.test/vi/residential/",
-    "https://example.test/vi/advertising-products/?photo=photo-a",
+    "https://example.test/residential/",
+    "https://example.test/advertising-products/?photo=photo-a",
   ),
   false,
   "another page returning to Advertising remains owned by Barba",
 );
 
 let fallbackState = { from: "barba", index: 42, states: [{ data: {} }] };
-let fallbackHref = "https://example.test/vi/advertising-products/";
+let fallbackHref = "https://example.test/advertising-products/";
 const fallbackHistory = {
   get state() { return fallbackState; },
   pushState(state, _title, href) { fallbackState = state; fallbackHref = new URL(href, fallbackHref).href; },
@@ -261,7 +261,7 @@ assert.equal(fallbackState.index, 42, "native fallback merges browse data withou
 assert.equal(fallbackState.from, "barba", "native fallback preserves unrelated Barba state fields");
 
 let lateBarbaCurrent = null;
-let lateBarbaHref = "https://example.test/vi/advertising-products/";
+let lateBarbaHref = "https://example.test/advertising-products/";
 let lateBarbaAdds = 0;
 let lateBarbaStores = 0;
 let lateNativeState = { from: "barba", index: 3 };
@@ -300,7 +300,7 @@ const lateAdapterController = createBrowseHistoryController({
   getHref: () => lateBarbaHref,
 });
 lateAdapterController.openPhoto("photo-a");
-assert.equal(new URL(lateBarbaHref).pathname, "/vi/advertising-products/p/photo-a/",
+assert.equal(new URL(lateBarbaHref).pathname, "/advertising-products/p/photo-a/",
   "native history works while Barba exposes its API before initialization");
 assert.equal(lateBarbaAdds, 0);
 assert.ok(lateNativeWrites > 0);
@@ -308,9 +308,9 @@ lateBarbaCurrent = { data: {}, url: lateBarbaHref };
 lateAdapterController.openPhoto("photo-b");
 assert.equal(lateBarbaStores, 1, "the adapter switches to initialized Barba for the outgoing entry");
 assert.equal(lateBarbaAdds, 1, "the adapter switches to initialized Barba for the next entry");
-assert.equal(new URL(lateBarbaHref).pathname, "/vi/advertising-products/p/photo-b/");
+assert.equal(new URL(lateBarbaHref).pathname, "/advertising-products/p/photo-b/");
 
-let fixtureHref = "https://example.test/vi/advertising-products/?category=kiosk-posm";
+let fixtureHref = "https://example.test/advertising-products/?category=kiosk-posm";
 let fixtureIndex = 7;
 let fixtureState = {
   from: "barba",
@@ -375,7 +375,7 @@ const staleDirectController = createBrowseHistoryController({
       },
     },
   },
-  getHref: () => "https://example.test/vi/advertising-products/?category=kiosk-posm&photo=photo-a&tag=tag-a",
+  getHref: () => "https://example.test/advertising-products/?category=kiosk-posm&photo=photo-a&tag=tag-a",
 });
 assert.deepEqual(
   { category: staleDirectController.current.category, photo: staleDirectController.current.photo, tag: staleDirectController.current.tag },
@@ -396,11 +396,11 @@ const matchingReloadController = createBrowseHistoryController({
       },
     },
   },
-  getHref: () => "https://example.test/vi/advertising-products/?category=kiosk-posm&photo=photo-a&tag=tag-a",
+  getHref: () => "https://example.test/advertising-products/?category=kiosk-posm&photo=photo-a&tag=tag-a",
 });
 assert.equal(matchingReloadController.current.grid.scrollY, 610, "matching reload restores supplemental grid state");
 assert.equal(matchingReloadController.current.detail.anchorId, "photo-b", "matching reload restores supplemental detail anchor");
-let directPhotoHref = "https://example.test/vi/advertising-products/?photo=photo-a";
+let directPhotoHref = "https://example.test/advertising-products/?photo=photo-a";
 let directPhotoState = null;
 const directPhotoHistory = {
   get state() { return directPhotoState; },
@@ -422,11 +422,11 @@ const reloadedDirectController = createBrowseHistoryController({
 });
 assert.equal(reloadedDirectController.current.directPhotoRootId, "photo-a", "reload preserves a direct photo's parent-grid Escape marker");
 assert.equal(directPhotoController.escapeDirectPhoto(), true, "a direct photo Escape is handled inside its parent Advertising view");
-assert.equal(directPhotoHref, "https://example.test/vi/advertising-products/?category=kiosk-posm", "direct photo Escape replaces the orphan entry with its containing grid");
+assert.equal(directPhotoHref, "https://example.test/advertising-products/?category=kiosk-posm", "direct photo Escape replaces the orphan entry with its containing grid");
 assert.equal(directPhotoController.current.photo, null);
 assert.equal(directPhotoController.current.grid.focusId, "photo-a");
 assert.equal(matchingReloadController.escapeDirectPhoto(), false, "a non-direct reload keeps ordinary browser Back ownership");
-let cleanedDirectHref = "https://example.test/vi/advertising-products/?category=missing&photo=missing&tag=shared";
+let cleanedDirectHref = "https://example.test/advertising-products/?category=missing&photo=missing&tag=shared";
 let cleanedDirectState = { from: "barba", index: 12 };
 createBrowseHistoryController({
   ...browseFixture,
@@ -439,7 +439,7 @@ createBrowseHistoryController({
   },
   getHref: () => cleanedDirectHref,
 });
-assert.equal(cleanedDirectHref, "https://example.test/vi/advertising-products/", "invalid direct photo/category/tag query is cleaned in place");
+assert.equal(cleanedDirectHref, "https://example.test/advertising-products/", "invalid direct photo/category/tag query is cleaned in place");
 assert.equal(cleanedDirectState.index, 12, "invalid direct cleanup preserves the Barba history index");
 const cleanedBrowseState = readBrowseHistoryState(cleanedDirectState);
 assert.match(cleanedBrowseState.seed, /^[a-z0-9]+-[a-z0-9]+$/, "a fresh direct route receives a visit seed");
@@ -505,9 +505,9 @@ assert.equal(fixtureApplies.at(-1).browse.grid.anchorOffset, 180, "the origin ph
 assert.equal(fixtureEntries.at(-1).state.index, 10, "navbar return remains a Barba-owned push entry");
 
 const navbarCases = [
-  ["https://example.test/vi/advertising-products/?category=kiosk-posm", "photo-c", "?category=kiosk-posm", "photo-c", null],
-  ["https://example.test/vi/advertising-products/", "photo-b", "", "photo-b", null],
-  ["https://example.test/vi/advertising-products/?photo=photo-b", null, "", "photo-b", null],
+  ["https://example.test/advertising-products/?category=kiosk-posm", "photo-c", "?category=kiosk-posm", "photo-c", null],
+  ["https://example.test/advertising-products/", "photo-b", "", "photo-b", null],
+  ["https://example.test/advertising-products/?photo=photo-b", null, "", "photo-b", null],
 ];
 for (const [startHref, related, search, focusId, anchorOffset] of navbarCases) {
   let navbarHref = startHref;

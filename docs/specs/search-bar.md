@@ -38,10 +38,15 @@ dày thêm 1px vào trong (bóng `inset 0 0 0 1px ink`), không outline; nút, c
 ### R2. Hàng chip khi nổi
 
 **Hàng chip.** (chỉ khi nổi và đang có kết quả): cao 44px, nằm trên hàng chữ trong cùng khối, ngăn bằng đường mảnh 1px `ink` 14%; đệm ngang 14px. Một hàng, không
-rail nhóm, không chip "Tất cả" (như mock): các sản phẩm có ít nhất một kết quả, theo thứ tự rail của trang (hero đang chọn một nhóm thì chỉ sản phẩm của nhóm đó);
+rail nhóm, không chip "Tất cả" (như mock): các sản phẩm có ít nhất một kết quả, sản phẩm nhiều card kết quả xếp trước, bằng nhau thì theo thứ tự rail của trang (owner 2026-11-23; hero đang chọn một nhóm thì chỉ sản phẩm của nhóm đó);
 bấm chip là lọc trong kết quả, câu tìm giữ nguyên (gọi cùng bộ lọc của lưới như chip ở hero); bấm lại chip đang chọn thì về toàn bộ kết quả. Chip là `button`
 có `aria-pressed`, theo thứ tự Tab sau ô chữ và các nút. Số cạnh tên là số kết quả của sản phẩm đó. Chip chữ 13px đậm 600, cách nhau 18px; số kết quả nhỏ 10px đậm 700 màu `muted` cạnh tên; chip đang chọn gạch dưới 2px, cách chữ 5px.
-Dài quá thì cuộn ngang trong hàng, mép phải mờ dần (chỉ khi còn chip bị che). Chữ phóng 200% thì hàng chip cao theo chữ. Bỏ tìm thì hàng chip đóng. Hàng chip mở và đóng bằng chiều cao 0 tới 44px cùng nhịp đổi bề rộng.
+Dài quá thì cuộn ngang trong hàng, mép phải mờ dần (chỉ khi còn chip bị che), và nút chữ "Hiện tất cả (N)" / "Show all (N)" ghim ở cuối hàng (N là số sản phẩm có kết quả; chỉ hiện khi có chip bị cắt, owner 2026-11-23). Bấm nút thì mở bảng phía trên thanh, cách 8px, cùng nền, viền, bóng với thanh, rộng bằng thanh, chứa mọi chip theo cùng thứ tự, xuống dòng, cao tối đa `min(50vh, 320px)` rồi cuộn dọc; nút có `aria-expanded`. Chọn một chip trong bảng thì lọc như chip ở hàng và bảng đóng; bấm lại nút, bấm ra ngoài thanh hoặc Esc trong bảng cũng đóng. Thanh vào khe thì bảng ẩn cùng hàng chip. Chữ phóng 200% thì hàng chip cao theo chữ. Bỏ tìm thì hàng chip đóng. Hàng chip mở và đóng bằng chiều cao 0 tới 44px cùng nhịp đổi bề rộng.
+
+```gherkin
+Given trang gốc ở 384px, khách tìm "đèn" ra 19 sản phẩm
+Then hàng chip có nút "Hiện tất cả (19)" ở cuối; bấm thì bảng phía trên thanh hiện đủ 19 chip, chọn "Chữ nổi" thì lưới lọc và bảng đóng
+```
 
 ### R3. Chữ gợi ý, ảnh và thông báo
 
@@ -85,9 +90,9 @@ trạng thái trên màn hình (owner 2026-11-17). Thanh nổi đẩy Floating C
 chữ gợi ý, thông báo có bản EN. Không cuộn ngang ở 384, 768, 1024, 1280, 1440, 1920px.
 
 ```gherkin
-Given trang /vi/advertising-products/ ở 1440px, khách đã tìm "hộp đèn"
+Given trang /advertising-products/ ở 1440px, khách đã tìm "hộp đèn"
 When khách cuộn xuống giữa lưới
-Then thanh nổi rộng 760px, có hàng chip "Tất cả" và các sản phẩm có kết quả, bấm "Chữ nổi" thì lưới chỉ còn kết quả Chữ nổi, ô chữ vẫn là "hộp đèn"
+Then thanh nổi rộng 760px, có hàng chip các sản phẩm có kết quả, nhiều card trước, bấm "Chữ nổi" thì lưới chỉ còn kết quả Chữ nổi, ô chữ vẫn là "hộp đèn"
 
 Given trang ở 384px, cuộn tới tận cuối
 Then khoảng trống trên và dưới thanh lệch nhau không quá 2px, link "Trao đổi ý tưởng" nằm dưới thanh, không có nút "Trao đổi" trong thanh
@@ -127,7 +132,7 @@ Then bề rộng thanh chỉ có hai giá trị: bề rộng nổi rồi bề r�
 
 ### R8. Chỉ trang gốc có thanh
 
-Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/vi/advertising-products/`, `/en/advertising-products/`). Trang Công trình và mọi trang
+Owner 2026-11-22: thanh tìm kiếm chỉ có ở trang gốc Sản phẩm quảng cáo (`/advertising-products/`, `/en/advertising-products/`). Trang Công trình và mọi trang
 con (trang nhóm, trang sản phẩm, trang chi tiết card) không có thanh, không có khe; hero và CTA giữ bố cục như trước khi có thanh (link "Trao đổi ý tưởng" cách
 tiêu đề một khoảng lưới). Muốn tìm thì về trang gốc.
 

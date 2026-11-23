@@ -14,13 +14,13 @@ const gridReady = (page) => page.waitForFunction(() => document.documentElement.
 // Per host: how to open it, grid root; every masonry item carries the shared data-masonry-item marker (masonry-reuse step 3).
 const HOSTS = {
   advertising: { root: "[data-project-grid]", card: "[data-masonry-item]",
-    open: async (page) => { await page.goto(`${BASE_URL}/vi/advertising-products/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
+    open: async (page) => { await page.goto(`${BASE_URL}/advertising-products/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
   projects: { root: "[data-project-grid]", card: "[data-masonry-item]",
-    open: async (page) => { await page.goto(`${BASE_URL}/vi/projects/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
+    open: async (page) => { await page.goto(`${BASE_URL}/projects/`, { waitUntil: "domcontentloaded" }); await gridReady(page); } },
   // As the owner uses it: click a card on the masonry (soft route, CTA switches to detail). Step 5 reloads the page, i.e. a direct entry.
   related: { root: "[data-detail-related-grid]", card: "[data-masonry-item]",
     open: async (page) => {
-      await page.goto(`${BASE_URL}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${BASE_URL}/advertising-products/`, { waitUntil: "domcontentloaded" });
       await gridReady(page);
       await page.waitForTimeout(800);
       await page.locator("[data-masonry-card]:not([hidden]) > a").first().click();

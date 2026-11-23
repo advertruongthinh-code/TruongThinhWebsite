@@ -138,7 +138,7 @@ async function setup(page, locale, videoCover = false, failureRoutes = async () 
   });
   await failureRoutes(page);
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixtureArtifact(videoCover));
-  await page.goto(`${BASE_URL}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}${locale === "en" ? "/en" : ""}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -172,7 +172,7 @@ async function setupSingleton(page, item) {
 
 async function setupMany(page, locale) {
   await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, manyImageArtifact());
-  await page.goto(`${BASE_URL}/${locale}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${BASE_URL}${locale === "en" ? "/en" : ""}/advertising-products/?category=signage-raised-letters`, { waitUntil: "domcontentloaded" });
   // Direct-load veil blocks pointer input until the page finishes mounting.
   await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
   await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
@@ -1506,7 +1506,7 @@ async function runWideCover(locale, related = false, mode = "normal") {
     const search = related
       ? "?category=signage-raised-letters&photo=signage-raised-letters-02"
       : "?category=signage-raised-letters";
-    await page.goto(`${BASE_URL}/${locale}/advertising-products/${search}`, { waitUntil: "domcontentloaded" });
+    await page.goto(`${BASE_URL}${locale === "en" ? "/en" : ""}/advertising-products/${search}`, { waitUntil: "domcontentloaded" });
     // Direct-load veil blocks pointer input until the page finishes mounting.
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForLoadState("load");

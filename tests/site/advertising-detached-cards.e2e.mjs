@@ -37,7 +37,7 @@ async function scenario(label, fixture) {
     }));
     await page.addInitScript((artifact) => { window.__TT_ADVERTISING_ARTIFACT__ = artifact; }, fixture.artifact);
   }
-  await page.goto(`${base}/vi/advertising-products/`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${base}/advertising-products/`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready"));
   await page.waitForTimeout(1500);
   const viewport = await page.evaluate(() => innerHeight);

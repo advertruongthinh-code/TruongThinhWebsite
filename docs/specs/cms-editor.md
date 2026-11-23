@@ -7,9 +7,6 @@ source:
 tests:
   - tests/admin/cms-core.test.mjs
   - tests/admin/editor.e2e.mjs
-  - tests/admin/content.test.mjs
-  - tests/admin/content-api.test.mjs
-  - tests/admin/content-worker.e2e.mjs
 notion: https://app.notion.com/p/420332849a0e81ffb9e4e85372f1a0f7
 updated: 2026-11-22
 ---
@@ -22,7 +19,7 @@ Giao diện `/admin/` để owner và nhân viên tạo, sửa, xóa mọi nội
 
 Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
 
-Trạng thái (2026-11-22): code `src/admin/` hiện có là bản chạy local theo contract cũ (khóa `t<n>` theo thứ tự nguồn, bảng `page_edits`, `PUT /api/admin/content`). Dock, overlay chọn chỗ, sửa chữ tại chỗ, kéo thả media giữ lại; đường lưu, khóa và nguồn dữ liệu viết lại theo spec này ở phần 2 của plan CMS. Cho tới khi task đó merge, test trong frontmatter kiểm code cũ.
+Trạng thái (2026-11-22): code `src/admin/` hiện có là bản chạy local theo contract cũ (khóa `t<n>` theo thứ tự nguồn, bảng `page_edits`, `PUT /api/admin/content`). Dock, overlay chọn chỗ, sửa chữ tại chỗ, kéo thả media giữ lại; đường lưu, khóa và nguồn dữ liệu viết lại theo spec này ở phần 2 của plan CMS. Cho tới khi task đó merge, test trong frontmatter kiểm code cũ. Đường lưu `PUT /api/admin/content/<page>` và bảng `page_edits` đã gỡ (S2); đường lưu mới theo [CMS R5](cms.md), nên editor cũ hiện "Chưa nối lưu trữ".
 
 ## Hành vi
 

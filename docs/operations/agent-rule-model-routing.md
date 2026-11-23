@@ -54,6 +54,7 @@ Chế độ 2 hạ xuống mức Pareto rẻ hơn chỉ khi điểm Category g�
 | Phân tích số liệu (thống kê ảnh, số đo, log) | Data Analysis | opus medium, Max | = | sonnet, haiku dưới 60 điểm |
 | Research (SEO, đối thủ, tài liệu ngoài) | Research | opus medium, Max | sonnet high | 85.0 so với 83.6; haiku high chỉ để gom link |
 | QA trình duyệt, đo thiết bị (Playwright, CDP, adb) | Browser Use | haiku xhigh, kie | = | chẩn đoán số đo thuộc thread perf |
+| QA độc lập ([vai kiểm tra](agent-rule-verification-roles.md) tầng 1, 2) | Browser Use, Design | sonnet high, Max | = | nhiều bước, nhiều tool và nhìn ảnh nên không dùng haiku |
 | Docs, Notion, memory | Reasoning | haiku xhigh, kie | = | sonnet high (Max) khi context dài hoặc owner chê |
 | Điều phối (coordinator của Claude project) | Long Agentic | opus low (nền tảng cố định, không đổi được) | = | owner 2026-11-22; việc cần phán đoán (phạm vi, đọc ý owner, plan) giao thread chạy theo bảng này |
 | Relay, kiểm tra CI/PR, đổi status card, search chỉ đọc | Reasoning | haiku medium, kie | = | haiku không sửa code sẽ merge |

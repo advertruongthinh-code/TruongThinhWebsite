@@ -19,7 +19,7 @@ for (const [label, viewport, touch] of [["PC 1440", VIEWPORTS.desktop, false], [
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     try {
-      await page.goto(`${BASE_URL}/vi/advertising-products/?category=${card.category}`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${BASE_URL}/advertising-products/?category=${card.category}`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => Boolean(window.TruongThinhMasonry?.getAdapter?.()));
       await page.evaluate((id) => window.TruongThinhMasonry.getAdapter().ensurePhoto(id), card.id);
       const figure = page.locator(`[data-masonry-card="${card.id}"]`);

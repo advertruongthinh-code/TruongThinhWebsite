@@ -7,8 +7,8 @@ import { BASE_URL, SWEEP_WIDTHS, launchBrowser, openPage, viewportAt } from "./h
 const CARD = "kiosk-posm-67";
 const EXPECTED = {
   vi: [
-    ["displays-booths", "Trưng bày", "/vi/advertising-products/standee-ke-trung-bay/"],
-    ["displays-booths/display-shelves-cabinets", "Kệ, tủ trưng bày", "/vi/advertising-products/standee-ke-trung-bay/ke-tu-trung-bay/"],
+    ["displays-booths", "Trưng bày", "/advertising-products/standee-ke-trung-bay/"],
+    ["displays-booths/display-shelves-cabinets", "Kệ, tủ trưng bày", "/advertising-products/standee-ke-trung-bay/ke-tu-trung-bay/"],
   ],
   en: [
     ["displays-booths", "Displays", "/en/advertising-products/displays-booths/"],
@@ -17,7 +17,7 @@ const EXPECTED = {
 };
 
 const openPhoto = async (page, locale) => {
-  await page.goto(`${BASE_URL}/${locale}/advertising-products/p/${CARD}/`, { waitUntil: "networkidle" });
+  await page.goto(`${BASE_URL}${locale === "en" ? "/en" : ""}/advertising-products/p/${CARD}/`, { waitUntil: "networkidle" });
   await page.waitForSelector("[data-detail-crumb]");
 };
 
@@ -76,7 +76,7 @@ try {
         assert.ok(state.visible, `${width} ${filter}: card in view after closing`);
         await page.goBack();
         await page.waitForFunction(() => document.body.classList.contains("is-detail"));
-        assert.match(page.url(), new RegExp(`/vi/advertising-products/p/${CARD}/$`), `${width} ${filter}: Back reopens the photo`);
+        assert.match(page.url(), new RegExp(`/advertising-products/p/${CARD}/$`), `${width} ${filter}: Back reopens the photo`);
       }
     } finally {
       await context.close();

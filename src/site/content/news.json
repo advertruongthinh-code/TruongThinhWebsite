@@ -1,6 +1,7 @@
 [
   {
     "id": "chon-tu-bep",
+    "layout": "news-2-5",
     "group": "nha-o",
     "published": "2026-11-07",
     "slugVi": "chon-tu-bep-go-cong-nghiep",
@@ -109,13 +110,14 @@
           "vi": "Xem tất cả bài viết",
           "en": "See all articles"
         },
-        "hrefVi": "/vi/news/",
+        "hrefVi": "/news/",
         "hrefEn": "/en/news/"
       }
     ]
   },
   {
     "id": "mo-quan-ca-phe",
+    "layout": "news-2-5",
     "group": "kinh-doanh",
     "published": "2026-11-06",
     "slugVi": "lam-noi-that-quan-ca-phe-nho",
@@ -224,13 +226,14 @@
           "vi": "Xem tất cả bài viết",
           "en": "See all articles"
         },
-        "hrefVi": "/vi/news/",
+        "hrefVi": "/news/",
         "hrefEn": "/en/news/"
       }
     ]
   },
   {
     "id": "nha-pho-giu-mat",
+    "layout": "legacy",
     "group": "xu-huong",
     "published": "2026-11-05",
     "slugVi": "nha-pho-gieng-troi-go-toi-mau",
@@ -339,13 +342,14 @@
           "vi": "Xem tất cả bài viết",
           "en": "See all articles"
         },
-        "hrefVi": "/vi/news/",
+        "hrefVi": "/news/",
         "hrefEn": "/en/news/"
       }
     ]
   },
   {
     "id": "bien-hieu-mat-tien",
+    "layout": "news-2-5",
     "group": "quang-cao",
     "published": "2026-11-09",
     "slugVi": "chon-bien-hieu-chu-noi-hay-hop-den",
@@ -454,13 +458,14 @@
           "vi": "Xem tất cả bài viết",
           "en": "See all articles"
         },
-        "hrefVi": "/vi/news/",
+        "hrefVi": "/news/",
         "hrefEn": "/en/news/"
       }
     ]
   },
   {
     "id": "tu-ao-am-tuong",
+    "layout": "news-2-5",
     "group": "nha-o",
     "published": "2026-11-08",
     "slugVi": "thiet-ke-tu-ao-am-tuong",
@@ -569,13 +574,14 @@
           "vi": "Xem tất cả bài viết",
           "en": "See all articles"
         },
-        "hrefVi": "/vi/news/",
+        "hrefVi": "/news/",
         "hrefEn": "/en/news/"
       }
     ]
   },
   {
     "id": "quay-ke-cua-hang",
+    "layout": "news-2-5",
     "group": "kinh-doanh",
     "published": "2026-11-04",
     "slugVi": "bo-tri-quay-ke-cua-hang-nho",
@@ -684,13 +690,14 @@
           "vi": "Xem tất cả bài viết",
           "en": "See all articles"
         },
-        "hrefVi": "/vi/news/",
+        "hrefVi": "/news/",
         "hrefEn": "/en/news/"
       }
     ]
   },
   {
     "id": "man-hinh-led-san-khau",
+    "layout": "news-2-5",
     "group": "quang-cao",
     "published": "2026-11-02",
     "slugVi": "man-hinh-led-module-san-khau-hoi-truong",
@@ -799,13 +806,14 @@
           "vi": "Xem tất cả bài viết",
           "en": "See all articles"
         },
-        "hrefVi": "/vi/news/",
+        "hrefVi": "/news/",
         "hrefEn": "/en/news/"
       }
     ]
   },
   {
     "id": "bo-goc-noi-that",
+    "layout": "news-2-5",
     "group": "xu-huong",
     "published": "2026-10-30",
     "slugVi": "xu-huong-bo-goc-cong-noi-that-go",
@@ -914,7 +922,7 @@
           "vi": "Xem tất cả bài viết",
           "en": "See all articles"
         },
-        "hrefVi": "/vi/news/",
+        "hrefVi": "/news/",
         "hrefEn": "/en/news/"
       }
     ]

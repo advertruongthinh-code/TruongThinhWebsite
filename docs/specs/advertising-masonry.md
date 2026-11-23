@@ -36,7 +36,7 @@ updated: 2026-11-16
 
 ## Mục đích
 
-Trang `/vi/advertising-products/` và `/en/advertising-products/` cho khách quét toàn bộ ảnh sản phẩm quảng cáo theo
+Trang `/advertising-products/` và `/en/advertising-products/` cho khách quét toàn bộ ảnh sản phẩm quảng cáo theo
 sáu cụm, trong một masonry so le có thứ tự ngẫu nhiên theo lượt duyệt. Spec này sở hữu trang, catalog, filter, thứ tự, hình học, ảo hóa và card. Batch skeleton cuối masonry ở [skeleton](advertising-skeleton.md); detail (trang card `p/<id>`) ở
 [detail](advertising-detail.md); header, menu, footer, veil ở [shell](site-shell.md). Phần chung với related và trang Công trình (sân, reveal, item) ở [masonry dùng chung](masonry.md); thuật toán xếp lưới chính ở [masonry xếp trực tiếp](masonry-live-layout.md).
 
@@ -102,7 +102,7 @@ Navbar hoặc tiêu đề menu Advertising: đang ở All không có `photo` th�
 nhóm đã chọn trước khi mở ảnh ([detail R10](advertising-detail.md#r10-navbar-và-escape-trên-detail)).
 
 ```gherkin
-Given /vi/advertising-products/ ở All, runtime đã sẵn sàng
+Given /advertising-products/ ở All, runtime đã sẵn sàng
 When bấm "Kiosk & POSM" rồi "Tất cả" mười vòng
 Then không có request document hay XHR, hero không chạy lại, history.length không đổi
 And mỗi lần bấm, aria-current nằm trên đúng một nút
@@ -213,7 +213,7 @@ JavaScript: `<noscript>` hiện sáu card nhóm dẫn tới sáu URL cũ; có Ja
 chữ thô (CSS chỉ áp trong `@media (scripting: none)`). Card tĩnh trong `<noscript>` là `figure.masonry-static-card` (ô lưới CSS thường, không có hình học tuyệt đối của `.masonry-card`); trang Công trình dùng cùng class.
 
 ```gherkin
-Given LazySizes 5.3.2 không tải được khi vào thẳng /vi/advertising-products/
+Given LazySizes 5.3.2 không tải được khi vào thẳng /advertising-products/
 When hết thời gian chờ
 Then masonry ẩn, container có data-masonry-fallback="failed", không còn markup thô
 ```

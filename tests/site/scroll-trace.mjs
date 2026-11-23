@@ -15,10 +15,10 @@ const out = path.join(root, ".tmp/scroll-trace", new Date().toISOString().replac
 mkdirSync(out, { recursive: true });
 
 const pages = {
-  home: "/vi/",
-  advertising: "/vi/advertising-products/",
-  category: "/vi/advertising-products/?category=signage-raised-letters",
-  photo: "/vi/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-02",
+  home: "/",
+  advertising: "/advertising-products/",
+  category: "/advertising-products/?category=signage-raised-letters",
+  photo: "/advertising-products/?category=signage-raised-letters&photo=signage-raised-letters-02",
 };
 
 const browser = await chromium.launch({

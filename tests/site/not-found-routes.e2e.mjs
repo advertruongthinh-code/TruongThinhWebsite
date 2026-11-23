@@ -10,7 +10,7 @@ const { chromium } = await import("playwright");
 const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 
 const routes = {
-  vi: ["/vi/", "/vi/residential/", "/vi/commercial/", "/vi/advertising-products/", "/vi/about/"],
+  vi: ["/", "/residential/", "/commercial/", "/advertising-products/", "/about/"],
   en: ["/en/commercial/"],
 };
 
@@ -18,7 +18,7 @@ try {
   for (const [locale, targets] of Object.entries(routes)) {
     for (const target of targets) {
       const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-      await page.goto(`${baseUrl}/${locale}/khong-co-trang-nay/`);
+      await page.goto(`${baseUrl}${locale === "en" ? "/en" : ""}/khong-co-trang-nay/`);
       await page.waitForFunction(() => document.documentElement.classList.contains("motion-ready")
         && !document.documentElement.classList.contains("route-enter"), null, { timeout: 12_000 });
       // Sample every frame from the link click until the route finishes: 404 must not take space once the veil is partly open.
