@@ -244,7 +244,7 @@ Then mọi bộ được chọn vì harness nằm trong shared
 
 ### R13. Test đã thấy đỏ
 
-PR sẵn sàng (không nháp) có code, đổi `src/site/` và thêm hoặc sửa file `tests/site/*.e2e.mjs`, `*.test.mjs`: job `red-before` dựng lại `src/site/` của `main` (giữ test của PR), build, mở preview rồi chạy từng file test đó. Xanh khi ít nhất một file đỏ; mọi file xanh thì job đỏ, vì test chưa từng đỏ chưa chứng minh thay đổi ([kim tự tháp niềm tin](../operations/agent-rule-verification-roles.md#kim-tự-tháp-niềm-tin) tầng 2). PR chỉ dời code hoặc chỉ sửa test cũ ghi dòng `Test đỏ trước: không áp dụng - <lý do>` (không tính dòng còn `<`). `static-release` cần job này xanh hoặc skipped.
+PR sẵn sàng (không nháp) có code, đổi `src/site/` và thêm hoặc sửa file `tests/site/*.e2e.mjs`, `*.test.mjs`: job `red-before` dựng lại `src/site/` của `main` (giữ test của PR), build, mở preview rồi chạy từng file test đó, dừng ở file đỏ đầu tiên (owner 2026-11-23: một file đỏ là đủ; chạy hết thì `detail-view` đẩy job quá 12 phút ở PR 1098). Xanh khi ít nhất một file đỏ; mọi file xanh thì job đỏ, vì test chưa từng đỏ chưa chứng minh thay đổi ([kim tự tháp niềm tin](../operations/agent-rule-verification-roles.md#kim-tự-tháp-niềm-tin) tầng 2). PR chỉ dời code hoặc chỉ sửa test cũ ghi dòng `Test đỏ trước: không áp dụng - <lý do>` (không tính dòng còn `<`). `static-release` cần job này xanh hoặc skipped.
 Test chạy tay (`manual`, `pending`) không tính. Local: `node scripts/ci/red-before.mjs` (so với `origin/main`; `src/site/` phải sạch, script trả lại bản của branch khi xong).
 
 ```gherkin
