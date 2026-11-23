@@ -90,3 +90,33 @@ test("staging already running the same commit and snapshot gives skip=true", asy
     assert.ok(server.requests.some(({ path: url, id: client }) => url === "/build-info.json" && client === "test-id"));
   } finally { await server.close(); }
 });
+
+test("same commit with another snapshot, a non-JSON or a redirecting build-info gives skip=false", async () => {
+  const other = await serve({ buildInfo: { commit: COMMIT, snapshotId: "0".repeat(64), snapshotAt: snapshot.takenAt } });
+  const login = createServer((request, response) => response.writeHead(302, { Location: "https://example.invalid/login" }).end());
+  const page = createServer((request, response) => response.writeHead(200, { "Content-Type": "text/html" }).end("<html>login</html>"));
+  for (const server of [login, page]) await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const originOf = (server) => `http://127.0.0.1:${server.address().port}`;
+  try {
+    for (const staging of [other.origin, originOf(login), originOf(page)]) {
+      const result = await run(other.origin, { STAGING_ORIGIN: staging });
+      assert.equal(result.code, 0, staging);
+      assert.equal(result.outputs.skip, "false", staging);
+    }
+  } finally {
+    await other.close();
+    for (const server of [login, page]) await new Promise((resolve) => server.close(resolve));
+  }
+});
+
+test("a snapshot URL that redirects fails instead of following it", async () => {
+  const hop = createServer((request, response) => response.writeHead(302, { Location: "https://example.invalid/" }).end());
+  await new Promise((resolve) => hop.listen(0, "127.0.0.1", resolve));
+  try {
+    const result = await run(`http://127.0.0.1:${hop.address().port}`);
+    assert.equal(result.code, 1);
+  } finally {
+    await new Promise((resolve) => hop.close(resolve));
+  }
+});
+

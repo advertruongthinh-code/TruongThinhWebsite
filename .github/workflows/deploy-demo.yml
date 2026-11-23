@@ -37,9 +37,11 @@ jobs:
       CMS_SNAPSHOT_URL: ${{ inputs.target == 'staging' && vars.CMS_SNAPSHOT_URL || '' }}
       CMS_MEDIA_ORIGIN: ${{ vars.CMS_MEDIA_ORIGIN }}
     steps:
-      - run: |
+      - env:
+          CONTENT: ${{ inputs.content }}
+        run: |
           case "$TARGET" in staging|production) ;; *) echo "bad target"; exit 1 ;; esac
-          if [ "$TARGET" = production ] && [ "${{ inputs.content }}" = true ]; then echo "content runs deploy to staging only"; exit 1; fi
+          if [ "$TARGET" = production ] && [ "$CONTENT" = true ]; then echo "content runs deploy to staging only"; exit 1; fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0

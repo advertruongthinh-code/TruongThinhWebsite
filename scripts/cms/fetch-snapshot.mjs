@@ -11,10 +11,11 @@ const env = process.env;
 const outArg = process.argv.indexOf("--out");
 const out = path.resolve(outArg > 0 ? process.argv[outArg + 1] : ".tmp/snapshot/content");
 // Both the admin API and staging sit behind Cloudflare Access; the service token passes their Service Auth policy.
+// No redirect is followed: fetch would send the CF-Access-Client-Secret header on to the redirect target.
 const headers = { "CF-Access-Client-Id": env.CMS_ACCESS_CLIENT_ID ?? "", "CF-Access-Client-Secret": env.CMS_ACCESS_CLIENT_SECRET ?? "", "User-Agent": "tt-cms-ci" };
 
 async function get(query) {
-  const response = await fetch(query ? `${env.CMS_SNAPSHOT_URL}?${query}` : env.CMS_SNAPSHOT_URL, { headers });
+  const response = await fetch(query ? `${env.CMS_SNAPSHOT_URL}?${query}` : env.CMS_SNAPSHOT_URL, { headers, redirect: "error" });
   if (response.status === 423) throw new Error("publish paused");
   if (response.status !== 200) throw new Error(`snapshot: HTTP ${response.status}`);
   return response.json();
@@ -23,7 +24,7 @@ async function get(query) {
 // The deployed build-info.json; anything but a JSON 200 (404 on a first deploy, an Access login page) means "not the same build".
 async function stagingBuild() {
   if (!env.STAGING_ORIGIN) return {};
-  const response = await fetch(`${env.STAGING_ORIGIN}/build-info.json`, { headers });
+  const response = await fetch(`${env.STAGING_ORIGIN}/build-info.json`, { headers, redirect: "manual" });
   return response.ok ? response.json().catch(() => ({})) : {};
 }
 

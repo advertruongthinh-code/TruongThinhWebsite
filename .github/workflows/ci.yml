@@ -31,7 +31,8 @@ permissions:
 # Content runs queue in their own group, so a save never waits behind or replaces a code run (cms-plan Q8).
 concurrency:
   group: ${{ inputs.content == true && 'ci-content' || format('ci-{0}', github.ref) }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+  # A content run is never cancelled: a branch dispatch with content true must not cancel the main content deploy before its marker.
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && inputs.content != true }}
 
 # Test suites per website part (docs/specs/ci-test-suites.md): select suites, run in parallel, aggregate into the static-release check.
 jobs:
