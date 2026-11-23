@@ -70,6 +70,8 @@ export function parseMarks(text) {
   if (errors.length) throw new Error(errors[0].message);
   return tokens;
 }
+// Link targets of one string (never throws: bad marks are a shape error reported elsewhere).
+export const linksOf = (text) => scan(text).tokens.filter(({ t }) => t === "a").map(({ link }) => link);
 export const skeleton = (tokens) => tokens.filter(({ t }) => t !== "text").map(({ t }) => t).join(",");
 // Never throws: text with bad marks comes back as typed (search and related-post ranking must not stop the build).
 export const plainText = (text) => {

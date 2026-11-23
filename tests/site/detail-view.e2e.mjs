@@ -74,16 +74,19 @@ function expectedPhotoGeometry(evidence) {
     : width;
   const descriptionWidth = mode === "split" ? cardWidth : width;
   const available = evidence.windowHeight - top - evidence.safeBottom;
-  // Detail spec R2: a two-column grid reaches the screen bottom (owner 2026-11-23); wider grids leave a gap and 50px so related peeks out.
-  const heightCap = available - (columns <= 2 ? 0 : gap + 50);
-  // Pinterest info height follows the measured copy; R2 caps it at 28% of the viewport.
-  const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, heightCap - gap - 1);
+  // Detail spec R2: stacked primary reaches the screen bottom (owner 2026-11-23); split leaves a gap and 50px so related peeks out.
+  const heightCap = available - (mode === "pinterest" ? 0 : gap + 50);
+  // Pinterest: the image keeps the size it has with the gap and 50px, that room goes to a clipped description (owner 2026-11-23).
+  const imageCap = heightCap - (mode === "pinterest" ? gap + 50 : 0);
+  // Pinterest info height follows the measured copy; R2 caps it at 28% of the viewport plus the room the peek left.
+  const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, imageCap - gap - 1) + heightCap - imageCap;
   // Split: the media area is as tall as the media up to heightCap (primary-video-player R6); info is as tall as the media area, unless a long cluster label
   // raises the info floor (the runtime keeps that floor).
   const splitImageZoneHeight = Math.min(imageZoneWidth / ratio, heightCap);
   const descriptionHeight = mode === "split" ? Math.max(splitImageZoneHeight, evidence.infoFloor) : evidence.infoRect.height;
   const imageZoneHeight = mode === "split" ? splitImageZoneHeight
-    : Math.min(width / ratio, heightCap - descriptionHeight - gap);
+    : Math.min(width / ratio,
+      imageCap - gap - Math.max(evidence.infoFloor, Math.min(descriptionHeight, evidence.windowHeight * 0.28 - gap)));
   const height = mode === "split" ? descriptionHeight : imageZoneHeight + descriptionHeight + gap;
   const imageWidth = Math.min(imageZoneWidth, ratio * imageZoneHeight);
   const imageHeight = imageWidth / ratio;

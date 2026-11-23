@@ -149,6 +149,11 @@ test("tier floor: CMS code or a long task is 3, site code is 1, docs and CI are 
   assert.equal(tierFloor([row("src/site/a.js", 400)]), 3);
   assert.equal(tierFloor([row("src/site/a.md", 900)]), 1, "Markdown is not LOC");
   assert.equal(tierFloor([row("src/site/a.js"), row("scripts/b.mjs")]), 3, "two zones");
+  assert.equal(tierFloor([row("src/site/a.css", 100), row("design-system/components/bundle.css", 100),
+    row("design-system/components/Viewer/preview.html")]), 1, "generated Design System files are not a zone");
+  assert.equal(tierFloor([row("src/site/a.css"), row("design-system/components/Viewer/README.md")]), 3, "Design System Markdown stays a zone");
+  assert.equal(tierFloor([row("src/site/a.css", 250), row("design-system/components/bundle.css", 250)]), 1, "generated files are not LOC");
+  assert.equal(tierFloor([row("src/site/a.css"), row("design-system/tokens.json")]), 3, "hand-written Design System files stay a zone");
   assert.equal(tierFloor(Array.from({ length: 8 }, (_, i) => row(`tests/t${i}.mjs`))), 3);
   assert.equal(tierFloor([row("src/site/motion.js"), row("src/site/m.mjs")], ["src/site/motion.js", "src/site/m.mjs"]), 3, "two hot files");
 });
