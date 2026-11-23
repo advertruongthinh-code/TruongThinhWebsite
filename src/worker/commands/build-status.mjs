@@ -28,7 +28,7 @@ export default {
     const setting = (key) => env.DB.prepare("SELECT value FROM settings WHERE key = ?").bind(key).first("value");
     const [paused, dispatchError, lastSaveAt, deployments, github, backupAt] = await Promise.all([
       setting("publish_paused"),
-      setting("dispatch_error"),
+      env.DB.prepare("SELECT value FROM settings WHERE key IN ('dispatch_error:ci.yml', 'dispatch_error:cms-variants.yml') ORDER BY key LIMIT 1").first("value"),
       env.DB.prepare("SELECT MAX(updated_at) AS at FROM records WHERE status = 'published' AND type != 'media'").first("at"),
       readDeployments(env).catch(() => []),
       readRuns(env).catch(() => ({ runs: null, tokenExpiresAt: null })),

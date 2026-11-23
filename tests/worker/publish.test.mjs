@@ -74,10 +74,10 @@ test("GitHub 500 gives exactly four calls and a dispatch_error; a later success 
   const { saveNews, calls, setting, env } = setup({ status: 500 });
   await saveNews();
   assert.equal(calls.length, 4);
-  assert.match(setting("dispatch_error"), /^\S+ ci\.yml 500$/);
+  assert.match(setting("dispatch_error:ci.yml"), /^\S+ ci\.yml 500$/);
   globalThis.fetch = async () => new Response(null, { status: 204 });
   assert.equal(await dispatchBuild(env), true);
-  assert.equal(setting("dispatch_error"), undefined);
+  assert.equal(setting("dispatch_error:ci.yml"), undefined);
 });
 
 test("paused: snapshot 423, rebuild 409, save still 200 without a dispatch", async () => {
@@ -117,7 +117,7 @@ test("build-status reads runs, token expiry, deployments, dispatchError and last
   const { call, env, put } = setup({ runs: [{ ...run, extra: 1 }], headers: { "github-authentication-token-expiration": "2027-01-01 00:00:00 UTC" } });
   await env.MEDIA_PUBLIC.put("deploys/b.json", JSON.stringify({ versionId: "b" }));
   await env.MEDIA_PUBLIC.put("deploys/a.json", JSON.stringify({ versionId: "a" }));
-  put("dispatch_error", "t ci.yml 401");
+  put("dispatch_error:ci.yml", "t ci.yml 401");
   const { body } = await call("build-status", undefined);
   assert.deepEqual(body.runs, [run]);
   assert.equal(body.tokenExpiresAt, "2027-01-01 00:00:00 UTC");
@@ -129,18 +129,18 @@ test("build-status reads runs, token expiry, deployments, dispatchError and last
 
 test("cron retries a failed ci.yml dispatch at minute 05 only; cms-variants errors and pause do not retry", async () => {
   const { cron, put, calls, setting } = setup();
-  put("dispatch_error", "t ci.yml 500");
+  put("dispatch_error:ci.yml", "t ci.yml 500");
   await cron("10:06");
   assert.equal(calls.length, 0);
   await cron("10:05");
   assert.equal(calls.length, 1);
   assert.match(calls[0].url, /ci\.yml\/dispatches$/);
-  assert.equal(setting("dispatch_error"), undefined);
+  assert.equal(setting("dispatch_error:ci.yml"), undefined);
   calls.length = 0;
-  put("dispatch_error", "t cms-variants.yml 500");
+  put("dispatch_error:cms-variants.yml", "t cms-variants.yml 500");
   await cron("10:05");
   assert.equal(calls.length, 0);
-  put("dispatch_error", "t ci.yml 500");
+  put("dispatch_error:ci.yml", "t ci.yml 500");
   put("publish_paused", "1");
   await cron("10:05");
   assert.equal(calls.length, 0);
