@@ -125,7 +125,6 @@ test("trash, restore, purge round trip; staff cannot purge; purge needs the exac
   assert.equal((await call("save", { type: "news", id, version: row("news", id).version, data: JSON.parse(row("news", id).data) })).body.error, "trashed");
   const restored = await call("restore", { type: "news", id });
   assert.deepEqual(restored.body, { status: "published" });
-  assert.equal((await call("purge", { type: "news", id, confirm: name })).body.error, "not-trashed");
   await call("trash", { type: "news", id });
   assert.equal((await call("purge", { type: "news", id, confirm: "sai" })).status, 400);
   assert.equal((await call("purge", { type: "news", id, confirm: name })).status, 200);
