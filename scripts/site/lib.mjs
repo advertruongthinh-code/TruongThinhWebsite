@@ -6,6 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { phonePacks } from "../../src/site/masonry/pack.mjs";
 import { IMAGE_SRC, imageFieldErrors } from "./lib-pure.mjs";
+import { variantImageErrors, variantKeyOf } from "./media-src.mjs";
 
 export * from "./lib-pure.mjs";
 
@@ -24,9 +25,12 @@ export const walk = async (dir) => (await Promise.all((await readdir(dir, { with
 }))).flat();
 
 // Checks one image reference of site data: src shape, VI and EN alt, file under root, width and height equal to the real file.
-// Returns the error list (empty when valid); `where` prefixes each message.
-export async function validateImage(image, root, where) {
-  const errors = imageFieldErrors(image, where);
+// Returns the error list (empty when valid); `where` prefixes each message. An R2 src (cms-plan part 2 K4) is checked against its
+// manifest in variants instead of a file, and must sit on the build's media origin.
+const isImageSrc = (src) => IMAGE_SRC.test(src) || (variantKeyOf(src) !== null && src.endsWith(".webp"));
+export async function validateImage(image, root, where, { variants = {}, mediaOrigin = "" } = {}) {
+  const errors = imageFieldErrors(image, where, isImageSrc);
+  if (image && variantKeyOf(image.src) && isImageSrc(image.src)) return [...errors, ...variantImageErrors(image, where, { variants, mediaOrigin })];
   if (!image || !IMAGE_SRC.test(image.src ?? "")) return errors;
   const file = path.join(root, image.src);
   if (!existsSync(file)) return [...errors, `${where}: image not found ${image.src}`];

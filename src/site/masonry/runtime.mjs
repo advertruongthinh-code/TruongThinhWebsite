@@ -1,7 +1,7 @@
 //# allFunctionsCalledOnLoad
 // V8 compile hint: compile every function on a background thread at load, so the first card tap does not compile lazily on the main thread
 // (about 20% of the click task when opening detail; decision phone-frame-budget).
-import { imageFormatReady, responsiveSource, responsiveSrcset } from "../media-lib/responsive-image.mjs";
+import { imageFormatReady, mediaColorKey, responsiveSource, responsiveSrcset } from "../media-lib/responsive-image.mjs";
 import {
   MASONRY_LAYOUT_VERSION,
   MASONRY_SEARCH_BUDGET,
@@ -92,7 +92,7 @@ const browseBase = (pathname) => matchBrowsePath(pathname)?.[2] ?? "advertising-
 // Card page (media-seo R1): detail has the URL /<locale>/advertising-products/p/<card-id>/; the old ?photo= is still read.
 const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:en\/)?advertising-products\/p\/([^/]+)\/$/;
 // Colors generated at build time from the image file name: [card dominant color, 4 Flow colors light to dark, pill-area luminance 0-100].
-const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/, "")];
+const mediaColors = (src) => MEDIA_COLORS[mediaColorKey(src)];
 const flowColors = (src) => mediaColors(src)?.slice(1, 5);
 // Card pill tone (media-card R2, owner 2026-11-13): under this luminance the area beneath the pill is dark, so the pill turns light. 20 is where
 // the dark pill (#333 at 80%) and the light pill (white at 85%) contrast equally with the area (WCAG ratio).

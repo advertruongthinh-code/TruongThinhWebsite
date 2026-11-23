@@ -13,6 +13,7 @@ playwright-report/
 .wrangler/
 .site-output/
 /.site-output-seed-*/
+/.site-output-r2-*/
 graphify-out/
 .impeccable/config.local.json
 .claude/settings.local.json

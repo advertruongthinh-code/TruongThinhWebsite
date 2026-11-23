@@ -3,6 +3,7 @@
 // is embedded in the page so the runtime changes the filter in place.
 import { MASONRY_LAYOUT_VERSION, fnv1a32, scheduleRank } from "../../src/site/masonry/layout.mjs";
 import { PROJECT_FILTERS, PROJECT_TYPES, SECTORS, SECTOR_LABEL, pageHref } from "./block-pages.mjs";
+import { absoluteSrc, siblingSrc } from "./media-src.mjs";
 import { PUBLIC_ORIGIN, alternateLinks, collectionLd, escapeHtml, localePrefix, routeLocale, pageNameHeading, phonePacksScript } from "./lib.mjs";
 
 // Hero kicker (unchanged for every filter, owner 2026-11-08) and slogan; only the accent word of line two is bold italic (owner 2026-11-08), like the em of the Commercial hero.
@@ -109,8 +110,8 @@ export const buildProjectArtifact = (projects, colors = {}) => {
 };
 
 const srcset = ({ src, width }) => {
-  const stem = src.slice(0, -".webp".length);
-  return [...IMAGE_WIDTHS.filter((size) => size < width).map((size) => `${stem}-${size}.webp ${size}w`), `${src} ${width}w`].join(", ");
+  // R2 variants follow the repo name rule (cms-plan part 2 K4): "-<width>" for every width under the image width.
+  return [...IMAGE_WIDTHS.filter((size) => size < width).map((size) => `${siblingSrc(src, `-${size}`, "webp")} ${size}w`), `${src} ${width}w`].join(", ");
 };
 
 // Static cards in noscript like the Advertising page: without JavaScript projects and links are still visible (SEO); the filter intro
@@ -176,7 +177,7 @@ export const renderProjectListPage = (template, listPage, artifact) => {
   const head = [
     `<title data-en="${escapeHtml(filter.name.en)} — Trường Thịnh">${escapeHtml(filter.name.vi)} — Trường Thịnh</title>`,
     ...alternateLinks(`${listPath}`, `/en${listPath}`),
-    ...(projects.length ? [`<meta property="og:image" content="${PUBLIC_ORIGIN}${projects[0].cover.src}" />`] : ['<meta name="robots" content="noindex" />']),
+    ...(projects.length ? [`<meta property="og:image" content="${absoluteSrc(projects[0].cover.src, PUBLIC_ORIGIN)}" />`] : ['<meta name="robots" content="noindex" />']),
     collectionLd({ path: `${listPath}`, name: filter.name.vi, description: filter.description.vi, items: projects.map((project) => [project.title.vi, pageHref("projects", "vi", project)]),
       crumbs: [["Trường Thịnh", "/"], ["Công trình", "/projects/"], ...(filter.slug ? [[filter.label.vi, `${listPath}`]] : [])] }),
   ].join("\n    ");

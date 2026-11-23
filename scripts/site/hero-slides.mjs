@@ -49,8 +49,6 @@ export async function validateHeroSlides(data, checkImage) {
   if (errors.length) throw new Error(`hero-slides data invalid:\n${errors.join("\n")}`);
 }
 
-const imageName = (slide) => slide.src.split("/").pop().replace(/\.webp$/, "");
-
 // Direction the view travels over the image (left, right, up, down): from and to are points on the image, so to.x > from.x is "right".
 const panDir = ({ from, to }) => (from.x === to.x ? (to.y > from.y ? "down" : "up") : (to.x > from.x ? "right" : "left"));
 
@@ -66,8 +64,9 @@ const renderSlides = (slides) => slides.map((slide, index) => {
   ].join("\n");
 }).join("\n");
 
-// [name, width] pairs the head script indexes by slide position (the same order as the figures).
-const renderData = (slides) => `[${slides.map((slide) => `["${imageName(slide)}", ${slide.width}]`).join(", ")}]`;
+// [URL without ".webp", width] pairs the head script indexes by slide position (the same order as the figures). The URL is the repo
+// path or the absolute media URL of an R2 image (cms-plan part 2 K4); the preload adds "-<width>.<format>" the same way for both.
+const renderData = (slides) => `[${slides.map((slide) => `["${slide.src.replace(/\.webp$/, "")}", ${slide.width}]`).join(", ")}]`;
 
 // Replaces the three markers of one page source. A page without markers comes back unchanged.
 export function expandHero(html, data, orderScript) {
