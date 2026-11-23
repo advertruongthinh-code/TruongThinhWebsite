@@ -26,8 +26,8 @@ Trong lúc làm bước 5 tới hết bước 9 không chạy `release.yml`.
 | Owner đăng nhập rồi mở URL đó thấy `{"paused":false}` | |
 | `pnpm demo:wrangler d1 execute truong-thinh-cms --remote --command "SELECT role, status FROM accounts" --config wrangler.toml` in một dòng `owner`, `active` | |
 | Service token gọi `build-status` (path người) trả 403 | 403 (bước cuối của `cms-check.yml`) |
-| `cms-check.yml` chạy trên nhánh PR: 30 dòng `200` | 30/30 `200`, 1,26 MB, 1,5 đến 2,1 s mỗi lần |
-| Dashboard Worker, Invocation Statuses không có "Exceeded CPU Time Limits"; CPU lớn nhất của `/api/admin/snapshot` trong Workers Logs dưới 8 ms | Không có lỗi CPU; CPU trung bình 17 ms, lớn nhất 38 ms (90 lần gọi): không đạt, chờ owner quyết theo Q12 |
+| `cms-check.yml` chạy trên nhánh PR: mọi lần gọi `200` | Bản chụp nguyên khối: 30/30 `200`, 1,26 MB. Bản chia trang (version `a52db0af`): 48/48 `200` |
+| Dashboard Worker, Invocation Statuses không có "Exceeded CPU Time Limits"; CPU lớn nhất của `/api/admin/snapshot` trong Workers Logs dưới 8 ms | Bản nguyên khối: trung bình 17 ms, lớn nhất 38 ms, không đạt; owner chọn chia nhỏ (Q12 cách 1). Bản chia trang: lớn nhất 6 ms (trang `advertising-card` 1), mục lục 5 ms, trung bình 2,2 ms; không có "Exceeded CPU Time Limits": đạt |
 | URL preview theo version của Worker admin không trả 200 | |
 | Sau merge: `curl -sI https://staging.truongthinhads.vn/vi/` trả 302; `curl -sI https://truongthinhads.vn/vi/` trả 200 | Trước merge: 302 và 200 |
 
