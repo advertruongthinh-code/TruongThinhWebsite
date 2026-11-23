@@ -1026,10 +1026,11 @@ function defaultLayout() {
   addContentPanel();
 }
 
-// Opens "Nội dung" as the active tab beside the preview; also added to layouts saved before it existed.
+// Adds "Nội dung" as a tab beside the preview (the preview stays the active tab); also added to layouts saved before it existed.
 function addContentPanel() {
-  const panel = dock.getPanel("content") ?? addPanel("content", dock.getPanel("preview") && { referencePanel: "preview", direction: "within" });
-  panel.api.setActive();
+  if (dock.getPanel("content")) return;
+  addPanel("content", dock.getPanel("preview") && { referencePanel: "preview", direction: "within" });
+  dock.getPanel("preview")?.api.setActive();
 }
 
 // Reopen a closed panel next to a main panel that is still open; with no panel left Dockview places it itself.
@@ -1047,7 +1048,7 @@ buildPreview();
 try {
   dock.fromJSON(JSON.parse(localStorage.getItem(LAYOUT_KEY)));
   if (!dock.getPanel("preview")) throw new Error("layout without preview");
-  if (!dock.getPanel("content")) addContentPanel();
+  addContentPanel();
 } catch {
   defaultLayout();
 }
