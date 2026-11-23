@@ -66,13 +66,14 @@ test("errors: unclosed, empty, nested, bad link, not allowed, mismatch", () => {
   assert.deepEqual(codes(marksErrors("**a** b", "*a* b", "body")), ["marks-mismatch"]);
   assert.deepEqual(codes(marksErrors("a\nb", "a b", "title")), ["marks-mismatch"]);
   assert.deepEqual(marksErrors("**Gỗ** sồi\n\n*Đoạn* hai", "**Oak** wood\n\n*Second* part", "body"), []);
-  assert.deepEqual(marksErrors("5\\^ m", "5\\^ m", "plain"), []);
+  assert.deepEqual(codes(marksErrors("5\\^ m", "5 m", "plain")), ["mark-not-allowed"], "plain fields render as typed, no escapes");
+  assert.deepEqual(marksErrors("5\\^ m", "5\\^ m", "small"), []);
 });
 
 test("random strings never produce a tag or attribute outside the allowed set", () => {
   const alphabet = [..."<>&\"'*^[]()\\ \nab"];
-  let seed = 42;
-  const random = () => { seed = (seed * 1103515245 + 12345) % 2 ** 31; return seed / 2 ** 31; };
+  let seed = 42; // mulberry32, fixed seed
+  const random = () => { seed = (seed + 0x6d2b79f5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 2 ** 32; };
   const tags = new Set(["span", "strong", "em", "sup", "a", "br", "ul", "ol", "li"]);
   const attributes = new Set(["data-en", "data-vi", "data-seg", "href", "data-en-href", "target", "rel", "start"]);
   let rendered = 0;
@@ -103,4 +104,10 @@ test("typo warnings: a broken line ends with punctuation, a lone word after a br
 test("the EN page swaps every segment even when the text contains data-en=", () => {
   const html = `<p>${markedInner("x data-en=\nabc", "y data-en=\ndef", ctx)}</p>`;
   assert.equal(localeHtml(html, "en"), '<p><span data-en="y data-en=" data-vi="x data-en=" data-seg>y data-en=</span><br><span data-en="def" data-vi="abc" data-seg>def</span></p>');
+});
+
+test("render never throws on EN that has not been validated, plainText never throws", () => {
+  assert.equal(markedInner("a **b**", "", ctx), `${seg("span", "a\u00a0", "")}${seg("strong", "b", "")}`);
+  assert.equal(listHtml("• một\n• hai", "", ctx), `<ul><li>${seg("span", "một", "")}</li><li>${seg("span", "hai", "")}</li></ul>`);
+  assert.equal(plainText("Giá 5* sao"), "Giá 5* sao");
 });

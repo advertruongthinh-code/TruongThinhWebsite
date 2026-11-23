@@ -2,7 +2,7 @@
 // VI text goes in the tag, EN goes in data-en like existing pages; the localeHtml build swaps to EN.
 // The same data always yields the same HTML; text is plain text only, all HTML characters are escaped.
 import { IMAGE_SRC, escapeHtml } from "./lib-pure.mjs";
-import { LINE_END_PUNCT, listHtml, listOf, markedInner, marksErrors, paragraphs, parseMarks, plainText, sideMarksErrors } from "../../src/cms/inline-marks.mjs";
+import { listHtml, listOf, markedInner, marksErrors, paragraphs, parseMarks, plainText, sideMarksErrors, typoWarnings } from "../../src/cms/inline-marks.mjs";
 
 export const BLOCK_SCHEMA_VERSION = 1;
 export const ZALO_HREF = "https://zalo.me/0949131050";
@@ -58,7 +58,7 @@ export const newsTeaser = (post) => {
 };
 // Hero tagline line: "ấm như *gỗ sồi*" becomes plain text, then the italic part as <em>, then the rest; each part keeps its own EN so the locale
 // swap (data-en) does not drop the italic. VI and EN may put the italic at different places in the line.
-// An intentional title line break carries the pause, so a line never ends with , . or ; (owner 2026-11-14, hero-typography R7, LINE_END_PUNCT).
+// An intentional title line break carries the pause, so a line never ends with , . or ; (owner 2026-11-14, hero-typography R7, typoWarnings).
 const taglineParts = (text) => {
   const tokens = parseMarks(text);
   const italic = tokens.findIndex(({ t }) => t === "i");
@@ -360,7 +360,7 @@ export async function validateBlockPage(page, { checkImage, projects = new Map()
           if (found.length) errors.push(...found.map(({ message }) => `${where}.${field}[${index}]: ${message}`));
           else if (parseMarks(value).filter(({ t }) => t === "i").length > 1) errors.push(`${where}.${field}[${index}]: at most one *italic* part`);
         }
-        if ([line?.vi, line?.en].some((value) => typeof value === "string" && LINE_END_PUNCT.test(value))) errors.push(`${where}.${field}[${index}]: a line must not end with , . or ;`);
+        if ([line?.vi, line?.en].some((value) => typeof value === "string" && typoWarnings(`${value}\n`).some(({ code }) => code === "line-end-punct"))) errors.push(`${where}.${field}[${index}]: a line must not end with , . or ;`);
       }
     }
     for (const field of spec.media ?? []) await media(block[field], `${where}.${field}`);

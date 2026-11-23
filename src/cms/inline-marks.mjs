@@ -70,7 +70,11 @@ export function parseMarks(text) {
   return tokens;
 }
 export const skeleton = (tokens) => tokens.filter(({ t }) => t !== "text").map(({ t }) => t).join(",");
-export const plainText = (text) => parseMarks(text).map((token) => (token.t === "br" ? "\n" : token.s)).join("");
+// Never throws: text with bad marks comes back as typed (search and related-post ranking must not stop the build).
+export const plainText = (text) => {
+  const { tokens, errors } = scan(text);
+  return errors.length ? String(text ?? "") : tokens.map((token) => (token.t === "br" ? "\n" : token.s)).join("");
+};
 
 // Paragraphs split by a blank line, as the block renderer does.
 export const paragraphs = (text) => String(text ?? "").split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean);
@@ -124,7 +128,7 @@ function segmentsHtml(viTokens, enTokens, ctx) {
   const en = slots(enTokens);
   return slots(viTokens).map((vi, index) => {
     if (vi.t === "br") return "<br>";
-    const pair = en[index];
+    const pair = en[index] ?? { t: "text", s: "" }; // EN may be empty (E2) or not validated yet
     if (vi.t === "text" && !vi.s && !pair.s) return "";
     const text = ` data-en="${escapeHtml(pair.s)}" data-vi="${escapeHtml(vi.s)}" data-seg>${escapeHtml(vi.s)}`;
     const target = vi.t === "a" ? resolveLink(vi.link, ctx) : null;
@@ -148,15 +152,17 @@ export function markedInner(vi, en, ctx = {}) {
 // A list paragraph as <ul> or <ol>; every item is a row of segments, so the parent never carries data-en.
 export function listHtml(vi, en, ctx = {}) {
   const viList = listOf(vi);
-  const enList = listOf(en);
+  const enItems = listOf(en ?? "")?.items ?? [];
   const start = viList.tag === "ol" && viList.start !== 1 ? ` start="${viList.start}"` : "";
-  return `<${viList.tag}${start}>${viList.items.map((item, index) => `<li>${segmentsHtml(parseMarks(item), parseMarks(enList.items[index]), ctx)}</li>`).join("")}</${viList.tag}>`;
+  return `<${viList.tag}${start}>${viList.items.map((item, index) => `<li>${segmentsHtml(parseMarks(item), parseMarks(enItems[index] ?? ""), ctx)}</li>`).join("")}</${viList.tag}>`;
 }
 
 // Errors of one side only; allowed is a MARKS_BY_KIND key or a list of token types.
 export function sideMarksErrors(text, allowed) {
   const kinds = new Set(typeof allowed === "string" ? MARKS_BY_KIND[allowed] : allowed);
   const { tokens, errors } = scan(text);
+  // A plain field renders as typed, so an escape would show its backslash there.
+  if (!kinds.size && /\\[*^[\\]/.test(String(text ?? ""))) errors.push(shape(`"${text}": escapes are not allowed here`, "mark-not-allowed"));
   for (const type of new Set(tokens.map(({ t }) => t))) {
     if (type !== "text" && !kinds.has(type)) errors.push(shape(`"${text}": ${type === "br" ? "a line break" : `mark ${type}`} is not allowed here`, "mark-not-allowed"));
   }
