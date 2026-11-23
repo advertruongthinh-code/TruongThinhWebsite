@@ -28,3 +28,9 @@ jobs:
               "$CMS_ADMIN_ORIGIN/api/admin/snapshot" | tee -a codes.txt
           done
           test "$(grep -c '^200 ' codes.txt)" = 30
+          # The service token must not open a path meant for people (S4 check).
+          human=$(curl -sS -o /dev/null -w "%{http_code}" -A "tt-cms-ci" \
+            -H "CF-Access-Client-Id: $CMS_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CMS_ACCESS_CLIENT_SECRET" \
+            "$CMS_ADMIN_ORIGIN/api/admin/build-status")
+          echo "build-status with service token: $human"
+          test "$human" = 403
