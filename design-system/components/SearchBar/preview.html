@@ -220,32 +220,66 @@ body.is-detail .search-host {
   vertical-align: 0.5em;
 }
 
-/* Pinned at the row's right end while any chip is cut off (owner 2026-11-23). */
+/* Pinned at the row's right end while any chip is cut off (owner 2026-11-23): a chevron that turns over as the panel opens. */
 .search-bar__more {
-  padding: 0 14px 0 4px;
+  display: grid;
+  place-items: center;
+  width: 44px;
   border-bottom: 1px solid var(--search-hair);
   color: var(--ink);
 }
 
-/* Every product with results, above the bar, most cards first. */
+.search-bar__more .search-bar__icon {
+  transition: rotate var(--search-morph) var(--search-ease);
+}
+
+.search-bar__more[aria-expanded="true"] .search-bar__icon {
+  rotate: 180deg;
+}
+
+/* Every product with results, most cards first, in a panel joined to the top of the block (owner 2026-11-23): its side borders run
+   on from the bar's, a hairline takes the place of the bar's top border, and its shadow stops at the join. It grows up from the bar
+   and shrinks back into it with the bar's morph; closed, it is hidden once the morph ends. */
 .search-bar__all {
   position: absolute;
   right: -1px;
-  bottom: calc(100% + 8px);
+  bottom: 100%;
   left: -1px;
+  display: grid;
+  grid-template-rows: 0fr;
+  overflow: hidden;
+  visibility: hidden;
+  border: 1px solid var(--ink);
+  border-bottom-color: var(--search-hair);
+  background: var(--paper);
+  box-shadow: var(--search-shadow);
+  clip-path: inset(-48px -48px 0 -48px);
+  transition: grid-template-rows var(--search-morph) var(--search-ease), visibility 0s linear var(--search-morph);
+}
+
+.search-bar__all[data-open] {
+  grid-template-rows: 1fr;
+  visibility: visible;
+  transition: grid-template-rows var(--search-morph) var(--search-ease);
+}
+
+.search-bar__fold {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.search-bar__list {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 18px;
+  min-height: 0;
   max-height: min(50vh, 320px);
   padding: 14px;
   overflow-y: auto;
-  border: 1px solid var(--ink);
-  background: var(--paper);
-  box-shadow: var(--search-shadow);
 }
 
 /* More chips below the panel's edge: the last row fades out. */
-.search-bar__all[data-more] {
+.search-bar__list[data-more] {
   mask-image: linear-gradient(to bottom, #000 calc(100% - 40px), transparent);
 }
 

@@ -9,6 +9,7 @@ export const COPY = {
     imageHint: "Thêm chữ để tìm sát hơn",
     chips: "Lọc kết quả",
     showAll: (n) => `Hiện tất cả (${n})`,
+    showLess: "Thu gọn",
     clearText: "Xóa chữ",
     image: "Tìm bằng ảnh",
     replaceImage: "Đổi ảnh tìm",
@@ -38,6 +39,7 @@ export const COPY = {
     imageHint: "Add words to narrow it down",
     chips: "Filter results",
     showAll: (n) => `Show all (${n})`,
+    showLess: "Show less",
     clearText: "Clear text",
     image: "Search by image",
     replaceImage: "Change search image",
@@ -63,11 +65,12 @@ export const COPY = {
 };
 
 const ICON = {
+  chevron: '<path d="m6 15 6-6 6 6"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
   image: '<path d="M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5"/><circle cx="12" cy="12" r="3.5"/>',
   search: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/>',
 };
-const icon = (name) => `<svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
+export const icon = (name) => `<svg class="search-bar__icon" viewBox="0 0 24 24" aria-hidden="true">${ICON[name]}</svg>`;
 const escape = (text) => text.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
 
 // Markup string, shared by the page and the Design System preview (scripts/docs/build-design-system.mjs). `place`: the preview's

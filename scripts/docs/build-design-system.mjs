@@ -44,10 +44,9 @@ const COMPONENTS = [
   // Linked field portal (home) above the card every portal without a link reuses (owner 2026-11-22).
   { name: 'Portal', group: 'Page', height: 1400, file: 'src/site/index.html', start: /<section\s+class="portal-stage section-gap"\s+id="dich-vu"/,
     also: [['src/site/residential/index.html', /<section\s+class="portal-stage section-gap"\s+id="loai-hinh"/]] },
-  { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/about/index.html', start: /<section\s+class="capability-marquee section-gap"/,
-    also: [['src/site/index.html', /<section\s+class="capability-marquee capability-marquee--clients/]] },
+  { name: 'Marquee', group: 'Page', height: 520, file: 'src/site/index.html', start: /<section\s+class="capability-marquee capability-marquee--clients/ },
   { name: 'DetailBlocks', group: 'Page', height: 1400, file: 'src/site/residential/index.html', start: /<section\s+class="detail-lead/,
-    also: [/<section\s+class="detail-heading/, ['src/site/about/index.html', /<section\s+class="detail-duo/]] },
+    also: [/<section\s+class="detail-heading/] },
   // Project and News blocks (layout-library R1): rendered from the fixed blocks-preview.json, independent of site content.
   // The project hero is viewport-tall; the preview pins it to 720px so it does not follow the card height.
   { name: 'Blocks', group: 'Page', height: 4800, file: BLOCKS_PREVIEW, start: /"blocks"/, endStyle: '.project-hero { height: 720px; min-height: 0; }',
@@ -56,10 +55,9 @@ const COMPONENTS = [
   { name: 'NewsList', group: 'Page', height: 1250, file: BLOCKS_PREVIEW, start: /"news"/,
     markup: extract(renderNewsListPage(readSource('src/site/about/index.html'), { path: '/news/', base: '/news/', number: 1, count: 2,
       group: null, groups: ['nha-o', 'kinh-doanh', 'quang-cao', 'xu-huong'], total: blocksPreview.news.length, posts: blocksPreview.news }), /<main id="noi-dung"/) },
-  { name: 'Process', group: 'Page', height: 1100, file: 'src/site/residential/index.html', start: /<section\s+class="editorial-strip detail-process-editorial/,
-    also: [['src/site/about/index.html', /<section\s+class="detail-process/]] },
-  { name: 'AboutTimeline', group: 'Page', height: 1300, file: 'src/site/about/index.html', start: /<section\s+class="about-timeline/,
-    also: [/<section\s+class="about-commitments/] },
+  { name: 'Process', group: 'Page', height: 1100, file: 'src/site/residential/index.html', start: /<section\s+class="editorial-strip detail-process-editorial/ },
+  // The journey preview is the static (unarmed) sheet: the scroll-driven cut only runs on the page.
+  { name: 'AboutTimeline', group: 'Page', height: 1300, file: 'src/site/about/index.html', start: /<section\s+class="about-journey/ },
   // The 404 page has its own CSS in the page's own <style>; the preview copies that block along with the section.
   { name: 'NotFound', group: 'Page', height: 520, file: 'src/site/404.html', start: /<section class="not-found"/,
     before: (html) => html.match(/<style>[\s\S]*?<\/style>/)[0] },

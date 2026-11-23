@@ -82,19 +82,18 @@ Then mỗi trang có một h1 và mười một khối theo thứ tự bảng, g
 
 | # | Khối | Nội dung (VI) | Tone |
 | --- | --- | --- | --- |
-| 1 | `.hero.about-hero#top` | Ảnh `legacy-team` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / Vững niềm tin" | inverse |
-| 2 | `.about-opening#mo-dau` | "MỘT CÁCH LÀM, KHÔNG CHỈ LÀ KHẨU HIỆU", đoạn mở | ink |
-| 3–5 | `#di-san`, ảnh `legacy-hands`, `.about-timeline` | "I. DI SẢN", `h2` "Hơn 20 năm / vững nghề"; hai mốc "2006", "Hôm nay" (R9) | ink |
-| 6–10 | `#cach-lam`, chapter lead, ảnh `thiet-ke-ban-ve-tu-go`, `.detail-process`, `.about-process-note` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một cuộc khảo sát đúng"; lead "TRƯỚC KHI CÓ BẢN VẼ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi | ink |
-| 11 | `.detail-duo` | `h2.sr-only` "Vật liệu và cách làm", ảnh `about-materials-samples-20261117`, `cnc-operator-b` | ink |
-| 12–15 | `#cam-ket`, chapter lead, ảnh `may-dan-canh-xuong-noi-that`, `.about-commitments` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; lead "VIỆC LÀM ĐỨNG SAU LỜI NÓI"; ba cam kết | ink |
-| 16 | `.detail-cta#tu-van` | "BẮT ĐẦU TỪ MẶT BẰNG / Mời chúng tôi đến khảo sát", nút "Trao đổi qua Zalo" | inverse |
-| 17 | `.capability-marquee` | Giá trị và cách làm | ink |
+| 1 | `.hero.about-hero#top` | Ảnh `tho-lap-thung-tu-go-xuong` trang trí (`alt=""`), không kicker, `h1` "Vững nghề / *vững niềm tin*" (dòng 2 nghiêng đậm) | inverse |
+| 2–4 | `.detail-lead#tong-quan`, ảnh `xuong-cnc-can-chinh-tam-go`, `.detail-note` | `h2` "Hơn 20 năm / vững nghề", đoạn mở (2006, in khổ lớn, CNC, in UV, trọn gói); một đoạn | ink |
+| 5–6 | `#di-san`, `.about-journey#hanh-trinh` | "I. HÀNH TRÌNH", `h2` "Mỗi bước tiến / là một lần đổi mới"; sáu mốc 2006, 2009, 2012, 2016, 2020, Hôm nay (R9) | ink |
+| 7–9 | `#cach-lam`, `.detail-note`, `.editorial-strip.detail-process-editorial` | "II. CÁCH LÀM", `h2` "Mỗi công trình bắt đầu / bằng một buổi khảo sát kỹ"; năm bước Khảo sát, Tư vấn, Sản xuất, Lắp đặt, Hậu mãi (R8) | ink |
+| 10–11 | `#cam-ket`, `.portal-stage#nguyen-tac` | "III. CAM KẾT", `h2` "Làm chắc / để đi đường dài"; ba card cam kết (R8) | ink |
+| 12 | `.client-logo-marquee` | Partial `client-logos` của trang chủ (owner 2026-11-22: thay dải chữ chạy) | ink |
+| 13 | `.detail-cta#tu-van` | Khối cuối `main`. "BẮT ĐẦU TỪ MẶT BẰNG / Mời chúng tôi đến khảo sát", nút "Trao đổi qua Zalo"; ảnh `tho-do-he-ke-go` | inverse |
 
 ```gherkin
 Given output đã build
 When mở /about/
-Then main có một h1 "Vững nghề Vững niềm tin", ba chương I, II, III, năm bước quy trình và ba cam kết
+Then main có một h1 "Vững nghề vững niềm tin", ba chương I, II, III, sáu mốc, năm bước, ba card cam kết, khối cuối là CTA ngay sau dải logo
 ```
 
 ### R4. Nội dung VI/EN và hook
@@ -179,12 +178,11 @@ Then mọi ảnh cao 720px đúng tỷ lệ, caption cách ảnh 10px, không c�
 And thả tay hút về ảnh kế, chấm thứ hai active, không dragstart; bấm chấm thứ ba tới ảnh ba; hover không zoom
 ```
 
-### R8. Dải quy trình, duo, portal loại hình
+### R8. Dải quy trình, portal loại hình
 
 Dải `.editorial-strip.detail-process-editorial` là `region` focus được, gắn nhãn bằng tiêu đề quy trình: năm
 `article.editorial-item`, mỗi bước một chữ số SVG (sprite trong trang), ảnh trong khung `.editorial-media`, `h3` cân dòng,
-đoạn; năm bước luôn cùng một hàng (owner): năm cột, mỗi bước ảnh trên, chữ và chữ số dưới; tới 980px thành rail vuốt ngang (scroll snap), tới 680px chữ số nhạt hơn để không tranh với chữ. `.detail-duo`: hai ảnh; tới 680px một cột, ảnh
-đầu tràn mép. `.portal-stage`: ba
+đoạn; năm bước luôn cùng một hàng (owner): năm cột, mỗi bước ảnh trên, chữ và chữ số dưới; tới 980px thành rail vuốt ngang (scroll snap), tới 680px chữ số nhạt hơn để không tranh với chữ. `.portal-stage`: ba
 `article.service-portal` không link, là card cam kết của [trang chủ R5](page-home.md#r5-portal-chữ-một-dòng-cùng-cỡ) (owner 2026-11-22: portal không link luôn dùng card này), ảnh không zoom khi hover (owner 2026-11-22);
 tới 980px cao tối thiểu `max(72% --site-layout-viewport-height, 34rem)`, tới 680px tối thiểu 400px.
 
@@ -194,17 +192,18 @@ When cuộn qua #quy-trinh và #loai-hinh
 Then năm bước nằm một hàng trong rail vuốt ngang, ba portal cao ít nhất 400px, document không tràn ngang
 ```
 
-### R9. About: dòng thời gian, quy trình, cam kết
+### R9. About: dòng thời gian tấm ván nesting
 
-`.about-timeline`: `h2.sr-only`, hai mốc có đoạn kể; đường dọc ở 54% bề rộng, tới 980px 47%, tới 680px sát trái.
-`.detail-process`: năm `article.process-step` hiện lần lượt (`data-motion-up`, trễ 0; 0,15; 0,3; 0,45; 0,6s); năm cột cùng một hàng,
-tới 980px thành rail vuốt ngang. Chapter lead và `.about-process-note` hai cột 1:2, tới 980px một cột. `.about-commitments`: ba
-cam kết trễ 0; 0,15; 0,3s; tới 680px một cột. Mốc đầu là năm 2006: Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chưa có bảo hành tới khi owner xác nhận fact.
+`.about-journey`: từ 981px hai cột; trái `figure.about-journey__sheet` (`data-sticky-column`, sticky dưới header, cao bằng màn hình) là bản vẽ kỹ thuật một tấm ván 1220 x 2440 nesting phôi tủ (nét mực trên nền trắng, không vân gỗ, không nhãn; mũi 6
+mm, khe và lề 10 mm, lỗ xuyên và ván thừa gạch chéo, hèm kính mặt sau nét đứt; tận dụng 90%, owner 2026-11-23); thanh tiến độ cam sáu nút; phải sáu `article` mốc (`h3` năm, câu mở `strong`). Sinh bằng `build_svg.py` (Library
+`thiet-ke-trang-gioi-thieu/nesting/`), không sửa tay. Có motion: `detail.js` gắn `is-armed`; năm mốc chạm 55% màn hình thì nhóm phôi của mốc đó chạy đường dao cam rồi hiện nét đậm (một chiều), mốc đó đậm, các mốc khác nhạt. Không JavaScript, reduced
+motion, dưới 981px: tấm ván vẽ đủ, đứng yên; dưới 981px là bản xếp ngang nằm trên danh sách. Mốc đầu là năm 2006:
+Công ty TNHH In - Quảng cáo Trường Thịnh được cấp phép 09/01/2006 tại Vĩnh Long (đăng ký kinh doanh owner gửi 2026-11-16). Chưa có bảo hành tới khi owner xác nhận fact.
 
 ```gherkin
 Given /about/ ở 390px
-When cuộn qua dòng thời gian, quy trình và cam kết
-Then mỗi khối một cột, chữ không bị cắt, document không tràn ngang
+When cuộn qua dòng thời gian
+Then tấm ván ngang vẽ đủ nằm trên sáu mốc một cột, chữ không bị cắt, document không tràn ngang
 ```
 
 ### R10. CTA, marquee, hover và ảnh dưới chữ trắng
@@ -219,8 +218,8 @@ khối theo chiều dọc, lệch tối đa 2px: copy là grid `1fr auto 1fr`, e
 theo `--cta-title-size`. Khối "Giữ nghề" dùng chung grid và rule nút này. Nút là nhãn `.legacy-link` + `.portal-subtitle` như link "VỀ CHÚNG TÔI": 16px, viết hoa, không mũi tên, vùng chạm
 44px, gạch chân 3px chạy từ trái khi hover hoặc focus. Lớp bấm `::before` của nút phủ cả khối (cắt bởi `overflow: clip`),
 nên hover khối làm ảnh phóng to và gạch chân chạy ra; CTA Advertising bỏ lớp bấm, gạch chân chỉ chạy khi hover nút.
-Dấu chấm cuối `h2` không treo: cả dòng kể cả dấu nằm giữa khối. Dấu nằm chung text node với chữ (`data-en` gồm dấu), không tách span: span riêng thành một từ của SplitText, dòng vừa khít đẩy riêng dấu chấm xuống dòng mới (Nhà ở 390px). `.capability-marquee`: hai `.marquee-line` giống nhau (dòng sau `aria-hidden`), chạy CSS 25s lặp; không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
-reduced motion). Hover ảnh duo, CTA (gallery: R7) dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
+Dấu chấm cuối `h2` không treo: cả dòng kể cả dấu nằm giữa khối. Dấu nằm chung text node với chữ (`data-en` gồm dấu), không tách span: span riêng thành một từ của SplitText, dòng vừa khít đẩy riêng dấu chấm xuống dòng mới (Nhà ở 390px). Dải logo khách hàng ([trang chủ R9](page-home.md#r9-closer-và-marquee-khách-hàng)) không có nút dừng, chỉ đứng khi `motion-paused` (không GSAP hoặc
+reduced motion). Hover ảnh CTA (gallery: R7) dùng primitive của [trang chủ R6](page-home.md#r6-hover-ảnh-dùng-chung)
 (`media-hover-zoom-trigger`, `media-hover-zoom`): chỉ chuột thật, reduced motion không zoom. Ảnh hero, portal, CTA nằm dưới chữ trắng: chưa giải mã xong
 thì ảnh opacity 0 trên nền `media-loading-surface`, shade hero và lớp tối CTA ẩn; xong thì khung có
 `is-media-settled` do script head gắn ([trang chủ R10](page-home.md#r10-ảnh-dưới-chữ-trắng)); `motion-fallback` và không JavaScript bỏ

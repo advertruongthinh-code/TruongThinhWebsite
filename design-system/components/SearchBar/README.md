@@ -14,8 +14,9 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
   `0 12px 32px rgb(0 0 0 / 18%)`; điện thoại nổi rộng màn hình trừ 16px mỗi bên. Cách đáy 35px (điện thoại 16px cộng safe-area).
 - Hàng chip `[data-search-chips]` (chỉ thanh nổi, chỉ khi có kết quả): cao 44px trên hàng chữ, chữ 13px/600, khoảng 18px,
   chip đang chọn gạch chân 2px; số kết quả `sup` 10px. Không có chip "Tất cả": bấm lại chip đang chọn để về tất cả. Chip
-  lấy từ chip của lưới, lọc trong kết quả, nhiều card xếp trước; bấm chip giữ đủ hàng. Tràn ngang thì mờ mép phải, chuột kéo hoặc lăn trên hàng để cuộn và nút `.search-bar__more`
-  "Hiện tất cả (N)" ghim cuối hàng mở bảng `.search-bar__all` phía trên thanh (mọi chip, xuống dòng, cùng viền và bóng).
+  lấy từ chip của lưới, lọc trong kết quả, nhiều card xếp trước; bấm chip giữ đủ hàng. Tràn ngang thì mờ mép phải, chuột kéo hoặc lăn trên hàng để cuộn và nút icon mũi tên `.search-bar__more`
+  (nhãn "Hiện tất cả (N)" / "Thu gọn") ghim cuối hàng mở bảng `.search-bar__all` liền mép trên thanh thành một khung (mọi chip,
+  xuống dòng, chỗ nối là đường mảnh); bảng mọc lên và thu về bằng morph chiều cao 1s `--ease-card`, mũi tên quay 180 độ cùng nhịp.
 - Hàng chữ: mép trái tới chữ 18px; bên phải nút xoá chữ (khi đã gõ), vạch 22px, ô ảnh, kính lúp; nút 40px, icon 20px.
   Chữ nhập 16px. Focus: viền trong 1px `ink`; nút và link có outline 2px khi `:focus-visible`.
 - Gợi ý `[data-search-hint]` đổi mỗi 3 giây bằng cú trượt dọc 450ms, dừng khi focus hoặc hover; reduced motion chỉ hiện gợi ý
