@@ -5,7 +5,7 @@ import { dockOptions, setupDockTools } from "./dock-tools.js";
 
 const { stamp, anchorOf, draftKey, savedKey, readDraft, PLACEHOLDER } = window.TTCms;
 
-const PANELS = { content: "Nội dung", pages: "Trang", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp" };
+const PANELS = { pages: "Trang", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp" };
 const VIEWPORTS = [
   { label: "Máy tính", width: 1440, height: 900 },
   { label: "Laptop", width: 1280, height: 800 },
@@ -41,8 +41,6 @@ const state = {
   saved: {}, bases: {}, catalog: null, cat: null, conflict: false, drift: [],
 };
 const panels = Object.fromEntries(Object.keys(PANELS).map((id) => [id, h("section", { className: `panel panel--${id}` })]));
-// Record CRUD over the admin commands (cms.md R5) until editor E12 replaces it: the records page, embedded.
-panels.content.append(h("iframe", { className: "panel__frame", src: "./records.html?embed=1", title: PANELS.content }));
 
 function toast(message) {
   const node = $("#toast");
@@ -1023,14 +1021,6 @@ function defaultLayout() {
   addPanel("media", { referencePanel: "props", direction: "below" });
   addPanel("drafts", { referencePanel: "media", direction: "within" });
   dock.getPanel("props").api.setActive();
-  addContentPanel();
-}
-
-// Adds "Nội dung" as a tab beside the preview (the preview stays the active tab); also added to layouts saved before it existed.
-function addContentPanel() {
-  if (dock.getPanel("content")) return;
-  addPanel("content", dock.getPanel("preview") && { referencePanel: "preview", direction: "within" });
-  dock.getPanel("preview")?.api.setActive();
 }
 
 // Reopen a closed panel next to a main panel that is still open; with no panel left Dockview places it itself.
@@ -1048,7 +1038,6 @@ buildPreview();
 try {
   dock.fromJSON(JSON.parse(localStorage.getItem(LAYOUT_KEY)));
   if (!dock.getPanel("preview")) throw new Error("layout without preview");
-  addContentPanel();
 } catch {
   defaultLayout();
 }

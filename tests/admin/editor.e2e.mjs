@@ -17,8 +17,7 @@ page.on("console", (message) => message.type() === "error" && !message.location(
   && errors.push(`${message.text()} ${message.location().url ?? ""}`));
 
 // The Advertising Products preview switches its URL to a real path (replaceState): find the iframe by level, not by URL.
-// The preview frame, not the "Nội dung" panel frame (records.html).
-const frame = () => page.frames().find((entry) => entry.parentFrame() === page.mainFrame() && !entry.url().includes("/admin/records.html"));
+const frame = () => page.frames().find((entry) => entry.parentFrame() === page.mainFrame());
 const draft = () => page.evaluate(() => JSON.parse(localStorage.getItem("tt-cms-draft:residential") || "null"));
 // Preview ready: the overlay has loaded and the site runtime is running (scroll, text splitting). The local Worker redirects
 // `x.html` to `x/` (html_handling), the static server keeps `.html`: compare page names without the extension.
@@ -33,7 +32,7 @@ try {
   await page.goto(`${baseUrl}/admin/index.html`);
   await page.waitForSelector(".dv-tab");
   assert.deepEqual(await page.$$eval(".dv-tab", (tabs) => tabs.map((tab) => tab.textContent.trim()).sort()),
-    ["Media", "Nháp", "Nội dung", "Thuộc tính", "Trang", "Xem trước"]);
+    ["Media", "Nháp", "Thuộc tính", "Trang", "Xem trước"]);
   await page.locator(".tree__item", { hasText: "Nhà ở" }).click();
   await previewReady("/vi/residential");
 
