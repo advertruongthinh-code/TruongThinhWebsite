@@ -2,7 +2,7 @@
 // catalog.mjs reads the files when it loads, so every run with another TT_CONTENT_DIR is its own process.
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -21,9 +21,10 @@ test("media-manifest.mjs gives back the two content files, deeply frozen", () =>
 });
 
 test("the CMS contract and browser code do not load the card data modules", () => {
-  const grep = (args) => spawnSync("rg", ["-n", ...args], { cwd: projectRoot, encoding: "utf8" }).stdout;
-  assert.equal(grep(['from "./catalog.mjs"|from "../../src/site/advertising-products/catalog.mjs"', "src/cms"]), "");
-  assert.equal(grep(["media-manifest|catalog\\.mjs", "src/site", "-g", "*.js", "-g", "runtime.mjs"]), "");
+  const files = (dir, keep) => readdirSync(path.join(projectRoot, dir), { recursive: true }).filter(keep).map((name) => path.join(projectRoot, dir, name));
+  const hits = (list, pattern) => list.filter((file) => pattern.test(readFileSync(file, "utf8")));
+  assert.deepEqual(hits(files("src/cms", (name) => name.endsWith(".mjs")), /from "(\.\/|\.\.\/\.\.\/src\/site\/advertising-products\/)catalog\.mjs"/), []);
+  assert.deepEqual(hits(files("src/site", (name) => name.endsWith(".js") || name.endsWith("runtime.mjs")), /media-manifest|catalog\.mjs/), []);
 });
 
 // A minimal CMS card: a copy of the first card of its category with one R2 image, appended to that category.
