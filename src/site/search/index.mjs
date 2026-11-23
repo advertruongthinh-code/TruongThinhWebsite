@@ -60,7 +60,9 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     announce(text);
     noteNode.replaceChildren(Object.assign(document.createElement("span"), { textContent: text }));
     if (action) {
-      const button = Object.assign(document.createElement("button"), { type: "button", textContent: action.label });
+      // An icon, so the notice keeps room beside it in the phone field (search-bar R3, owner 2026-11-23).
+      const button = Object.assign(document.createElement("button"), { type: "button", className: "search-bar__tool", title: action.label, innerHTML: icon("retry") });
+      button.setAttribute("aria-label", action.label);
       button.addEventListener("click", () => { notice(""); action.onClick(); });
       noteNode.append(button);
     }

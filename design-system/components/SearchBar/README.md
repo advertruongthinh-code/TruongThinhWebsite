@@ -20,10 +20,10 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
 - Hàng chữ: mép trái tới chữ 18px; bên phải nút xoá chữ (khi đã gõ), vạch 22px, ô ảnh, kính lúp; nút 40px, icon 20px.
   Chữ nhập 16px. Focus: viền trong 1px `ink`; nút và link có outline 2px khi `:focus-visible`.
 - Gợi ý `[data-search-hint]` đổi mỗi 3 giây bằng cú trượt dọc 450ms, dừng khi focus hoặc hover; reduced motion chỉ hiện gợi ý
-  đầu. Có ảnh mà chưa gõ chữ thì hiện "Thêm chữ để tìm sát hơn".
+  đầu. Có ảnh mà chưa gõ chữ thì hiện "Thêm chữ để lọc". Mọi câu vừa nguyên ô chữ phone 360px (khoảng 157px).
 - Một ảnh: thumbnail 30px `[data-search-thumb]` thế chỗ nút ảnh, thanh không cao thêm; bấm thumbnail để thay ảnh, badge bỏ
   14px (vùng bấm 32px). Thêm ảnh khác thì thay ảnh cũ.
-- Thông báo `[data-search-note]` phủ lên ô chữ 4 giây; dòng chậm, lỗi tìm ("Lỗi tìm kiếm", "Lỗi tìm ảnh") giữ lại kèm nút "Thử lại". Gõ chữ thì tắt.
+- Thông báo `[data-search-note]` phủ lên ô chữ 4 giây; dòng chậm, lỗi tìm ("Lỗi tìm kiếm", "Lỗi tìm ảnh") giữ lại kèm nút icon vòng xoay 40px (`aria-label` "Thử lại") ở cuối ô; nút xoá chữ ẩn trong lúc đó. Gõ chữ thì tắt.
   Screen reader đọc số kết quả qua vùng `aria-live` ẩn.
 - Khe CTA: link "Trao đổi ý tưởng" dưới thanh như link trang Công trình; khoảng trên và dưới thanh bằng nhau theo mắt, cụm
   tiêu đề và thanh nằm ở tâm thị giác khi cuộn tới cuối ([R4](../../../docs/specs/search-bar.md#r4-khe-cta)).
@@ -31,7 +31,8 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
 - Tìm xong về đầu lưới ([R9](../../../docs/specs/search-bar.md#r9-tìm-xong-về-đầu-lưới)): `glideToGrid` trong `masonry/runtime.mjs` gọi `TruongThinhMotion.glideTo` (600ms, đường `--ease-card`).
 - Chỉ trang gốc có thanh ([R8](../../../docs/specs/search-bar.md#r8-chỉ-trang-gốc-có-thanh)): trang con và card có `data-search-off`, khe ẩn, thanh nổi trượt xuống rồi ẩn (`.search-host.is-off`).
 - Thanh nổi đẩy nút nổi lên bằng `--search-bar-offset`; `body[data-search-place]` và `--search-block-h`
-  đặt nút về đầu trang trên điện thoại ([Floating CTA](../FloatingCta/README.md)). Bàn phím điện thoại mở
+  đặt nút về đầu trang trên tablet ([Floating CTA](../FloatingCta/README.md)). Phone dọc và ngang: thanh nổi và nút chung một hàng cách đáy 16px,
+  thẳng mép lưới (`--masonry-outer` đặt trên `.detail-page`), `.search-host` chừa làn nút 60px bằng padding phải. Bàn phím điện thoại mở
   thì hàng chip gập lại. Ẩn khi menu hoặc detail view mở. Giảm chuyển động: đổi trạng thái ngay.
 
 Preview: trên là thanh nổi, dưới là thanh dừng trong khe CTA.
