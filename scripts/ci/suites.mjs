@@ -53,35 +53,44 @@ export const timingTable = (timings) => [
   ...timings.map((t) => `| ${t.suite} | ${t.seconds} | ${t.status === 0 ? "PASS" : "FAIL"} | \`${t.cmd}\` |`),
 ].join("\n");
 
-async function run(suiteIds) {
+// Builds the site, serves it on a free port and runs `work(baseUrl)`; the preview log goes to a file so CI can attach it.
+export async function withPreview(work) {
   // Command string runs through the shell: Windows only has pnpm.cmd, execFileSync("pnpm") fails with ENOENT.
   execSync("pnpm prepare:site", { stdio: "inherit" });
   const port = await freePort();
   const baseUrl = `http://127.0.0.1:${port}`;
-  // Preview log is written to a file so CI can attach it when a suite is red.
   const log = openSync("static-server.log", "w");
-  const timings = [];
   const server = spawn("node", ["scripts/tooling/serve-static-parity.mjs", "--port", String(port)], { stdio: ["ignore", log, log] });
   try {
     for (let i = 0; !(await fetch(`${baseUrl}/`).then((r) => r.ok, () => false)); i++) {
       if (i > 30) throw new Error(`preview did not start on ${baseUrl}`);
       await new Promise((r) => setTimeout(r, 1000));
     }
-    const failed = [];
-    for (const id of suiteIds) {
-      for (const cmd of manifest.suites[id].tests) {
-        console.log(`\n[${id}] ${cmd}`);
-        const t0 = Date.now();
-        const { status } = spawnSync(cmd, { shell: true, stdio: "inherit", env: { ...process.env, BASE_URL: baseUrl } });
-        const seconds = Math.round((Date.now() - t0) / 1000);
-        timings.push({ suite: id, cmd, seconds, status });
-        console.log(`[${id}] ${status === 0 ? "PASS" : "FAIL"} ${seconds}s ${cmd}`);
-        if (status !== 0) failed.push(`${id}: ${cmd}`);
-      }
-    }
-    if (failed.length) throw new Error(`failed:\n${failed.join("\n")}`);
+    return await work(baseUrl);
   } finally {
     server.kill();
+  }
+}
+
+async function run(suiteIds) {
+  const timings = [];
+  try {
+    await withPreview(async (baseUrl) => {
+      const failed = [];
+      for (const id of suiteIds) {
+        for (const cmd of manifest.suites[id].tests) {
+          console.log(`\n[${id}] ${cmd}`);
+          const t0 = Date.now();
+          const { status } = spawnSync(cmd, { shell: true, stdio: "inherit", env: { ...process.env, BASE_URL: baseUrl } });
+          const seconds = Math.round((Date.now() - t0) / 1000);
+          timings.push({ suite: id, cmd, seconds, status });
+          console.log(`[${id}] ${status === 0 ? "PASS" : "FAIL"} ${seconds}s ${cmd}`);
+          if (status !== 0) failed.push(`${id}: ${cmd}`);
+        }
+      }
+      if (failed.length) throw new Error(`failed:\n${failed.join("\n")}`);
+    });
+  } finally {
     // CI uploads this file as an artifact; GitHub reads the job summary from GITHUB_STEP_SUMMARY.
     mkdirSync(".tmp", { recursive: true });
     writeFileSync(".tmp/suite-timing.json", JSON.stringify(timings, null, 2));

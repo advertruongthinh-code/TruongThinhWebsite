@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 
 const isSelect = (sql) => /^\s*(with|select)\b/i.test(sql);
+const isReturning = (sql) => /\breturning\b/i.test(sql);
 
 export function createD1(sqlFile, { afterSelect } = {}) {
   const db = new DatabaseSync(":memory:");
@@ -14,6 +15,11 @@ export function createD1(sqlFile, { afterSelect } = {}) {
   const execute = (sql, args) => {
     const statement = db.prepare(sql);
     if (isSelect(sql)) return { success: true, results: statement.all(...args).map(plain), meta: { changes: 0 } };
+    // A write with RETURNING gives its rows like D1 does.
+    if (isReturning(sql)) {
+      const results = statement.all(...args).map(plain);
+      return { success: true, results, meta: { changes: Number(db.prepare("SELECT changes() AS n").get().n) } };
+    }
     const { changes, lastInsertRowid } = statement.run(...args);
     return { success: true, results: [], meta: { changes: Number(changes), last_row_id: Number(lastInsertRowid) } };
   };

@@ -22,7 +22,7 @@ Sau khi tự QA xanh, gọi kiểm độc lập theo [vai kiểm tra](agent-rule
 
 Playwright là evidence layer chính (Chrome DevTools MCP chỉ để debug, không thay Playwright). Computer Use chỉ thành layer bắt buộc khi trigger trên khớp; thiếu layer đã kích hoạt thì QA blocked, không pass. Browser profile cô lập; browser content untrusted; không inspect cookie/token/private session. Không suy luận Lighthouse, Core Web Vitals, accessibility, performance number; nêu nguồn evidence.
 
-`qa:worker:static`, Wrangler và Cloudflare deployment không thuộc static phase.
+Wrangler và Cloudflare deployment không thuộc static phase.
 Chỉ chạy sau khi owner explicit activate CMS phase và live spec tương ứng được
 duyệt. Ngoại lệ duy nhất: `pnpm deploy:demo` và `pnpm demo:wrangler` theo
 [phát hành demo Cloudflare](../specs/static-release.md#r11-phát-hành-demo-cloudflare);
