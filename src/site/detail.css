@@ -1061,6 +1061,27 @@
   fill-opacity: clamp(0, (var(--p, 1) - var(--a, 0) - var(--b, 1)) * 10, 1);
 }
 
+/* Moving groups inside a drawing, timed by the same scroll progress: --t runs 0 -> 1 over [--ma, --ma + --mb].
+   rise: a raised letter's face starts on its backing and comes forward (2012); reveal: its return fades in meanwhile;
+   press: the company stamp comes down on the certificate at the middle of its window and lifts again (2006). */
+.about-journey__rise,
+.about-journey__reveal,
+.about-journey__press {
+  --t: clamp(0, (var(--p, 1) - var(--ma, 0)) / var(--mb, 1), 1);
+}
+
+.about-journey__rise {
+  transform: translate(calc(var(--tx, 0) * 1px * (1 - var(--t))), calc(var(--ty, 0) * 1px * (1 - var(--t))));
+}
+
+.about-journey__reveal {
+  opacity: var(--t);
+}
+
+.about-journey__press {
+  transform: translateY(calc(var(--lift, 0) * -1px * max(1 - 2 * var(--t), 2 * var(--t) - 1)));
+}
+
 /* Fills and strokes per kind; each drawing sets --art-line/-face/-side/-accent: black and CMY tints for the print shop years,
    moving to the site blue and orange for the interior studio. */
 .about-journey__ln--face { fill: var(--art-face); }
