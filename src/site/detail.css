@@ -1306,7 +1306,12 @@
 
   .about-journey.is-armed [data-journey-art="7"] :is(.about-journey__part, .about-journey__groove, .about-journey__drill) {
     fill-opacity: clamp(0, (var(--p, 1) - var(--a) - var(--b) * 0.8) * 40, 1);
-    stroke-opacity: clamp(0.25, (var(--p, 1) - var(--a) - var(--b) * 0.8) * 40, 1);
+    stroke-opacity: clamp(0, max(min(var(--p, 1) * 3, 0.25), (var(--p, 1) - var(--a) - var(--b) * 0.8) * 40), 1);
+  }
+
+  /* The sheet, its edge and its dimensions fade in after a white first frame (owner 2026-11-23). */
+  .about-journey.is-armed [data-journey-art="7"] :is(.about-journey__board, .about-journey__edge, .about-journey__dims) {
+    opacity: clamp(0, var(--p, 1) * 10, 1);
   }
 
   .about-journey.is-armed [data-journey-art="7"] :is(.about-journey__hole, .about-journey__waste, .about-journey__drill-axis) {

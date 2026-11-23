@@ -288,7 +288,8 @@
       const progress = tops.map((top, index) => {
         if (reduceMotion) return 1;
         const span = index < tops.length - 1 ? tops[index + 1] - top : items[index].offsetHeight * 0.9;
-        return Math.min(1, Math.max(0, (line - top) / (span * 0.55)));
+        // A short blank lead-in: the first frame of every drawing is plain white (owner 2026-11-23).
+        return Math.min(1, Math.max(0, ((line - top) / (span * 0.55) - 0.06) / 0.94));
       });
       arts.forEach((art, index) => {
         write(art, "--p", progress[index].toFixed(3));
