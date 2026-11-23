@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { build, transform } from "esbuild";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { ADVERTISING_CARDS, ADVERTISING_CATEGORIES, ADVERTISING_LEGACY_CATEGORIES, ADVERTISING_PAGES, ADVERTISING_PRODUCT_CHIPS, ADVERTISING_ROOT_PAGE, buildAdvertisingArtifact } from "../../src/site/advertising-products/catalog.mjs";
 import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
@@ -11,7 +12,8 @@ import "./sync-brand-lockup.mjs";
 import { MENU_PAGES, readPageSource } from "./sync-site-menu.mjs";
 import { nonPublicSourceAssets } from "./non-public-source-assets.mjs";
 import { expandHero, validateHeroSlides } from "./hero-slides.mjs";
-import { contentDirOf, fileImageCheck, loadBlockContent, readHeroSources, readRedirects } from "./content-files.mjs";
+import { contentDirOf, fileImageCheck, loadBlockContent, loadVariants, readHeroSources, readRedirects } from "./content-files.mjs";
+import { absoluteSrc, hasFile, manifestOf, variantKeyOf } from "./media-src.mjs";
 import { validateHomeProjects } from "./home-projects.mjs";
 import { KINDS, PROJECT_FILTERS, PROJECT_TYPES, SECTORS, newsListPages, newsListSource, pageSource, renderBlockPage, renderHomeNews, renderNewsListPage } from "./block-pages.mjs";
 import { legacyRedirects, redirectsFile } from "./redirects.mjs";
@@ -208,7 +210,7 @@ const advertisingListHead = (page, vi, en, crumbs) => {
   const cards = cardsOf(page.filter);
   return [
     ...alternateLinks(vi, en),
-    `<meta property="og:image" content="${PUBLIC_ORIGIN}${cards[0].media.src}" />`,
+    `<meta property="og:image" content="${absoluteSrc(cards[0].media.src, PUBLIC_ORIGIN)}" />`,
     collectionLd({ path: vi, name: page.labelVi, description: page.descriptionVi ?? page.labelVi,
       items: cards.slice(0, ADVERTISING_LIST_ITEMS).map((card) => [card.titleVi, `/advertising-products/p/${card.id}/`]), crumbs }),
   ];
@@ -292,11 +294,11 @@ const cardJsonLd = (card) => {
     "@context": "https://schema.org",
     "@graph": [
       { "@type": "WebPage", "@id": url, url, name: card.titleVi, description: openingOf(card.descriptionVi), inLanguage: "vi",
-        primaryImageOfPage: { "@id": `${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}` } },
+        primaryImageOfPage: { "@id": absoluteSrc(mediaImage(coverOf(card)), PUBLIC_ORIGIN) } },
       breadcrumbLd([["Trường Thịnh", "/"], ["Sản phẩm quảng cáo", "/advertising-products/"],
         ...card.clusterIds.slice(0, 1).map((id) => [clusterPageOf(id).labelVi, pageHref("vi", clusterPageOf(id))]), [card.titleVi, cardHref("vi", card)]]),
       ...card.mediaItems.map((item) => ({
-        "@type": "ImageObject", "@id": `${PUBLIC_ORIGIN}${mediaImage(item)}`, contentUrl: `${PUBLIC_ORIGIN}${mediaImage(item)}`,
+        "@type": "ImageObject", "@id": absoluteSrc(mediaImage(item), PUBLIC_ORIGIN), contentUrl: absoluteSrc(mediaImage(item), PUBLIC_ORIGIN),
         name: item.altVi, creator: owner, creditText: "Trường Thịnh",
       })),
     ],
@@ -307,7 +309,7 @@ const renderCardPage = (card) => advertisingTemplate
     .replace(/<title\b[^>]*>[\s\S]*?<\/title>/, [
       `<title data-en="${escapeHtml(card.titleEn)} — Trường Thịnh">${escapeHtml(card.titleVi)} — Trường Thịnh</title>`,
       ...alternateLinks(cardHref("vi", card), cardHref("en", card)),
-      `<meta property="og:image" content="${PUBLIC_ORIGIN}${mediaImage(coverOf(card))}" />`,
+      `<meta property="og:image" content="${absoluteSrc(mediaImage(coverOf(card)), PUBLIC_ORIGIN)}" />`,
       `<script type="application/ld+json">${cardJsonLd(card)}</script>`,
     ].join("\n    "))
     .replace(/(<meta\s+name="description"\s+content=")[^"]*("\s+data-en-content=")[^"]*"/,
@@ -328,6 +330,24 @@ for (const card of ADVERTISING_CARDS) {
 }
 // Project pages and News articles built from blocks (projects R3, news R3): content-contract already checked the data in the fast suite.
 const blockContent = loadBlockContent(sourceRoot);
+// Manifests of the R2 images in a projected snapshot (cms-plan part 2 K4); {} for a repo build, which then builds as before.
+const variants = loadVariants(sourceRoot);
+const mediaOrigin = (process.env.CMS_MEDIA_ORIGIN ?? "").replace(/\/+$/, "");
+// The runtime colors and the JXL thresholds of R2 images join the committed tables in the output copies only (the sources are
+// written by the manual tool build-image-variants.mjs): colors keyed by variant key, thresholds by pathname without the leading "/".
+if (Object.keys(variants).length) {
+  const { MEDIA_COLORS } = await import(pathToFileURL(path.join(sourceRoot, "media-lib/colors.mjs")));
+  const colors = { ...MEDIA_COLORS, ...Object.fromEntries(Object.entries(variants).filter(([, manifest]) => manifest.colors).map(([key, manifest]) => [key, manifest.colors])) };
+  await writeFile(path.join(outputRoot, "media-lib/colors.mjs"), `// Generated: committed colors plus the R2 manifests of this build.\nexport const MEDIA_COLORS = Object.freeze(${JSON.stringify(colors)});\n`, "utf8");
+  const thresholdsFile = path.join(outputRoot, "assets/content/jxl-thresholds.json");
+  const thresholds = await readJson(thresholdsFile);
+  for (const [key, manifest] of Object.entries(variants)) {
+    // The thresholds belong to the full-size JXL, "<mediaId>.jxl" (Q6 manifest).
+    const jxl = manifest.files?.find(({ name }) => name === `${manifest.mediaId}.jxl`);
+    if (jxl && manifest.thresholds) thresholds[`v/${key}/${jxl.name}`] = manifest.thresholds;
+  }
+  await writeFile(thresholdsFile, JSON.stringify(thresholds), "utf8");
+}
 const redirects = readRedirects(sourceRoot);
 // Links in marked text resolve against these (cms-plan part 2 K1); contact.json comes with E7, until then a contact: link renders as text.
 const blockContext = {
@@ -384,6 +404,12 @@ const advertisingFrame = readPageSource("advertising-products/index.html");
 // Cover image dominant color (1x1 average of the 240 variant) for the grid tail under the CTA.
 const { default: sharp } = await import("sharp");
 const coverColors = Object.fromEntries(await Promise.all(blockContent.projects.map(async (project) => {
+  // An R2 cover takes the dominant color its manifest carries (cms-plan part 2 K4): no image on disk.
+  if (variantKeyOf(project.cover.src)) {
+    const color = manifestOf(project.cover.src, variants).colors?.[0];
+    if (!color) throw new Error(`variants.json manifest of ${variantKeyOf(project.cover.src)} has no colors`);
+    return [project.id, color];
+  }
   const { data } = await sharp(path.join(sourceRoot, project.cover.src)).resize(1, 1).raw().toBuffer({ resolveWithObject: true });
   return [project.id, `rgb(${data[0]} ${data[1]} ${data[2]})`];
 })));
@@ -403,7 +429,7 @@ for (const [from, to] of legacyRedirects(blockContent, redirects).filter(([from]
 await writeFile(path.join(outputRoot, "_redirects"), redirectsFile(blockContent, redirects), "utf8");
 // Image sitemap (media-seo R5): one url per card page, one image:loc per media (video uses its poster).
 const sitemapUrls = ADVERTISING_CARDS.flatMap((card) => ["vi", "en"].map((locale) =>
-  `<url><loc>${cardUrl(locale, card)}</loc>${card.mediaItems.map((item) => `<image:image><image:loc>${PUBLIC_ORIGIN}${mediaImage(item)}</image:loc></image:image>`).join("")}</url>`));
+  `<url><loc>${cardUrl(locale, card)}</loc>${card.mediaItems.map((item) => `<image:image><image:loc>${absoluteSrc(mediaImage(item), PUBLIC_ORIGIN)}</image:loc></image:image>`).join("")}</url>`));
 await writeFile(path.join(outputRoot, "sitemap-advertising.xml"), [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">',
@@ -454,14 +480,16 @@ const WEBP_WIDTHS = [240, 480, 960];
 const JXL_WIDTHS = [240, 480, 960, 1600, 2048];
 // Phone gets WebP only, capped at 960, no 4K original (owner 2026-11-07); this <source> comes first so the phone does not consider JXL.
 const PHONE_MEDIA = "(hover: none) and (pointer: coarse)";
+// An R2 image (cms-plan part 2 K4) reads which variants exist from its manifest instead of the disk; the markup is the same.
+const variantExists = (url) => hasFile(url, variants, (file) => existsSync(path.join(outputRoot, file)));
 const responsivePictures = (html) =>
   html.replace(/<img\b[^>]*>/g, (tag) => {
-    const [, prefix, src] = tag.match(/\s(data-)?src="(\/assets\/content\/[^"]+)\.webp"/) || [];
-    if (!src || /\s(?:srcset|data-(?:masonry|detail|viewer)-[\w-]+)[\s=/>]/.test(tag) || !existsSync(path.join(outputRoot, `${src}.jxl`))) return tag;
+    const [, prefix, src] = tag.match(/\s(data-)?src="((?:\/assets\/content\/|https:\/\/[a-z0-9.-]+\/v\/[0-9a-f]{32}\/)[^"]+)\.webp"/) || [];
+    if (!src || /\s(?:srcset|data-(?:masonry|detail|viewer)-[\w-]+)[\s=/>]/.test(tag) || !variantExists(`${src}.jxl`)) return tag;
     const srcset = `${prefix || ""}srcset`;
     const intrinsic = Number(tag.match(/\swidth="(\d+)"/)?.[1]) || Infinity;
     const set = (format, widths, original = true) => {
-      const fit = widths.filter((width) => width < intrinsic && existsSync(path.join(outputRoot, `${src}-${width}.${format}`)));
+      const fit = widths.filter((width) => width < intrinsic && variantExists(`${src}-${width}.${format}`));
       return [...fit.map((width) => `${src}-${width}.${format} ${width}w`), ...(original ? [`${src}.${format} ${intrinsic}w`] : [])].join(", ");
     };
     const phone = (attributes) => `<source media="${PHONE_MEDIA}" ${attributes}>`;
@@ -473,6 +501,10 @@ const responsivePictures = (html) =>
     const phoneSet = set("webp", WEBP_WIDTHS, intrinsic <= WEBP_WIDTHS.at(-1));
     return `<picture>${phone(`${srcset}="${phoneSet}" sizes="${sizes}"`)}<source type="image/jxl" ${srcset}="${set("jxl", JXL_WIDTHS)}" sizes="${sizes}">${img}</picture>`;
   });
+
+// A page that shows an R2 image opens the connection to the media origin first thing in <head> (cms-plan part 2 K4).
+const mediaPreconnect = (html) => (mediaOrigin && html.includes(`${mediaOrigin}/v/`)
+  ? html.replace(/<head\b[^>]*>/, (head) => `${head}\n    <link rel="preconnect" href="${mediaOrigin}" />`) : html);
 
 // Shared <head> script for every page, a single source (progressive-loading R7).
 const headInline = `<script>\n${await readFile(path.join(sourceRoot, "head-inline.js"), "utf8")}</script>`;
@@ -504,7 +536,7 @@ const localizeHtmlOutput = async (directory) => {
       if (entry.isDirectory()) return localizeHtmlOutput(target);
       if (!entry.isFile() || path.extname(entry.name) !== ".html") return;
       const html = await readFile(target, "utf8");
-      await writeFile(target, responsivePictures(tieOrphans(embedVietnameseText(expandHero(socialMeta(html), hero.data, hero.orderScript), target))).replace("<!-- head-inline -->", () => headInline), "utf8");
+      await writeFile(target, mediaPreconnect(responsivePictures(tieOrphans(embedVietnameseText(expandHero(socialMeta(html), hero.data, hero.orderScript), target)))).replace("<!-- head-inline -->", () => headInline), "utf8");
     }),
   );
 };

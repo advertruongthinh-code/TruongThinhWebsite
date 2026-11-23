@@ -1,0 +1,262 @@
+{
+ "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1": {
+  "recipe": 1,
+  "key": "a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "mediaId": "m-cover",
+  "hash": "sha256:a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+  "crop": [
+   0,
+   0,
+   1536,
+   1024
+  ],
+  "sourceWidth": 1536,
+  "sourceHeight": 1024,
+  "width": 1536,
+  "height": 1024,
+  "files": [
+   {
+    "name": "m-cover-240.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-cover-240.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-cover-480.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-cover-480.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-cover-960.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-cover-960.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-cover.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-cover.webp",
+    "bytes": 1000
+   }
+  ],
+  "colors": [
+   "#102030",
+   "#203040",
+   "#304050",
+   "#405060",
+   "#506070",
+   30
+  ],
+  "thresholds": {
+   "960": 50000
+  }
+ },
+ "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2": {
+  "recipe": 1,
+  "key": "b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+  "mediaId": "m-block",
+  "hash": "sha256:b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+  "crop": [
+   0,
+   0,
+   1536,
+   1024
+  ],
+  "sourceWidth": 1536,
+  "sourceHeight": 1024,
+  "width": 1536,
+  "height": 1024,
+  "files": [
+   {
+    "name": "m-block-240.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-block-240.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-block-480.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-block-480.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-block-960.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-block-960.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-block.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-block.webp",
+    "bytes": 1000
+   }
+  ],
+  "colors": [
+   "#102030",
+   "#203040",
+   "#304050",
+   "#405060",
+   "#506070",
+   30
+  ],
+  "thresholds": {
+   "960": 50000
+  }
+ },
+ "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3": {
+  "recipe": 1,
+  "key": "c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+  "mediaId": "m-hero",
+  "hash": "sha256:c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3c3",
+  "crop": [
+   0,
+   0,
+   3072,
+   2048
+  ],
+  "sourceWidth": 3072,
+  "sourceHeight": 2048,
+  "width": 3072,
+  "height": 2048,
+  "files": [
+   {
+    "name": "m-hero-1600.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero-2048.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero-240.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero-240.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero-480.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero-480.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero-960.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero-960.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-hero.webp",
+    "bytes": 1000
+   }
+  ],
+  "colors": [
+   "#102030",
+   "#203040",
+   "#304050",
+   "#405060",
+   "#506070",
+   30
+  ],
+  "thresholds": {
+   "960": 50000
+  }
+ },
+ "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4": {
+  "recipe": 1,
+  "key": "d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+  "mediaId": "m-card",
+  "hash": "sha256:d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4d4",
+  "crop": [
+   0,
+   0,
+   3072,
+   1728
+  ],
+  "sourceWidth": 3072,
+  "sourceHeight": 1728,
+  "width": 3072,
+  "height": 1728,
+  "files": [
+   {
+    "name": "m-card-1600.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card-2048.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card-240.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card-240.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card-480.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card-480.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card-960.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card-960.webp",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card.jxl",
+    "bytes": 1000
+   },
+   {
+    "name": "m-card.webp",
+    "bytes": 1000
+   }
+  ],
+  "colors": [
+   "#102030",
+   "#203040",
+   "#304050",
+   "#405060",
+   "#506070",
+   30
+  ],
+  "thresholds": {
+   "960": 50000
+  }
+ }
+}

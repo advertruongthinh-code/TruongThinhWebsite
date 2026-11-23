@@ -51,7 +51,7 @@ test("expandHero writes the figures, the head array and the order script the CMS
   const page = '<script>const slides = /* hero-slides-data:home */;</script><div class="hero-slides"><!-- hero-slides:home --></div><!-- hero-order -->';
   const second = { ...slide, id: "two", src: "/assets/content/projects/two.webp", altVi: "Hai", altEn: "Two" };
   const html = expandHero(page, dataOf(slide, second), "run();\n");
-  assert.match(html, /const slides = \[\["sample", 40\], \["two", 40\]\];/);
+  assert.ok(html.includes(`const slides = [["${SRC.replace(/\.webp$/, "")}", 40], ["/assets/content/projects/two", 40]];`));
   assert.match(html, /<figure class="hero-slide is-active" data-slide="0" data-hero-move="zoom-out" style="--hero-focal-x: 14%; --hero-focal-y: 50%">/);
   assert.match(html, /<figure class="hero-slide" data-slide="1" /);
   assert.match(html, /alt="Hai" data-en-alt="Two"/);

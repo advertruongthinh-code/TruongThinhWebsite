@@ -31,4 +31,13 @@ export const readHeroSources = (siteRoot) => ({
 });
 
 // The image check of the build: field rules plus the file under siteRoot and its real size.
-export const fileImageCheck = (siteRoot) => (image, where) => validateImage(image, siteRoot, where);
+// Manifests of the R2 images a projected snapshot uses (cms-plan part 2 K4): { "<key>": manifest }; a repo build has none.
+export const loadVariants = (siteRoot) => {
+  const file = path.join(contentDirOf(siteRoot), "variants.json");
+  return existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
+};
+// CMS_MEDIA_ORIGIN is the media origin of the snapshot being built; an R2 src on another origin is an error.
+export const fileImageCheck = (siteRoot) => {
+  const options = { variants: loadVariants(siteRoot), mediaOrigin: (process.env.CMS_MEDIA_ORIGIN ?? "").replace(/\/+$/, "") };
+  return (image, where) => validateImage(image, siteRoot, where, options);
+};

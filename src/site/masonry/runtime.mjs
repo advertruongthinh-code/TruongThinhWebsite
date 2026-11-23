@@ -92,7 +92,8 @@ const browseBase = (pathname) => matchBrowsePath(pathname)?.[2] ?? "advertising-
 // Card page (media-seo R1): detail has the URL /<locale>/advertising-products/p/<card-id>/; the old ?photo= is still read.
 const ADVERTISING_CARD_PATH_PATTERN = /^\/(?:en\/)?advertising-products\/p\/([^/]+)\/$/;
 // Colors generated at build time from the image file name: [card dominant color, 4 Flow colors light to dark, pill-area luminance 0-100].
-const mediaColors = (src) => MEDIA_COLORS[src?.split("/").pop().replace(/\.\w+$/, "")];
+// Repo images are keyed by file name; an R2 image by its 32-character variant key (two crops of one media share a file name).
+const mediaColors = (src) => MEDIA_COLORS[/\/v\/([0-9a-f]{32})\//.exec(src ?? "")?.[1] ?? src?.split("/").pop().replace(/\.\w+$/, "")];
 const flowColors = (src) => mediaColors(src)?.slice(1, 5);
 // Card pill tone (media-card R2, owner 2026-11-13): under this luminance the area beneath the pill is dark, so the pill turns light. 20 is where
 // the dark pill (#333 at 80%) and the light pill (white at 85%) contrast equally with the area (WCAG ratio).

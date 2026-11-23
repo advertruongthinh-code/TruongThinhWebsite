@@ -1,6 +1,7 @@
 // Block-built pages (projects R3, news R3, layout-library R4): header, menu and footer frame come from an existing page,
 // the <main> body is the block list from src/site/content/<kind>.json. Routes use VI and EN slugs, one shared source file.
 import { NEWS_GROUPS, bilingualPicks, newsTeaser, renderBlocks } from "./blocks.mjs";
+import { absoluteSrc } from "./media-src.mjs";
 import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, localePrefix, routeLocale } from "./lib-pure.mjs";
 import { layoutErrors } from "../../src/cms/layouts.mjs";
 
@@ -34,7 +35,7 @@ const jsonLd = (kind, page) => {
     "@graph": [
       {
         "@type": KINDS[kind].schema, "@id": `${url}#article`, headline: page.title.vi, description: page.description.vi,
-        image: `${PUBLIC_ORIGIN}${page.cover.src}`, mainEntityOfPage: url,
+        image: absoluteSrc(page.cover.src, PUBLIC_ORIGIN), mainEntityOfPage: url,
         ...(page.published ? { datePublished: page.published, dateModified: page.updated ?? page.published } : {}),
         author: { "@type": "Organization", name: "Trường Thịnh", url: `${PUBLIC_ORIGIN}/` },
       },
@@ -73,7 +74,7 @@ export const renderBlockPage = (kind, template, page, ctx) => {
     // Search title (projects R3): optional `seoTitle` puts the type keyword first; the h1 keeps the display name.
     `<title data-en="${escapeHtml((page.seoTitle ?? page.title).en)} — Trường Thịnh">${escapeHtml((page.seoTitle ?? page.title).vi)} — Trường Thịnh</title>`,
     ...alternateLinks(pageHref(kind, "vi", page), page.noEn ? null : pageHref(kind, "en", page)),
-    `<meta property="og:image" content="${PUBLIC_ORIGIN}${page.cover.src}" />`,
+    `<meta property="og:image" content="${absoluteSrc(page.cover.src, PUBLIC_ORIGIN)}" />`,
     `<script type="application/ld+json">${jsonLd(kind, page)}</script>`,
   ].join("\n    ");
   const heroScript = /<script>\s*\/\/ detail-pages R5:[\s\S]*?<\/script>\s*/;
@@ -172,7 +173,7 @@ const renderListFrame = (template, { path: listPath, title, kicker, h1, descript
     `<title data-en="${escapeHtml(title.en)} — Trường Thịnh">${escapeHtml(title.vi)} — Trường Thịnh</title>`,
     ...alternateLinks(`${listPath}`, enPath),
     ...(noindex ? ['<meta name="robots" content="noindex, follow" />'] : []),
-    ...(image ? [`<meta property="og:image" content="${PUBLIC_ORIGIN}${image}" />`] : []),
+    ...(image ? [`<meta property="og:image" content="${absoluteSrc(image, PUBLIC_ORIGIN)}" />`] : []),
     ...(ld ? [ld] : []),
   ].join("\n    ");
   const chipLinks = chips.map(({ href, label, current }) => `<a class="blk-news-filter__chip" href="${href}"${current ? ' aria-current="true"' : ""} data-en="${escapeHtml(label.en)}">${escapeHtml(label.vi)}</a>`).join("");
