@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 import { validateHeroSlides } from "../site/hero-slides.mjs";
 import { contentDirOf, fileImageCheck } from "../site/content-files.mjs";
 import { validateHomeProjects } from "../site/home-projects.mjs";
-import { LINE_END_PUNCT, duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
+import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
+import { LINE_END_PUNCT } from "../../src/cms/inline-marks.mjs";
 import { kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 
 // Skip `$`: paths built in inline scripts (`${name}`) are not files.
