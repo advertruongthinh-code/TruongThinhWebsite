@@ -343,7 +343,7 @@ test("R8: pasting an image adds it; a slow image search stops waiting at 3 s and
     // Moved after the wait ended: the late answer waits behind the offer button (owner 2026-11-23).
     await page.press(".search-bar input", "Enter");
     await page.waitForSelector(".search-bar [data-search-note]", { state: "hidden", timeout: 2000 }); // the old note fades out first
-    await page.waitForFunction(() => /đang chậm/i.test(document.querySelector(".search-bar [data-search-note]").textContent), null, { timeout: 5000 });
+    await page.waitForFunction((text) => document.querySelector(".search-bar [data-search-note]").textContent.includes(text), COPY.vi.slow, { timeout: 5000 });
     await touchSwipe(page, { x: 200, y: 400 }, { x: 200, y: 250 });
     await page.waitForSelector("[data-masonry-offer]", { timeout: 6000 });
     await context.close();
