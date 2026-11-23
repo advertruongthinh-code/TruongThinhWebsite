@@ -68,6 +68,19 @@ test("a pending key older than 45 minutes becomes error timeout; a size mismatch
   assert.deepEqual({ ...one("SELECT status, error FROM variants WHERE key = ?", "b".repeat(32)) }, { status: "error", error: "size" });
 });
 
+test("a video variant waits 90 minutes: pending at 91 minutes is error timeout, pending at 31 and 46 minutes, ready with a matching manifest", async () => {
+  const { env, media, variant, manifest, one } = setup();
+  const keys = ["c", "d", "e", "f"].map((char) => char.repeat(32));
+  ["vid-31", "vid-46", "vid-91", "vid-ok"].forEach((id, index) => {
+    media(id, { kind: "video" });
+    variant(keys[index], id, "0,0,1200,800", new Date(Date.now() - [31, 46, 91, 100][index] * 60_000).toISOString());
+  });
+  await manifest(keys[3], 1200, 800);
+  await settleVariants(env);
+  const status = (key) => ({ ...one("SELECT status, error FROM variants WHERE key = ?", key) });
+  assert.deepEqual(keys.map(status), [{ status: "pending", error: null }, { status: "pending", error: null }, { status: "error", error: "timeout" }, { status: "ready", error: null }]);
+});
+
 test("dispatchVariants sends 9 keys as two runs of 8 and 1, with numeric crops and p only for repo media", async () => {
   const { env, media, variant, fetches } = setup();
   media("repo-01", { source: "repo", path: "/assets/content/projects/repo-01.webp" });

@@ -10,7 +10,7 @@ permissions:
 jobs:
   variants:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: ${{ contains(inputs.items, '"k":"video"') && 60 || 25 }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
@@ -20,6 +20,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: bash scripts/tooling/install-jxl.sh
+      - if: contains(inputs.items, '"k":"video"')
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
       - run: aws --version
       # The script uploads each item as soon as it is built, so a timeout only loses the items not reached yet.
       - run: node scripts/cms/build-variants.mjs
