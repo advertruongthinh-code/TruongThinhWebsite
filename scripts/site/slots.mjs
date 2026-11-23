@@ -206,7 +206,8 @@ export function fillSlots(html, record, ctx = {}) {
 
 // Contact links and CTA buttons (cms-plan part 2 K8, task E7): every element with data-channel="<channel>" or
 // data-cta="<key>" gets its href and text from contact.json. The source writes href="#"; an empty channel renders the
-// disabled form of the footer socials. aria-label follows cta.aria, or the text when the button has no label span.
+// disabled form of the footer socials. aria-label follows cta.aria; without it, the text when the button has no label
+// span or its aria-label is empty in the source (a label that only repeats the text must follow it, WCAG 2.5.3).
 const DISABLED = ' role="link" aria-disabled="true" tabindex="-1"';
 export const CONTACT_CHANNELS = ["zalo", "hotline", "office", "facebook", "tiktok", "youtube"];
 // Every data-cta key of the page sources and partials; the CMS edits their text and channel, never adds or removes one.
@@ -235,7 +236,7 @@ export function fillContact(html, contact) {
     if (cta) {
       const label = element.children.find((child) => child.name === "span" && attrOf(child.tag, "data-en") !== null);
       if (label) edits.push({ start: label.start, end: label.contentEnd, text: setAttr(label.tag, "data-en", escapeHtml(cta.en)) + escapeHtml(cta.vi) });
-      const aria = cta.aria ?? (label ? null : cta);
+      const aria = cta.aria ?? (!label || attrOf(element.tag, "aria-label") === "" ? cta : null);
       if (aria) tag = setAttr(setAttr(tag, "aria-label", escapeHtml(aria.vi)), "data-en-aria-label", escapeHtml(aria.en));
     } else if (channel.text) {
       const strong = element.children.find((child) => child.name === "strong");

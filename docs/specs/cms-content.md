@@ -185,7 +185,8 @@ xóa mục lớn. Mục con trong từng mục lớn thêm, xóa, sửa tiêu đ
 `youtube`, mỗi kênh `{ href, text? }`, `href` rỗng là chưa có; `cta` là `{ <khóa>: { vi, en, aria?, channel } }` với khóa
 `floating`, `floating-project`, `floating-advertising`, `menu`, `contact-quick` và `<trang>-<n>` cho nút trong thân
 trang; bộ khóa cố định theo nút có trong trang, không thêm, không xóa. `aria` là nhãn đọc màn hình khi khác chữ trên nút;
-nút không có chữ hiện thì nhãn là `vi`, `en`. Nhãn đọc màn hình của floating CTA vẫn riêng từng trang. `menu.json` là
+nút không có chữ hiện, hay nhãn trong nguồn để trống, thì nhãn là `vi`, `en`. Nhãn đọc màn hình của floating CTA vẫn
+riêng từng trang (trang chủ để trống nên theo chữ); đổi kênh không đổi nhãn riêng đó, và nút giữ `target` của nguồn. `menu.json` là
 `{ groups }` với đúng 6 nhóm `{ title, aria?, link, items: [{ label, link }] }`, tối đa 12 mục con mỗi nhóm; navbar
 PC đọc bốn nhóm đầu. Link có một cú pháp cho menu, chữ và CTA: `page:<trang>` hoặc `page:<loại>/<id>` (trang cố định,
 `project-type`, `about`, `advertising`, `project`, `news`), `contact:<kênh>`, hoặc `https://…`. Link trỏ đích không còn

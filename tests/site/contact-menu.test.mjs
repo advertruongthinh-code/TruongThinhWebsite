@@ -41,6 +41,9 @@ test("fillContact writes href, label span and aria; leaves aria of a labelled bu
     + '<a data-en-aria-label="Talk to us on Zalo" aria-label="Gọi Zalo tư vấn" href="https://zalo.me/0949131050" data-cta="menu"></a>');
   const withAria = fillContact(html, copy({ cta: { ...contact.cta, floating: { vi: "A", en: "B", aria: { vi: "C", en: "D" }, channel: "zalo" } } }));
   assert.match(withAria, /aria-label="C" data-en-aria-label="D"><span data-en="B">A<\/span>/);
+  const follows = fillContact('<a href="#" data-cta="advertising-2" aria-label="" data-en-aria-label=""><span data-en="">x</span></a>',
+    copy({ cta: { ...contact.cta, "advertising-2": { vi: "Nhắn ý tưởng mới", en: "New idea", channel: "zalo" } } }));
+  assert.match(follows, /aria-label="Nhắn ý tưởng mới" data-en-aria-label="New idea"><span data-en="New idea">Nhắn ý tưởng mới<\/span>/, "an empty aria-label follows the text");
 });
 
 test("a channel's text goes in its strong or in the link; an empty channel renders the disabled form and a filled one enables it", () => {
@@ -76,6 +79,7 @@ test("contact contract: six channels, fixed cta keys, safe href; a button on an 
   assert.deepEqual(await codes(copy({ channels: { ...contact.channels, zalo: { href: "javascript:alert(1)" } } })), ["contact-href"]);
   assert.deepEqual(await codes(copy({ cta: { ...contact.cta, extra: { vi: "a", en: "b", channel: "zalo" } } })), ["contact-cta"]);
   assert.deepEqual(await codes(copy({ cta: { ...contact.cta, menu: { vi: "a", en: "b", channel: "fax" } } })), ["contact-channel"]);
+  for (const aria of [{ vi: "a" }, { en: "b" }, "a"]) assert.equal((await shapeErrors("contact", copy({ cta: { ...contact.cta, menu: { vi: "a", en: "b", channel: "zalo", aria } } }))).length, 1, JSON.stringify(aria));
   const empty = copy({ channels: { ...contact.channels, zalo: { href: "" } } });
   assert.deepEqual(await codes(empty), []);
   assert.ok((await fullErrors("contact", empty)).every(({ level }) => level === "missing"));
