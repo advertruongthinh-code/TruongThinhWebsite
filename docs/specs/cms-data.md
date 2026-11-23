@@ -66,10 +66,14 @@ Then lệnh trả 409, bài B vẫn ở thùng rác
 
 ### R2. Bản chụp
 
-`GET /api/admin/snapshot` trả JSON `{ schema: 1, takenAt, records: { <kiểu>: [data, ...] }, redirects: [...], held: [...] }`.
-Mỗi mảng gồm `data` của bản ghi `published`, xếp theo `position` rồi `id`; bản ghi còn `pending` dùng `data` của
-`live_version`, chưa có `live_version` thì vào `held`. Kiểu `media` không vào bản chụp. Đang tạm dừng tự đăng thì trả
-423. Worker ghép chuỗi, không phân tích từng bản ghi. Phía build, hàm thuần `snapshotToFiles` (`src/cms/projection.mjs`)
+Bản chụp là `{ schema: 1, takenAt, records: { <kiểu>: [data, ...] }, redirects: [...], held: [...] }`. Mỗi mảng gồm `data`
+của bản ghi `published`, xếp theo `position` rồi `id`; bản ghi còn `pending` dùng `data` của `live_version`, chưa có
+`live_version` thì vào `held`. Kiểu `media` không vào bản chụp. Worker trả theo trang để mỗi lần gọi dưới 10 ms CPU của
+Workers Free (S4 đo cả bản 1,26 MB: 17 tới 38 ms): `GET /api/admin/snapshot` trả mục lục `{ schema, takenAt, stamp,
+pageSize, types: { <kiểu>: số bản ghi }, redirects, held }`, `?type=<kiểu>&page=<n>` trả `{ stamp, type, page, records }`
+với 40 bản ghi mỗi trang. `stamp` đổi sau mọi lần ghi bản ghi không phải `media`; hàm thuần `collectSnapshot`
+(`src/cms/collect-snapshot.mjs`) đọc mục lục, đọc mọi trang, đọc lại mục lục, và đọc lại từ đầu khi `stamp` khác (tối đa
+ba lần). Đang tạm dừng tự đăng thì trả 423. Worker ghép chuỗi, không phân tích từng bản ghi. Phía build, hàm thuần `snapshotToFiles` (`src/cms/projection.mjs`)
 đổi bản chụp thành file chiếu, chỉ cho kiểu đang mở; file khác trong thư mục nội dung lấy từ repo:
 
 | Kiểu | File | Cách chiếu |

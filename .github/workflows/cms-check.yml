@@ -1,6 +1,6 @@
 name: CMS check
 
-# Calls the admin snapshot 30 times with the CMS service token (cms-plan S4, Q12 CPU check).
+# Reads the paged admin snapshot with the CMS service token (cms-plan S4, Q12 CPU check: read CPU per call in Workers Logs).
 on:
   workflow_dispatch:
   # Also runs on a PR that changes this file: dispatch only works once the file is on main (first run is S4's own PR).
@@ -22,12 +22,23 @@ jobs:
           CMS_ACCESS_CLIENT_SECRET: ${{ secrets.CMS_ACCESS_CLIENT_SECRET }}
         run: |
           set -euo pipefail
-          for i in $(seq 1 30); do
-            curl -sS -o /dev/null -w "%{http_code} %{time_total}s %{size_download}B\n" -A "tt-cms-ci" \
+          get() {
+            curl -sS -o body.json -w "%{http_code} %{time_total}s %{size_download}B $1\n" -A "tt-cms-ci" \
               -H "CF-Access-Client-Id: $CMS_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CMS_ACCESS_CLIENT_SECRET" \
-              "$CMS_ADMIN_ORIGIN/api/admin/snapshot" | tee -a codes.txt
+              "$CMS_ADMIN_ORIGIN/api/admin/snapshot?$1" | tee -a codes.txt
+          }
+          # Reads the paged snapshot three times: the index, every page of every type, the index again.
+          for round in 1 2 3; do
+            get ""
+            cp body.json index.json
+            size=$(jq .pageSize index.json)
+            for type in $(jq -r '.types | keys[]' index.json); do
+              count=$(jq --arg t "$type" '.types[$t]' index.json)
+              for ((page = 0; page * size < count; page++)); do get "type=$type&page=$page"; done
+            done
+            get ""
           done
-          test "$(grep -c '^200 ' codes.txt)" = 30
+          test "$(grep -vc '^200 ' codes.txt)" = 0
           # The service token must not open a path meant for people (S4 check).
           human=$(curl -sS -o /dev/null -w "%{http_code}" -A "tt-cms-ci" \
             -H "CF-Access-Client-Id: $CMS_ACCESS_CLIENT_ID" -H "CF-Access-Client-Secret: $CMS_ACCESS_CLIENT_SECRET" \
