@@ -6033,18 +6033,12 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     const category = link.dataset.detailCrumb;
     whenLayoutReady(category, () => browseHistory.returnToGrid({ reason: "breadcrumb", category }), link);
   }, { signal: controller.signal });
-  // Escape and the back button take the same path (R10): an image entered directly goes back to the group masonry, otherwise go back one entry.
-  const leavePhoto = () => {
-    if (!browseHistory.escapeDirectPhoto()) history.back();
-  };
-  photoView?.querySelector("[data-detail-back]")?.addEventListener("click", () => {
-    if (browseHistory.current.photo) leavePhoto();
-  }, { signal: controller.signal });
+  // Escape (R10): an image entered directly goes back to the group masonry, otherwise go back one entry.
   document.addEventListener("keydown", (event) => {
     if (event.key !== "Escape" || event.defaultPrevented || photoDialog?.open
       || document.querySelector('#site-menu')?.open || !browseHistory.current.photo) return;
     event.preventDefault();
-    leavePhoto();
+    if (!browseHistory.escapeDirectPhoto()) history.back();
   }, { signal: controller.signal });
   addEventListener("site:scroll", updateVisualScroll, { signal: controller.signal });
   addEventListener("site:scroll", trackScroll(({ detail }) => detail.y), { passive: true, signal: controller.signal });

@@ -19,7 +19,7 @@ tests:
   - tests/site/related-scroll-device.mjs
   - tests/site/advertising-photo-header.e2e.mjs
 notion: https://app.notion.com/p/3e6332849a0e81508d66ca0b3cfebf18
-updated: 2026-11-14
+updated: 2026-11-23
 ---
 
 # Detail Advertising
@@ -55,17 +55,18 @@ And không có clone ảnh giữa card và primary
 `computeDetailGeometry` (`masonry/layout.mjs`): primary rộng `min(3, N)` cột với `N` cột masonry (2 đến 4); số cột
 không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột cao `min(W/r, H)`
 ([player R6](primary-video-player.md#r6-khung-primary-cao-theo-media-ngang)), info một cột cao bằng vùng ảnh; `H` là viewport dưới header
-thu gọn (R10) trừ gap, safe area và `50px` để related lộ dưới, ở mọi viewport kể cả primary chiếm hết cột (owner 2026-11-07). `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap, hoặc tới hết phần ảnh (cao tự nhiên) chừa lại nếu lớn hơn, nên mô tả còn cuộn thì primary luôn chạm `H` (owner 2026-11-22); vùng ảnh rộng
-hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa `H`, nên dưới primary luôn còn gap và `50px` related. Ảnh `contain` trong vùng;
+thu gọn (R10) trừ safe area; từ 3 cột trừ thêm gap và `50px` để related lộ dưới, kể cả primary chiếm hết cột (owner 2026-11-07); lưới 2 cột thì primary chạm đáy màn hình, không chừa (owner 2026-11-23). `N <= 3` và viewport dọc là `pinterest`: ảnh trên, info dưới; info cao theo chữ, tối đa `28%` viewport trừ gap, hoặc tới hết phần ảnh (cao tự nhiên) chừa lại nếu lớn hơn, nên mô tả còn cuộn thì primary luôn chạm `H` (owner 2026-11-22); vùng ảnh rộng
+hết primary, cao `min(W/r, phần còn lại)`; cả khối vừa `H`, nên từ 3 cột dưới primary luôn còn gap và `50px` related, 2 cột thì mô tả còn cuộn primary kéo sát đáy, mô tả vừa thì primary co theo chữ. Ảnh `contain` trong vùng;
 dư quá `0.5px` thì `data-detail-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn) cùng nhóm, thumbnail, CTA thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
 thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi).
 
 ```gherkin
-Given viewport 1569×912 (4 cột), 820×912 (3 cột) và 891×360 (3 cột, điện thoại ngang)
+Given viewport 1569×912 (4 cột), 820×912 (3 cột), 891×360 (3 cột, điện thoại ngang) và 360×800 (2 cột, mô tả dài)
 When mở cùng một ảnh ngang
 Then 1569px: layout split, primary span 3, ảnh hai cột, khung cao theo ảnh, chừa ít nhất 50px ở đáy viewport
 And 820px: layout pinterest, primary span 3, ảnh và info vừa phần dưới header trừ gap và 50px, info không quá 28% viewport
 And 891px: layout split, primary span 3, ảnh hai cột, info một cột cao bằng vùng ảnh, related xếp dưới primary
+And 360px: layout pinterest, primary span 2, đáy primary chạm đáy viewport, mô tả cuộn bên trong
 ```
 
 ### R3. Info: nhóm, mô tả, CTA
@@ -190,8 +191,7 @@ And Escape đóng viewer về khung primary, URL vẫn là detail, scroll là Y1
 
 ### R10. Navbar và Escape trên detail
 
-Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All. Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)).
-Nút quay lại `←` (như nút quay lại của Pinterest; `[data-detail-back]`, nhãn `Quay lại`/`Back`) nằm góc trên trái vùng media của primary, mọi máy kể cả màn cảm ứng; dùng đúng kiểu `image-action` của nút `Xem lớn hơn` (R9), chỉ đổi icon mũi tên trái. Bấm làm đúng như Escape: ảnh vào thẳng thì `escapeDirectPhoto`, còn lại `history.back()`, nên lùi từng entry (C về B, B về A, A về masonry) và giữ cuộn, focus theo R8.
+Click chính vào mục Advertising trên navbar hoặc tiêu đề menu khi đang ở detail gọi `navigateQuery(href, {reason: "navbar"})` (`motion.js`) → `returnToGrid`: push entry masonry nhóm khách chọn trên rail trước khi mở ảnh (`grid.category`), xóa photo, tag; ảnh vào thẳng về All. Còn ở A mở từ masonry thì A về độ lệch cũ; sang B cùng nhóm hoặc vào thẳng thì B ở giữa viewport, mang "Vừa xem"; B khác nhóm thì về A. Back vẫn về detail. Click có phím bổ trợ đi theo trình duyệt. Escape khi không viewer, menu: ảnh vào thẳng (`directPhotoRootId`) thì `escapeDirectPhoto` thay entry bằng masonry nhóm của ảnh, focus card đó; còn lại `history.back()`. All không photo: bấm lại navbar cuộn về 0 ([masonry R3](advertising-masonry.md#r3-filter)). Detail không có nút quay lại trên mọi máy (owner 2026-11-23 bỏ nút `←` góc trên trái): rời detail bằng Back của trình duyệt, vuốt quay lại hoặc Escape như trên.
 Detail không có hero nên header luôn ở dạng thu gọn của [shell R2](site-shell.md#r2-header-tone-thu-gọn-lockup-và-nav-desktop) (`is-collapsed`, nền trắng, viền) ở mọi `scrollY`; trước đây đầu detail dùng dạng trong suốt cao 103px ở 1440px, 73px ở 390px, thu gọn cao 81px và 71px. Mở detail từ masonry thì lockup FLIP như khi cuộn; đóng về masonry thì header theo `scrollY` của masonry. Ẩn, hiện theo chiều cuộn ([shell R3](site-shell.md#r3-header-ẩn-khi-cuộn-xuống)) giữ nguyên; R2 tính phần dưới header theo cao dạng thu gọn.
 
 ```gherkin

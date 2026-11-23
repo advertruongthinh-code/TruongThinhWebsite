@@ -113,9 +113,10 @@ test("full-span portrait primary caps height and leaves side overflow only", () 
     headerHeight: 72.59375, imageWidth: 400, imageHeight: 1000,
     descriptionHeight: 120,
   });
-  // Leave a gap and 50px so related peeks out below primary (advertising-detail R4).
-  closeTo(geometry.height, 800 - geometry.top - geometry.gap - geometry.belowPeek);
-  closeTo(geometry.imageZoneHeight, 800 - geometry.top - geometry.gap - geometry.belowPeek - 120 - geometry.internalGap);
+  // Up to two columns primary reaches the screen bottom, no peek (advertising-detail R2, owner 2026-11-23).
+  assert.equal(geometry.belowPeek, 0);
+  closeTo(geometry.height, 800 - geometry.top);
+  closeTo(geometry.imageZoneHeight, 800 - geometry.top - 120 - geometry.internalGap);
   closeTo(geometry.imageHeight, geometry.imageZoneHeight);
   assert(geometry.imageWidth < geometry.imageZoneWidth);
   assert.equal(geometry.hasContainOverflow, true);
@@ -169,7 +170,7 @@ test("uses Pinterest layout whenever the primary spans every column", () => {
 
 test("keeps responsive gaps and safe insets while capping full-span primary at the viewport", () => {
   const cases = [
-    { width: 700, height: 500, gap: 15, peek: 50 },
+    { width: 700, height: 500, gap: 15, peek: 0 },
     { width: 1000, height: 900, gap: 25, peek: 50 },
     { width: 1300, height: 1500, gap: 35, peek: 50 },
   ];
@@ -189,15 +190,15 @@ test("keeps responsive gaps and safe insets while capping full-span primary at t
     assert.equal(geometry.gap, sample.gap);
     assert.equal(geometry.belowPeek, sample.peek);
     closeTo(geometry.top, 70 + sample.gap + 5);
-    // Every viewport leaves the peek, even a full-span primary (advertising-detail R4).
+    // From three columns every viewport leaves the gap and peek, even a full-span primary; two columns reach the bottom (advertising-detail R2).
     closeTo(
       geometry.heightCap,
-      sample.height - geometry.top - sample.gap - sample.peek - 7,
+      sample.height - geometry.top - (sample.peek && sample.gap + sample.peek) - 7,
     );
     assert.equal(geometry.mode, geometry.span === geometry.columns && sample.width <= sample.height ? "pinterest" : "split");
     if (geometry.mode === "split") {
       closeTo(geometry.height, Math.min(geometry.imageZoneWidth / 3, geometry.heightCap));
-      assert.ok(geometry.top + geometry.height + geometry.gap + sample.peek + 7 <= sample.height);
+      assert.ok(geometry.top + geometry.height + (sample.peek && sample.gap + sample.peek) + 7 <= sample.height);
     } else {
       assert.ok(geometry.top + geometry.height + geometry.gap + sample.peek + 7 <= sample.height + 1e-9);
       assert.ok(geometry.imageZoneHeight <= geometry.width / (3000 / base.imageHeight) + 1e-9);
@@ -320,7 +321,7 @@ test("preserves output fields and contains every catalog photo across measured v
         closeTo(first.imageZoneHeight, Math.min(first.imageZoneWidth / ratio, first.heightCap));
         closeTo(first.height, first.imageZoneHeight);
         closeTo(first.descriptionHeight, first.height);
-        assert.ok(first.top + first.height + first.gap + (fullSpan ? 0 : first.belowPeek) <= viewport.viewportHeight + 1e-9);
+        assert.ok(first.top + first.height + (first.belowPeek ? first.gap + (fullSpan ? 0 : first.belowPeek) : 0) <= viewport.viewportHeight + 1e-9);
       } else {
         assert.ok(first.top + first.height <= viewport.viewportHeight);
         assert.ok(first.imageZoneHeight <= first.width / ratio + 1e-9);

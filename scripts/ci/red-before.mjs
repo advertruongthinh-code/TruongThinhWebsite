@@ -40,10 +40,16 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   git("restore", `--source=${base}`, "--worktree", "--", "src/site");
   let results;
   try {
-    results = await withPreview(async (baseUrl) => work.tests.map((file) => {
-      console.log(`\n[red-before] ${file}`);
-      return { file, status: spawnSync(process.execPath, [file], { stdio: "inherit", env: { ...process.env, BASE_URL: baseUrl } }).status };
-    }));
+    // One red file is enough (owner 2026-11-23): stop there, so a long suite after it cannot run the job past its timeout.
+    results = await withPreview(async (baseUrl) => {
+      const ran = [];
+      for (const file of work.tests) {
+        console.log(`\n[red-before] ${file}`);
+        ran.push({ file, status: spawnSync(process.execPath, [file], { stdio: "inherit", env: { ...process.env, BASE_URL: baseUrl } }).status });
+        if (ran.at(-1).status !== 0) break;
+      }
+      return ran;
+    });
   } finally {
     git("restore", "--source=HEAD", "--worktree", "--", "src/site");
   }

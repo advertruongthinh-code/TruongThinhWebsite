@@ -95,8 +95,7 @@ assert.match(runtime, /bandAssignments: skeletonRatioBandBySlot[\s\S]*?frameLayo
 assert.match(runtime, /gridHost\.pixelHeight = height[\s\S]*?gridHost\.layoutMotion\(/, "the motion pass owns the complete photo and skeleton height");
 assert.match(await readFile(new URL("../../src/site/masonry/host.mjs", import.meta.url), "utf8"), /layoutMotion\(instant\) \{\s*root\.style\.height = `\$\{host\.pixelHeight\}px`;/, "each masonry host sizes its yard from its own pixel height");
 // Owner 2026-10-27 reopened the Pinterest-style back button (detail R10): same image-action style, sharing the path with Escape.
-assert.match(index, /class="detail-view__image-action detail-view__back"[^>]*data-detail-back/, "photo Back reuses the image-action control");
-assert.match(runtime, /data-detail-back[\s\S]*?leavePhoto\(\)[\s\S]*?key !== "Escape"[\s\S]*?leavePhoto\(\)/, "photo Back and Escape share one exit path");
+assert.doesNotMatch(index, /data-detail-back\b(?!ground)/, "detail has no back button (owner 2026-11-23)");
 assert.match(index, /data-detail-description-box[\s\S]*data-detail-description-scroll[\s\S]*aria-label="Mô tả ảnh"[\s\S]*data-detail-description-bar aria-hidden="true"/,
   "detail R3 exposes a labelled description scroller and a decorative scrollbar");
 const photoInfoMarkup = index.slice(index.indexOf("data-detail-info"), index.indexOf("data-detail-related aria-label"));
