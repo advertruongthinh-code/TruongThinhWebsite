@@ -56,7 +56,7 @@ And không có clone ảnh giữa card và primary
 không đổi theo chiều xoay. `split` khi `N = 4` hoặc viewport ngang (rộng hơn cao): vùng ảnh `span - 1` cột cao `min(W/r, H)`
 ([player R6](primary-video-player.md#r6-khung-primary-cao-theo-media-ngang)), info một cột cao bằng vùng ảnh; `H` là viewport dưới header
 thu gọn (R10) trừ safe area; `split` trừ thêm gap và `50px` để related lộ dưới (owner 2026-11-07). `N <= 3` và viewport dọc là `pinterest` (`detailLayoutMode`, runtime dùng cùng hàm): ảnh trên, info dưới, không chừa gap và `50px` ở mọi số cột (owner 2026-11-23). Vùng ảnh rộng hết primary, cao `min(W/r, H' - info gốc - gap)` với `H'` là `H` trừ gap và `50px`; info gốc cao theo chữ, tối đa `28%` viewport trừ gap, hoặc tới hết phần ảnh (cao tự nhiên) chừa lại nếu lớn hơn (owner 2026-11-22).
-Phần từ đó tới đáy màn hình dành cho mô tả: mô tả còn cuộn thì primary chạm đáy, mô tả vừa thì primary co theo chữ (owner 2026-11-23). Ảnh `contain` trong vùng;
+Phần từ đó tới đáy màn hình dành cho mô tả: mô tả còn cuộn thì primary chạm đáy, mô tả vừa thì primary co theo chữ (owner 2026-11-23); màn thấp tới mức sàn info vượt `28%` thì ảnh tính theo `H`. Ảnh `contain` trong vùng;
 dư quá `0.5px` thì `data-detail-glass="true"`, nền là bản sao cover của ảnh dưới Kính. Không đủ ba dòng mô tả (hoặc cả mô tả nếu ngắn hơn) cùng nhóm, thumbnail, CTA thì primary cao thêm tối thiểu (`measureInfo`); người xem cuộn để đọc. Hình học không dựng được
 thì ném `RangeError`. Chiều cao viewport lấy từ [shell R11](site-shell.md#r11-viewport-ổn-định-khi-thanh-địa-chỉ-đổi).
 
