@@ -74,8 +74,8 @@ function expectedPhotoGeometry(evidence) {
     : width;
   const descriptionWidth = mode === "split" ? cardWidth : width;
   const available = evidence.windowHeight - top - evidence.safeBottom;
-  // Detail spec R2 (owner 2026-11-07): every layout leaves a gap and 50px so related peeks out below primary.
-  const heightCap = available - gap - 50;
+  // Detail spec R2: a two-column grid reaches the screen bottom (owner 2026-11-23); wider grids leave a gap and 50px so related peeks out.
+  const heightCap = available - (columns <= 2 ? 0 : gap + 50);
   // Pinterest info height follows the measured copy; R2 caps it at 28% of the viewport.
   const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, heightCap - gap - 1);
   // Split: the media area is as tall as the media up to heightCap (primary-video-player R6); info is as tall as the media area, unless a long cluster label

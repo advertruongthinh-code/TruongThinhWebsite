@@ -377,7 +377,8 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   const fullSpan = expectedSpan === actual.relatedColumns;
   const expectedLayout = fullSpan && actual.viewport.width <= actual.viewport.height ? "pinterest" : "split";
   const viewportBottom = actual.viewport.height - actual.safeBottom;
-  const requiredPeek = 50;
+  // Two columns reach the screen bottom with no peek (detail R2, owner 2026-11-23).
+  const requiredPeek = actual.relatedColumns <= 2 ? 0 : 50;
   const minimumPrimaryHeight = expectedLayout === "pinterest"
     ? actual.minimum.imageHeight + actual.primaryGap + actual.minimum.infoHeight
     : Math.max(actual.minimum.imageHeight, actual.minimum.infoHeight);
@@ -422,7 +423,7 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   if (expectedLayout === "pinterest") {
     // Over 28% only into the room a short image leaves (owner 2026-11-22): a scrolling description fills primary to its cap,
     // a description that fits keeps primary shorter.
-    const primaryCap = viewportBottom - actual.primaryGap - requiredPeek;
+    const primaryCap = viewportBottom - (requiredPeek && actual.primaryGap + requiredPeek);
     const descriptionFits = actual.descriptionScroll.scrollHeight <= actual.descriptionScroll.clientHeight + 1;
     if (fitsInfoCap) assert(actual.info.height + actual.primaryGap <= actual.viewport.height * 0.28 + 1.5
       || Math.abs(actual.primary.bottom - primaryCap) <= 1.5 || (descriptionFits && actual.primary.bottom <= primaryCap + 1.5),
@@ -957,12 +958,7 @@ async function runP7PinterestContract(browser, locale) {
           clientHeight: suggestion.clientHeight,
           buttons: [...suggestion.querySelectorAll("[data-masonry-suggestion-tag]")]
             .map((node) => node.getBoundingClientRect().toJSON()) } : null,
-        back: (() => {
-          const button = document.querySelector("[data-detail-back]");
-          const frame = button?.closest(".detail-view__hero-frame")?.getBoundingClientRect();
-          const rect = button?.getBoundingClientRect();
-          return rect && frame ? { dx: rect.left - frame.left, dy: rect.top - frame.top, width: rect.width } : null;
-        })(),
+        back: document.querySelectorAll("[data-detail-back]").length,
         viewerTouchAction: getComputedStyle(document.querySelector("[data-detail-viewport]")).touchAction,
       };
     });
@@ -972,7 +968,8 @@ async function runP7PinterestContract(browser, locale) {
     // The long cluster label wraps at 32px so the info floor may exceed 28%; then info must not be taller than the floor.
     const infoCap = Math.max(initial.viewportHeight * 0.28, initial.infoMinimum + initial.gap + 1);
     assert(initial.info.height + initial.gap <= infoCap + 1.5
-      || Math.abs(initial.primary.bottom - (initial.viewportHeight - initial.gap - 50)) <= 1.5,
+      // Two columns reach the screen bottom; wider grids leave a gap and 50px (detail R2).
+      || Math.abs(initial.primary.bottom - (initial.viewportHeight - (initial.columns <= 2 ? 0 : initial.gap + 50))) <= 1.5,
       `${label}: description and gap exceed the viewport-based 28% cap`);
     closeTo(initial.hero.height + initial.gap + initial.info.height, initial.primary.height, `${label}: primary vertical allocation`, 2);
     assert(!["auto", "scroll"].includes(initial.infoOverflowY), `${label}: description retains inner scroll`);
@@ -990,10 +987,8 @@ async function runP7PinterestContract(browser, locale) {
     assert(initial.suggestion.scrollHeight <= initial.suggestion.clientHeight + 1, `${label}: suggestion content is clipped`);
     assert.equal(initial.suggestion.buttons.length, 4, `${label}: suggestion does not expose four buttons`);
     for (const button of initial.suggestion.buttons) assert(contained(button, initial.suggestion.rect), `${label}: suggestion button leaves its solver cell`);
-    // Pinterest-style back button (detail R10, owner 2026-10-27): top-left corner of the media frame, on narrow screens too.
-    const backInset = initial.viewportWidth > 750 ? 16 : 8;
-    assert.deepEqual(initial.back && [Math.round(initial.back.dx), Math.round(initial.back.dy), initial.back.width],
-      [backInset, backInset, 36], `${label}: Back control is not at the media frame top-left`);
+    // No back button on any device (detail R10, owner 2026-11-23).
+    assert.equal(initial.back, 0, `${label}: detail still has a back button`);
     assert.equal(initial.viewerTouchAction, "none", `${label}: fullscreen viewer lost exclusive pan/zoom gestures`);
 
     stage = "description-scroll";
