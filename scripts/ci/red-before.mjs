@@ -7,6 +7,8 @@ import { fileURLToPath } from "node:url";
 import { manifest, withPreview } from "./suites.mjs";
 
 export const EXEMPT = /^Test đỏ trước: không áp dụng - [^<\s]/m;
+// Per-file cap: a long red file (detail-view runs 11+ min) must not use the whole 12-min job before the next file runs.
+export const FILE_TIMEOUT_MS = 4 * 60_000;
 
 // Which test files must be seen red, or why the check does not apply.
 export function plan(changed, body = "") {
@@ -45,17 +47,19 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       const ran = [];
       for (const file of work.tests) {
         console.log(`\n[red-before] ${file}`);
-        ran.push({ file, status: spawnSync(process.execPath, [file], { stdio: "inherit", env: { ...process.env, BASE_URL: baseUrl } }).status });
-        if (ran.at(-1).status !== 0) break;
+        const run = spawnSync(process.execPath, [file], { stdio: "inherit", timeout: FILE_TIMEOUT_MS, env: { ...process.env, BASE_URL: baseUrl } });
+        // A timeout proves nothing either way: note it and try the next file.
+        ran.push({ file, status: run.error?.code === "ETIMEDOUT" ? "timeout" : run.status });
+        if (ran.at(-1).status !== 0 && ran.at(-1).status !== "timeout") break;
       }
       return ran;
     });
   } finally {
     git("restore", "--source=HEAD", "--worktree", "--", "src/site");
   }
-  summary(["| Test on main's src/site/ | Result |", "| --- | --- |", ...results.map((r) => `| \`${r.file}\` | ${r.status === 0 ? "green" : "red"} |`)].join("\n"));
-  if (results.every((r) => r.status === 0)) {
-    console.error("red-before: every changed test passes on main's src/site/, so none proves this change; write a test that fails without it (Prove-It)");
+  summary(["| Test on main's src/site/ | Result |", "| --- | --- |", ...results.map((r) => `| \`${r.file}\` | ${r.status === "timeout" ? "timeout" : r.status === 0 ? "green" : "red"} |`)].join("\n"));
+  if (!results.some((r) => r.status !== 0 && r.status !== "timeout")) {
+    console.error("red-before: no changed test failed on main's src/site/ within its time cap, so none proves this change; write a test that fails without it (Prove-It)");
     process.exit(1);
   }
 }
