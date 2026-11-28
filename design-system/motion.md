@@ -36,12 +36,12 @@ Thời lượng và đường cong lặp lại khai một lần ở `:root` củ
 | `--ease-underline` | `cubic-bezier(0.4, 0, 0, 1)` | Gạch chân chạy (nav, menu, filter, chip, link, nhãn suggestion, news) |
 | `--ease-expo-out` | `cubic-bezier(0.16, 1, 0.3, 1)` | Ảnh decode xong hiện `media-fade-in`, scroll cue, card tạm hiện dần, chip filter vào |
 | `--ease-card` | `cubic-bezier(0.65, 0, 0.35, 1)` | Ảnh card, ảnh primary hiện lần đầu (crossfade từ skeleton, blur tan) và nền badge "vừa xem" trên card |
-| `--ease-float` | `cubic-bezier(0.63, 0, 0.08, 1)` | Floating CTA và nút về đầu trang phone trượt vào (1s), thanh tìm kiếm nổi bay lên từ mép dưới (1s, owner 2026-11-23) |
+| `--ease-float` | `cubic-bezier(0.63, 0, 0.08, 1)` | Floating CTA và nút về đầu trang phone trượt vào (1s) |
 | `--ease-viewer` | `cubic-bezier(0.55, 0, 0, 1)` | Backdrop viewer mở, đóng; ảnh viewer bay ra, về |
 | `--dur-fast` | `150ms` | Hover control video, thanh mô tả |
 | `--dur-quick` | `250ms` | Hover nút suggestion, CTA detail, viewer đóng |
 | `--dur-base` | `300ms` | Hover nền và chữ, gạch chân chạy, viewer mở, skeleton Flow hiện |
-| `--dur-card` | `400ms` | Trượt `margin-bottom`, mũi tên CTA, card đổi vị trí hoặc kích thước trên masonry |
+| `--dur-card` | `400ms` | Trượt `margin-bottom`, mũi tên CTA, card đổi vị trí hoặc kích thước trên masonry; mọi chuyển động của [thanh tìm kiếm](components/SearchBar/README.md) cùng `ease` (owner 2026-11-23) |
 | `--dur-fade` | `450ms` | `media-fade-in`, card tạm hiện dần |
 | `--dur-hover` | `600ms` | Zoom ảnh hover, reveal, nền badge, card hiện ảnh (`--media-hover-duration` trỏ về đây) |
 
