@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <title>Trường Thịnh CMS</title>
+    <script>try { document.documentElement.dataset.theme = localStorage.getItem("tt-cms-theme") || "system"; } catch {}</script>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="./vendor/dockview/dockview.css" />
     <link rel="stylesheet" href="./editor.css" />
@@ -25,6 +26,11 @@
         <summary>Bảng</summary>
         <div id="panel-menu"></div>
       </details>
+      <div class="theme-pill" role="group" aria-label="Giao diện CMS">
+        <button type="button" data-theme-pref="light" aria-label="Giao diện sáng" title="Giao diện sáng"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg></button>
+        <button type="button" data-theme-pref="dark" aria-label="Giao diện tối" title="Giao diện tối"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></button>
+        <button type="button" data-theme-pref="system" aria-label="Theo hệ thống" title="Theo hệ thống"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
+      </div>
     </header>
     <main class="dock" id="dock"></main>
     <div class="gate" id="gate" role="alert" hidden></div>

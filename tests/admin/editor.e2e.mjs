@@ -41,8 +41,8 @@ const { chromium } = await import("playwright");
 const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const errors = [];
 
-async function open({ width = 1440, routes = {} } = {}) {
-  const context = await browser.newContext({ viewport: { width, height: 900 } });
+async function open({ width = 1440, routes = {}, colorScheme = "light" } = {}) {
+  const context = await browser.newContext({ viewport: { width, height: 900 }, colorScheme });
   const page = await context.newPage();
   page.on("pageerror", (error) => errors.push(String(error)));
   for (const [command, answer] of Object.entries(routes)) await page.route(`**/api/admin/${command}*`, answer);
@@ -223,6 +223,41 @@ try {
   page = await open({ width: 900 });
   assert.equal(await page.getByText("Mở CMS trên máy tính, cửa sổ rộng từ 1024px.").isVisible(), true);
   assert.equal(await page.locator(".dock").isVisible(), false);
+  await page.context().close();
+
+  // (f) R10 theme pill: system follows the OS, a choice survives a reload and re-colours the dock, the preview stays the public site.
+  page = await open({ colorScheme: "dark" });
+  await page.locator('.group[data-group="projects"] .row').first().waitFor();
+  const scheme = () => page.evaluate(() => ({
+    pref: document.documentElement.dataset.theme,
+    pressed: [...document.querySelectorAll("[data-theme-pref]")].filter((b) => b.ariaPressed === "true").map((b) => b.dataset.themePref),
+    dock: [...document.querySelector(".dock").querySelectorAll("[class*=dockview-theme]")].map((n) => n.className.match(/dockview-theme-\w+/)[0])[0],
+    bg: getComputedStyle(document.body).backgroundColor,
+  }));
+  assert.deepEqual(await page.locator("[data-theme-pref]").evaluateAll((all) => all.map((b) => [b.dataset.themePref, b.ariaLabel, b.textContent.trim()])),
+    [["light", "Giao diện sáng", ""], ["dark", "Giao diện tối", ""], ["system", "Theo hệ thống", ""]]);
+  let now = await scheme();
+  assert.deepEqual([now.pref, now.pressed, now.dock], ["system", ["system"], "dockview-theme-dark"]);
+  await shot(page, "theme-1-he-thong-toi");
+  await page.click('[data-theme-pref="light"]');
+  now = await scheme();
+  assert.deepEqual([now.pref, now.pressed, now.dock], ["light", ["light"], "dockview-theme-light"]);
+  assert.notEqual(now.bg, "rgb(18, 22, 27)");
+  await shot(page, "theme-2-sang");
+  await page.reload();
+  await page.locator('.group[data-group="projects"] .row').first().waitFor();
+  now = await scheme();
+  assert.deepEqual([now.pref, now.pressed, now.dock], ["light", ["light"], "dockview-theme-light"]);
+  await page.click('[data-theme-pref="dark"]');
+  now = await scheme();
+  assert.deepEqual([now.pref, now.dock, now.bg], ["dark", "dockview-theme-dark", "rgb(18, 22, 27)"]);
+  await shot(page, "theme-3-toi");
+  await page.click('[data-theme-pref="system"]');
+  await page.emulateMedia({ colorScheme: "light" });
+  await page.waitForFunction(() => document.querySelector(".dockview-theme-light"));
+  now = await scheme();
+  assert.deepEqual([now.pref, now.dock], ["system", "dockview-theme-light"]);
+  assert.equal(await page.evaluate(() => localStorage.getItem("tt-cms-theme")), "system");
   await page.context().close();
 
   // The two stubbed failure pages above throw on purpose (whoami 403); nothing else may.

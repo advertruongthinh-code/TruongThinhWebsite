@@ -6,8 +6,9 @@ import { h, toast } from "./dom.js";
 import { mountAccounts } from "./ops/accounts.js";
 import { mountContent, nameOf } from "./panels/content.js";
 import { lastOpen, setOpen, state } from "./state.js";
+import { initTheme } from "./theme.mjs";
 
-const { createDockview, themeLight } = window.dockview;
+const { createDockview, themeLight, themeDark } = window.dockview;
 const LAYOUT_KEY = "tt-cms-layout";
 const PANELS = { content: "Nội dung", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp", accounts: "Tài khoản" };
 const STATUS = { draft: "Nháp", published: "Đã đăng", trashed: "Trong thùng rác" };
@@ -73,6 +74,19 @@ tools = setupDockTools(dock, $("#dock"), {
     $("#layout-redo").disabled = !canRedo;
   },
 });
+
+// Colour scheme (R10): the pill in the top bar sets light, dark or system; Dockview takes its matching theme.
+const theme = initTheme({
+  // Reading `localStorage` itself throws when site data is blocked, so access stays inside the calls initTheme guards.
+  storage: { getItem: (key) => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) },
+  root: document.documentElement,
+  media: matchMedia("(prefers-color-scheme: dark)"),
+  onChange: (resolved, pref) => {
+    dock.updateOptions({ theme: resolved === "dark" ? themeDark : themeLight });
+    document.querySelectorAll("[data-theme-pref]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.themePref === pref)));
+  },
+});
+document.querySelectorAll("[data-theme-pref]").forEach((button) => button.addEventListener("click", () => theme.set(button.dataset.themePref)));
 
 const addPanel = (id, position, size) => dock.addPanel({ id, component: id, title: PANELS[id], position, ...size });
 
