@@ -16,7 +16,7 @@ Chín mốc của Trường Thịnh (Những năm 2000 tới Hôm nay, có 2021 
   ghi mã máy hay khổ ván lên hình.
 - Mỗi mốc vẽ máy hoặc sản phẩm, không cả hai; không biểu tượng tôn giáo. Mốc 2020 là tấm ván nesting phôi tủ (bản vẽ kỹ thuật, không
   vân gỗ, không ghi khổ ván).
-- Sinh bằng `draw5.py` (Library `thiet-ke-trang-gioi-thieu/v2/`; tấm ván: `nesting/build_svg.py`), không sửa tay.
+- Sinh bằng `draw6.py` (Library `thiet-ke-trang-gioi-thieu/v2/`; tấm ván: `nesting/build_svg.py`), không sửa tay.
 
 ## Bố cục
 
