@@ -117,7 +117,7 @@ Then /news/a/ và /news/b/ trả 301 thẳng tới /news/c/
 ### R4. Preview URL của `workers.dev`
 
 `wrangler.static.toml` và `wrangler.toml` đều ghi `preview_urls = false`. Admin Worker chỉ chạy ở custom domain
-`admin.truongthinhads.vn` (hai ứng dụng Access "Người dùng" và "Máy" phủ hostname này), `workers_dev = false` nên URL
+`cms.truongthinhads.vn` (hai ứng dụng Access "Người dùng" và "Máy" phủ hostname này), `workers_dev = false` nên URL
 `workers.dev` cũ tắt (owner 2026-11-23).
 
 ```gherkin

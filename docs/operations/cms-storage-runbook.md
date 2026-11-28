@@ -39,7 +39,7 @@ Số seat Access đang dùng: 1 (owner), 2026-11-23 (`cms.md` R2).
 
 Gỡ Worker admin: `pnpm demo:wrangler delete --config wrangler.toml`, bỏ job `deploy-admin` khỏi `ci.yml`. Xóa D1 và hai bucket trên dashboard khi không cần dữ liệu. Tắt hai ứng dụng Access và chính sách Service Auth của staging. Site thật và staging không đọc D1 hay R2 ở chặng S nên không đổi.
 
-Không bật được Access trên `workers.dev`: dừng, chạy lệnh gỡ Worker ở trên và báo owner; phương án thay là nối `admin.truongthinhads.vn` (owner duyệt riêng).
+Không bật được Access trên `workers.dev`: dừng, chạy lệnh gỡ Worker ở trên và báo owner; phương án thay là nối `cms.truongthinhads.vn` (owner duyệt riêng).
 
 `deploy-admin` lỗi quyền vì token không có quyền D1: không thêm quyền đoán; báo owner dòng lỗi. Hai phương án: thêm quyền D1 Read cho token của environment, hoặc trả secret về mức repo.
 
@@ -120,7 +120,7 @@ Owner nhập một lần; agent không đọc giá trị. Admin Worker dùng tok
 Panel "Tài khoản" của editor (menu Bảng, chỉ owner) thêm người, đổi vai trò, khóa và mở lại; Worker tự sửa danh sách email trong chính sách Access của app admin. Owner nhập một secret một lần; agent không đọc giá trị.
 
 1. Cloudflare, My Profile, API Tokens, Create Token, Custom token: tên `tt-cms-access`; Permissions: Account, Access: Apps and Policies, Edit; Account Resources: tài khoản của site; TTL 1 năm. Chép token.
-2. Zero Trust, Access controls, Policies, Reusable policies, policy "CMS admin owner" (gắn vào app `admin.truongthinhads.vn`): id policy nằm trong URL trang sửa policy, ghi ở `ACCESS_POLICY_ID` trong `[vars]` của `wrangler.toml` (không bí mật). Worker sửa policy này qua API reusable policy, nên mọi app gắn policy này đều đổi theo.
+2. Zero Trust, Access controls, Policies, Reusable policies, policy "CMS admin owner" (gắn vào app `cms.truongthinhads.vn`): id policy nằm trong URL trang sửa policy, ghi ở `ACCESS_POLICY_ID` trong `[vars]` của `wrangler.toml` (không bí mật). Worker sửa policy này qua API reusable policy, nên mọi app gắn policy này đều đổi theo.
 3. Cloudflare, Workers & Pages, `truong-thinh-admin`, Settings, Variables and Secrets: secret `ACCESS_API_TOKEN`: trên PC owner gõ `pnpm token:roll cms-access` (tạo token và đặt secret, không ai dán tay).
 4. Kiểm: thêm một email thử ở panel Tài khoản, thấy email đó trong policy; khóa nó, email biến khỏi policy. Ghi ngày hết hạn token vào bảng dưới.
 5. Thiếu secret hoặc API lỗi: thêm và mở lại báo "Chưa đổi được quyền đăng nhập", không đổi gì; khóa vẫn chặn ngay trong CMS, dòng đó có "Thử lại". Cron 18:05 UTC so policy với bảng tài khoản và ghi lệch vào `access_drift` (panel báo số email lệch), không tự sửa.

@@ -7,7 +7,7 @@ preview_urls = false
 
 # The only admin URL: the user and machine Access apps cover this hostname (docs/specs/cms-data.md R4).
 [[routes]]
-pattern = "admin.truongthinhads.vn"
+pattern = "cms.truongthinhads.vn"
 custom_domain = true
 
 [assets]
