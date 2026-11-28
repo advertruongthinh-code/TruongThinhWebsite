@@ -4,7 +4,7 @@
   color-scheme: light;
   --ink: #17212b;
   --muted: #5d6874;
-  --faint: #8a939c;
+  --faint: #636d78;
   --line: #d9dde2;
   --line-soft: #e8ebee;
   --paper: #f6f7f9;
@@ -88,7 +88,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 /* Content panel (R2): sticky search and filters, groups with a count and Tạo, two-line rows with text labels. */
 .panel--content { display: flex; flex-direction: column; padding: 0; }
 .content__tools { position: sticky; top: 0; z-index: 1; display: grid; gap: 8px; padding: 12px 12px 10px; border-bottom: 1px solid var(--line-soft); background: var(--card); }
-.search { padding-left: 30px; background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%238a939c' stroke-width='1.6'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='m9.5 9.5 3.5 3.5'/%3E%3C/svg%3E") no-repeat 10px 50%; }
+.search { padding-left: 30px; background: var(--card) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23636d78' stroke-width='1.6'%3E%3Ccircle cx='6' cy='6' r='4.5'/%3E%3Cpath d='m9.5 9.5 3.5 3.5'/%3E%3C/svg%3E") no-repeat 10px 50%; }
 .segs { display: flex; gap: 2px; padding: 2px; border-radius: var(--radius); background: var(--paper); }
 .seg { flex: 1; padding: 4px 0; border: 0; border-radius: 4px; background: none; color: var(--muted); font-size: 12.5px; white-space: nowrap; }
 .seg:hover { color: var(--ink); }
