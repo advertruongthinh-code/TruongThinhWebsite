@@ -16,7 +16,7 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
   chip đang chọn gạch chân 2px; số kết quả `sup` 10px. Không có chip "Tất cả": bấm lại chip đang chọn để về tất cả. Chip
   lấy từ chip của lưới, lọc trong kết quả, nhiều card xếp trước; bấm chip giữ đủ hàng. Tràn ngang thì mờ mép phải, chuột kéo hoặc lăn trên hàng để cuộn và nút icon mũi tên `.search-bar__more`
   (nhãn "Hiện tất cả (N)" / "Thu gọn") ghim cuối hàng mở bảng `.search-bar__all` thế chỗ hàng chip, liền hàng nhập thành một khung (mọi chip,
-  xuống dòng, dòng đầu đúng chỗ chip của hàng, chỗ nối là đường mảnh); mở thì hàng chip bị phủ và `inert`, không chip nào hiện hai lần. Bảng mọc lên từ đúng hàng chip và thu về bằng morph chiều cao, mũi tên đứng trên bảng, quay 180 độ cùng nhịp.
+  xuống dòng, lúc bắt đầu mở dòng đầu đúng chỗ chip của hàng, chỗ nối là đường mảnh); mở thì hàng chip bị phủ và `inert`, không chip nào hiện hai lần. Bảng mọc lên từ đúng hàng chip và thu về bằng morph chiều cao, mũi tên đứng trên bảng, quay 180 độ cùng nhịp.
 - Hàng chữ: mép trái tới chữ 18px; bên phải nút xoá chữ (khi đã gõ), vạch 22px, ô ảnh, kính lúp; nút 40px, icon 20px.
   Chữ nhập 16px. Focus: viền trong 1px `ink`; nút và link có outline 2px khi `:focus-visible`.
 - Gợi ý `[data-search-hint]` đổi mỗi 3 giây bằng cú trượt dọc 450ms, dừng khi focus hoặc hover; reduced motion chỉ hiện gợi ý
@@ -28,7 +28,7 @@ Thanh tìm kiếm trên mọi trang Advertising. JavaScript dựng thanh sau lư
 - Khe CTA: link "Trao đổi ý tưởng" dưới thanh như link trang Công trình; khoảng trên và dưới thanh bằng nhau theo mắt, cụm
   tiêu đề và thanh nằm ở tâm thị giác khi cuộn tới cuối ([R4](../../../docs/specs/search-bar.md#r4-khe-cta)).
 - Đổi chỗ dứt khoát theo vị trí cuộn ([R7](../../../docs/specs/search-bar.md#r7-vào-khe-dứt-khoát)): `dock.mjs` chọn một trong ba chỗ mỗi frame cuộn. Vào và ra khe CTA: Web Animations morph bề rộng, bóng, hàng chip (CSS transition mất khi chuyển parent). Vào khe đầu trang (cả lúc tải sau lớp phủ): khối kéo dài từ ô vuông 49px ra đủ khe (`.is-stretching`, nội dung bị cắt trong viền). Khi cả thanh đã khuất dưới header, thanh nổi bay lên từ mép dưới (`.search-host.is-rising`).
-- Nhịp: mọi chuyển động của thanh (bề rộng, hàng chip, bảng, khe, bay lên, trượt xuống, trượt về đầu lưới) theo nhịp card masonry, `--search-morph` = `--dur-card` 400ms, `--search-ease` = `ease` (owner 2026-11-23); chữ gợi ý và thông báo `--dur-fade` `--ease-expo-out` như ảnh lưới hiện dần.
+- Nhịp: mọi chuyển động của thanh (bề rộng, hàng chip, bảng, khe, bay lên, trượt xuống) theo nhịp card masonry, `--search-morph` = `--dur-card` 400ms, `--search-ease` = `ease` (owner 2026-11-23); trượt về đầu lưới cùng 400ms; chữ gợi ý và thông báo `--dur-fade` `--ease-expo-out` như ảnh lưới hiện dần.
 - Tìm xong về đầu lưới ([R9](../../../docs/specs/search-bar.md#r9-tìm-xong-về-đầu-lưới)): `glideToGrid` trong `masonry/runtime.mjs` gọi `TruongThinhMotion.glideTo` (`--dur-card` 400ms, đường `--ease-card`, cùng lúc card trượt).
 - Trang gốc, trang nhóm, trang sản phẩm có thanh; đang lọc thì tìm trong bộ lọc ([R8](../../../docs/specs/search-bar.md#r8-thanh-khi-đang-lọc-tìm-trong-nhóm)). Trang card có `data-search-off`, khe ẩn, thanh nổi trượt xuống rồi ẩn (`.search-host.is-off`).
 - Nhóm không có kết quả: thông báo "Nhóm này chưa có" kèm nút chữ "Tìm tất cả" (`.search-bar__action`, gạch chân 2px) phủ cả hàng nhập; `.has-wide-note` tạm ẩn nút ảnh và kính lúp.

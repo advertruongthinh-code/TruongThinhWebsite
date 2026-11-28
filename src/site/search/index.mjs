@@ -289,14 +289,16 @@ export function mount(container, { signal, softNavigation = false } = {}) {
     row.append(...products.map(chipFor));
     list.replaceChildren(...products.map(chipFor));
     total = products.length;
-    setPanel(isOpen() && total > 0);
     const scrollLeft = chips.querySelector(".search-bar__chiprow")?.scrollLeft ?? 0;
-    row.inert = isOpen();
+    // Re-inserting the button drops its focus: a keyboard pick from the panel keeps focus on it.
+    const focused = document.activeElement === more;
     chips.replaceChildren(row, more);
+    if (focused) more.focus({ preventScroll: true });
+    setPanel(isOpen() && total > 0);
     row.scrollLeft = scrollLeft;
     const fade = () => row.toggleAttribute("data-more", row.scrollLeft + row.clientWidth < row.scrollWidth - 1);
     row.addEventListener("scroll", fade, { passive: true });
-    // The row's width follows the bar (the 1s results morph, resize): the button shows while any chip is cut off.
+    // The row's width follows the bar (the results morph, resize): the button shows while any chip is cut off.
     rowObserver.disconnect();
     rowObserver.observe(row);
     bar.toggleAttribute("data-results", products.length > 0);
