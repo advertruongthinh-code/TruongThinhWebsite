@@ -15,7 +15,10 @@ export async function requireActor(request, env, url) {
   if (local) return { email: local, role: "owner" };
   const servicePath = SERVICE_PATHS.has(url.pathname);
   const claims = await verifyAccessJwt(request, env, servicePath ? env.ACCESS_SERVICE_AUD : env.ACCESS_AUD);
-  if (!claims) return null;
+  if (!claims) {
+    logRefusal(request, env, "jwt");
+    return null;
+  }
   if (servicePath) {
     // A service token JWT has no email; common_name is the token's client id (Cloudflare Access docs).
     return request.method === "GET" && claims.common_name && claims.common_name === env.SERVICE_TOKEN_CLIENT_ID ? { service: true } : null;
@@ -23,8 +26,26 @@ export async function requireActor(request, env, url) {
   const email = typeof claims.email === "string" ? claims.email.trim().toLowerCase() : "";
   if (!email) return null;
   const account = await env.DB.prepare("SELECT role, status FROM accounts WHERE email = ?").bind(email).first();
-  if (account) return account.status === "active" ? { email, role: account.role } : null;
-  return bootstrapOwner(env, email);
+  if (account) return account.status === "active" ? { email, role: account.role } : (logRefusal(request, env, `account ${account.status}`), null);
+  return (await bootstrapOwner(env, email)) ?? (logRefusal(request, env, "no account"), null);
+}
+
+// One log line per refused person, for `wrangler tail` (the JWT header itself is redacted there).
+// Claims are read unverified and only named: never the token or its signature.
+function logRefusal(request, env, reason) {
+  let claims = {};
+  try {
+    claims = decodeJwtPart(String(request.headers.get("Cf-Access-Jwt-Assertion") ?? "").split(".")[1] ?? "");
+  } catch {}
+  const now = Math.floor(Date.now() / 1000);
+  console.warn(JSON.stringify({
+    refused: reason,
+    iss: claims?.iss ?? null,
+    expectIss: accessTeamOrigin(env),
+    audOk: hasExpectedAudience(claims?.aud, String(env.ACCESS_AUD || "").split(",").map((v) => v.trim()).filter(Boolean)),
+    expired: typeof claims?.exp === "number" ? claims.exp <= now : null,
+    email: typeof claims?.email === "string" ? claims.email : null,
+  }));
 }
 
 // Inserts the first owner once, only while accounts is empty and the email is CMS_BOOTSTRAP_OWNER.
