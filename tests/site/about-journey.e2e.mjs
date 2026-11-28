@@ -1,7 +1,8 @@
 // About journey (detail-pages R3, R9): nine milestones beside one sticky drawing per milestone. From 981px with motion each
 // milestone is a stage: when its year passes the line its drawing plays on its own from a white first frame to complete, and
 // scrolling back rewinds it, then the previous drawing shows complete; a drawing never stops halfway (owner 2026-11-24).
-// Each milestone's rail node sits beside its year and scrolls with it (owner 2026-11-24). Below 981px each milestone shows its
+// Each milestone's rail node sits beside its year and scrolls with it (owner 2026-11-24); the rail runs on past today and
+// fades out (owner 2026-11-28). Below 981px each milestone shows its
 // own complete drawing. No kicker in the content (owner 2026-11-24); the page ends with the client logos then the CTA.
 // Run: pnpm dev, then BASE_URL=http://127.0.0.1:8787 node --test tests/site/about-journey.e2e.mjs
 import assert from "node:assert/strict";
@@ -79,6 +80,12 @@ test("1440: a drawing plays to the end on its own once its year passes, and rewi
     await logicalScroll(page, await yearAt(page, 2, 0.7));
     await page.waitForTimeout(2000);
     assert.equal((await art(page, 2)).current, false, "the printer waits for its year");
+    const rail = await page.evaluate(() => {
+      const box = document.querySelector(".about-journey__rail").getBoundingClientRect();
+      const year = [...document.querySelectorAll(".about-journey__year")].at(-1).getBoundingClientRect();
+      return { past: box.bottom - (year.top + year.height / 2) };
+    });
+    assert(rail.past > 100, `the rail runs on past today into the future: ${rail.past}`);
     const before = await nodes(page);
     assert(before.every((n) => n.gap <= 1), `each node sits beside its year: ${before.map((n) => n.gap.toFixed(1))}`);
     await logicalScroll(page, await yearAt(page, 2, 0.5));

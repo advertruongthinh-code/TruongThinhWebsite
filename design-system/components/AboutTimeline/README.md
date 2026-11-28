@@ -19,7 +19,7 @@ Chín mốc của Trường Thịnh (Những năm 2000 tới Hôm nay, có 2021 
 ## Bố cục
 
 - Từ 981px: cột trái khung bản vẽ sticky; cột phải chín `article` mốc, mốc đang đọc đậm, mốc khác `ink` 20%. Thanh tiến độ nằm
-  ở khe giữa hai cột, mỗi nút ngang tâm năm của mốc mình và trôi cùng chữ; phần cam chạy tới nút mốc hiện tại.
+  ở khe giữa hai cột, chạy từ nút đầu qua Hôm nay rồi mờ dần (tương lai); mỗi nút ngang tâm năm của mốc mình và trôi cùng chữ; phần cam chạy tới nút mốc hiện tại.
 - Tới 980px: một cột, mỗi mốc có bản vẽ đủ của nó ở trên chữ, không thanh tiến độ. Sân khấu vẫn render trong ô 1px trong suốt
   (không `display: none`), vì ảnh nhỏ dùng lại bản vẽ của nó.
 

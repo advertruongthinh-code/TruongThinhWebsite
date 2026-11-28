@@ -1225,6 +1225,8 @@
   width: 2px;
   height: var(--about-journey-rail-height, 100%);
   background: var(--line);
+  /* Past today the line goes on and fades out: the journey continues (owner 2026-11-28). */
+  mask-image: linear-gradient(#000 calc(100% - 0.6 * var(--about-journey-rail-tail, 0px)), transparent);
 }
 
 .about-journey__rail-fill {
