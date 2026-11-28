@@ -2,10 +2,15 @@
 // opened last. Panels live in their own modules; the dock tools (pin, edges, layout history) live in dock-tools.js.
 import { call, MESSAGES, SESSION_EVENT } from "./api.js";
 import { dockOptions, setupDockTools } from "./dock-tools.js";
-import { h, toast } from "./dom.js";
+import { draftKey, session } from "./drafts.js";
+import { h, time, toast } from "./dom.js";
 import { mountAccounts } from "./ops/accounts.js";
 import { mountContent, nameOf } from "./panels/content.js";
-import { lastOpen, setOpen, state } from "./state.js";
+import { mountDrafts } from "./panels/drafts.js";
+import { mountPreview } from "./panels/preview.js";
+import { mountPageProps } from "./panels/props/page.js";
+import { refreshContext } from "./site-context.js";
+import { hasDraft, lastOpen, selectBlock, setOpen, state } from "./state.js";
 import { initTheme } from "./theme.mjs";
 
 const { createDockview, themeLight, themeDark } = window.dockview;
@@ -30,33 +35,97 @@ if (me.error) {
 state.user = me.data;
 if (me.data.role !== "owner") delete PANELS.accounts;
 
-// Panels that later tasks fill (E13 to E16) show what they will hold, so the default layout is already the final one.
+// Panels that later tasks fill (E14 to E16) show what they will hold, so the default layout is already the final one.
 const empty = (title, text) => h("div", { className: "empty" }, h("p", { className: "empty__title" }, title), h("p", {}, text));
 const panels = Object.fromEntries(Object.keys(PANELS).map((id) => [id, h("section", { className: `panel panel--${id}` })]));
 mountContent(panels.content, { open });
+mountPreview(panels.preview);
+const props = mountPageProps(panels.props);
 panels.media.append(empty("Thư viện media", "Ảnh và video của site, upload và khung crop sẽ ở đây."));
-panels.drafts.append(empty("Chưa có nháp", "Thay đổi chưa lưu trên máy này sẽ hiện ở đây."));
+mountDrafts(panels.drafts, { open });
 if (PANELS.accounts) mountAccounts(panels.accounts, { toast });
 
-function renderOpen() {
-  const record = state.open;
-  const name = nameOf(record.type, { id: record.id, name: record.name });
+// Top bar: name, status, "Chưa lưu · n thay đổi", and the Hoàn tác and Lưu buttons (R8).
+function renderTop() {
+  const { record, changes } = session.state;
+  if (!record) return;
+  const name = nameOf(record.type, { id: record.id, name: session.state.data?.title?.vi ?? session.state.data?.titleVi ?? session.state.data?.name });
   $("#record-name").textContent = name;
   $("#record-status").textContent = STATUS[record.status] ?? "";
   $("#record-status").dataset.status = record.status;
-  panels.preview.replaceChildren(empty(name, "Bản xem trước của mục này sẽ hiện ở đây."));
-  panels.props.replaceChildren(empty("Thuộc tính", "Các trường của mục đang mở sẽ hiện ở đây để sửa."));
+  $("#record-unsaved").textContent = changes > 0 ? `Chưa lưu · ${changes} thay đổi` : "";
+  $("#undo").disabled = !session.canUndo();
+  $("#save").disabled = changes === 0 || session.saving();
+  if (hasDraft(record.type, record.id) !== renderTop.had) {
+    renderTop.had = hasDraft(record.type, record.id);
+    state.dispatchEvent(new Event("draft"));
+  }
+  if (session.state.conflict) askConflict();
 }
-state.addEventListener("open", renderOpen);
+for (const name of ["open", "change", "other-tab"]) session.events.addEventListener(name, renderTop);
+session.events.addEventListener("storage-full", () => toast("Bộ nhớ trình duyệt đầy, nháp chưa ghi được. Lưu bài sớm."));
+window.addEventListener("storage", (event) => {
+  const { record } = session.state;
+  if (record && event.key === draftKey(record.type, record.id)) session.otherTab();
+});
+$("#undo").addEventListener("click", () => session.undo());
+$("#save").addEventListener("click", async () => {
+  const saving = session.save();
+  renderTop(); // the button waits until this save is back
+  const result = await saving;
+  if (result.kind === "conflict") return renderTop(); // renderTop asks
+  afterSave(result);
+});
+document.addEventListener("keydown", (event) => {
+  if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === "z" && !event.target.matches?.("input, textarea")) {
+    event.preventDefault();
+    session.undo();
+  }
+});
 
-// Opens a record in the editor (get); a missing record falls back to Trang chủ.
+// R8 table: what the editor shows after a save; the record is already reloaded when it went through.
+function afterSave(result) {
+  toast(result.message);
+  if (["saved", "draft"].includes(result.kind)) {
+    refreshContext();
+    setOpen({ ...session.state.record, data: session.state.data, name: $("#record-name").textContent });
+    if (result.kind === "draft") props.show("missing");
+  } else if (result.errors) props.showErrors(result.errors) || props.show("missing");
+  else if (result.kind === "slug") props.show("info");
+  renderTop();
+}
+
+// R8: the other version's author and time, then "Lấy bản mới" or "Giữ bản của tôi".
+function askConflict() {
+  if (document.querySelector("dialog.conflict")) return;
+  const { current } = session.state.conflict;
+  const finish = async (choice) => {
+    dialog.close();
+    const result = await session.resolve(choice);
+    if (choice !== "take") afterSave(result);
+    else if (result.error) toast("Chưa lấy được bản mới. Nháp vẫn ở máy này, thử lại sau.");
+    else selectBlock(null);
+    renderTop();
+  };
+  const dialog = h("dialog", { className: "conflict", onclose: () => dialog.remove() },
+    h("h2", {}, "Bài này đã có bản mới hơn"),
+    h("p", {}, `${current.updatedBy ?? "Một người khác"} đã lưu bản mới lúc ${time(current.updatedAt)}. Nháp của bạn chưa mất.`),
+    h("menu", {},
+      h("button", { type: "button", onclick: () => finish("take") }, "Lấy bản mới"),
+      h("button", { type: "button", className: "is-primary", onclick: () => finish("keep") }, "Giữ bản của tôi")));
+  document.body.append(dialog);
+  dialog.showModal();
+}
+
+// Opens a record in the editor (get + its draft); a missing record falls back to Trang chủ.
 async function open(type, id) {
-  const result = await call("get", { query: { type, id } });
+  const result = await session.open(type, id);
   if (result.error) {
     if (result.status === 404 && !(type === "page-copy" && id === "home")) return open("page-copy", "home");
     return toast(result.error === "forbidden" ? MESSAGES.forbidden : "Chưa mở được mục này. Thử lại sau.");
   }
-  setOpen({ ...result.data, name: nameOf(type, { id, name: result.data.data?.title?.vi ?? result.data.data?.titleVi ?? result.data.data?.name }) });
+  selectBlock(null);
+  setOpen({ ...session.state.record, data: session.state.data, name: nameOf(type, { id, name: session.state.data?.title?.vi ?? session.state.data?.titleVi ?? session.state.data?.name }) });
 }
 
 // ---------- Dock ----------

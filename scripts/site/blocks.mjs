@@ -33,7 +33,7 @@ const localizedParagraphs = (text, ctx, { lists = false } = {}) => {
   return vi.map((part, index) => (lists && listOf(part) ? listHtml(part, en[index] ?? "", ctx) : marked("p", { vi: part, en: en[index] ?? "" }, "", ctx))).join("\n");
 };
 const image = (media, attributes = 'loading="lazy"') =>
-  `<img src="${media.src}" width="${media.width}" height="${media.height}" alt="${escapeHtml(media.altVi)}" data-en-alt="${escapeHtml(media.altEn)}" ${attributes} />`;
+  `<img src="${escapeHtml(media.src)}" width="${media.width}" height="${media.height}" alt="${escapeHtml(media.altVi)}" data-en-alt="${escapeHtml(media.altEn)}" ${attributes} />`;
 // Classes are written out in full so the orphan-selectors test sees where each CSS variant is generated.
 const IMAGE_POSITION = { wide: "blk-image--wide", "left-2-3": "blk-image--left-2-3", "right-2-3": "blk-image--right-2-3", "left-1-2": "blk-image--left-1-2", "right-1-2": "blk-image--right-1-2" };
 const PAIR_LAYOUT = { equal: "blk-pair--equal", "left-large": "blk-pair--left-large", "right-large": "blk-pair--right-large" };
@@ -466,4 +466,8 @@ export const duplicatePageFields = (pages, at) => ["id", "slugVi", "slugEn"].fla
 });
 
 // Call only with data that passed validateBlockPage.
-export const renderBlocks = (page, ctx) => page.blocks.map((block) => BLOCKS[block.type].render(block, ctx, page)).join("\n");
+// ctx.editor (the CMS preview, cms-editor R3) marks each block root with its index so the overlay can select it; a build never sets it.
+export const renderBlocks = (page, ctx) => page.blocks.map((block, index) => {
+  const html = BLOCKS[block.type].render(block, ctx, page);
+  return ctx.editor ? html.replace(/^(\s*<[a-z][\w-]*)/, `$1 data-block-index="${index}"`) : html;
+}).join("\n");

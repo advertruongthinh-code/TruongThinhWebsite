@@ -91,13 +91,13 @@ export function mountContent(root, { open }) {
       onclick: () => open(type, item.id),
       oncontextmenu: (event) => {
         event.preventDefault();
-        menu(type, item, event.clientX, event.clientY);
+        menu(type, item, event.clientX, event.clientY, button);
       },
       onkeydown: (event) => {
         if (event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) {
           event.preventDefault();
           const box = button.getBoundingClientRect();
-          menu(type, item, box.left + 24, box.bottom);
+          menu(type, item, box.left + 24, box.bottom, button);
         } else if (draggable && event.altKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
           event.preventDefault();
           const index = list.indexOf(item);
@@ -107,9 +107,11 @@ export function mountContent(root, { open }) {
     },
     draggable && h("span", { className: "row__handle", ariaHidden: "true" }),
     h("span", { className: "row__main" },
-      h("span", { className: "row__name" }, nameOf(type, item)),
+      h("span", { className: "row__name", title: nameOf(type, item) }, nameOf(type, item)),
       h("span", { className: "row__line" }, badges(type, item),
-        h("span", { className: "row__meta" }, [item.updatedBy, time(item.updatedAt)].filter(Boolean).join(" · ")))));
+        // The email (last editor, owner 2026-11-28) shrinks with an ellipsis; the time never gets cut.
+        h("span", { className: "row__meta", title: [item.updatedBy, time(item.updatedAt)].filter(Boolean).join(" · ") },
+          h("span", { className: "row__who" }, item.updatedBy), item.updatedBy && item.updatedAt && " · ", h("span", { className: "row__when" }, time(item.updatedAt))))));
     if (draggable) {
       button.addEventListener("dragstart", (event) => {
         event.dataTransfer.effectAllowed = "move";
@@ -172,9 +174,15 @@ export function mountContent(root, { open }) {
 
   const menuNode = h("div", { className: "ctx-menu", role: "menu", hidden: true });
   document.body.append(menuNode);
+  let opener = null;
   const closeMenu = () => (menuNode.hidden = true);
   document.addEventListener("pointerdown", (event) => menuNode.contains(event.target) || closeMenu());
-  document.addEventListener("keydown", (event) => event.key === "Escape" && closeMenu());
+  // Esc gives the focus back to the row the menu came from.
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape" || menuNode.hidden) return;
+    closeMenu();
+    opener?.focus();
+  });
 
   function stagingPath(type, item) {
     if (FIXED[type]) return FIXED[type][item.id]?.[1] ?? "/";
@@ -184,7 +192,8 @@ export function mountContent(root, { open }) {
     return null;
   }
 
-  function menu(type, item, x, y) {
+  function menu(type, item, x, y, row) {
+    opener = row;
     const path = stagingPath(type, item);
     const origin = state.user?.stagingOrigin;
     const ready = item.status === "published" && path && origin && (FIXED[type] || item.slugVi || type === "advertising-card");
@@ -332,6 +341,7 @@ export function mountContent(root, { open }) {
     h("div", { className: "content__groups" }, groups),
   );
   state.addEventListener("open", renderAll);
+  state.addEventListener("draft", renderAll);
   GROUPS.filter((group) => view.expanded.has(group.key)).forEach((group) => group.types.forEach((type) => load(type, { all: group.reorder })));
   renderAll();
 

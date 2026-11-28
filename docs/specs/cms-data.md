@@ -203,7 +203,7 @@ Then lần dựng đó dùng code của commit X với nội dung mới
 | `reorder` | `{ type, ids }`: mọi id chưa vào thùng rác của kiểu, theo thứ tự mới; card Advertising thêm `scope` (id sản phẩm chính), chỉ xếp card của sản phẩm đó | 200; 409 khi tập id khác hiện tại |
 | `retry-variant` | `{ key }` của một biến thể `error` | 202, biến thể về `pending` |
 | `resume-publish`, `rebuild` | `{}` | 200, 202 |
-| `list`, `get`, `media-list`, `account-list`, `audit-log`, `build-status` | query | 200; `get` kèm `variants` (`key`, `status`, `error` của từng biến thể bản ghi đang dùng); `build-status` kèm `held`, `releases` (10 dấu phát hành), `releaseRuns` |
+| `list`, `get`, `media-list`, `account-list`, `audit-log`, `build-status` | query | 200; `get` kèm `variants` (`key`, `status`, `error` của từng biến thể bản ghi đang dùng) và `media` (bản ghi media mà bản ghi đang đặt, khóa theo `id`, để editor kiểm và dựng preview bản nháp); `build-status` kèm `held`, `releases` (10 dấu phát hành), `releaseRuns` |
 | `whoami`, `context`, `release-changes` | không | 200: `{ email, role, stagingOrigin }` của người gọi (`stagingOrigin` từ biến `STAGING_ORIGIN_PUBLIC`, cho link "Mở trên staging"); `data` của mọi News và công trình `published` cho preview; thay đổi kể từ lần phát hành trước |
 | `media-file` | `?id=` | Byte bản gốc cho người đã đăng nhập, dùng cho xem trước; kèm `nosniff` và CSP `sandbox` |
 | `snapshot`, `media-original` | chỉ service token | R2; byte bản gốc kèm `X-Hash` |

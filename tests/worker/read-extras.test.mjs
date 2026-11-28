@@ -1,6 +1,7 @@
 // retry-variant, context and the read fields of get, list, audit-log, build-status (CMS plan part 2 K11, E11).
 import assert from "node:assert/strict";
 import test from "node:test";
+import { mediaRefs } from "../../src/cms/media-ref.mjs";
 import { isStagingBehind } from "../../src/worker/commands/build-status.mjs";
 import { COMMANDS } from "../../src/worker/router.mjs";
 import { seededEnv } from "./worker-env.mjs";
@@ -29,6 +30,9 @@ test("get lists every variant the record uses", async () => {
     { key: key("b"), mediaId: media, status: "pending", error: null },
     { key: key("c"), mediaId: media, status: "error", error: "timeout" },
   ]);
+  // The media records the project places come with it, keyed by id (the editor validates and previews a draft with them).
+  const placed = new Set(mediaRefs("project", got.body.data).map((ref) => ref.mediaId));
+  assert.ok(placed.size > 0 && [...placed].every((id) => got.body.media[id]?.id === id), "media of every placement");
   assert.equal((await t.call("get", undefined, "?type=project&id=no-such")).status, 404);
 });
 

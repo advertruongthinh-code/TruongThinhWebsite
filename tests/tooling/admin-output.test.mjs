@@ -16,7 +16,8 @@ test("build-admin writes .admin-output with only pure lib modules and no service
   const { modules } = await buildAdmin();
   assert.equal(existsSync(path.join(ADMIN_OUTPUT, "sw.js")), false);
   assert.equal(existsSync(path.join(ADMIN_OUTPUT, "index.html")), true);
-  for (const file of ["admin/index.html", "admin/editor.js", "admin/preview.html", "admin/vendor/dockview/dockview.min.js"]) {
+  for (const file of ["admin/index.html", "admin/editor.js", "admin/preview.html", "admin/overlay.js", "admin/overlay.css", "admin/page-editor.css", "admin/head-inline.js",
+    "admin/pages/frames/about.html", "admin/pages/frames/residential.html", "admin/pages/frames/commercial.html", "admin/vendor/dockview/dockview.min.js"]) {
     assert.equal(existsSync(path.join(ADMIN_OUTPUT, file)), true, file);
   }
   const lib = path.join(ADMIN_OUTPUT, "admin/lib");

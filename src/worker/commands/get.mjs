@@ -1,5 +1,8 @@
-// GET /api/admin/get?type=&id= (CMS plan P1, Q9; part 2 K11): the record plus the variants its placements use.
+// GET /api/admin/get?type=&id= (CMS plan P1, Q9; part 2 K11): the record, the variants its placements use and the media records
+// it places (`media`, id -> data), which the editor needs to validate and preview a draft (cms-editor R3, R4).
+import { mediaRefs } from "../../cms/media-ref.mjs";
 import { HttpError, json } from "../http.mjs";
+import { loadMedia } from "../records.mjs";
 
 export default {
   method: "GET",
@@ -12,6 +15,9 @@ export default {
     ]);
     const row = record.results[0];
     if (!row) throw new HttpError(404, { error: "not-found" });
-    return json({ type, id, status: row.status, version: row.version, pending: row.pending, data: JSON.parse(row.data), updatedAt: row.updated_at, updatedBy: row.updated_by, variants: variants.results });
+    const data = JSON.parse(row.data);
+    const ids = [...new Set(mediaRefs(type, data).map((ref) => ref.mediaId).filter((mediaId) => typeof mediaId === "string"))];
+    const media = Object.fromEntries(await loadMedia(env, ids));
+    return json({ type, id, status: row.status, version: row.version, pending: row.pending, data, updatedAt: row.updated_at, updatedBy: row.updated_by, variants: variants.results, media });
   },
 };

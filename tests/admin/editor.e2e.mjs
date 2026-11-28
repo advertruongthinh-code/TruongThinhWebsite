@@ -165,6 +165,144 @@ try {
   assert.equal(await page.locator(".ctx-menu button", { hasText: "Mở trên staging" }).isDisabled(), true);
   await page.keyboard.press("Escape");
 
+  // (E12 carry-over) A new Advertising card opens as Nháp; it needs a product, which the dialog preselects.
+  await page.locator('.group[data-group="cards"] .group__create').click();
+  dialog = page.locator("dialog.dialog");
+  await dialog.getByLabel("Tên tiếng Việt").fill("Biển hiệu thử E13");
+  await dialog.getByRole("button", { name: "Tạo" }).click();
+  await page.waitForFunction(() => document.querySelector("#record-name").textContent === "Biển hiệu thử E13");
+  assert.equal(await page.textContent("#record-status"), "Nháp");
+
+  // (E13) R3, R4, R8 on a seeded News post.
+  const post = (await api(page, "list?type=news")).items[1];
+  // Two new photos (a 1x1 PNG claimed as 1500x1000), so no other page already uses them (one photo, one page).
+  const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==", "base64");
+  const upload = async (name) => (await page.request.fetch(`${baseUrl}/api/admin/upload-media?slugBase=${name}&width=1500&height=1000&altVi=${encodeURIComponent(`Ảnh ${name}`)}&altEn=${name}`,
+    { method: "POST", data: png, headers: { "Content-Type": "image/png", Origin: baseUrl } })).json();
+  const free = [(await upload("anh-thu-mot")).id, (await upload("anh-thu-hai")).id];
+  assert.ok(free.every(Boolean), "uploads gave ids");
+  await page.locator('.group[data-group="news"] .row', { hasText: post.name }).click();
+  await page.waitForFunction((name) => document.querySelector("#record-name").textContent === name, post.name);
+  const frame = page.frameLocator(".preview__frame");
+  await frame.locator("h1").first().waitFor();
+  assert.deepEqual(await page.locator(".preview__bar .segs").first().locator(".seg").allTextContents(), ["384", "768", "1024", "1280", "1440", "1920"]);
+  const tabs = (name) => page.locator(".props__tabs button", { hasText: name });
+  const blocks = () => frame.locator("[data-block-index]").count();
+  // The site's own reveal motion finishes within a second; screenshots wait for it.
+  const settle = async () => {
+    await frame.locator("h1").first().waitFor();
+    await page.waitForTimeout(1200);
+  };
+
+  // R3 Gherkin: a title typed before the switch to 384 is still in the reloaded preview, unsaved, and the iframe is 384px wide.
+  await page.locator('[data-field="title"] input').first().fill("Tiêu đề thử E13");
+  await page.locator(".preview__bar .seg", { hasText: "384" }).click();
+  await page.waitForFunction(() => document.querySelector(".preview__frame")?.offsetWidth === 384);
+  await frame.locator("h1", { hasText: "Tiêu đề thử E13" }).waitFor();
+  await shot(page, "6-moc-384");
+  assert.equal(await page.textContent("#record-unsaved"), "Chưa lưu · 1 thay đổi");
+  assert.ok(await page.evaluate((id) => localStorage.getItem(`tt-cms-draft:news:${id}`), post.id));
+  await page.locator(".preview__bar .seg", { hasText: "1440" }).click();
+  // A click on a block selects it on the preview and opens its text fields.
+  await frame.locator("[data-block-index]").first().click();
+  assert.equal(await frame.locator(".tt-selected").count(), 1);
+  await page.locator(".block-fields h3").waitFor();
+  await shot(page, "7-chon-khoi");
+  await page.keyboard.press("Control+z");
+  assert.equal(await page.textContent("#record-unsaved"), "", "undo takes the title edit back");
+  await page.locator('[data-field="title"] input').first().fill("Tiêu đề thử E13");
+
+  // Markup in a bare field never reaches the same-origin preview: the old HTML stays and the note says why.
+  const previewBefore = await page.evaluate(() => window.TTPreview.html());
+  await page.locator('[data-field="slugVi"] input').fill('"><img src=x onerror=PWN>');
+  await page.locator(".preview__note", { hasText: "giữ bản cũ" }).waitFor();
+  assert.equal(await page.evaluate(() => window.TTPreview.html()), previewBefore);
+  await page.click("#undo");
+  await page.locator(".preview__note", { hasText: "giữ bản cũ" }).waitFor({ state: "hidden" });
+
+  // R4 Gherkin: with 4 media the 6 to 11 layout is dimmed with its note; adding two opens it and the chain follows.
+  await tabs("Layout").click();
+  const six = page.locator(".layout", { hasText: "6 tới 11 ảnh" });
+  assert.equal(await six.isDisabled(), true);
+  assert.match(await six.textContent(), /thêm 2 media để mở/);
+  await shot(page, "8-layout");
+  const chain = await blocks();
+  await tabs("Media của bài").click();
+  await page.locator("button", { hasText: "Thêm media" }).click();
+  for (const id of free) {
+    await page.locator(".picker .search").fill(id);
+    await page.locator(".picker__tile").first().waitFor();
+    await page.locator(".picker__tile", { hasText: id.slice(0, 6) }).first().click();
+  }
+  assert.equal(await page.locator(".media-row").count(), 6);
+  await settle();
+  await shot(page, "9-media-cua-bai");
+  await tabs("Layout").click();
+  await six.click();
+  await frame.locator("[data-block-index]").nth(chain).waitFor();
+  assert.ok((await blocks()) > chain, "the 6 to 11 chain has more blocks");
+  await shot(page, "5-bai-news");
+
+  // R8: save with the new empty blocks is a 400 that keeps the draft and lists what is missing; the request carries only mediaId and crop.
+  let saved;
+  page.on("request", (request) => request.url().endsWith("/api/admin/save") && (saved = request.postDataJSON()));
+  await page.click("#save");
+  await page.getByText(/Chưa lưu được: còn thiếu/).waitFor();
+  assert.ok(await page.evaluate((id) => localStorage.getItem(`tt-cms-draft:news:${id}`), post.id), "the draft stays after a 400");
+  const placements = JSON.stringify(saved.data).match(/"mediaId":"[^"]+"[^{}]*/g) ?? [];
+  assert.ok(placements.length >= 6 && placements.every((text) => !/"src"|"width"|"altVi"/.test(text)), "placements are mediaId and crop only");
+  await tabs("Còn thiếu").click();
+  assert.ok(await page.locator(".problem").count() > 0);
+  await settle();
+  await shot(page, "10-con-thieu");
+  // Fill the empty block, then a version conflict: someone else saved first, so the dialog names them and the draft survives.
+  const gaps = await page.locator(".problem", { hasText: "Chưa có chữ tiếng Việt" }).count();
+  for (let index = 0; index < gaps; index += 1) {
+    await page.locator(".problem", { hasText: "Chưa có chữ tiếng Việt" }).first().click();
+    await page.locator(".block-fields textarea").nth(0).fill("Đoạn mới thêm.");
+    await page.locator(".block-fields textarea").nth(1).fill("A new paragraph.");
+    await tabs("Còn thiếu").click();
+  }
+  const current = await api(page, `get?type=news&id=${post.id}`);
+  await api(page, "save", { type: "news", id: post.id, version: current.version, data: { ...current.data, description: { ...current.data.description, vi: `${current.data.description.vi} (người khác sửa)` } } });
+  await page.click("#save");
+  const conflict = page.locator("dialog.conflict");
+  await conflict.waitFor();
+  await shot(page, "11-xung-dot");
+  assert.match(await conflict.textContent(), /admin@localhost đã lưu bản mới lúc/);
+  assert.ok(await page.evaluate((id) => localStorage.getItem(`tt-cms-draft:news:${id}`), post.id));
+  await conflict.getByRole("button", { name: "Giữ bản của tôi" }).click();
+  await page.getByText(/^Đã lưu/).waitFor();
+  assert.equal(await page.textContent("#record-unsaved"), "");
+  assert.equal(await page.evaluate((id) => localStorage.getItem(`tt-cms-draft:news:${id}`), post.id), null, "a saved draft is gone");
+  assert.equal((await api(page, `get?type=news&id=${post.id}`)).data.title.vi, "Tiêu đề thử E13");
+
+  // No network: the save fails, says so and keeps the draft; the draft is listed in Nháp and survives a reload.
+  await tabs("Thông tin").click();
+  await page.locator('[data-field="title"] input').first().fill("Tiêu đề lần hai");
+  await page.route("**/api/admin/save", (route) => route.abort());
+  await page.click("#save");
+  await page.getByText("Chưa lưu được, nháp vẫn ở máy này. Thử lại sau.").waitFor();
+  await page.unroute("**/api/admin/save");
+  await page.reload();
+  await page.locator("#record-unsaved", { hasText: "Chưa lưu · 1 thay đổi" }).waitFor();
+  await page.locator(".dv-tab", { hasText: "Nháp" }).first().click();
+  await page.locator(".drafts__row").first().waitFor();
+  assert.equal(await page.locator(".drafts__row").count(), 1);
+  await page.locator(".drafts__row button", { hasText: "Bỏ nháp" }).click();
+  await page.getByText("Chưa có nháp").waitFor();
+  assert.equal(await page.textContent("#record-unsaved"), "");
+
+  // A project opens the same tabs with its own fields (sector, type, SEO title) and its sector's frame.
+  await page.locator('.group[data-group="projects"] .row', { hasText: "Căn hộ gỗ sồi ấm" }).click();
+  await page.waitForFunction(() => document.querySelector("#record-name").textContent === "Căn hộ gỗ sồi ấm");
+  await page.locator(".dv-tab", { hasText: "Thuộc tính" }).first().click();
+  await tabs("Thông tin").click();
+  await page.locator('[data-field="sector"] select').waitFor();
+  assert.deepEqual(await page.locator('[data-field="type"] option').allTextContents(), ["Chọn loại", "Nhà phố", "Căn hộ", "Homestay"]);
+  await settle();
+  await shot(page, "12-cong-trinh");
+
   // cms-dock R1 to R4: pin a tab, drag Media to the left edge, slide it out, Esc, pin the edge group, undo the layout.
   await page.click(".topbar__menu summary");
   await page.locator("#panel-menu button", { hasText: "Bố cục mặc định" }).click();
@@ -208,6 +346,24 @@ try {
   await page.click(".topbar__menu > summary");
   assert.deepEqual(await page.locator("#panel-menu button").allTextContents(),
     ["Nội dung", "Xem trước", "Thuộc tính", "Media", "Nháp", "Bố cục mặc định", "Hoàn tác bố cục", "Làm lại bố cục"]);
+  await page.context().close();
+
+  // (E12 carry-over) A group loads its next page when the end of the list scrolls into view.
+  const first = async (route) => {
+    const url = new URL(route.request().url());
+    const more = Boolean(url.searchParams.get("cursor"));
+    url.searchParams.delete("cursor");
+    const real = await (await route.fetch({ url: url.href })).json();
+    if (url.searchParams.get("type") !== "news") return route.fulfill({ json: real });
+    const items = Array.from({ length: more ? 5 : 100 }, (_, index) => ({ ...real.items[index % real.items.length], id: `${real.items[index % real.items.length].id}-${more ? "b" : "a"}${index}` }));
+    return route.fulfill({ json: { items, next: more ? null : "2026-01-01T00:00:00.000Z|zzz" } });
+  };
+  page = await open({ routes: { list: first } });
+  const newsRows = page.locator('.group[data-group="news"] .row');
+  await newsRows.first().waitFor();
+  assert.equal(await newsRows.count(), 100);
+  await page.locator(".rows__more").scrollIntoViewIfNeeded();
+  await page.waitForFunction(() => document.querySelectorAll('.group[data-group="news"] .row').length === 105);
   await page.context().close();
 
   // A locked account (403) and an expired Access session (HTML instead of JSON) see one sentence and no panel.
