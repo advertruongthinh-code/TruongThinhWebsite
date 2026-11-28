@@ -29,7 +29,7 @@ D1_DATABASE_ID = "a98c6483-b503-4829-8da9-03bbd2a0eeda"
 # Reusable Access policy "CMS admin owner" of the admin app; the accounts panel edits its email list (src/worker/access.mjs).
 ACCESS_POLICY_ID = "eee64e2d-571f-4ea7-83b8-1afec2342aeb"
 # Origin every admin write must come from (src/worker/auth.mjs); staging origin for the editor's "Mở trên staging" links.
-ADMIN_ORIGIN = "https://admin.truongthinhads.vn"
+ADMIN_ORIGIN = "https://cms.truongthinhads.vn"
 STAGING_ORIGIN_PUBLIC = "https://staging.truongthinhads.vn"
 
 [[r2_buckets]]
