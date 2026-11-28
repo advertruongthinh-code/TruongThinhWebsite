@@ -91,11 +91,13 @@ document.querySelectorAll("[data-theme-pref]").forEach((button) => button.addEve
 const addPanel = (id, position, size) => dock.addPanel({ id, component: id, title: PANELS[id], position, ...size });
 
 // Default layout (cms-editor R1): Nội dung left 280px, Xem trước centre, Thuộc tính right 380px with Media and Nháp as tabs.
+// Side panels give way on a tablet in portrait (about 768px) so Xem trước keeps a usable centre.
 function defaultLayout() {
+  const width = Math.max(innerWidth, 768); // a page opened while the phone note shows must not start with tiny side panels
   dock.clear();
   addPanel("preview");
-  addPanel("content", { referencePanel: "preview", direction: "left" }, { initialWidth: 280 });
-  addPanel("props", { referencePanel: "preview", direction: "right" }, { initialWidth: 380 });
+  addPanel("content", { referencePanel: "preview", direction: "left" }, { initialWidth: Math.min(280, width * 0.3) });
+  addPanel("props", { referencePanel: "preview", direction: "right" }, { initialWidth: Math.min(380, width * 0.36) });
   addPanel("media", { referencePanel: "props", direction: "within" });
   addPanel("drafts", { referencePanel: "props", direction: "within" });
   dock.getPanel("props").api.setActive();
