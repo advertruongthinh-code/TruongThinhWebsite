@@ -4511,6 +4511,8 @@ html.motion-fallback .site-menu.is-active .menu-inner {
 .about-journey__ln--fk { fill: #2b2a29; }
 .about-journey__ln--fg { fill: #8fd19e; }
 .about-journey__ln--fn { fill: #8a8b8d; }
+/* Small rivets and rollers: colour only, an outline would swallow them. */
+.about-journey__ln--dy { fill: #f2b632; stroke: none; }
 .about-journey__ln--accent-fill { fill: var(--art-accent); }
 .about-journey__ln--thin,
 .about-journey__ln--thin-closed {
