@@ -108,8 +108,8 @@ export function mountContent(root, { open }) {
     draggable && h("span", { className: "row__handle", ariaHidden: "true" }),
     h("span", { className: "row__main" },
       h("span", { className: "row__name" }, nameOf(type, item)),
-      h("span", { className: "row__meta" }, [item.updatedBy, time(item.updatedAt)].filter(Boolean).join(" · "))),
-    h("span", { className: "row__badges" }, badges(type, item)));
+      h("span", { className: "row__line" }, badges(type, item),
+        h("span", { className: "row__meta" }, [item.updatedBy, time(item.updatedAt)].filter(Boolean).join(" · ")))));
     if (draggable) {
       button.addEventListener("dragstart", (event) => {
         event.dataTransfer.effectAllowed = "move";
@@ -202,9 +202,10 @@ export function mountContent(root, { open }) {
 
   // ---------- Groups ----------
 
+  // News: newest date first; a post without a date yet (new draft) leads.
   function listBody(type, items, { reorder = false, scope } = {}) {
     const slot = entry(type);
-    const ordered = type === "news" ? [...items].sort((a, b) => String(b.published ?? "").localeCompare(String(a.published ?? ""))) : items;
+    const ordered = type === "news" ? [...items].sort((a, b) => String(b.published ?? "9").localeCompare(String(a.published ?? "9"))) : items;
     const shown = ordered.filter((item) => matches(type, item));
     const ul = h("ul", { className: "rows" }, shown.map((item) => {
       const li = row(type, item, reorder ? items : null, scope);
@@ -272,7 +273,7 @@ export function mountContent(root, { open }) {
       return products.length ? h("div", { className: "sub" }, h("p", { className: "sub__cluster" }, cluster.labelVi), products) : null;
     }).filter(Boolean);
     body.replaceChildren(
-      filtering() ? h("p", { className: "group__hint" }, "Bỏ lọc và ô tìm để kéo thả xếp thứ tự.") : null,
+      ...(filtering() ? [h("p", { className: "group__hint" }, "Bỏ lọc và ô tìm để kéo thả xếp thứ tự.")] : []),
       ...(clusters.length ? clusters : [h("p", { className: "group__empty" }, cards.length ? "Không có mục nào khớp." : "Chưa có mục nào")]),
     );
   }

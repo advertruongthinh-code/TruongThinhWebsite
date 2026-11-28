@@ -23,7 +23,7 @@ button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: 0.5; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Top bar (R1): record name and status, Hoàn tác, Lưu, Bảng. */
+/* Top bar (R1): record name and status, then the undo, save and panel menu buttons. */
 .topbar { display: flex; align-items: center; gap: 8px; height: var(--bar); padding: 0 12px 0 16px; border-bottom: 1px solid var(--line); background: var(--card); }
 .topbar__brand { font-size: 14px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; }
 .topbar__sep { width: 1px; height: 20px; margin: 0 6px; background: var(--line); }
@@ -110,11 +110,11 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .group__hint { padding: 6px 8px; border-radius: var(--radius); background: var(--paper); font-size: 12px; }
 .rows { display: grid; gap: 1px; margin: 0; padding: 0; list-style: none; }
 .rows__more { padding: 6px 8px; color: var(--faint); font-size: 12px; }
-.row { position: relative; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: var(--radius); background: none; text-align: left; }
+.row { position: relative; display: grid; grid-template-columns: 1fr; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border: 0; border-radius: var(--radius); background: none; text-align: left; }
 .row:hover { background: var(--paper); }
 .row[aria-current="true"] { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
 .row[aria-current="true"] .row__name { color: var(--accent); }
-.row[draggable="true"] { grid-template-columns: 10px 1fr auto; padding-left: 4px; }
+.row[draggable="true"] { grid-template-columns: 10px 1fr; padding-left: 4px; }
 .row__handle { align-self: stretch; width: 10px; background: radial-gradient(circle, var(--faint) 1px, transparent 1.5px) 0 50% / 5px 5px; opacity: 0; cursor: grab; }
 .row:hover .row__handle, .row:focus-visible .row__handle { opacity: 1; }
 .row.is-dragging { opacity: 0.45; }
@@ -123,9 +123,10 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .row__main { display: grid; min-width: 0; }
 .row__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row__meta { overflow: hidden; color: var(--faint); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
-.row__meta:empty { display: none; }
-.row__badges { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; max-width: 120px; }
-.badge { padding: 0 6px; border: 1px solid transparent; border-radius: 4px; font-size: 11px; line-height: 18px; white-space: nowrap; }
+.row__line { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.row__line > .badge { flex: none; }
+.row__meta { min-width: 0; }
+.badge { padding: 0 5px; border: 1px solid transparent; border-radius: 4px; font-size: 11px; line-height: 16px; white-space: nowrap; }
 .badge--draft { background: #fff3d6; color: #7a4b00; }
 .badge--pending { background: var(--accent-soft); color: #174ea6; }
 .badge--error { background: #fde8e6; color: var(--danger); }

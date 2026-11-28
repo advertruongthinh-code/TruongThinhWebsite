@@ -76,12 +76,12 @@ try {
   await api(page, "save", { type: "news", id: news.id, version: got.version, data: { ...got.data, description: { ...got.data.description, en: "" } } });
   await page.reload();
   await page.locator('.group[data-group="news"] .row').first().waitFor();
-  await page.getByRole("button", { name: "Thiếu EN" }).click();
+  await page.locator(".seg", { hasText: "Thiếu EN" }).click();
   assert.deepEqual(await rowNames(page, "news"), [news.name]);
   assert.deepEqual(await rowNames(page, "projects"), []);
   assert.equal(await page.locator('.group[data-group="news"] .badge').allTextContents().then((labels) => labels.join(",")), "Thiếu EN");
   await shot(page, "2-loc-thieu-en");
-  await page.getByRole("button", { name: "Tất cả" }).click();
+  await page.locator(".seg", { hasText: "Tất cả" }).click();
 
   // Search ignores Vietnamese marks.
   await page.getByLabel("Tìm theo tên").fill("go soi");
@@ -105,7 +105,7 @@ try {
   assert.equal(await page.textContent("#record-status"), "Nháp");
   const created = page.locator('.group[data-group="news"] .row[aria-current="true"]');
   assert.equal(await created.locator(".row__name").textContent(), "Chọn màu gỗ cho phòng ngủ");
-  assert.match(await created.locator(".row__badges").textContent(), /Nháp/);
+  assert.match(await created.locator(".row__line").textContent(), /Nháp/);
   assert.equal(await page.locator("dialog.dialog").count(), 0);
   dialog = await create("Chọn màu gỗ cho phòng ngủ");
   await dialog.getByRole("button", { name: "Tạo" }).click();
@@ -143,9 +143,9 @@ try {
   // The record opened last opens again.
   assert.match(await page.textContent("#record-name"), /Bếp$/);
   // A filter turns dragging off.
-  await page.getByRole("button", { name: "Nháp" }).click();
+  await page.locator(".seg", { hasText: "Nháp" }).click();
   assert.equal(await page.locator('.group[data-group="projects"] .row[draggable="true"]').count(), 0);
-  await page.getByRole("button", { name: "Tất cả" }).click();
+  await page.locator(".seg", { hasText: "Tất cả" }).click();
 
   // Cards by cluster then product: a product opens its own cards.
   await page.locator('.group[data-group="cards"] .group__toggle').click();
@@ -202,7 +202,7 @@ try {
   assert.equal(await page.locator(".dv-edge-group").count(), 0);
   await page.context().close();
 
-  // (b) Staff: no Tài khoản in the Bảng menu.
+  // (b) Staff: the panel menu has no accounts entry.
   page = await open({ routes: { whoami: (route) => route.fulfill({ json: { email: "staff@example.com", role: "staff", stagingOrigin: null } }) } });
   await page.locator(".group .row").first().waitFor();
   await page.click(".topbar__menu > summary");

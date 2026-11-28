@@ -5,7 +5,7 @@ source:
   - src/admin/ops/**
   - .github/workflows/release.yml
 tests:
-  - tests/admin/cms-core.test.mjs
+  - tests/admin/editor.e2e.mjs
   - tests/admin/accounts.e2e.mjs
 notion: https://app.notion.com/p/420332849a0e81ffb9e4e85372f1a0f7
 updated: 2026-11-22
