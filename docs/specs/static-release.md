@@ -6,7 +6,6 @@ source:
   - scripts/site/lib.mjs
   - scripts/site/non-public-source-assets.mjs
   - scripts/site/sync-brand-lockup.mjs
-  - scripts/site/access-login-logo.mjs
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
   - src/site/robots.txt
@@ -24,7 +23,6 @@ tests:
   - tests/site/client-logo-assets-contract.cjs
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
-  - tests/site/access-login-logo.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
 updated: 2026-11-23
 ---
@@ -77,9 +75,7 @@ And .site-output/ của lần build trước vẫn còn nguyên
 `scripts/site/non-public-source-assets.mjs` liệt kê 23 path trong `src/site/`
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
 manifest, photo tags, `content/client-logos.json`, `content/home-projects.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
-process cũ. Build xóa chúng khỏi output. WebP không còn tham chiếu thì xóa khỏi repo.
-
-Ngoại lệ duy nhất cho logo: build sinh `assets/brand/truong-thinh-lockup-color.svg` từ SVG lockup gốc (`access-login-logo.mjs`: bốn màu CMYK của mark, chữ `#2f2f2f`, bỏ phụ đề EN, không còn biến CSS) để trang đăng nhập Cloudflare Access tải làm ảnh; đây là file lockup public duy nhất, không sửa tay.
+process cũ. Build xóa chúng khỏi output (WebP không còn tham chiếu thì xóa khỏi repo), trừ một file sinh ra từ SVG lockup gốc (`access-login-logo.mjs`): `assets/brand/truong-thinh-lockup-color.svg`, bốn màu CMYK, chữ `#2f2f2f`, không biến CSS, để trang đăng nhập Cloudflare Access tải làm ảnh; đây là file lockup public duy nhất, không sửa tay.
 
 ```gherkin
 Given src/site/advertising-products/catalog.mjs nằm trong danh sách non-public
