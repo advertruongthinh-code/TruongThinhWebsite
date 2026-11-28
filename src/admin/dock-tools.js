@@ -1,11 +1,13 @@
-// Extras for the MIT Dockview dock (cms-editor R11): tab pinning, layout history (undo/redo), auto-hide edges and dragging panels to
-// an edge. Self-written on the public `dockview` 8.8 API (edge group, collapse, moveTo, toJSON/fromJSON); does not use or
-// unlock any module of `dockview-enterprise`.
+// Extras for the MIT Dockview dock (cms-dock): tab pinning, layout history (undo/redo), the workspace and the edge groups
+// (left, right, bottom) of an IDE. Self-written on the public `dockview` 8.8 API (edge group, collapse, setSize, moveTo,
+// onWillShowOverlay, toJSON/fromJSON); does not use or unlock any module of `dockview-enterprise`.
 
-const EDGES = ["left", "right", "bottom"];
+export const EDGES = ["left", "right", "bottom"];
 const HISTORY_DEPTH = 25;
 const HISTORY_MERGE_MS = 400;
-const PEEK_SIZE = 320;
+// cms-dock R2, R3: an edge dragged under its threshold collapses; a workspace group never gets smaller than this.
+const COLLAPSE_UNDER = { left: 170, right: 170, bottom: 120 };
+export const WORKSPACE_MIN = { width: 320, height: 200 };
 
 const el = (tag, className, ...children) => {
   const node = document.createElement(tag);
@@ -13,7 +15,7 @@ const el = (tag, className, ...children) => {
   node.append(...children);
   return node;
 };
-const icon = (path) => {
+export const icon = (path) => {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute("viewBox", "0 0 16 16");
   svg.setAttribute("aria-hidden", "true");
@@ -22,28 +24,29 @@ const icon = (path) => {
 };
 const CLOSE_ICON = '<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" fill="none"/>';
 const PIN_ICON = '<path d="M9.5 1.5l5 5-1.4.6-2.6 2.6.3 3-1.3 1.3-3-3-3.5 3.5-.7-.7 3.5-3.5-3-3L4.1 5.2l3 .3 2.6-2.6z" fill="currentColor"/>';
-// The arrow points toward the edge the group will collapse into.
-const COLLAPSE_ICON = {
-  left: '<path d="M10 3L5 8l5 5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
-  right: '<path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
-  bottom: '<path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="1.6" fill="none"/>',
-};
 const isPinned = (panel) => Boolean(panel?.params?.pinned);
+export const edgeOf = (group) => (group?.api.location.type === "edge" ? group.api.location.position : null);
 
-// Custom tab modeled on the default tab DOM (`dv-default-tab`) to keep theme styling; a pinned tab has a pin icon instead of the close button.
+// Custom tab modeled on the default tab DOM (`dv-default-tab`) to keep theme styling. It carries the panel's icon and its
+// name: CSS shows only the icon on the left and right edges, only the name elsewhere (cms-dock R2). A pinned tab has a pin
+// icon instead of the close button.
 class Tab {
-  constructor() {
+  constructor(icons) {
+    this.icons = icons;
+    this.glyph = el("span", "dock-tab-icon");
     this.title = el("div", "dv-default-tab-content");
     this.action = el("div", "dv-default-tab-action");
     this.action.setAttribute("role", "button");
     this.action.tabIndex = -1;
-    this.element = el("div", "dv-default-tab", this.title, this.action);
+    this.element = el("div", "dv-default-tab", this.glyph, this.title, this.action);
   }
 
   init({ api, title, params }) {
     this.api = api;
     this.pinned = Boolean(params?.pinned);
     this.title.textContent = title ?? "";
+    const path = this.icons[api.component];
+    if (path) this.glyph.append(icon(path));
     this.render();
     this.subscriptions = [
       api.onDidTitleChange(({ title: next }) => { this.title.textContent = next; this.render(); }),
@@ -59,9 +62,12 @@ class Tab {
   }
 
   render() {
+    const name = this.title.textContent;
     this.element.classList.toggle("is-pinned", this.pinned);
+    this.element.title = name; // an icon-only tab names itself on hover
+    this.element.setAttribute("aria-label", name);
     this.action.replaceChildren(icon(this.pinned ? PIN_ICON : CLOSE_ICON));
-    this.action.setAttribute("aria-label", `${this.pinned ? "Bỏ ghim" : "Đóng"} ${this.title.textContent}`);
+    this.action.setAttribute("aria-label", `${this.pinned ? "Bỏ ghim" : "Đóng"} ${name}`);
     this.action.title = this.pinned ? "Bỏ ghim tab" : "Đóng tab";
   }
 
@@ -75,12 +81,19 @@ function setPinned(api, pinned) {
   api.updateParameters({ pinned: pinned || undefined });
 }
 
-export function dockOptions() {
-  return { defaultTabComponent: "tab", createTabComponent: () => new Tab() };
+// icons: { [component]: svg path markup } for the tabs.
+export function dockOptions({ icons = {} } = {}) {
+  return { defaultTabComponent: "tab", createTabComponent: () => new Tab(icons) };
 }
 
-export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) {
-  // ---------- Ghim tab ----------
+// isWorkspace(panel): whether the panel belongs in the workspace (record tabs, Tài khoản) rather than an edge group.
+// edgeFooter(group): an element for the end of an edge group's tab strip (the account button on the left edge), or null.
+export function setupDockTools(dock, root, { isWorkspace, edgeFooter = () => null, onHistoryChange = () => {} }) {
+  const later = (fn) => setTimeout(fn, 0);
+  const edgeGroup = (position) => dock.groups.find((group) => edgeOf(group) === position);
+  const gridGroups = () => dock.groups.filter((group) => group.api.location.type === "grid");
+
+  // ---------- Ghim tab (workspace only) ----------
   let sorting = false;
   // Pinned tabs always sit at the group start; a regular tab dragged before a pinned tab is pushed back after the pinned block.
   function sortGroup(group) {
@@ -96,18 +109,21 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     sorting = false;
   }
   const sortAll = () => dock.groups.forEach(sortGroup);
-  const later = (fn) => setTimeout(fn, 0);
   dock.onDidAddPanel((panel) => {
     later(() => sortGroup(panel.group));
     panel.api.onDidParametersChange(() => later(() => sortGroup(panel.group)));
   });
-  dock.onDidMovePanel(({ panel }) => later(() => sortGroup(panel.group)));
+  dock.onDidMovePanel(({ panel }) => later(() => {
+    // A pin does not survive a move into an edge group (R1); drop rules keep that from happening, this is the backstop.
+    if (edgeOf(panel.group) && isPinned(panel)) setPinned(panel.api, false);
+    sortGroup(panel.group);
+  }));
 
   function togglePin(panel) {
-    if (panel) setPinned(panel.api, !isPinned(panel));
+    if (panel && !edgeOf(panel.group)) setPinned(panel.api, !isPinned(panel));
   }
 
-  // Right-click menu on a tab: pin, unpin, close.
+  // Right-click menu on a tab: pin or unpin (workspace), close.
   const menu = el("div", "dock-menu");
   menu.hidden = true;
   menu.setAttribute("role", "menu");
@@ -126,7 +142,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
       return button;
     };
     menu.replaceChildren(
-      item(isPinned(panel) ? "Bỏ ghim tab" : "Ghim tab", () => togglePin(panel)),
+      ...(edgeOf(panel.group) ? [] : [item(isPinned(panel) ? "Bỏ ghim tab" : "Ghim tab", () => togglePin(panel))]),
       item("Đóng tab", () => panel.api.close()),
     );
     menu.style.left = `${event.clientX}px`;
@@ -135,6 +151,7 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
     menu.querySelector("button").focus();
   });
   document.addEventListener("pointerdown", (event) => { if (!menu.contains(event.target)) hideMenu(); });
+  document.addEventListener("keydown", (event) => { if (event.key === "Escape") hideMenu(); });
 
   // ---------- Layout history ----------
   // Each step is a `toJSON()` snapshot; comparison ignores the active group and tab so switching tabs back and forth adds no step.
@@ -164,9 +181,6 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
   const layoutListeners = new Set();
   const layoutChanged = () => layoutListeners.forEach((listener) => listener());
   dock.onDidLayoutChange(layoutChanged);
-  const watchGroup = (group) => group.api.onDidCollapsedChange(layoutChanged);
-  dock.groups.forEach(watchGroup);
-  dock.onDidAddGroup(watchGroup);
   layoutListeners.add(() => {
     clearTimeout(timer);
     timer = setTimeout(record, HISTORY_MERGE_MS);
@@ -177,137 +191,76 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
   function restore(from, to) {
     if (timer) record();
     if (!from.length) return;
-    hidePeek();
     to.push(current);
     current = from.pop();
     quietUntil = Date.now() + HISTORY_MERGE_MS * 2;
     dock.fromJSON(current.json);
-    sortAll();
+    settle();
     notify();
   }
   const undo = () => restore(undoStack, redoStack);
   const redo = () => restore(redoStack, undoStack);
 
-  // ---------- Auto-hide edge: click a tab in the edge strip to slide the panel out, pin to open it fully ----------
-  const peek = { box: el("div", "dock-peek"), panel: null, home: null };
-  const peekTitle = el("strong", "dock-peek__title");
-  const pinButton = el("button", "dock-peek__button", "Ghim");
-  const closeButton = el("button", "dock-peek__button", icon(CLOSE_ICON));
-  const peekBody = el("div", "dock-peek__body");
-  pinButton.type = closeButton.type = "button";
-  pinButton.title = "Ghim ra cạnh, không tự ẩn";
-  closeButton.title = "Đóng panel";
-  closeButton.setAttribute("aria-label", "Đóng panel");
-  peek.box.append(el("div", "dock-peek__bar", peekTitle, pinButton, closeButton), peekBody);
-  peek.box.hidden = true;
-  peek.box.setAttribute("role", "dialog");
-  root.append(peek.box);
+  // ---------- Workspace and edge groups (R2, R3) ----------
 
-  const edgeOf = (group) => (group?.api.location.type === "edge" ? group.api.location.position : null);
-  const edgeSize = (position) => dock.toJSON().edgeGroups?.[position]?.size || PEEK_SIZE;
-
-  function showPeek(panel) {
-    hidePeek();
-    const group = panel.group;
+  // Every group: workspace groups keep 320x200; an empty right or bottom edge takes no space (the left edge keeps its
+  // strip for the account button); the edge position is on the element for CSS.
+  function shape(group) {
     const position = edgeOf(group);
-    const content = panel.view?.content?.element;
-    if (!position || !content) return;
-    const strip = group.element.getBoundingClientRect();
-    const frame = root.getBoundingClientRect();
-    const size = edgeSize(position);
-    Object.assign(peek.box.style, { left: "", right: "", top: "", bottom: "", width: "", height: "" });
-    if (position === "left") Object.assign(peek.box.style, { left: `${strip.right - frame.left}px`, top: "0", bottom: "0", width: `${size}px` });
-    if (position === "right") Object.assign(peek.box.style, { right: `${frame.right - strip.left}px`, top: "0", bottom: "0", width: `${size}px` });
-    if (position === "bottom") Object.assign(peek.box.style, { bottom: `${frame.bottom - strip.top}px`, left: "0", right: "0", height: `${size}px` });
-    peek.box.dataset.edge = position;
-    peek.panel = panel;
-    peek.home = { parent: content.parentNode, next: content.nextSibling, content };
-    peekTitle.textContent = panel.title;
-    peekBody.append(content);
-    peek.box.hidden = false;
-  }
-
-  function hidePeek() {
-    if (!peek.panel) return;
-    const { parent, next, content } = peek.home;
-    // If the panel is not the group's active tab Dockview has not attached its content; detach it so Dockview attaches it when needed.
-    if (parent?.isConnected) parent.insertBefore(content, next?.parentNode === parent ? next : null);
-    else content.remove();
-    peek.panel = null;
-    peek.home = null;
-    peek.box.hidden = true;
-  }
-
-  pinButton.addEventListener("click", () => {
-    const panel = peek.panel;
-    hidePeek();
-    panel?.group.api.expand();
-    panel?.api.setActive();
-  });
-  closeButton.addEventListener("click", () => {
-    const panel = peek.panel;
-    hidePeek();
-    panel?.api.close();
-  });
-
-  // MIT Dockview fully opens the group when a tab in the collapsed strip is clicked; block it in the capture phase and replace it with a temporary slide-out (peek), the strip
-  // stays collapsed so the grid does not change. Dragging a tab (dragstart) is not blocked.
-  const stripTab = (event) => event.button === 0 && event.target.closest?.(".dv-edge-collapsed .dv-tab[data-tab-panel-id]");
-  for (const type of ["pointerdown", "mousedown"]) {
-    root.addEventListener(type, (event) => { if (stripTab(event)) event.stopPropagation(); }, true);
-  }
-  root.addEventListener("click", (event) => {
-    const tab = stripTab(event);
-    if (!tab) return;
-    event.stopPropagation();
-    const panel = dock.getPanel(tab.dataset.tabPanelId);
-    const again = peek.panel === panel;
-    hidePeek();
-    if (!again && panel) showPeek(panel);
-  }, true);
-  document.addEventListener("pointerdown", (event) => {
-    if (!peek.panel || peek.box.contains(event.target) || event.target.closest?.(".dv-edge-collapsed")) return;
-    hidePeek();
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") { hidePeek(); hideMenu(); }
-  });
-
-  // Button on the header of an open edge group: collapse it back into an auto-hide strip.
-  const headerSyncs = new Set();
-  layoutListeners.add(() => later(() => headerSyncs.forEach((sync) => sync())));
-  function headerActions(group) {
-    const button = el("button", "dock-edge-action");
-    button.type = "button";
-    button.title = "Tự ẩn: thu về dải bên mép, bấm tab để xem tạm";
-    button.setAttribute("aria-label", "Tự ẩn nhóm mép");
-    button.addEventListener("click", () => group.api.collapse());
-    const sync = () => {
-      const position = edgeOf(group);
-      button.hidden = !position || group.api.isCollapsed();
-      if (!button.hidden && button.dataset.edge !== position) {
-        button.dataset.edge = position;
-        button.replaceChildren(icon(COLLAPSE_ICON[position]));
+    group.element.dataset.edge = position ?? "";
+    if (!position) {
+      if (group.api.minimumWidth !== WORKSPACE_MIN.width || group.api.minimumHeight !== WORKSPACE_MIN.height) {
+        group.api.setConstraints({ minimumWidth: WORKSPACE_MIN.width, minimumHeight: WORKSPACE_MIN.height });
       }
-    };
-    return {
-      element: el("div", "dock-edge-actions", button),
-      init() {
-        sync();
-        headerSyncs.add(sync);
-        this.subscriptions = [group.api.onDidCollapsedChange(() => later(sync)), group.api.onDidLocationChange(() => later(sync))];
-      },
-      dispose() {
-        headerSyncs.delete(sync);
-        this.subscriptions?.forEach((subscription) => subscription.dispose());
-      },
-    };
+      return;
+    }
+    const visible = position === "left" || group.panels.length > 0;
+    if (dock.isEdgeGroupVisible(position) !== visible) dock.setEdgeGroupVisible(position, visible);
+  }
+  function settle() {
+    dock.groups.forEach(shape);
+    sortAll();
+  }
+  const watchGroup = (group) => {
+    group.api.onDidCollapsedChange(layoutChanged);
+    later(() => shape(group));
+  };
+  dock.groups.forEach(watchGroup);
+  dock.onDidAddGroup(watchGroup);
+  const reshape = () => later(settle);
+  dock.onDidAddPanel(reshape);
+  dock.onDidRemovePanel(reshape);
+  dock.onDidMovePanel(reshape);
+
+  // Creates the edge group at `position` if this layout has none yet (a layout saved before the edge held panels).
+  function ensureEdge(position, { size, collapsed = false } = {}) {
+    if (!dock.getEdgeGroup(position)) {
+      dock.addEdgeGroup(position, { id: `edge-${position}`, initialSize: size, collapsed });
+      watchGroup(edgeGroup(position));
+    }
+    return edgeGroup(position);
   }
 
-  // ---------- Drag a panel to an edge to create an edge group (collapsed) ----------
+  // Drop rules: edge panels move only between and within edge groups (as tabs, never split); workspace tabs stay in the
+  // workspace. A refused place shows no overlay and takes no drop.
+  dock.onWillShowOverlay((event) => {
+    const data = event.getData?.();
+    const source = data?.panelId ? [dock.getPanel(data.panelId)] : dock.getGroup(data?.groupId)?.panels;
+    if (!source?.length) return;
+    const toWorkspace = source.every(isWorkspace);
+    const target = event.group;
+    if (event.kind === "edge" || !target) return event.preventDefault(); // the whole-layout edges would add a grid group
+    if (edgeOf(target)) {
+      if (toWorkspace || (event.kind === "content" && event.position !== "center")) event.preventDefault();
+    } else if (!toWorkspace) event.preventDefault();
+  });
+
+  // Dragging an edge panel shows a band on each hidden edge (an empty right or bottom edge) to drop it there.
+  let dragged = null;
   const bands = EDGES.map((position) => {
     const band = el("div", `dock-band dock-band--${position}`);
     band.hidden = true;
+    band.dataset.edge = position;
     band.addEventListener("dragover", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -319,48 +272,135 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
       event.stopPropagation();
       const panel = dragged;
       endDrag();
-      if (panel) dockToEdge(panel, position);
+      if (panel) moveToEdge(panel, position);
     });
     root.append(band);
     return band;
   });
-  let dragged = null;
   function endDrag() {
     dragged = null;
     bands.forEach((band) => { band.hidden = true; band.classList.remove("is-over"); });
   }
   dock.onWillDragPanel(({ panel }) => {
-    hidePeek();
+    if (isWorkspace(panel)) return;
     dragged = panel;
-    // Show the strip after the browser captures the drag image, so the strip does not end up in the image.
-    later(() => { if (dragged) bands.forEach((band) => { band.hidden = false; }); });
+    // Show the bands after the browser captures the drag image, so they do not end up in the image.
+    later(() => {
+      if (!dragged) return;
+      bands.forEach((band) => { band.hidden = dock.isEdgeGroupVisible(band.dataset.edge); });
+    });
   });
   document.addEventListener("dragend", endDrag, true);
   document.addEventListener("drop", () => later(endDrag), true);
 
-  function dockToEdge(panel, position) {
-    let group = dock.getEdgeGroup(position) && dock.groups.find((item) => edgeOf(item) === position);
-    if (!group) {
-      dock.addEdgeGroup(position, { id: `edge-${position}`, collapsed: true, initialSize: PEEK_SIZE });
-      group = dock.getGroup(`edge-${position}`);
-    }
+  function moveToEdge(panel, position) {
+    const group = ensureEdge(position, { size: position === "bottom" ? 240 : 300 });
     if (panel.group !== group) panel.api.moveTo({ group, position: "center" });
+    reveal(panel);
   }
 
-  // Remove an empty edge group entirely so the edge takes no space until the next drag.
-  const dropEmptyEdges = () => later(() => {
-    for (const position of EDGES) {
-      const group = dock.groups.find((item) => edgeOf(item) === position);
-      if (dock.getEdgeGroup(position) && group && group.panels.length === 0) dock.removeEdgeGroup(position);
+  // Opening an edge: if the narrowest workspace group would get under its minimum, the opposite edge collapses (R3);
+  // when that is not enough the edge itself gives up the missing space.
+  function makeRoom(position, { pushOpposite = true } = {}) {
+    const opposite = pushOpposite && { left: "right", right: "left", bottom: null }[position];
+    // Workspace groups keep their minimum and overflow the workspace instead; the overflow is the missing space.
+    const short = () => {
+      const box = root.querySelector(".dv-grid-view")?.getBoundingClientRect();
+      if (!box) return 0;
+      const rects = gridGroups().map((group) => group.element.getBoundingClientRect());
+      return Math.max(0, ...rects.map((rect) => (position === "bottom" ? rect.bottom - box.bottom : rect.right - box.right)));
+    };
+    let missing = short();
+    if (missing > 0.5 && opposite) {
+      const other = edgeGroup(opposite);
+      if (other && !other.api.isCollapsed()) other.api.collapse();
+      missing = short();
+    }
+    if (missing > 0.5) {
+      const group = edgeGroup(position);
+      const size = position === "bottom" ? group.api.height : group.api.width;
+      group.api.setSize(position === "bottom" ? { height: size - missing } : { width: size - missing });
+    }
+  }
+  function expand(group) {
+    if (!group.api.isCollapsed()) return;
+    group.api.expand();
+    makeRoom(edgeOf(group));
+  }
+
+  // Clicking a tab of a collapsed strip opens the edge and pushes the workspace (Dockview's own behaviour, then makeRoom);
+  // clicking the tab that is already open collapses the edge back into its strip.
+  let pressed = null;
+  root.addEventListener("pointerdown", (event) => {
+    const tab = event.button === 0 && event.target.closest?.(".dv-edge-group .dv-tab[data-tab-panel-id]");
+    const panel = tab && dock.getPanel(tab.dataset.tabPanelId);
+    pressed = panel ? { panel, open: !panel.group.api.isCollapsed() && panel.group.activePanel === panel, collapsed: panel.group.api.isCollapsed() } : null;
+  }, true);
+  root.addEventListener("click", (event) => {
+    const tab = event.target.closest?.(".dv-edge-group .dv-tab[data-tab-panel-id]");
+    if (!tab || !pressed || pressed.panel.id !== tab.dataset.tabPanelId) return;
+    const { panel, open, collapsed } = pressed;
+    pressed = null;
+    if (open) panel.group.api.collapse();
+    else if (collapsed) {
+      panel.api.setActive();
+      if (panel.group.api.isCollapsed()) panel.group.api.expand();
+      makeRoom(edgeOf(panel.group));
     }
   });
-  dock.onDidRemovePanel(dropEmptyEdges);
-  dock.onDidMovePanel(dropEmptyEdges);
 
-  // Opening a panel that sits in a collapsed strip slides it out instead of only changing the hidden tab.
+  // Dragging an edge under its threshold collapses it on release; reopening it brings back the size from before that drag.
+  let before = null;
+  root.addEventListener("pointerdown", (event) => {
+    if (!event.target.closest?.(".dv-sash")) return;
+    before = Object.fromEntries(EDGES.map((position) => {
+      const group = edgeGroup(position);
+      return [position, group && !group.api.isCollapsed() ? (position === "bottom" ? group.api.height : group.api.width) : null];
+    }));
+  }, true);
+  document.addEventListener("pointerup", () => {
+    if (!before) return;
+    const sizes = before;
+    before = null;
+    later(() => {
+      for (const position of EDGES) {
+        const group = edgeGroup(position);
+        if (!group || group.api.isCollapsed() || sizes[position] === null) continue;
+        const size = position === "bottom" ? group.api.height : group.api.width;
+        if (size >= COLLAPSE_UNDER[position]) {
+          if (size !== sizes[position]) makeRoom(position, { pushOpposite: false }); // a wide drag stops at the workspace minimum
+          continue;
+        }
+        group.api.collapse();
+        group.api.setSize(position === "bottom" ? { height: sizes[position] } : { width: sizes[position] });
+      }
+    });
+  }, true);
+
+  // Opening a panel from the Bảng menu also opens the edge group that holds it.
   function reveal(panel) {
-    if (edgeOf(panel.group) && panel.group.api.isCollapsed()) showPeek(panel);
-    else panel.api.setActive();
+    panel.api.setActive();
+    if (edgeOf(panel.group)) expand(panel.group);
+  }
+
+  // Header end of each group: the edge footer (account button) when the editor gives one.
+  function headerActions(group) {
+    const box = el("div", "dock-edge-actions");
+    const sync = () => {
+      const footer = edgeOf(group) ? edgeFooter(group) : null;
+      if (box.firstChild !== footer) box.replaceChildren(...(footer ? [footer] : []));
+    };
+    return {
+      element: box,
+      init() {
+        sync();
+        later(sync); // an edge group gets its location after its header is built
+        this.subscriptions = [group.api.onDidLocationChange(() => later(sync))];
+      },
+      dispose() {
+        this.subscriptions?.forEach((subscription) => subscription.dispose());
+      },
+    };
   }
 
   // Shortcuts: Ctrl+Alt+Z undoes the layout, Ctrl+Alt+Y or Ctrl+Alt+Shift+Z redoes, Ctrl+Shift+Enter pins the active tab.
@@ -375,10 +415,11 @@ export function setupDockTools(dock, root, { onHistoryChange = () => {} } = {}) 
   return {
     onLayoutChange: (listener) => layoutListeners.add(listener),
     headerActions,
+    ensureEdge,
+    edgeGroup,
     undo,
     redo,
     reveal,
-    hidePeek,
-    start() { sortAll(); current = snap(); undoStack.length = redoStack.length = 0; notify(); },
+    start() { settle(); current = snap(); undoStack.length = redoStack.length = 0; notify(); },
   };
 }

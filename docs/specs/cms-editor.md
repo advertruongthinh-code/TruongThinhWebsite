@@ -25,7 +25,7 @@ Giao diện ở gốc `cms.truongthinhads.vn/` (owner 2026-11-28: không có `/a
 
 Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính; owner 2026-11-28: máy tính và tablet đều mở được, điện thoại không. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
 
-Trạng thái (2026-11-28, E13): khung R1, panel Nội dung R2, Xem trước R3 (bài News và công trình), tab Thông tin, Media của bài, Layout, Còn thiếu của R4 và panel Nháp, lưu, xung đột R8 chạy trên dữ liệu thật. Còn ở các task sau: sửa chữ tại chỗ và khối `facts-grid` tại chỗ (E14, nay sửa ở tab Thông tin khi chọn khối), thư viện và upload media, khung crop, kéo media thả vào khung (E15, E16), tab Card công trình, trang chuẩn, card Advertising (E17, E18). Panel Media còn trống. Editor cũ theo contract `t<n>` đã gỡ. Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17. Khung theo triết lý IDE (owner 2026-11-28: workspace, nhóm mép, tab bản ghi, toolbar, thanh đáy) chưa có code: task I1 tới I4, chạy trước E14.
+Trạng thái (2026-11-28, E13): khung R1, panel Nội dung R2, Xem trước R3 (bài News và công trình), tab Thông tin, Media của bài, Layout của R4, panel Còn thiếu và panel Nháp, lưu, xung đột R8 chạy trên dữ liệu thật. Còn ở các task sau: sửa chữ tại chỗ và khối `facts-grid` tại chỗ (E14, nay sửa ở tab Thông tin khi chọn khối), thư viện và upload media, khung crop, kéo media thả vào khung (E15, E16), tab Card công trình, trang chuẩn, card Advertising (E17, E18). Panel Media còn trống. Editor cũ theo contract `t<n>` đã gỡ. Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17. Khung theo triết lý IDE (owner 2026-11-28): workspace và nhóm mép có code từ I1 (bố cục mặc định, nút Tài khoản ở đáy mép trái; panel Trạng thái, Nhật ký, Thùng rác ở mép dưới còn trống tới E19); tab bản ghi, toolbar, thanh đáy chưa có code: task I2 tới I4, chạy trước E14.
 
 Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.html` liệt kê bản ghi theo kiểu và trạng thái, sửa `data` dạng JSON rồi gọi `save`, `create`, `trash`, `restore`, `purge`, xem `audit-log`; `/admin/status.html` là trang vận hành của plan P1 (in `build-status`, nút "Lưu thử" đo CPU). Hai trang không dùng Design System, bị editor E12 tới E19 thay.
 
@@ -42,6 +42,7 @@ Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.
 | Thuộc tính | Trường của bản ghi hoặc chỗ đang chọn (R4 tới R7) | Mọi người |
 | Media | Thư viện ([editor media R1](cms-editor-media.md#r1-thư-viện-media)) | Mọi người |
 | Nháp | Thay đổi chưa lưu trên máy này (R8) | Mọi người |
+| Còn thiếu | Chỗ còn thiếu để đăng của bản ghi đang mở (R4) | Mọi người |
 | Trạng thái, Thùng rác, Nhật ký | [Editor vận hành](cms-editor-ops.md) | Mọi người |
 | Tài khoản | [Editor vận hành R6](cms-editor-ops.md#r6-tài-khoản), tab trong workspace | Chỉ owner |
 
@@ -105,20 +106,19 @@ And HTML của preview bằng HTML build sinh ra từ cùng dữ liệu
 
 ### R4. Soạn bài News và công trình
 
-Panel Thuộc tính của một bài có bốn tab, làm từ trái sang phải; bài công trình có thêm tab Card ([editor media R7](cms-editor-media.md#r7-card-công-trình)).
+Panel Thuộc tính của một bài có ba tab, làm từ trái sang phải; bài công trình có thêm tab Card ([editor media R7](cms-editor-media.md#r7-card-công-trình)).
 
 | Tab | Trường |
 | --- | --- |
 | Thông tin | Tên VI, EN; mô tả VI, EN; tiêu đề SEO (công trình); slug VI, EN; phân loại; ngày đăng (News); ảnh bìa, chọn trong media của bài |
 | Media của bài | Danh sách media có thứ tự: thêm từ thư viện hoặc upload, kéo thả đổi thứ tự, gỡ; đầu tab ghi tổng số |
 | Layout | Hình thu nhỏ của từng layout thuộc kiểu ([News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình)) |
-| Còn thiếu | Danh sách trường bắt buộc chưa đủ |
 
 Tab Layout: layout có mức media thấp nhất không vượt số media của bài thì mở; layout cao hơn mờ và ghi "thêm n media để mở"; layout có mức cao nhất nhỏ hơn số media ghi "bớt n media hoặc chọn layout lớn hơn". Trang `legacy` hiện một ô "Bố cục riêng (trang có trước CMS)", không chọn được cho bài khác. Chọn layout thì editor chia media vào khối bằng `assignMedia` theo thứ tự trong tab Media của bài và dựng lại preview. Người soạn không thêm, bớt hay đổi thứ tự khối; khối `quote` có một công tắc "Có trích dẫn" ở cuối tab Layout (khối chưa có thì chưa chọn được để bật).
 
 Trên preview: bấm một chữ để sửa tại chỗ (R5); bấm một khung media để mở khung crop ([editor media R4](cms-editor-media.md#r4-khung-crop)); kéo một media từ tab Media của bài thả vào một khung để đổi media của khung đó (hai media đổi chỗ cho nhau trong danh sách). Khối `facts-grid` sửa từng ô nhãn và giá trị tại chỗ.
 
-Tab Còn thiếu chạy `shapeErrors` và `fullErrors` của `src/cms/contract.mjs` ngay trong trình duyệt sau mỗi thay đổi; mỗi dòng ghi lỗi bằng tiếng Việt và bấm vào thì chọn đúng chỗ trên preview hoặc đúng trường. Đổi slug của bài đã `published` hiện ghi chú "Link cũ sẽ tự chuyển sang link mới."
+Panel Còn thiếu (mép dưới, tên tab kèm số mục, từ I1) chạy `shapeErrors` và `fullErrors` của `src/cms/contract.mjs` ngay trong trình duyệt sau mỗi thay đổi; mỗi dòng ghi lỗi bằng tiếng Việt và bấm vào thì chọn đúng chỗ trên preview hoặc đúng trường. Đổi slug của bài đã `published` hiện ghi chú "Link cũ sẽ tự chuyển sang link mới."
 
 ```gherkin
 Given bài News có 5 media, đang ở layout "2 tới 5 ảnh"
@@ -204,7 +204,7 @@ Bấm Lưu gọi `save` với `baseVersion`. Editor chỉ gửi `mediaId` và `c
 | --- | --- |
 | 200, `published`, `pending` bằng 0 | Bỏ nháp; ghi "Đã lưu. Đang đưa lên staging." |
 | 200, `published`, `pending` lớn hơn 0 | Bỏ nháp; ghi "Đã lưu. Đang xử lý n media, xong sẽ tự lên staging." |
-| 200, `draft` | Bỏ nháp; ghi "Đã lưu nháp. Còn thiếu n mục." và mở tab Còn thiếu |
+| 200, `draft` | Bỏ nháp; ghi "Đã lưu nháp. Còn thiếu n mục." và mở panel Còn thiếu |
 | 400 | Giữ nháp; đánh dấu từng trường lỗi theo danh sách trả về |
 | 409 version | Hộp thoại ghi người và giờ lưu bản kia, hai nút: "Lấy bản mới" (bỏ nháp, tải bản kia) và "Giữ bản của tôi" (lưu lại trên `version` mới) |
 | 409 slug | Giữ nháp; ô slug ghi "Link này đã có bài khác dùng." |

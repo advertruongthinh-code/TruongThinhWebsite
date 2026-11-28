@@ -1,7 +1,7 @@
 // CMS editor start (cms-editor R1, CMS plan E12): who is signed in, the dock and its panels, the top bar, then the record
-// opened last. Panels live in their own modules; the dock tools (pin, edges, layout history) live in dock-tools.js.
+// opened last. Panels live in their own modules; the dock tools (pin, workspace and edges, layout history) live in dock-tools.js.
 import { call, MESSAGES, SESSION_EVENT } from "./api.js";
-import { dockOptions, setupDockTools } from "./dock-tools.js";
+import { dockOptions, edgeOf, icon, setupDockTools } from "./dock-tools.js";
 import { draftKey, session } from "./drafts.js";
 import { h, time, toast } from "./dom.js";
 import { mountAccounts } from "./ops/accounts.js";
@@ -15,7 +15,26 @@ import { initTheme } from "./theme.mjs";
 
 const { createDockview, themeLight, themeDark } = window.dockview;
 const LAYOUT_KEY = "tt-cms-layout";
-const PANELS = { content: "Nội dung", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp", accounts: "Tài khoản" };
+const PANELS = {
+  content: "Nội dung", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp",
+  missing: "Còn thiếu", status: "Trạng thái", log: "Nhật ký", trash: "Thùng rác", accounts: "Tài khoản",
+};
+// cms-dock R2: the workspace holds the preview and Tài khoản; every other panel lives in an edge group, by default here.
+const WORKSPACE = new Set(["preview", "accounts"]);
+const HOME_EDGE = { content: "left", media: "left", props: "right", drafts: "right", missing: "bottom", status: "bottom", log: "bottom", trash: "bottom" };
+// Icons of the edge tabs (16px, stroked in currentColor).
+const S = 'fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"';
+const ICONS = {
+  content: `<path ${S} d="M3 2.5h7l3 3v8H3zM10 2.5v3h3M5.5 8h5M5.5 10.5h5"/>`,
+  media: `<rect ${S} x="2" y="3" width="12" height="10" rx="1.5"/><circle ${S} cx="6" cy="6.5" r="1.2"/><path ${S} d="M2.5 12l3.5-3.5 2.5 2.5 2-2 3 3"/>`,
+  props: `<path ${S} d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle ${S} cx="10" cy="4.5" r="1.5"/><circle ${S} cx="6" cy="11.5" r="1.5"/>`,
+  drafts: `<path ${S} d="M10.5 2.5l3 3L6 13H3v-3z M9 4l3 3"/>`,
+  missing: `<circle ${S} cx="8" cy="8" r="5.5"/><path ${S} d="M8 5v3.5M8 10.8v.2"/>`,
+  status: `<path ${S} d="M1.5 8h3l2-4.5 3 9 2-4.5h3"/>`,
+  log: `<circle ${S} cx="8" cy="8" r="5.5"/><path ${S} d="M8 4.8V8l2.2 1.4"/>`,
+  trash: `<path ${S} d="M2.5 4.5h11M6 4.5V3h4v1.5M4 4.5l.7 9h6.6l.7-9"/>`,
+};
+const ACCOUNT_ICON = '<circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="6.3" r="2.4" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M3.6 12.8c1-1.8 2.6-2.7 4.4-2.7s3.4.9 4.4 2.7" fill="none" stroke="currentColor" stroke-width="1.2"/>';
 const STATUS = { draft: "Nháp", published: "Đã đăng", trashed: "Trong thùng rác" };
 const $ = (selector) => document.querySelector(selector);
 
@@ -40,8 +59,15 @@ const empty = (title, text) => h("div", { className: "empty" }, h("p", { classNa
 const panels = Object.fromEntries(Object.keys(PANELS).map((id) => [id, h("section", { className: `panel panel--${id}` })]));
 mountContent(panels.content, { open });
 mountPreview(panels.preview);
-const props = mountPageProps(panels.props);
+const props = mountPageProps(panels.props, {
+  missingRoot: panels.missing,
+  onCount: (count) => dock.getPanel("missing")?.api.setTitle(`${PANELS.missing}${count ? ` (${count})` : ""}`),
+  reveal: (id) => focusPanel(id),
+});
 panels.media.append(empty("Thư viện media", "Ảnh và video của site, upload và khung crop sẽ ở đây."));
+panels.status.append(empty("Trạng thái", "Trạng thái dựng staging và site chính sẽ ở đây."));
+panels.log.append(empty("Nhật ký", "Ai đã sửa gì, lúc nào, sẽ ở đây."));
+panels.trash.append(empty("Thùng rác", "Bản ghi đã đưa vào thùng rác sẽ ở đây, khôi phục được."));
 mountDrafts(panels.drafts, { open });
 if (PANELS.accounts) mountAccounts(panels.accounts, { toast });
 
@@ -130,14 +156,27 @@ async function open(type, id) {
 
 // ---------- Dock ----------
 
+// The round account button at the foot of the left edge strip (cms-editor R1): everyone sees who is signed in; the owner
+// opens the Tài khoản tab in the workspace.
+const accountButton = h("button", {
+  type: "button",
+  className: "dock-account",
+  title: state.user.email,
+  "aria-label": `Tài khoản: ${state.user.email}`,
+  onclick: () => PANELS.accounts && focusPanel("accounts"),
+});
+accountButton.append(icon(ACCOUNT_ICON));
+
 let tools;
 const dock = createDockview($("#dock"), {
   theme: themeLight,
   createComponent: ({ name }) => ({ element: panels[name], init() {} }),
   createRightHeaderActionComponent: (group) => tools.headerActions(group),
-  ...dockOptions(),
+  ...dockOptions({ icons: ICONS }),
 });
 tools = setupDockTools(dock, $("#dock"), {
+  isWorkspace: (panel) => WORKSPACE.has(panel.api.component),
+  edgeFooter: (group) => (edgeOf(group) === "left" ? accountButton : null),
   onHistoryChange: ({ canUndo, canRedo }) => {
     $("#layout-undo").disabled = !canUndo;
     $("#layout-redo").disabled = !canRedo;
@@ -157,33 +196,48 @@ const theme = initTheme({
 });
 document.querySelectorAll("[data-theme-pref]").forEach((button) => button.addEventListener("click", () => theme.set(button.dataset.themePref)));
 
-const addPanel = (id, position, size) => dock.addPanel({ id, component: id, title: PANELS[id], position, ...size });
+const addPanel = (id, position) => dock.addPanel({ id, component: id, title: PANELS[id], position });
 
-// Default layout (cms-editor R1): Nội dung left 280px, Xem trước centre, Thuộc tính right 380px with Media and Nháp as tabs.
-// Side panels give way on a tablet in portrait (about 768px) so Xem trước keeps a usable centre.
+// Default layout (cms-editor R1, cms-dock R2, R3): the workspace holds the preview; Nội dung and Media on the left edge,
+// Thuộc tính and Nháp on the right, the four others on the bottom edge, collapsed. Under 1024px the side edges start
+// collapsed so the workspace keeps the window.
 function defaultLayout() {
-  const width = Math.max(innerWidth, 768); // a page opened while the phone note shows must not start with tiny side panels
+  const narrow = innerWidth < 1024;
+  const sizes = { left: 280, right: 380, bottom: 240 };
   dock.clear();
   addPanel("preview");
-  addPanel("content", { referencePanel: "preview", direction: "left" }, { initialWidth: Math.min(280, width * 0.3) });
-  addPanel("props", { referencePanel: "preview", direction: "right" }, { initialWidth: Math.min(380, width * 0.36) });
-  addPanel("media", { referencePanel: "props", direction: "within" });
-  addPanel("drafts", { referencePanel: "props", direction: "within" });
-  dock.getPanel("props").api.setActive();
+  for (const position of ["left", "right", "bottom"]) {
+    const group = tools.ensureEdge(position, { size: sizes[position] });
+    group.api.setSize(position === "bottom" ? { height: sizes[position] } : { width: sizes[position] });
+    for (const id of Object.keys(HOME_EDGE).filter((key) => HOME_EDGE[key] === position)) addPanel(id, { referenceGroup: group.id });
+    group.panels[0]?.api.setActive();
+    if (position === "bottom" || narrow) group.api.collapse();
+    else group.api.expand();
+  }
+  dock.getPanel("preview").api.setActive();
 }
 
-// Reopen a closed panel next to a main panel that is still open; Accounts needs the wide centre.
+// Opens a panel from the Bảng menu or the account button: an edge panel comes back to its edge and opens it, a workspace
+// panel becomes a tab of the active workspace group.
 function focusPanel(id) {
-  const ref = ["preview", "props", "content"].find((other) => other !== id && dock.getPanel(other));
-  const direction = id === "accounts" && ref === "preview" ? "within" : "right";
-  tools.reveal(dock.getPanel(id) ?? addPanel(id, ref && { referencePanel: ref, direction }));
+  let panel = dock.getPanel(id);
+  if (!panel) {
+    const workspace = dock.activeGroup?.api.location.type === "grid" ? dock.activeGroup : dock.groups.find((group) => group.api.location.type === "grid");
+    panel = WORKSPACE.has(id)
+      ? addPanel(id, workspace && { referenceGroup: workspace.id })
+      : addPanel(id, { referenceGroup: tools.ensureEdge(HOME_EDGE[id], { size: HOME_EDGE[id] === "bottom" ? 240 : 300, collapsed: true }).id });
+  }
+  tools.reveal(panel);
 }
 
-// A saved layout from the old editor or with a panel this account may not see falls back to the default.
+// A saved layout falls back to the default when it comes from the editor before the edge groups (cms-dock R2), places a
+// panel on the wrong side of the workspace/edge line, or has a panel this account may not see.
 try {
   const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY));
-  const ids = Object.values(saved?.panels ?? {}).map((panel) => panel.contentComponent);
-  if (!ids.includes("content") || ids.some((id) => !PANELS[id])) throw new Error("layout of another editor");
+  const inGrid = Object.values(saved?.panels ?? {}).map((panel) => panel.contentComponent);
+  const edges = Object.values(saved?.edgeGroups ?? {}).flatMap((edge) => edge.group?.views ?? []).map((view) => saved.panels[view]?.contentComponent);
+  if (!saved?.edgeGroups?.left || !inGrid.includes("content") || inGrid.some((id) => !PANELS[id])) throw new Error("layout of another editor");
+  if (edges.some((id) => WORKSPACE.has(id)) || inGrid.filter((id) => !edges.includes(id)).some((id) => !WORKSPACE.has(id))) throw new Error("panel on the wrong side");
   dock.fromJSON(saved);
 } catch {
   defaultLayout();
@@ -195,7 +249,7 @@ const closeMenu = (action) => () => {
   action();
 };
 $("#panel-menu").append(
-  ...Object.entries(PANELS).map(([id, title]) => h("button", { type: "button", onclick: closeMenu(() => focusPanel(id)) }, title)),
+  ...Object.entries(PANELS).filter(([id]) => id !== "accounts").map(([id, title]) => h("button", { type: "button", onclick: closeMenu(() => focusPanel(id)) }, title)),
   h("hr"),
   h("button", { type: "button", onclick: closeMenu(defaultLayout) }, "Bố cục mặc định"),
   h("button", { type: "button", id: "layout-undo", title: "Ctrl+Alt+Z", disabled: true, onclick: closeMenu(tools.undo) }, "Hoàn tác bố cục"),

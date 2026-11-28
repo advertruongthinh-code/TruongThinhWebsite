@@ -195,32 +195,59 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .dialog__actions button { height: 32px; padding: 0 16px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); }
 .dialog__reason { flex: 1; margin: 0; color: var(--muted); font-size: 12px; }
 
-/* Dock additions (cms-editor R11): pinned tab, drag strip at the edge, panel sliding out of an auto-hidden strip, tab menu. z-index exceeds Dockview's sash and
+/* Dock additions (cms-dock): pinned tab, edge groups, drag band at a hidden edge, tab menu. z-index exceeds Dockview's sash and
    overlay (up to 1001). */
-.dock .dv-default-tab.is-pinned .dv-default-tab-action { visibility: visible; color: var(--accent); }
+.dock .dv-tab .dv-default-tab.is-pinned .dv-default-tab-action { visibility: visible; color: var(--accent); }
 .dock .dv-default-tab-action svg { display: block; width: 12px; height: 12px; }
-.dock-edge-actions { display: flex; align-items: center; justify-content: center; height: 100%; padding: 4px; }
-.dock-edge-action { display: inline-flex; padding: 4px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); color: var(--muted); }
-.dock-edge-action svg { width: 14px; height: 14px; }
-.dock-edge-action[hidden] { display: none; }
-.dock-edge-action:hover { color: var(--ink); }
+.dock-tab-icon { display: none; }
+/* Edge tabs close from the right-click menu only, like the bars of an IDE. */
+.dock .dv-edge-group .dv-tab .dv-default-tab-action { display: none; }
+/* Left and right edges: an icon strip (cms-dock R2); the name shows on hover through the tab's title. */
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) {
+  --dv-activegroup-visiblepanel-tab-background-color: transparent;
+  --dv-activegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-inactivegroup-visiblepanel-tab-background-color: transparent;
+  --dv-inactivegroup-hiddenpanel-tab-background-color: transparent;
+}
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) > .dv-tabs-and-actions-container { width: 44px; background: var(--paper); }
+.dock .dv-edge-group[data-edge="left"] > .dv-tabs-and-actions-container { border-right: 1px solid var(--line); }
+.dock .dv-edge-group[data-edge="right"] > .dv-tabs-and-actions-container { border-left: 1px solid var(--line); }
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) .dv-tabs-container-vertical { flex-direction: column; writing-mode: horizontal-tb; }
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) .dv-tabs-container .dv-tab { width: 44px; height: 44px; padding: 0; background: none; color: var(--muted); }
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) .dv-tabs-overflow-dropdown-root { display: none; }
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) .dv-tab::before { display: none; }
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) .dv-default-tab { justify-content: center; }
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) .dv-default-tab-content { display: none; }
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) .dock-tab-icon { display: grid; place-items: center; }
+.dock-tab-icon svg { width: 22px; height: 22px; }
+.dock .dv-edge-group:is([data-edge="left"], [data-edge="right"]) .dv-tab:hover { color: var(--ink); }
+.dock .dv-edge-group:not(.dv-edge-collapsed) .dv-tab.dv-active-tab { color: var(--ink); }
+.dock .dv-edge-group[data-edge="left"]:not(.dv-edge-collapsed) .dv-tab.dv-active-tab { box-shadow: inset 2px 0 0 var(--accent); }
+.dock .dv-edge-group[data-edge="right"]:not(.dv-edge-collapsed) .dv-tab.dv-active-tab { box-shadow: inset -2px 0 0 var(--accent); }
+/* Bottom edge: text tabs on top of the open panel, like an IDE's bottom panel. */
+.dock .dv-edge-group[data-edge="bottom"] { flex-direction: column; }
+.dock .dv-edge-group[data-edge="bottom"] > .dv-tabs-and-actions-container { border-top: 1px solid var(--line); }
+/* A collapsed bottom strip shows no open tab. */
+.dock .dv-edge-group[data-edge="bottom"].dv-edge-collapsed {
+  --dv-activegroup-visiblepanel-tab-background-color: transparent;
+  --dv-activegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-inactivegroup-visiblepanel-tab-background-color: transparent;
+  --dv-inactivegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-activegroup-visiblepanel-tab-color: var(--muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--muted);
+}
+/* Foot of the left strip: the round account button (cms-editor R1). */
+.dock-edge-actions { display: flex; align-items: center; justify-content: center; height: 100%; }
+.dock .dv-edge-group[data-edge="left"] .dv-right-actions-container { margin-top: auto; }
+.dock-account { display: grid; place-items: center; width: 34px; height: 34px; margin: 6px 0 8px; padding: 0; border: 0; border-radius: 50%; background: none; color: var(--muted); }
+.dock-account:hover { background: var(--line-soft); color: var(--ink); }
+.dock-account svg { width: 24px; height: 24px; }
 .dock-band { position: absolute; z-index: 1600; background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.dock-band[hidden] { display: none; }
 .dock-band--left { top: 0; bottom: 0; left: 0; width: 16px; border-left: 3px solid transparent; }
 .dock-band--right { top: 0; right: 0; bottom: 0; width: 16px; border-right: 3px solid transparent; }
 .dock-band--bottom { right: 0; bottom: 0; left: 0; height: 16px; border-bottom: 3px solid transparent; }
 .dock-band.is-over { background: color-mix(in srgb, var(--accent) 22%, transparent); border-color: var(--accent); }
-.dock-peek { position: absolute; z-index: 1500; display: flex; flex-direction: column; min-width: 0; min-height: 0; border: 1px solid var(--line); background: var(--card); box-shadow: 0 8px 28px var(--shadow); animation: dock-peek-in 160ms ease-out; }
-.dock-peek[hidden] { display: none; }
-.dock-peek__bar { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
-.dock-peek__title { flex: 1; overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
-.dock-peek__button { display: inline-flex; align-items: center; padding: 2px 8px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); font-size: 12px; }
-.dock-peek__button svg { width: 12px; height: 12px; }
-.dock-peek__body { flex: 1; min-height: 0; overflow: auto; }
-.dock-peek__body > * { height: 100%; }
-@keyframes dock-peek-in { from { opacity: 0; transform: translateX(var(--peek-from, 0)); } }
-.dock-peek[data-edge="left"] { --peek-from: -12px; }
-.dock-peek[data-edge="right"] { --peek-from: 12px; }
-@media (prefers-reduced-motion: reduce) { .dock-peek { animation: none; } }
 .dock-menu { position: fixed; z-index: 2000; display: grid; min-width: 160px; padding: 4px; border: 1px solid var(--line); border-radius: 6px; background: var(--card); box-shadow: 0 8px 24px var(--shadow); }
 .dock-menu[hidden] { display: none; }
 .dock-menu button { padding: 6px 10px; border: 0; border-radius: 4px; background: none; text-align: left; }

@@ -14,6 +14,8 @@ async function open(role, fake) {
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   const errors = [];
   page.on("pageerror", (error) => errors.push(String(error)));
+  // The local Worker signs everyone in as owner; the staff case answers whoami as staff in the page.
+  if (role !== "owner") await page.route("**/api/admin/whoami", (route) => route.fulfill({ json: { email: "staff@example.com", role, stagingOrigin: null } }));
   await page.route("**/api/admin/account-*", async (route) => {
     const command = new URL(route.request().url()).pathname.split("/").pop();
     if (role !== "owner") return route.fulfill({ status: 403, json: { error: "Forbidden" } });
@@ -49,8 +51,7 @@ function fake(command, body) {
 
 try {
   const { page, errors } = await open("owner", fake);
-  await page.click(".topbar__menu > summary");
-  await page.getByRole("button", { name: "Tài khoản" }).click();
+  await page.locator(".dock-account").click();
   const panel = page.locator(".panel--accounts");
   await panel.locator(".acc-row").first().waitFor();
   assert.equal(await panel.locator(".acc-row").count(), 3);
@@ -99,7 +100,11 @@ try {
 
   const staffView = await open("staff", fake);
   await staffView.page.click(".topbar__menu > summary");
-  assert.equal(await staffView.page.getByRole("button", { name: "Tài khoản" }).count(), 0);
+  assert.equal(await staffView.page.locator("#panel-menu button", { hasText: "Tài khoản" }).count(), 0);
+  await staffView.page.keyboard.press("Escape");
+  await staffView.page.locator(".dock-account").click();
+  await staffView.page.waitForTimeout(300);
+  assert.equal(await staffView.page.locator(".panel--accounts").isVisible(), false);
   console.log("accounts e2e ok");
 } finally {
   await browser.close();
