@@ -46,7 +46,7 @@ async function open({ width = 1440, height = 900, screen = { width, height }, to
   const page = await context.newPage();
   page.on("pageerror", (error) => errors.push(String(error)));
   for (const [command, answer] of Object.entries(routes)) await page.route(`**/api/admin/${command}*`, answer);
-  await page.goto(`${baseUrl}/admin/`);
+  await page.goto(`${baseUrl}/`);
   return page;
 }
 const shot = (page, name) => shots && page.screenshot({ path: path.join(shots, `${name}.png`) });
@@ -58,6 +58,10 @@ try {
   // (a) First open: three panels by the default layout, Trang chủ open, owner sees Tài khoản in the Bảng menu.
   let page = await open();
   await page.locator('.group[data-group="projects"] .row').first().waitFor();
+  // The editor is the cms root; an old /admin/ link lands there too.
+  const old = await page.request.fetch(`${baseUrl}/admin/`, { maxRedirects: 0 });
+  assert.equal(old.status(), 301);
+  assert.equal(new URL(old.headers().location, baseUrl).pathname, "/");
   assert.deepEqual(await page.$$eval(".dv-tab", (tabs) => tabs.map((tab) => tab.textContent.trim())), ["Nội dung", "Xem trước", "Thuộc tính", "Media", "Nháp"]);
   const width = (name) => page.locator(".dv-groupview", { has: page.locator(".dv-tab", { hasText: name }) }).evaluate((node) => Math.round(node.getBoundingClientRect().width));
   assert.equal(await width("Nội dung"), 280);

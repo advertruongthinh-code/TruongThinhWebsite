@@ -15,8 +15,11 @@ test("build-admin writes .admin-output with only pure lib modules and no service
   const { ADMIN_OUTPUT, buildAdmin, libModules } = await import("../../scripts/cms/build-admin.mjs");
   const { modules } = await buildAdmin();
   assert.equal(existsSync(path.join(ADMIN_OUTPUT, "sw.js")), false);
-  assert.equal(existsSync(path.join(ADMIN_OUTPUT, "index.html")), true);
-  for (const file of ["admin/index.html", "admin/editor.js", "admin/preview.html", "admin/overlay.js", "admin/overlay.css", "admin/page-editor.css", "admin/head-inline.js",
+  // The editor is the root page (base admin/), /admin/ redirects to it.
+  assert.match(readFileSync(path.join(ADMIN_OUTPUT, "index.html"), "utf8"), /<base href="\/admin\/" \/>[\s\S]*src="\.\/editor\.js"/);
+  assert.equal(existsSync(path.join(ADMIN_OUTPUT, "admin/index.html")), false);
+  assert.match(readFileSync(path.join(ADMIN_OUTPUT, "_redirects"), "utf8"), /^\/admin \/ 301\n\/admin\/ \/ 301\n/);
+  for (const file of ["admin/editor.js", "admin/preview.html", "admin/overlay.js", "admin/overlay.css", "admin/page-editor.css", "admin/head-inline.js",
     "admin/pages/frames/about.html", "admin/pages/frames/residential.html", "admin/pages/frames/commercial.html", "admin/vendor/dockview/dockview.min.js"]) {
     assert.equal(existsSync(path.join(ADMIN_OUTPUT, file)), true, file);
   }

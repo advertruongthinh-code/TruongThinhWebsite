@@ -21,7 +21,7 @@ updated: 2026-11-28
 
 ## Mục đích
 
-Giao diện `/admin/` để owner và nhân viên tạo, sửa, xóa mọi nội dung của site ngay trên bản xem trước của trang thật, rồi lưu bằng lệnh của [CMS R5](cms.md#r5-lệnh-admin-có-kiểu). Spec này sở hữu khung làm việc, danh sách nội dung, xem trước, soạn bài và trang, nháp và lưu. Media, upload và khung crop ở [editor media](cms-editor-media.md); trạng thái dựng, phát hành, thùng rác, nhật ký, tài khoản ở [editor vận hành](cms-editor-ops.md); dock ở [dock](cms-dock.md). Editor chỉ gọi lệnh trong [dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) và chạy hoàn toàn bằng code cố định, không gọi AI ([CMS](cms.md#bối-cảnh-và-phương-án)).
+Giao diện ở gốc `cms.truongthinhads.vn/` (owner 2026-11-28: không có `/admin` trong địa chỉ; link `/admin/` cũ chuyển 301 về `/`) để owner và nhân viên tạo, sửa, xóa mọi nội dung của site ngay trên bản xem trước của trang thật, rồi lưu bằng lệnh của [CMS R5](cms.md#r5-lệnh-admin-có-kiểu). Spec này sở hữu khung làm việc, danh sách nội dung, xem trước, soạn bài và trang, nháp và lưu. Media, upload và khung crop ở [editor media](cms-editor-media.md); trạng thái dựng, phát hành, thùng rác, nhật ký, tài khoản ở [editor vận hành](cms-editor-ops.md); dock ở [dock](cms-dock.md). Editor chỉ gọi lệnh trong [dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) và chạy hoàn toàn bằng code cố định, không gọi AI ([CMS](cms.md#bối-cảnh-và-phương-án)).
 
 Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính; owner 2026-11-28: máy tính và tablet đều mở được, điện thoại không. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
 
@@ -33,7 +33,7 @@ Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.
 
 ### R1. Khung làm việc
 
-`/admin/` là một trang tiếng Việt, `noindex`, chỉ mở trên máy tính và tablet (owner 2026-11-28): điện thoại, tức màn hình cảm ứng có cạnh ngắn dưới 600px kể cả xoay ngang, hoặc cửa sổ rộng dưới 600px (cả cửa sổ chia đôi màn hình tablet), thấy "CMS chỉ dùng trên máy tính hoặc máy tính bảng. Hãy mở lại bằng PC hoặc tablet." thay cho editor; bàn phím ảo của tablet làm cửa sổ thấp đi cũng không chặn. Màn hình máy tính độ phân giải thấp không bị chặn. Bố cục mặc định thu hai panel bên xuống 30% và 36% bề rộng khi cửa sổ hẹp (tablet đứng 768px). Hai trang tạm `records.html` và `status.html` chưa chặn, hết khi editor thay. Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight` hoặc `themeDark` theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống); owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
+Editor là một trang tiếng Việt, `noindex`, chỉ mở trên máy tính và tablet (owner 2026-11-28): điện thoại, tức màn hình cảm ứng có cạnh ngắn dưới 600px kể cả xoay ngang, hoặc cửa sổ rộng dưới 600px (cả cửa sổ chia đôi màn hình tablet), thấy "CMS chỉ dùng trên máy tính hoặc máy tính bảng. Hãy mở lại bằng PC hoặc tablet." thay cho editor; bàn phím ảo của tablet làm cửa sổ thấp đi cũng không chặn. Màn hình máy tính độ phân giải thấp không bị chặn. Bố cục mặc định thu hai panel bên xuống 30% và 36% bề rộng khi cửa sổ hẹp (tablet đứng 768px). Hai trang tạm `records.html` và `status.html` chưa chặn, hết khi editor thay. Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight` hoặc `themeDark` theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống); owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
 
 | Panel | Nội dung | Ai thấy |
 | --- | --- | --- |
@@ -221,12 +221,12 @@ Then bài lên version 6 với nội dung của nhân viên, nhật ký có đ�
 
 ### R9. Dựng admin, chạy local và CI
 
-`scripts/cms/build-admin.mjs` ghi thư mục `.admin-output/` cho Worker admin (`wrangler.toml` `[assets]`): bản chép đủ `.site-output` trừ `sw.js` (để preview tải CSS, JS, ảnh của site ở đúng URL gốc), cộng `admin/` gồm file của `src/admin/`, Dockview (`admin/vendor/dockview/`), các module thuần dùng chung dưới `admin/lib/` giữ đường dẫn tương đối (danh sách tính bằng cách đi theo `import` tĩnh từ `src/cms/*.mjs` và các module dựng trang; gặp import không tương đối thì build dừng), trang vỏ rỗng `admin/preview.html` cho iframe và `admin/repo-files.json` (file nội dung có trong repo). Route public không đổi và không có file admin. `pnpm cms:dev` dựng site, dựng admin rồi chạy Worker admin local với D1 local đã seed, mở `http://127.0.0.1:8788/admin/`. Bộ `fast` chạy test đơn vị của các module thuần và e2e của editor trên Worker local.
+`scripts/cms/build-admin.mjs` ghi thư mục `.admin-output/` cho Worker admin (`wrangler.toml` `[assets]`): bản chép đủ `.site-output` trừ `sw.js` (để preview tải CSS, JS, ảnh của site ở đúng URL gốc), cộng `admin/` gồm file của `src/admin/`, Dockview (`admin/vendor/dockview/`), các module thuần dùng chung dưới `admin/lib/` giữ đường dẫn tương đối (danh sách tính bằng cách đi theo `import` tĩnh từ `src/cms/*.mjs` và các module dựng trang; gặp import không tương đối thì build dừng), trang vỏ rỗng `admin/preview.html` cho iframe và `admin/repo-files.json` (file nội dung có trong repo). Trang editor thay trang chủ của bản chép thành `index.html` ở gốc, có `<base href="/admin/">` để đường dẫn tương đối vẫn trỏ vào `admin/`; `_redirects` chuyển `/admin` và `/admin/` về `/`. Route public không đổi và không có file admin. `pnpm cms:dev` dựng site, dựng admin rồi chạy Worker admin local với D1 local đã seed, mở `http://127.0.0.1:8788/`. Bộ `fast` chạy test đơn vị của các module thuần và e2e của editor trên Worker local.
 
 ```gherkin
 Given pnpm cms:dev đang chạy
-When GET /admin/ và một file module trong /admin/
-Then 200; GET / của site public không chứa file nào của admin
+When GET / và một file module trong /admin/
+Then 200 với editor; GET /admin/ là 301 về /; site public không chứa file nào của admin
 ```
 
 ### R10. Giao diện sáng, tối hoặc theo hệ thống
@@ -268,7 +268,7 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng hoặc t�
 | R6, R7 | cần: đơn vị `fillSlots`; test mọi `data-slot` duy nhất trong trang; e2e luật 6 mục menu và ảnh hero cuối |
 | R1, R2 | `tests/admin/editor.e2e.mjs` (Worker local, D1 seed): bố cục mặc định, menu Bảng theo vai, lọc Thiếu EN, tìm bỏ dấu, tạo bài, tạo card và 409, tải thêm khi cuộn, kéo thả rồi tải lại, menu chuột phải, 403, phiên hết hạn, cửa sổ 900px; `tests/admin/slug.test.mjs` |
 | R10 | `tests/admin/theme.test.mjs` (chọn, lưu, theo hệ thống, lưu trữ lỗi); `tests/admin/editor.e2e.mjs` (nhãn nút, màu và dock đổi, giữ sau tải lại) |
-| R9 | `tests/tooling/admin-output.test.mjs` (output public không có admin; `admin/lib` chỉ có module thuần; không `sw.js`) |
+| R9 | `tests/tooling/admin-output.test.mjs` (output public không có admin; editor ở gốc, `/admin/` chuyển về `/`; `admin/lib` chỉ có module thuần; không `sw.js`); `tests/admin/editor.e2e.mjs` (301 của `/admin/` trên Worker local) |
 
 ## Gate còn mở
 

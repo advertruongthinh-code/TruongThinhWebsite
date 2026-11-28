@@ -20,7 +20,7 @@ async function open(role, fake) {
     const [status, json] = fake(command, route.request().postDataJSON());
     return route.fulfill({ status, json });
   });
-  await page.goto(`${baseUrl}/admin/index.html`);
+  await page.goto(`${baseUrl}/`);
   await page.waitForSelector(".dv-tab");
   return { page, errors };
 }

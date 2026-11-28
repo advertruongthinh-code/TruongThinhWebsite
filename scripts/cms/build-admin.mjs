@@ -60,6 +60,13 @@ export async function buildAdmin() {
   // The site's service worker would cache admin responses: the copy leaves it out.
   await cp(site, ADMIN_OUTPUT, { recursive: true, filter: (source) => source !== path.join(site, "sw.js") });
   await cp(path.join(root, "src/admin"), admin, { recursive: true });
+  // The editor opens at the cms root (owner 2026-11-28): its page replaces the site copy's home (the preview reads frames from
+  // admin/pages, never the copy's home), <base> keeps its relative URLs under admin/, and old /admin/ links redirect to /.
+  const editor = await readFile(path.join(admin, "index.html"), "utf8");
+  await writeFile(path.join(ADMIN_OUTPUT, "index.html"), editor.replace("<head>", '<head>\n    <base href="/admin/" />'));
+  await rm(path.join(admin, "index.html"));
+  const redirects = path.join(ADMIN_OUTPUT, "_redirects");
+  await writeFile(redirects, `/admin / 301\n/admin/ / 301\n${existsSync(redirects) ? await readFile(redirects, "utf8") : ""}`);
   const vendor = path.join(admin, "vendor/dockview");
   await mkdir(vendor, { recursive: true });
   await cp(path.join(root, "node_modules/dockview/dist/dockview.min.js"), path.join(vendor, "dockview.min.js"));
