@@ -19,7 +19,7 @@ updated: 2026-11-28
 
 Giao diện `/admin/` để owner và nhân viên tạo, sửa, xóa mọi nội dung của site ngay trên bản xem trước của trang thật, rồi lưu bằng lệnh của [CMS R5](cms.md#r5-lệnh-admin-có-kiểu). Spec này sở hữu khung làm việc, danh sách nội dung, xem trước, soạn bài và trang, nháp và lưu. Media, upload và khung crop ở [editor media](cms-editor-media.md); trạng thái dựng, phát hành, thùng rác, nhật ký, tài khoản ở [editor vận hành](cms-editor-ops.md); dock ở [dock](cms-dock.md). Editor chỉ gọi lệnh trong [dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) và chạy hoàn toàn bằng code cố định, không gọi AI ([CMS](cms.md#bối-cảnh-và-phương-án)).
 
-Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
+Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính; owner 2026-11-28: máy tính và tablet đều mở được, điện thoại không. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
 
 Trạng thái (2026-11-28, E12): khung R1 và panel Nội dung R2 chạy trên dữ liệu thật (`whoami`, `list`, `get`, `create`, `reorder`). Panel Xem trước, Thuộc tính, Media, Nháp đã có chỗ trong bố cục mặc định nhưng còn trống tới E13 tới E16; editor cũ theo contract `t<n>` đã gỡ (giữ `dock-tools.js`, `overlay.js` cho E13). Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17.
 
@@ -29,7 +29,7 @@ Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.
 
 ### R1. Khung làm việc
 
-`/admin/` là một trang tiếng Việt, `noindex`, chỉ bố cục từ 1024px (hẹp hơn hiện "Mở CMS trên máy tính, cửa sổ rộng từ 1024px."). Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight` hoặc `themeDark` theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống); owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
+`/admin/` là một trang tiếng Việt, `noindex`, chỉ mở trên máy tính và tablet (owner 2026-11-28): điện thoại, tức màn hình có cạnh ngắn dưới 600px kể cả xoay ngang, hoặc cửa sổ rộng dưới 600px, thấy "CMS chỉ dùng trên máy tính hoặc máy tính bảng. Hãy mở lại bằng PC hoặc tablet." thay cho editor; bàn phím ảo của tablet làm cửa sổ thấp đi cũng không chặn. Bố cục mặc định thu hai panel bên xuống 30% và 36% bề rộng khi cửa sổ hẹp (tablet đứng 768px). Hai trang tạm `records.html` và `status.html` chưa chặn, hết khi editor thay. Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight` hoặc `themeDark` theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống); owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
 
 | Panel | Nội dung | Ai thấy |
 | --- | --- | --- |
