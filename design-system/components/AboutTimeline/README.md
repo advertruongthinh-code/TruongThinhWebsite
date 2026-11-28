@@ -9,7 +9,7 @@ Chín mốc của Trường Thịnh (Những năm 2000 tới Hôm nay, có 2021 
 - Nét isometric hoặc chiếu xiên, một độ dày nét, màu theo bảng `--art-line`, `--art-face`, `--art-side`, `--art-accent` của từng
   bản vẽ; khối nổi có nét gấp ở mọi góc sắc, không bo góc chỗ cần nét gấp.
 - Mặt cong có màu (khối trụ, góc bo, nắp máy in, đũa) tô chuyển sáng tối kiểu falloff, không kẻ nét chỗ cong. Không nét nào lố
-  khỏi vùng của nó (sọc tủ dừng cách viền); vật trước che vật sau đúng thứ tự. Máy in, CNC, máy dán cạnh có chi tiết như ảnh mẫu
+  khỏi vùng của nó (rãnh cánh tủ Hôm nay chạm biên tủ theo đường bo, không lố ra ngoài); vật trước che vật sau đúng thứ tự. Máy in, CNC, máy dán cạnh có chi tiết như ảnh mẫu
   của owner nhưng giữ nét và bảng màu này: máy in không nút, không màn hình, dây mực giấu dưới nắp che; đầu CNC là khối hộp, khối trụ và một nét đậm. Không
   ghi mã máy hay khổ ván lên hình.
 - Mỗi mốc vẽ máy hoặc sản phẩm, không cả hai; không biểu tượng tôn giáo. Mốc 2020 là tấm ván nesting phôi tủ (bản vẽ kỹ thuật, không
