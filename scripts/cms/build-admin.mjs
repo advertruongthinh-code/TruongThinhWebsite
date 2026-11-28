@@ -8,6 +8,8 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { KINDS, SECTORS } from "../site/block-pages.mjs";
+import { readPageSource } from "../site/sync-site-menu.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const site = path.join(root, ".site-output");
@@ -16,7 +18,7 @@ const admin = path.join(ADMIN_OUTPUT, "admin");
 // Entry points of the browser copy; every module they import statically is copied too.
 export const LIB_ENTRIES = [
   ...(await readdir(path.join(root, "src/cms"))).filter((file) => file.endsWith(".mjs")).map((file) => `src/cms/${file}`),
-  ...["blocks", "block-pages", "slots", "media-src", "client-logos", "lib-pure"].map((name) => `scripts/site/${name}.mjs`),
+  ...["blocks", "block-pages", "slots", "media-src", "client-logos", "lib-pure", "page-finish"].map((name) => `scripts/site/${name}.mjs`),
 ];
 
 // Static relative imports from the entries; a bare or node: import means the module is not pure and stops the build.
@@ -35,8 +37,20 @@ export async function libModules(entries = LIB_ENTRIES) {
   return [...seen].sort();
 }
 
+// The editor puts the page HTML in window.parent.TTPreview and loads this shell per render. The shell sets the page's real path
+// as its URL first, then writes the HTML itself: document.open() called by the parent would give the iframe the admin URL, and the
+// site's scripts read location. A fresh load per render also drops the old page's timers and animations.
 const PREVIEW_SHELL = `<!doctype html>
-<html lang="vi"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Xem trước</title></head><body></body></html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="robots" content="noindex, nofollow"><title>Xem trước</title>
+<script>
+  const html = window.parent.TTPreview?.html();
+  if (html) {
+    history.replaceState(null, "", new URLSearchParams(location.search).get("path") || "/");
+    document.open();
+    document.write(html);
+    document.close();
+  }
+</script></head><body></body></html>
 `;
 
 export async function buildAdmin() {
@@ -55,6 +69,11 @@ export async function buildAdmin() {
     await cp(path.join(root, file), path.join(admin, "lib", file));
   }
   await writeFile(path.join(admin, "preview.html"), PREVIEW_SHELL);
+  // Frame pages of the block-built kinds (News uses About; a project its sector) and the shared head script, for the preview.
+  const frames = [...new Set([...SECTORS, ...Object.values(KINDS).map((kind) => kind.frame({ sector: SECTORS[0] }))])];
+  await mkdir(path.join(admin, "pages/frames"), { recursive: true });
+  for (const frame of frames) await writeFile(path.join(admin, "pages/frames", `${frame}.html`), readPageSource(`${frame}/index.html`));
+  await cp(path.join(root, "src/site/head-inline.js"), path.join(admin, "head-inline.js"));
   // Content files the repo build has, like the build's existsSync: the preview picks only variants that exist.
   const files = (await readdir(path.join(site, "assets/content"), { recursive: true, withFileTypes: true }))
     .filter((entry) => entry.isFile())

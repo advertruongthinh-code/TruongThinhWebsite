@@ -466,4 +466,8 @@ export const duplicatePageFields = (pages, at) => ["id", "slugVi", "slugEn"].fla
 });
 
 // Call only with data that passed validateBlockPage.
-export const renderBlocks = (page, ctx) => page.blocks.map((block) => BLOCKS[block.type].render(block, ctx, page)).join("\n");
+// ctx.editor (the CMS preview, cms-editor R3) marks each block root with its index so the overlay can select it; a build never sets it.
+export const renderBlocks = (page, ctx) => page.blocks.map((block, index) => {
+  const html = BLOCKS[block.type].render(block, ctx, page);
+  return ctx.editor ? html.replace(/^(\s*<[a-z][\w-]*)/, `$1 data-block-index="${index}"`) : html;
+}).join("\n");

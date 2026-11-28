@@ -1,6 +1,6 @@
 // Shared editor state (CMS plan E12): the signed-in user and the open record. Panels listen to "open" on `state`.
 const OPEN_KEY = "tt-cms-open";
-export const state = Object.assign(new EventTarget(), { user: null, open: null });
+export const state = Object.assign(new EventTarget(), { user: null, open: null, block: null, previewError: "" });
 
 // record: { type, id, name, status, version, data } as `get` returns it.
 export function setOpen(record) {
@@ -27,3 +27,9 @@ export const hasDraft = (type, id) => {
     return false;
   }
 };
+
+// The block selected on the preview (index into the page's blocks) or null; the Thông tin tab shows its text fields.
+export function selectBlock(index) {
+  state.block = index;
+  state.dispatchEvent(new Event("block"));
+}

@@ -6,7 +6,11 @@ source:
   - scripts/cms/**
 tests:
   - tests/admin/slug.test.mjs
+  - tests/admin/preview-parity.test.mjs
   - tests/admin/editor.e2e.mjs
+  - tests/cms/page-model.test.mjs
+  - tests/cms/draft-session.test.mjs
+  - tests/cms/errors-vi.test.mjs
   - tests/tooling/admin-output.test.mjs
 notion: https://app.notion.com/p/420332849a0e81ffb9e4e85372f1a0f7
 updated: 2026-11-28
@@ -20,7 +24,7 @@ Giao diện `/admin/` để owner và nhân viên tạo, sửa, xóa mọi nội
 
 Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
 
-Trạng thái (2026-11-28, E12): khung R1 và panel Nội dung R2 chạy trên dữ liệu thật (`whoami`, `list`, `get`, `create`, `reorder`). Panel Xem trước, Thuộc tính, Media, Nháp đã có chỗ trong bố cục mặc định nhưng còn trống tới E13 tới E16; editor cũ theo contract `t<n>` đã gỡ (giữ `dock-tools.js`, `overlay.js` cho E13). Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17.
+Trạng thái (2026-11-28, E13): khung R1, panel Nội dung R2, Xem trước R3 (bài News và công trình), tab Thông tin, Media của bài, Layout, Còn thiếu của R4 và panel Nháp, lưu, xung đột R8 chạy trên dữ liệu thật. Còn ở các task sau: sửa chữ tại chỗ và khối `facts-grid` tại chỗ (E14, nay sửa ở tab Thông tin khi chọn khối), thư viện và upload media, khung crop, kéo media thả vào khung (E15, E16), tab Card công trình, trang chuẩn, card Advertising (E17, E18). Panel Media còn trống. Editor cũ theo contract `t<n>` đã gỡ. Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17.
 
 Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.html` liệt kê bản ghi theo kiểu và trạng thái, sửa `data` dạng JSON rồi gọi `save`, `create`, `trash`, `restore`, `purge`, xem `audit-log`; `/admin/status.html` là trang vận hành của plan P1 (in `build-status`, nút "Lưu thử" đo CPU). Hai trang không dùng Design System, bị editor E12 tới E19 thay.
 
@@ -61,7 +65,7 @@ Panel xếp bản ghi theo nhóm; mỗi nhóm đọc bằng lệnh `list` của 
 | Card Advertising, theo cụm rồi sản phẩm | `advertising-card` | Có | Kéo thả trong một sản phẩm |
 | Menu và liên hệ | `menu`, `contact` | Không | Không |
 
-Mỗi dòng ghi tên, người và giờ sửa cuối, và các nhãn: "Nháp" (`draft`), "Đang xử lý media" (`pending > 0`), "Lỗi media" (có biến thể `error`), "Thiếu EN" ([nội dung CMS R2](cms-content.md#r2-hai-ngôn-ngữ)), "Chưa lưu" (có nháp trên máy này). Ô tìm lọc theo tên, bỏ dấu; bộ lọc: Tất cả, Nháp, Thiếu EN, Có lỗi. Bấm một dòng mở bản ghi đó ở Xem trước và Thuộc tính. Menu chuột phải của dòng: "Mở trên staging", "Đưa vào thùng rác" ([editor vận hành R4](cms-editor-ops.md#r4-thùng-rác)).
+Mỗi dòng ghi tên, email người sửa cuối (owner 2026-11-28) và giờ sửa, và các nhãn: "Nháp" (`draft`), "Đang xử lý media" (`pending > 0`), "Lỗi media" (có biến thể `error`), "Thiếu EN" ([nội dung CMS R2](cms-content.md#r2-hai-ngôn-ngữ)), "Chưa lưu" (có nháp trên máy này). Ô tìm lọc theo tên, bỏ dấu; bộ lọc: Tất cả, Nháp, Thiếu EN, Có lỗi. Bấm một dòng mở bản ghi đó ở Xem trước và Thuộc tính. Menu chuột phải của dòng: "Mở trên staging", "Đưa vào thùng rác" ([editor vận hành R4](cms-editor-ops.md#r4-thùng-rác)).
 
 Tạo mới mở một hộp thoại: tên tiếng Việt (bắt buộc) và các trường phân loại bắt buộc của kiểu (News: nhóm; công trình: mảng và loại; card: sản phẩm chính). `id` và slug VI tự sinh từ tên (chữ thường, bỏ dấu, nối bằng gạch ngang), sửa được trong hộp thoại; `id` không đổi sau khi tạo. Bấm "Tạo" gọi `create`, mở bản ghi mới ở trạng thái Nháp; 409 thì hộp thoại ghi "Tên định danh này đã có, đổi tên khác." và giữ nguyên dữ liệu đã gõ.
 
@@ -85,7 +89,7 @@ Khung xem trước là một `iframe` cùng origin, chạy cùng CSS, JS và mot
 | Trang chuẩn | HTML đã dựng của trang, cộng hàm `fillSlots` mà build dùng (R6) |
 | Lưới và trang card Advertising | Bản xem trước `advertising.html` với catalog vá từ dữ liệu card đang sửa, như bản hiện có |
 
-Thanh cỡ có đúng sáu mốc 384, 768, 1024, 1280, 1440, 1920 (owner 2026-11-15); ô bề rộng tự do và các preset cũ bỏ. Khung lớn hơn panel thì thu nhỏ bằng `transform: scale`, ghi cỡ và phần trăm. Đổi mốc tải lại iframe (runtime của site chỉ dựng đúng lúc tải trang) rồi cuộn lại chỗ đang chọn. Sửa chữ cập nhật tại chỗ; đổi media, crop, layout hay thứ tự thì dựng lại HTML trong iframe sau 250 ms kể từ thay đổi cuối. Nút "Tiếng Việt"/"English" đổi ngôn ngữ xem trước; bản ghi chưa đủ EN thì nút English mờ kèm "Bài chưa có bản tiếng Anh". "Chế độ sửa"/"Chế độ xem" bật tắt overlay; chế độ xem tương tác như khách, link rời trang bị chặn kèm thông báo. "Mở trên staging" mở URL của trang trên staging trong tab mới, mờ khi bản ghi chưa `published`.
+Thanh cỡ có đúng sáu mốc 384, 768, 1024, 1280, 1440, 1920 (owner 2026-11-15); ô bề rộng tự do và các preset cũ bỏ. Khung lớn hơn panel thì thu nhỏ bằng `transform: scale`, ghi cỡ và phần trăm. Đổi mốc tải lại iframe (runtime của site chỉ dựng đúng lúc tải trang) rồi cuộn lại chỗ đang chọn. Mọi thay đổi dựng lại HTML trong iframe sau 250 ms kể từ thay đổi cuối và giữ vị trí cuộn (sửa chữ tại chỗ không dựng lại: E14). Nút "Tiếng Việt"/"English" đổi ngôn ngữ xem trước; bản ghi chưa đủ EN thì nút English mờ kèm "Bài chưa có bản tiếng Anh". "Chế độ sửa"/"Chế độ xem" bật tắt overlay; chế độ xem tương tác như khách, link rời trang bị chặn kèm thông báo. "Mở trên staging" mở URL của trang trên staging trong tab mới, mờ khi bản ghi chưa `published`.
 
 Media chưa có biến thể hiện bằng bản gốc qua lệnh `media-file`, với vùng crop áp bằng CSS, và góc khung ghi "bản xem trước". Lưới card trong preview xếp như PC và tablet ở mọi mốc; thứ tự dựng sẵn của điện thoại chỉ có ở lần dựng thật.
 
@@ -107,7 +111,7 @@ Panel Thuộc tính của một bài có bốn tab, làm từ trái sang phải;
 | Layout | Hình thu nhỏ của từng layout thuộc kiểu ([News R3](news.md#r3-trang-bài), [công trình R4](projects.md#r4-ảnh-và-video-công-trình)) |
 | Còn thiếu | Danh sách trường bắt buộc chưa đủ |
 
-Tab Layout: layout có mức media thấp nhất không vượt số media của bài thì mở; layout cao hơn mờ và ghi "thêm n media để mở"; layout có mức cao nhất nhỏ hơn số media ghi "bớt n media hoặc chọn layout lớn hơn". Trang `legacy` hiện một ô "Bố cục riêng (trang có trước CMS)", không chọn được cho bài khác. Chọn layout thì editor chia media vào khối bằng `assignMedia` theo thứ tự trong tab Media của bài và dựng lại preview. Người soạn không thêm, bớt hay đổi thứ tự khối; khối `quote` có một công tắc "Có trích dẫn" trong Thuộc tính của nó.
+Tab Layout: layout có mức media thấp nhất không vượt số media của bài thì mở; layout cao hơn mờ và ghi "thêm n media để mở"; layout có mức cao nhất nhỏ hơn số media ghi "bớt n media hoặc chọn layout lớn hơn". Trang `legacy` hiện một ô "Bố cục riêng (trang có trước CMS)", không chọn được cho bài khác. Chọn layout thì editor chia media vào khối bằng `assignMedia` theo thứ tự trong tab Media của bài và dựng lại preview. Người soạn không thêm, bớt hay đổi thứ tự khối; khối `quote` có một công tắc "Có trích dẫn" ở cuối tab Layout (khối chưa có thì chưa chọn được để bật).
 
 Trên preview: bấm một chữ để sửa tại chỗ (R5); bấm một khung media để mở khung crop ([editor media R4](cms-editor-media.md#r4-khung-crop)); kéo một media từ tab Media của bài thả vào một khung để đổi media của khung đó (hai media đổi chỗ cho nhau trong danh sách). Khối `facts-grid` sửa từng ô nhãn và giá trị tại chỗ.
 
@@ -228,10 +232,11 @@ Then 200; GET / của site public không chứa file nào của admin
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| File | `src/admin/index.html`, `editor.js`, `editor.css`, `dock-tools.js`, `overlay.js`, `overlay.css` | Khung, panel, overlay (R1 tới R8) |
+| File | `src/admin/index.html`, `editor.js`, `editor.css`, `page-editor.css`, `dock-tools.js`, `drafts.js`, `site-context.js`, `overlay.js`, `overlay.css`, `panels/*.js` | Khung, panel, overlay (R1 tới R8) |
+| Module thuần | `src/cms/page-model.mjs`, `draft-session.mjs`, `preview-data.mjs`, `errors-vi.mjs` | Chia media vào khối theo layout, phiên nháp và lưu, dữ liệu và HTML preview, câu lỗi tiếng Việt (R3, R4, R8) |
 | Hàm | `renderBlockPage`, `fillSlots`, `inlineMarks`, `assignMedia`, `shapeErrors`, `fullErrors` | Module thuần dùng chung với build và Worker (R3 tới R6) |
 | DOM hook | `data-slot` trên bốn trang chuẩn; iframe `data-cms-preview` | Khóa slot (R6); khung preview |
-| Lệnh | `list`, `get`, `create`, `save`, `reorder`, `media-file` | [Dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) |
+| Lệnh | `list`, `get`, `context`, `media-list`, `create`, `save`, `reorder`, `media-file` | [Dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) |
 | Storage | `localStorage` `tt-cms-draft:<kiểu>:<id>`, `tt-cms-layout`, `tt-cms-open` | Nháp (R8), bố cục, bản ghi mở lần cuối (R1) |
 | Thư viện | `dockview` 8.8.0 | Dock (R1) |
 
@@ -243,12 +248,12 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tín
 
 | R | Test hoặc command |
 | --- | --- |
-| R8 | cần: e2e lưu, xung đột 409 trên Worker local |
-| R3 | cần: HTML preview bằng HTML build trên fixture mọi khối, bốn trang chuẩn và card |
-| R4 | cần: e2e khóa layout theo số media; đơn vị `assignMedia` đã có ở phần 1 |
+| R8 | `tests/admin/editor.e2e.mjs`: lưu 400 giữ nháp và chỉ gửi `mediaId`, `crop`; 409 version với hộp thoại và "Giữ bản của tôi"; mất mạng giữ nháp; panel Nháp và tải lại; `tests/cms/draft-session.test.mjs` (bảng R8, hoàn tác gộp, nháp cũ) |
+| R3 | `tests/admin/preview-parity.test.mjs` (HTML preview bằng HTML build, từng bài News và công trình của repo, hai ngôn ngữ); e2e: sáu mốc, chữ chưa lưu còn sau khi đổi mốc. Còn cần: bốn trang chuẩn và card (E17, E18) |
+| R4 | `tests/admin/editor.e2e.mjs` (layout mờ kèm "thêm n media để mở", thêm media rồi chọn layout, chọn khối, Còn thiếu); `tests/cms/page-model.test.mjs` (`relayout`, `layoutChoices`, `fitCrops`); `tests/cms/errors-vi.test.mjs`; đơn vị `assignMedia` ở phần 1 |
 | R5 | cần: đơn vị `inlineMarks` (từng dấu, thoát HTML, dán chữ thuần) |
 | R6, R7 | cần: đơn vị `fillSlots`; test mọi `data-slot` duy nhất trong trang; e2e luật 6 mục menu và ảnh hero cuối |
-| R1, R2 | `tests/admin/editor.e2e.mjs` (Worker local, D1 seed): bố cục mặc định, menu Bảng theo vai, lọc Thiếu EN, tìm bỏ dấu, tạo bài và 409, kéo thả rồi tải lại, menu chuột phải, 403, phiên hết hạn, cửa sổ 900px; `tests/admin/slug.test.mjs` |
+| R1, R2 | `tests/admin/editor.e2e.mjs` (Worker local, D1 seed): bố cục mặc định, menu Bảng theo vai, lọc Thiếu EN, tìm bỏ dấu, tạo bài, tạo card và 409, tải thêm khi cuộn, kéo thả rồi tải lại, menu chuột phải, 403, phiên hết hạn, cửa sổ 900px; `tests/admin/slug.test.mjs` |
 | R9 | `tests/tooling/admin-output.test.mjs` (output public không có admin; `admin/lib` chỉ có module thuần; không `sw.js`) |
 
 ## Gate còn mở

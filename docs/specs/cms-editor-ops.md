@@ -153,7 +153,7 @@ Chỉ owner mở được panel Tài khoản (đọc `account-list`): email, vai
 email Google và vai trò rồi gọi `account-add`; mỗi dòng có "Đổi vai trò" và "Khóa" hoặc "Mở lại" (`account-update`).
 502 (API Access lỗi) thì ghi "Chưa đổi được quyền đăng nhập, thử lại sau", danh sách không đổi. `accessSynced: false`
 sau khi khóa thì dòng đó ghi "Đã khóa trong CMS, chưa gỡ được khỏi đăng nhập" kèm "Thử lại". 409 owner cuối thì ghi
-"Phải còn ít nhất một owner đang mở." Panel không hiện và không lưu email ở đâu ngoài bảng này.
+"Phải còn ít nhất một owner đang mở." Email chỉ nằm trong bảng `accounts`, các cột `created_by`, `updated_by` và nhật ký; panel Nội dung hiện email người sửa cuối trên mỗi dòng ([editor R2](cms-editor.md#r2-panel-nội-dung), owner 2026-11-28).
 
 ```gherkin
 Given chỉ còn một owner đang mở

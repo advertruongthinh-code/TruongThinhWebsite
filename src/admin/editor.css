@@ -122,7 +122,9 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .row.is-drop-after { box-shadow: inset 0 -2px 0 var(--accent); }
 .row__main { display: grid; min-width: 0; }
 .row__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.row__meta { overflow: hidden; color: var(--faint); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.row__meta { display: flex; min-width: 0; overflow: hidden; color: var(--faint); font-size: 12px; white-space: pre; }
+.row__who { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.row__when { flex: none; }
 .row__line { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .row__line > .badge { flex: none; }
 .row__meta { min-width: 0; }
