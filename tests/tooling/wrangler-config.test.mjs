@@ -34,7 +34,7 @@ test("the admin Worker runs first only for the API and has one Cron", () => {
 test("the admin Worker serves only its custom domain, not workers.dev", () => {
   const admin = read("wrangler.toml");
   assert.match(admin, /^workers_dev = false$/m);
-  assert.match(admin, /^pattern = "admin\.truongthinhads\.vn"\ncustom_domain = true$/m);
+  assert.match(admin, /^pattern = "cms\.truongthinhads\.vn"\ncustom_domain = true$/m);
 });
 
 // force-trailing-slash serves /admin/status.html at /admin/status/, so a "./x.js" there resolves to /admin/status/x.js (503).
