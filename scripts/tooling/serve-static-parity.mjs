@@ -5,11 +5,11 @@ import { fileURLToPath } from "node:url";
 import { ADVERTISING_CARDS, ADVERTISING_PAGES } from "../../src/site/advertising-products/catalog.mjs";
 import { MERGED_CARD_REDIRECTS } from "../../src/site/advertising-products/media-manifest.mjs";
 import { blockRoutes, newsListRoutes } from "../site/block-pages.mjs";
-import { dropElements } from "../site/html-elements.mjs";
 import { loadBlockContent, readRedirects } from "../site/content-files.mjs";
 import { projectListRoutes } from "../site/project-list.mjs";
 import { legacyRedirects } from "../site/redirects.mjs";
 import { localePrefix, routeLocale } from "../site/lib.mjs";
+import { localeHtml } from "../site/lib-pure.mjs";
 
 export const ROUTES = new Map([
   ["/", "index.html"],
@@ -73,46 +73,6 @@ function parseArgs(argv) {
     port: Number(value("--port", "8787")),
     selfTest: argv.includes("--self-test"),
   };
-}
-
-function attribute(tag, name) {
-  return new RegExp(`(?<![\\w-])${name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") }="([^"]*)"`, "i").exec(tag)?.[1] ?? null;
-}
-
-function setAttribute(tag, name, value) {
-  const pattern = new RegExp(`(?<![\\w-])${name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") }="[^"]*"`, "i");
-  if (pattern.test(tag)) return tag.replace(pattern, () => `${name}="${value}"`);
-  return tag.replace(/\s*\/?\s*>$/, (ending) => ` ${name}="${value}"${ending}`);
-}
-
-const ATTRIBUTE = String.raw`(?:\s+[\w:-]+(?:="[^"]*")?)`;
-const EN_TEXT_ELEMENT = new RegExp(String.raw`<([a-z][\w:-]*)(${ATTRIBUTE}*?\s+data-en="([^"]*)"${ATTRIBUTE}*\s*)>[\s\S]*?<\/\1\s*>`, "gi");
-export function localeHtml(source, locale = "vi") {
-  // A post without EN shows only on VI pages (data-vi-only), its EN-only replacement only on EN pages (cms-content R2).
-  const other = locale === "en" ? "data-vi-only" : "data-en-only";
-  let html = (source.includes(other) ? dropElements(source, other) : source).replace(/<html\b[^>]*>/i, (tag) => setAttribute(setAttribute(tag, "lang", locale), "data-route-locale", locale));
-  if (locale === "en") {
-    html = html.replace(/<[^>]+>/g, (tag) => {
-      let output = tag;
-      for (const name of ["alt", "aria-label", "content", "href"]) {
-        const english = attribute(output, `data-en-${name}`);
-        if (english === null) continue;
-        const vietnamese = attribute(output, name);
-        if (vietnamese !== null && attribute(output, `data-vi-${name}`) === null) output = setAttribute(output, `data-vi-${name}`, vietnamese);
-        output = setAttribute(output, name, english);
-      }
-      return output;
-    });
-    // Attributes match as whole name="value" tokens, so text such as "data-en=" inside another attribute value is not read as one.
-    html = html.replace(EN_TEXT_ELEMENT, (_match, tag, attributes, english) => `<${tag}${attributes}>${english}</${tag}>`);
-  }
-  return html.replace(/<a\b[^>]*>/gi, (tag) => {
-    if (/\bdata-language-option\s*=/.test(tag)) return tag;
-    const href = attribute(tag, "href");
-    if (!href?.startsWith("/") || href.startsWith("//")) return tag;
-    const path = href.replace(/^\/(?:vi|en)(?=\/|$)/, "");
-    return setAttribute(tag, "href", `${localePrefix(locale)}${path || "/"}`);
-  });
 }
 
 function requestFile(root, pathname) {

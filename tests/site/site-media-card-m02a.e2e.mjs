@@ -1405,15 +1405,52 @@ test("M02a touch primary video shows the expand button and a tap on the video pa
       "tapping the video pauses it");
     assert.equal(await page.locator("[data-detail-dialog]").evaluate((node) => node.open), false,
       "tapping the video does not open the viewer");
-    // Touch screens show the viewer strip too (viewer R8, owner 2026-11-23): a portrait phone stacks it on the left, 24px from the edge.
+    // Touch screens show the viewer strip too (viewer R8): a row at the bottom on every screen (owner 2026-11-24), 24px from the bottom on a phone.
     await page.locator("[data-detail-expand]").tap();
     await page.waitForFunction(() => document.querySelector("[data-detail-dialog]").dataset.viewerState
       === "open");
     await settleTransitions(page);
     const touchStrip = await page.locator("[data-detail-viewer-thumbs] button").first().boundingBox();
-    assert(touchStrip && Math.abs(touchStrip.x - 24) <= 1 && Math.abs(touchStrip.width - 56) <= 1,
-      `the viewer strip shows on touch screens, 56px thumbnails 24px from the left: ${JSON.stringify(touchStrip)}`);
+    assert(touchStrip && Math.abs(844 - touchStrip.y - touchStrip.height - 24) <= 1 && Math.abs(touchStrip.height - 844 * 0.07) <= 1,
+      `the viewer strip shows on touch screens, a row of thumbnails 7% of the screen high (owner 2026-11-24) 24px above the bottom: ${JSON.stringify(touchStrip)}`);
     assert(await page.locator("#detail-dialog [data-thumbs-toggle]").isVisible(), "the strip toggle shows in the viewer");
+  });
+});
+
+// Collapsing the viewer strip (viewer R8, owner 2026-11-23/24): the white bar under the row only collapses and hides with the strip, the
+// thumbnails peek 16px above the bottom edge, and a tap on that band opens the strip again without changing media or closing the viewer.
+test("M02a collapsed viewer strip peeks at the bottom and a tap on the peek opens it", async () => {
+  await withPage("vi", async (page) => {
+    const card = await openFixture(page, "vi", { direct: true });
+    await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
+    const frame = await page.locator(".detail-view__hero-frame").boundingBox();
+    await page.touchscreen.tap(frame.x + frame.width / 2, frame.y + frame.height / 2);
+    await page.waitForFunction(() => document.querySelector("[data-detail-dialog]").dataset.viewerState === "open");
+    await settleTransitions(page);
+    const toggle = page.locator("#detail-dialog [data-thumbs-toggle]");
+    const thumb = page.locator("#detail-dialog .thumb-dock button").first();
+    const open = { toggle: await toggle.boundingBox(), thumb: await thumb.boundingBox() };
+    assert(open.toggle.y >= open.thumb.y + open.thumb.height && Math.abs(open.toggle.x + open.toggle.width / 2 - 195) <= 1,
+      `the collapse bar sits centered under the row: ${JSON.stringify(open)}`);
+    await toggle.tap();
+    await settleTransitions(page);
+    const peek = await thumb.boundingBox();
+    assert(Math.abs(844 - peek.y - 16) <= 1, `16px of the thumbnails stay above the bottom edge: ${JSON.stringify(peek)}`);
+    assert.equal(await toggle.isVisible(), false, "the collapse bar hides while the strip is collapsed");
+    // The band just above the thumbnails (off any thumbnail) opens the strip too.
+    await page.touchscreen.tap(peek.x + peek.width / 2, 844 - 24);
+    await settleTransitions(page);
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-thumbs-collapsed")), false, "the band tap opens the strip");
+    await toggle.tap();
+    await settleTransitions(page);
+    await page.touchscreen.tap(peek.x + peek.width / 2, 844 - 6);
+    await settleTransitions(page);
+    assert.equal(await page.evaluate(() => document.documentElement.hasAttribute("data-thumbs-collapsed")), false, "the peek tap opens the strip");
+    assert.equal(await page.evaluate(() => document.querySelector("[data-detail-view]").dataset.masonryActiveMediaId), card.mediaItems[0].id,
+      "the taps do not change media");
+    assert.equal(await page.locator("[data-detail-dialog]").evaluate((node) => node.open), true, "the viewer stays open");
+    assert.equal(await toggle.getAttribute("aria-expanded"), "true");
+    assert(await toggle.isVisible(), "the collapse bar shows again with the open strip");
   });
 });
 
@@ -1435,9 +1472,9 @@ test("M02a viewer thumbnails slide from the video to the image and closing keeps
     await settleTransitions(page);
     const thumbs = await page.$$eval("[data-detail-viewer-thumbs] button", (nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
     const viewport = page.viewportSize();
-    // PC landscape: the strip is a row of 96px thumbnails 48px above the bottom edge, centered across (owner 2026-11-23).
+    // PC landscape: the strip is a row of thumbnails 7% of the screen high (owner 2026-11-24), 48px above the bottom edge, centered across.
     const row = { left: thumbs[0].left, right: thumbs.at(-1).right, bottom: thumbs[0].bottom, height: thumbs[0].height };
-    assert(Math.abs(row.bottom - (viewport.height - 48)) <= 1 && Math.abs(row.height - 96) <= 1
+    assert(Math.abs(row.bottom - (viewport.height - 48)) <= 1 && Math.abs(row.height - viewport.height * 0.07) <= 1
       && Math.abs((row.left + row.right) / 2 - viewport.width / 2) <= 1,
       `the strip is a bottom row of the viewer, centered: ${JSON.stringify(row)}`);
     const ghost = await page.evaluate((id) => {
@@ -1625,8 +1662,8 @@ test("M02a crowded primary keeps one thumbnail row and scrolls the description b
     await page.waitForFunction(() => !document.documentElement.classList.contains("route-enter"));
     await page.waitForTimeout(300);
     const state = await scrollHints(page);
-    assert.deepEqual([state.description, state.bar.display, state.docked], [[false, true], "none", true],
-      "touch floats the strip on the image (owner 2026-11-23), keeps the description fade, has no scrollbar");
+    assert.deepEqual([state.rows, state.description, state.bar.display, state.docked], [1, [false, true], "none", false],
+      "touch keeps one strip row in info (owner 2026-11-24), the description fade and no scrollbar");
   });
 });
 

@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import { filterRank, compileMasonryLayout } from "../../src/site/masonry/layout.mjs";
-import { localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
+import { localeHtml } from "../../scripts/site/lib-pure.mjs";
 
 test("malformed card URLs fall back without breaking catalog initialization", () => {
   const source = readFileSync(new URL("../../src/site/masonry/runtime.mjs", import.meta.url), "utf8");

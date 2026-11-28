@@ -77,7 +77,9 @@ function expectedPhotoGeometry(evidence) {
   // Detail spec R2: stacked primary reaches the screen bottom (owner 2026-11-23); split leaves a gap and 50px so related peeks out.
   const heightCap = available - (mode === "pinterest" ? 0 : gap + 50);
   // Pinterest: the image keeps the size it has with the gap and 50px, that room goes to a clipped description (owner 2026-11-23).
-  const imageCap = heightCap - (mode === "pinterest" ? gap + 50 : 0);
+  // A viewport so short that the info floor passes 28% sizes the image from the full height instead (layout.mjs imageCap, spec R2).
+  const peekFits = evidence.infoFloor <= evidence.windowHeight * 0.28 - gap && heightCap - gap - 50 - gap - evidence.infoFloor > evidence.imageControlMinimum;
+  const imageCap = heightCap - (mode === "pinterest" && peekFits ? gap + 50 : 0);
   // Pinterest info height follows the measured copy; R2 caps it at 28% of the viewport plus the room the peek left.
   const descriptionCap = Math.min(evidence.windowHeight * 0.28 - gap, imageCap - gap - 1) + heightCap - imageCap;
   // Split: the media area is as tall as the media up to heightCap (primary-video-player R6); info is as tall as the media area, unless a long cluster label
@@ -381,6 +383,11 @@ async function layoutEvidence(page) {
         return Math.ceil(controlsHeight + Math.min(3 * lineHeight, description.offsetHeight)
           + controls.length * (Number.parseFloat(infoStyle.rowGap) || 0)) + 1;
       })() : 0,
+      // Smallest image zone the runtime keeps: the expand button plus its offset at both ends (runtime imageControlMinimum).
+      imageControlMinimum: (() => {
+        const expand = document.querySelector("[data-detail-expand]");
+        return expand ? Math.ceil(expand.offsetHeight + 2 * (Number.parseFloat(getComputedStyle(expand).bottom) || 0)) : 0;
+      })(),
       heroRect: serializeRect(hero),
       frameRect: serializeRect(frame),
       headerRect: serializeRect(header),
@@ -717,6 +724,11 @@ async function assertDialogFit(page, label, touch = false) {
       right: parseFloat(dialogStyle.paddingRight) || 0,
       bottom: parseFloat(dialogStyle.paddingBottom) || 0,
       left: parseFloat(dialogStyle.paddingLeft) || 0,
+      // The viewer margin around the fitted image (viewer R8, owner 2026-11-23).
+      margin: parseFloat(dialogStyle.getPropertyValue("--viewer-margin")) || 0,
+      // Tablet and PC keep the thumbnail row clear of the image, 16px apart, mirrored above (viewer R8).
+      strip: dialogStyle.getPropertyValue("--viewer-dock").trim() === "beside" && !document.querySelector("[data-detail-viewer-thumbs]")?.hidden
+        ? (parseFloat(dialogStyle.getPropertyValue("--dock-thumb")) || 0) + 16 : 0,
     } : null;
     const output = document.querySelector("[data-detail-zoom-status]");
     const outputRect = output?.getBoundingClientRect();
@@ -726,8 +738,10 @@ async function assertDialogFit(page, label, touch = false) {
   assert(evidence.image.left >= evidence.viewport.left - 1 && evidence.image.right <= evidence.viewport.right + 1 && evidence.image.top >= evidence.viewport.top - 1 && evidence.image.bottom <= evidence.viewport.bottom + 1, `${label}: fitted image is outside a viewport edge`);
   assert(Math.abs(evidence.ratio - evidence.naturalRatio) < 0.02, `${label}: fitted image lost intrinsic ratio (rendered ${evidence.ratio}, intrinsic ${evidence.naturalRatio})`);
   if (evidence.innerWidth <= 750 && evidence.naturalRatio >= 1) {
-    const availableWidth = Math.max(1, evidence.viewport.width - evidence.padding.left - evidence.padding.right);
-    const availableHeight = Math.max(1, evidence.viewport.height - (touch ? 0 : evidence.padding.top + evidence.padding.bottom + 32));
+    const availableWidth = Math.max(1, evidence.viewport.width - evidence.padding.left - evidence.padding.right - 2 * evidence.padding.margin);
+    // Same budget as detail-viewer measureFit: dialog padding, the viewer margin and the kept-clear thumbnail row on both sides.
+    const availableHeight = Math.max(1, evidence.viewport.height - evidence.padding.top - evidence.padding.bottom
+      - 2 * (evidence.padding.margin + evidence.padding.strip));
     const maximumFittedWidth = Math.min(evidence.naturalWidth, availableWidth, availableHeight * evidence.naturalRatio);
     assert(evidence.viewport.width >= evidence.innerWidth - 32, `${label}: mobile dialog viewport is too narrow (${evidence.viewport.width}px of ${evidence.innerWidth}px)`);
     assert(Math.abs(evidence.image.width - maximumFittedWidth) <= 2, `${label}: landscape fit ignores available geometry (${evidence.image.width}px of ${maximumFittedWidth}px)`);
