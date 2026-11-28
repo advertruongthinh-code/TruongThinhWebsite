@@ -1,7 +1,7 @@
 // CMS editor start (cms-editor R1, CMS plan E12): who is signed in, the dock and its panels, the top bar, then the record
 // opened last. Panels live in their own modules; the dock tools (pin, workspace and edges, layout history) live in dock-tools.js.
 import { call, MESSAGES, SESSION_EVENT } from "./api.js";
-import { dockOptions, edgeOf, icon, setupDockTools } from "./dock-tools.js";
+import { dockOptions, EDGE_SIZE, edgeOf, icon, setupDockTools } from "./dock-tools.js";
 import { draftKey, session } from "./drafts.js";
 import { h, time, toast } from "./dom.js";
 import { mountAccounts } from "./ops/accounts.js";
@@ -203,12 +203,11 @@ const addPanel = (id, position) => dock.addPanel({ id, component: id, title: PAN
 // collapsed so the workspace keeps the window.
 function defaultLayout() {
   const narrow = innerWidth < 1024;
-  const sizes = { left: 280, right: 380, bottom: 240 };
   dock.clear();
   addPanel("preview");
   for (const position of ["left", "right", "bottom"]) {
-    const group = tools.ensureEdge(position, { size: sizes[position] });
-    group.api.setSize(position === "bottom" ? { height: sizes[position] } : { width: sizes[position] });
+    const group = tools.ensureEdge(position, { size: EDGE_SIZE[position] });
+    group.api.setSize(position === "bottom" ? { height: EDGE_SIZE[position] } : { width: EDGE_SIZE[position] });
     for (const id of Object.keys(HOME_EDGE).filter((key) => HOME_EDGE[key] === position)) addPanel(id, { referenceGroup: group.id });
     group.panels[0]?.api.setActive();
     if (position === "bottom" || narrow) group.api.collapse();
@@ -225,7 +224,7 @@ function focusPanel(id) {
     const workspace = dock.activeGroup?.api.location.type === "grid" ? dock.activeGroup : dock.groups.find((group) => group.api.location.type === "grid");
     panel = WORKSPACE.has(id)
       ? addPanel(id, workspace && { referenceGroup: workspace.id })
-      : addPanel(id, { referenceGroup: tools.ensureEdge(HOME_EDGE[id], { size: HOME_EDGE[id] === "bottom" ? 240 : 300, collapsed: true }).id });
+      : addPanel(id, { referenceGroup: tools.ensureEdge(HOME_EDGE[id], { size: EDGE_SIZE[HOME_EDGE[id]], collapsed: true }).id });
   }
   tools.reveal(panel);
 }
@@ -236,7 +235,7 @@ try {
   const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY));
   const inGrid = Object.values(saved?.panels ?? {}).map((panel) => panel.contentComponent);
   const edges = Object.values(saved?.edgeGroups ?? {}).flatMap((edge) => edge.group?.views ?? []).map((view) => saved.panels[view]?.contentComponent);
-  if (!saved?.edgeGroups?.left || !inGrid.includes("content") || inGrid.some((id) => !PANELS[id])) throw new Error("layout of another editor");
+  if (!saved?.edgeGroups?.left || !inGrid.includes("content") || inGrid.some((id) => !Object.hasOwn(PANELS, id))) throw new Error("layout of another editor");
   if (edges.some((id) => WORKSPACE.has(id)) || inGrid.filter((id) => !edges.includes(id)).some((id) => !WORKSPACE.has(id))) throw new Error("panel on the wrong side");
   dock.fromJSON(saved);
 } catch {

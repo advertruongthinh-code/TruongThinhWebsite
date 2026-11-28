@@ -348,6 +348,12 @@ try {
   assert.ok((await layoutOf(page)).includes("left: Nội dung,Media"), "Media cannot drop into the workspace");
   await drag(page, page.locator(".dv-tab", { hasText: "Xem trước" }), { x: 1418, y: 300 });
   assert.ok((await layoutOf(page)).includes("right: Thuộc tính,Nháp"), "a workspace tab cannot drop into an edge");
+  // Shift-drag would make a floating group over the workspace; floating groups are off.
+  await page.keyboard.down("Shift");
+  await drag(page, edgeTab(page, "Media"), { x: workspace.x + workspace.width / 2, y: workspace.y + workspace.height / 2 });
+  await page.keyboard.up("Shift");
+  assert.equal(await page.locator(".dv-groupview").evaluateAll((nodes) => nodes.filter((node) => node.closest(".dv-resize-container")).length), 0, "no floating group");
+  assert.ok((await layoutOf(page)).includes("left: Nội dung,Media"), "Shift-drag keeps Media on its edge");
   const strip = await edgeTab(page, "Trạng thái").boundingBox();
   await drag(page, edgeTab(page, "Media"), { x: strip.x + 8, y: strip.y + strip.height / 2 });
   assert.ok((await layoutOf(page)).includes("left: Nội dung"), "Media left the left edge");
@@ -395,6 +401,27 @@ try {
   assert.ok(narrow.includes("left[thu]: Nội dung,Media") && narrow.includes("right: Thuộc tính,Nháp"), "the left edge gave way");
   assert.ok(await page.locator('.dv-groupview[data-edge=""]').first().evaluate((node) => node.getBoundingClientRect().right <= document.querySelector(".dv-grid-view").getBoundingClientRect().right + 1), "the workspace is not cut");
   await shot(page, "15-768-mo-phai");
+  // Turning the tablet to a narrower window collapses open edges until the workspace fits.
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.waitForTimeout(400);
+  await edgeTab(page, "Nội dung").click();
+  await page.waitForTimeout(300);
+  assert.ok((await layoutOf(page)).includes("left: Nội dung,Media"));
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.waitForTimeout(600);
+  assert.ok(await page.locator('.dv-groupview[data-edge=""]').first().evaluate((node) => node.getBoundingClientRect().right <= document.querySelector(".dv-grid-view").getBoundingClientRect().right + 1), "the workspace fits after the window shrinks");
+  assert.ok((await layoutOf(page)).includes("right[thu]: Thuộc tính,Nháp"), "the right edge gave way first");
+  // A saved layout naming an inherited property as a panel id falls back to the default instead of breaking the dock.
+  await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem("tt-cms-layout"));
+    saved.panels.constructor = { id: "constructor", contentComponent: "constructor", title: "x" };
+    saved.edgeGroups.left.group.views.push("constructor");
+    localStorage.setItem("tt-cms-layout", JSON.stringify(saved));
+  });
+  await page.reload();
+  await page.locator(".dv-groupview[data-edge]").first().waitFor();
+  await page.waitForTimeout(600);
+  assert.deepEqual(await layoutOf(page), ["bottom[thu]: Còn thiếu,Trạng thái,Nhật ký,Thùng rác", "left[thu]: Nội dung,Media", "right[thu]: Thuộc tính,Nháp", "ws: Xem trước"]);
   // A layout saved by the editor before the edge groups falls back to the default.
   await page.evaluate(() => localStorage.setItem("tt-cms-layout", JSON.stringify({ grid: { root: { type: "branch", data: [] }, width: 768, height: 900, orientation: "HORIZONTAL" }, panels: { content: { id: "content", contentComponent: "content", title: "Nội dung" } } })));
   await page.reload();

@@ -8,6 +8,8 @@ const HISTORY_MERGE_MS = 400;
 // cms-dock R2, R3: an edge dragged under its threshold collapses; a workspace group never gets smaller than this.
 const COLLAPSE_UNDER = { left: 170, right: 170, bottom: 120 };
 export const WORKSPACE_MIN = { width: 320, height: 200 };
+// Size an edge opens at the first time (cms-editor R1 default layout).
+export const EDGE_SIZE = { left: 280, right: 380, bottom: 240 };
 
 const el = (tag, className, ...children) => {
   const node = document.createElement(tag);
@@ -83,7 +85,7 @@ function setPinned(api, pinned) {
 
 // icons: { [component]: svg path markup } for the tabs.
 export function dockOptions({ icons = {} } = {}) {
-  return { defaultTabComponent: "tab", createTabComponent: () => new Tab(icons) };
+  return { disableFloatingGroups: true, defaultTabComponent: "tab", createTabComponent: () => new Tab(icons) };
 }
 
 // isWorkspace(panel): whether the panel belongs in the workspace (record tabs, Tài khoản) rather than an edge group.
@@ -294,27 +296,27 @@ export function setupDockTools(dock, root, { isWorkspace, edgeFooter = () => nul
   document.addEventListener("drop", () => later(endDrag), true);
 
   function moveToEdge(panel, position) {
-    const group = ensureEdge(position, { size: position === "bottom" ? 240 : 300 });
+    const group = ensureEdge(position, { size: EDGE_SIZE[position] });
     if (panel.group !== group) panel.api.moveTo({ group, position: "center" });
     reveal(panel);
   }
 
   // Opening an edge: if the narrowest workspace group would get under its minimum, the opposite edge collapses (R3);
   // when that is not enough the edge itself gives up the missing space.
+  // Workspace groups keep their minimum and overflow the workspace instead; the overflow is the missing space.
+  function overflow(position) {
+    const box = root.querySelector(".dv-grid-view")?.getBoundingClientRect();
+    if (!box) return 0;
+    const rects = gridGroups().map((group) => group.element.getBoundingClientRect());
+    return Math.max(0, ...rects.map((rect) => (position === "bottom" ? rect.bottom - box.bottom : rect.right - box.right)));
+  }
   function makeRoom(position, { pushOpposite = true } = {}) {
     const opposite = pushOpposite && { left: "right", right: "left", bottom: null }[position];
-    // Workspace groups keep their minimum and overflow the workspace instead; the overflow is the missing space.
-    const short = () => {
-      const box = root.querySelector(".dv-grid-view")?.getBoundingClientRect();
-      if (!box) return 0;
-      const rects = gridGroups().map((group) => group.element.getBoundingClientRect());
-      return Math.max(0, ...rects.map((rect) => (position === "bottom" ? rect.bottom - box.bottom : rect.right - box.right)));
-    };
-    let missing = short();
+    let missing = overflow(position);
     if (missing > 0.5 && opposite) {
       const other = edgeGroup(opposite);
       if (other && !other.api.isCollapsed()) other.api.collapse();
-      missing = short();
+      missing = overflow(position);
     }
     if (missing > 0.5) {
       const group = edgeGroup(position);
@@ -322,6 +324,16 @@ export function setupDockTools(dock, root, { isWorkspace, edgeFooter = () => nul
       group.api.setSize(position === "bottom" ? { height: size - missing } : { width: size - missing });
     }
   }
+  // After the window shrinks (tablet turned) or a wide saved layout loads in a narrow window, open edges collapse, right
+  // first, until the workspace fits again (cms-dock R3).
+  function fit() {
+    for (const position of ["right", "left", "bottom"]) {
+      const group = edgeGroup(position);
+      if (group && !group.api.isCollapsed() && overflow(position) > 0.5) group.api.collapse();
+    }
+  }
+  let fitTimer;
+  addEventListener("resize", () => { clearTimeout(fitTimer); fitTimer = setTimeout(fit, 150); });
   function expand(group) {
     if (!group.api.isCollapsed()) return;
     group.api.expand();
@@ -420,6 +432,6 @@ export function setupDockTools(dock, root, { isWorkspace, edgeFooter = () => nul
     undo,
     redo,
     reveal,
-    start() { settle(); current = snap(); undoStack.length = redoStack.length = 0; notify(); },
+    start() { fit(); settle(); current = snap(); undoStack.length = redoStack.length = 0; notify(); },
   };
 }
