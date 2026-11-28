@@ -75,7 +75,7 @@ And .site-output/ của lần build trước vẫn còn nguyên
 `scripts/site/non-public-source-assets.mjs` liệt kê 23 path trong `src/site/`
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
 manifest, photo tags, `content/client-logos.json`, `content/home-projects.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
-process cũ. Build xóa chúng khỏi output (WebP không còn tham chiếu thì xóa khỏi repo), trừ một file sinh ra từ SVG lockup gốc (`access-login-logo.mjs`): `assets/brand/truong-thinh-lockup-color.svg`, bốn màu CMYK, chữ `#2f2f2f`, không biến CSS, logo mark lật một lần bằng CSS thuần (tắt khi người dùng giảm chuyển động), để trang đăng nhập Cloudflare Access tải làm ảnh; đây là file lockup public duy nhất, không sửa tay.
+process cũ. Build xóa chúng khỏi output (WebP không còn tham chiếu thì xóa khỏi repo), trừ một file sinh ra từ SVG lockup gốc (`access-login-logo.mjs`): `assets/brand/truong-thinh-mark-color.svg`, chỉ mark (owner 2026-11-28, ngoại lệ ngoài favicon), bốn màu CMYK, dải đen thành `#f4f4f2` khi OS tối, không biến CSS, lật một lần bằng CSS thuần (tắt khi giảm chuyển động), để trang đăng nhập Cloudflare Access tải làm ảnh; file brand public duy nhất, không sửa tay.
 
 ```gherkin
 Given src/site/advertising-products/catalog.mjs nằm trong danh sách non-public

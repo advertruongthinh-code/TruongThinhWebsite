@@ -92,8 +92,8 @@ const swiperStyle = (await Promise.all(swiperStyleSources.map((source) => readFi
 if (/:root|:host|@keyframes/.test(swiperStyle)) throw new Error("swiper.css still has document-wide rules after strip.");
 await writeFile(swiperStyleTarget, swiperStyle, { encoding: "utf8", flush: true });
 await Promise.all(nonPublicSourceAssets.map((asset) => rm(path.join(outputRoot, asset), { force: true, recursive: true })));
-// The source lockup stays non-public (inline in the shell); this derived copy is the only public lockup file.
-await writeFile(path.join(outputRoot, "assets/brand/truong-thinh-lockup-color.svg"), accessLoginLogo(await readFile(path.join(sourceRoot, "assets/brand/truong-thinh-lockup.svg"), "utf8")), "utf8");
+// The source lockup stays non-public (inline in the shell); this derived mark-only copy is the only public brand file.
+await writeFile(path.join(outputRoot, "assets/brand/truong-thinh-mark-color.svg"), accessLoginLogo(await readFile(path.join(sourceRoot, "assets/brand/truong-thinh-lockup.svg"), "utf8")), "utf8");
 
 // Descriptions in both languages and related are used only by detail: split out of the artifact so the path to the first 8 cards is lighter (static-release R1).
 const detailById = {};
