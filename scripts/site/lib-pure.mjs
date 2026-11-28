@@ -1,5 +1,7 @@
 // Pure helpers of scripts/site (cms R7): no Node built-ins, no packages, so the build, the admin Worker and the browser
 // import the same code. File and size checks stay in lib.mjs.
+import { dropElements } from "./html-elements.mjs";
+
 export const PUBLIC_ORIGIN = "https://truongthinhads.vn";
 // Content images are WebP only, under assets/content, kebab-case path (media-delivery R5).
 export const IMAGE_SRC = /^\/assets\/content\/[a-z0-9/-]+\.webp$/;
@@ -43,3 +45,44 @@ export const localePrefix = (locale) => (locale === "en" ? "/en" : "");
 // Route of one Advertising card page (build and the editor's staging links).
 export const cardHref = (locale, card) => `${localePrefix(locale)}/advertising-products/p/${card.id}/`;
 export const routeLocale = (pathname) => (/^\/en(?:\/|$)/.test(pathname) ? "en" : "vi");
+
+function attribute(tag, name) {
+  return new RegExp(`(?<![\\w-])${name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") }="([^"]*)"`, "i").exec(tag)?.[1] ?? null;
+}
+
+function setAttribute(tag, name, value) {
+  const pattern = new RegExp(`(?<![\\w-])${name.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") }="[^"]*"`, "i");
+  if (pattern.test(tag)) return tag.replace(pattern, () => `${name}="${value}"`);
+  return tag.replace(/\s*\/?\s*>$/, (ending) => ` ${name}="${value}"${ending}`);
+}
+
+const ATTRIBUTE = String.raw`(?:\s+[\w:-]+(?:="[^"]*")?)`;
+const EN_TEXT_ELEMENT = new RegExp(String.raw`<([a-z][\w:-]*)(${ATTRIBUTE}*?\s+data-en="([^"]*)"${ATTRIBUTE}*\s*)>[\s\S]*?<\/\1\s*>`, "gi");
+// Switches a built page to one locale (cms-content R2): drops the other locale's only-items, swaps data-en text and attributes, prefixes links.
+export function localeHtml(source, locale = "vi") {
+  // A post without EN shows only on VI pages (data-vi-only), its EN-only replacement only on EN pages (cms-content R2).
+  const other = locale === "en" ? "data-vi-only" : "data-en-only";
+  let html = (source.includes(other) ? dropElements(source, other) : source).replace(/<html\b[^>]*>/i, (tag) => setAttribute(setAttribute(tag, "lang", locale), "data-route-locale", locale));
+  if (locale === "en") {
+    html = html.replace(/<[^>]+>/g, (tag) => {
+      let output = tag;
+      for (const name of ["alt", "aria-label", "content", "href"]) {
+        const english = attribute(output, `data-en-${name}`);
+        if (english === null) continue;
+        const vietnamese = attribute(output, name);
+        if (vietnamese !== null && attribute(output, `data-vi-${name}`) === null) output = setAttribute(output, `data-vi-${name}`, vietnamese);
+        output = setAttribute(output, name, english);
+      }
+      return output;
+    });
+    // Attributes match as whole name="value" tokens, so text such as "data-en=" inside another attribute value is not read as one.
+    html = html.replace(EN_TEXT_ELEMENT, (_match, tag, attributes, english) => `<${tag}${attributes}>${english}</${tag}>`);
+  }
+  return html.replace(/<a\b[^>]*>/gi, (tag) => {
+    if (/\bdata-language-option\s*=/.test(tag)) return tag;
+    const href = attribute(tag, "href");
+    if (!href?.startsWith("/") || href.startsWith("//")) return tag;
+    const path = href.replace(/^\/(?:vi|en)(?=\/|$)/, "");
+    return setAttribute(tag, "href", `${localePrefix(locale)}${path || "/"}`);
+  });
+}
