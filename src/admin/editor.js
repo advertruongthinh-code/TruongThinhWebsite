@@ -11,8 +11,9 @@ import { mountPreview } from "./panels/preview.js";
 import { mountPageProps } from "./panels/props/page.js";
 import { refreshContext } from "./site-context.js";
 import { hasDraft, lastOpen, selectBlock, setOpen, state } from "./state.js";
+import { initTheme } from "./theme.mjs";
 
-const { createDockview, themeLight } = window.dockview;
+const { createDockview, themeLight, themeDark } = window.dockview;
 const LAYOUT_KEY = "tt-cms-layout";
 const PANELS = { content: "Nội dung", preview: "Xem trước", props: "Thuộc tính", media: "Media", drafts: "Nháp", accounts: "Tài khoản" };
 const STATUS = { draft: "Nháp", published: "Đã đăng", trashed: "Trong thùng rác" };
@@ -143,14 +144,29 @@ tools = setupDockTools(dock, $("#dock"), {
   },
 });
 
+// Colour scheme (R10): the pill in the top bar sets light, dark or system; Dockview takes its matching theme.
+const theme = initTheme({
+  // Reading `localStorage` itself throws when site data is blocked, so access stays inside the calls initTheme guards.
+  storage: { getItem: (key) => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) },
+  root: document.documentElement,
+  media: matchMedia("(prefers-color-scheme: dark)"),
+  onChange: (resolved, pref) => {
+    dock.updateOptions({ theme: resolved === "dark" ? themeDark : themeLight });
+    document.querySelectorAll("[data-theme-pref]").forEach((button) => button.setAttribute("aria-pressed", String(button.dataset.themePref === pref)));
+  },
+});
+document.querySelectorAll("[data-theme-pref]").forEach((button) => button.addEventListener("click", () => theme.set(button.dataset.themePref)));
+
 const addPanel = (id, position, size) => dock.addPanel({ id, component: id, title: PANELS[id], position, ...size });
 
 // Default layout (cms-editor R1): Nội dung left 280px, Xem trước centre, Thuộc tính right 380px with Media and Nháp as tabs.
+// Side panels give way on a tablet in portrait (about 768px) so Xem trước keeps a usable centre.
 function defaultLayout() {
+  const width = Math.max(innerWidth, 768); // a page opened while the phone note shows must not start with tiny side panels
   dock.clear();
   addPanel("preview");
-  addPanel("content", { referencePanel: "preview", direction: "left" }, { initialWidth: 280 });
-  addPanel("props", { referencePanel: "preview", direction: "right" }, { initialWidth: 380 });
+  addPanel("content", { referencePanel: "preview", direction: "left" }, { initialWidth: Math.min(280, width * 0.3) });
+  addPanel("props", { referencePanel: "preview", direction: "right" }, { initialWidth: Math.min(380, width * 0.36) });
   addPanel("media", { referencePanel: "props", direction: "within" });
   addPanel("drafts", { referencePanel: "props", direction: "within" });
   dock.getPanel("props").api.setActive();

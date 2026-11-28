@@ -60,7 +60,7 @@ Then Media trượt ra mà lưới không đổi, sau Ghim thành nhóm mép m�
 
 ## UI
 
-Theo [CMS UI](cms.md#ui) và `editor.css`; tab giữ DOM `dv-default-tab` để theo theme `themeLight`.
+Theo [CMS UI](cms.md#ui) và `editor.css`; tab giữ DOM `dv-default-tab` để theo theme `themeLight` hoặc `themeDark` ([editor R10](cms-editor.md#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống)).
 
 ## Kiểm tra
 

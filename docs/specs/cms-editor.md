@@ -7,6 +7,7 @@ source:
 tests:
   - tests/admin/slug.test.mjs
   - tests/admin/preview-parity.test.mjs
+  - tests/admin/theme.test.mjs
   - tests/admin/editor.e2e.mjs
   - tests/cms/page-model.test.mjs
   - tests/cms/draft-session.test.mjs
@@ -22,7 +23,7 @@ updated: 2026-11-28
 
 Giao diện `/admin/` để owner và nhân viên tạo, sửa, xóa mọi nội dung của site ngay trên bản xem trước của trang thật, rồi lưu bằng lệnh của [CMS R5](cms.md#r5-lệnh-admin-có-kiểu). Spec này sở hữu khung làm việc, danh sách nội dung, xem trước, soạn bài và trang, nháp và lưu. Media, upload và khung crop ở [editor media](cms-editor-media.md); trạng thái dựng, phát hành, thùng rác, nhật ký, tài khoản ở [editor vận hành](cms-editor-ops.md); dock ở [dock](cms-dock.md). Editor chỉ gọi lệnh trong [dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) và chạy hoàn toàn bằng code cố định, không gọi AI ([CMS](cms.md#bối-cảnh-và-phương-án)).
 
-Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
+Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính; owner 2026-11-28: máy tính và tablet đều mở được, điện thoại không. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
 
 Trạng thái (2026-11-28, E13): khung R1, panel Nội dung R2, Xem trước R3 (bài News và công trình), tab Thông tin, Media của bài, Layout, Còn thiếu của R4 và panel Nháp, lưu, xung đột R8 chạy trên dữ liệu thật. Còn ở các task sau: sửa chữ tại chỗ và khối `facts-grid` tại chỗ (E14, nay sửa ở tab Thông tin khi chọn khối), thư viện và upload media, khung crop, kéo media thả vào khung (E15, E16), tab Card công trình, trang chuẩn, card Advertising (E17, E18). Panel Media còn trống. Editor cũ theo contract `t<n>` đã gỡ. Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17.
 
@@ -32,7 +33,7 @@ Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.
 
 ### R1. Khung làm việc
 
-`/admin/` là một trang tiếng Việt, `noindex`, chỉ bố cục từ 1024px (hẹp hơn hiện "Mở CMS trên máy tính, cửa sổ rộng từ 1024px."). Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight`; owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
+`/admin/` là một trang tiếng Việt, `noindex`, chỉ mở trên máy tính và tablet (owner 2026-11-28): điện thoại, tức màn hình cảm ứng có cạnh ngắn dưới 600px kể cả xoay ngang, hoặc cửa sổ rộng dưới 600px (cả cửa sổ chia đôi màn hình tablet), thấy "CMS chỉ dùng trên máy tính hoặc máy tính bảng. Hãy mở lại bằng PC hoặc tablet." thay cho editor; bàn phím ảo của tablet làm cửa sổ thấp đi cũng không chặn. Màn hình máy tính độ phân giải thấp không bị chặn. Bố cục mặc định thu hai panel bên xuống 30% và 36% bề rộng khi cửa sổ hẹp (tablet đứng 768px). Hai trang tạm `records.html` và `status.html` chưa chặn, hết khi editor thay. Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight` hoặc `themeDark` theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống); owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
 
 | Panel | Nội dung | Ai thấy |
 | --- | --- | --- |
@@ -228,21 +229,33 @@ When GET /admin/ và một file module trong /admin/
 Then 200; GET / của site public không chứa file nào của admin
 ```
 
+### R10. Giao diện sáng, tối hoặc theo hệ thống
+
+Chỉ đổi giao diện của admin, không đổi site public và không đổi trang trong khung Xem trước (preview giữ UI public). Thanh trên có thêm một nút pill ở mép phải, ba nút chỉ có icon, không có chữ: mặt trời (sáng), mặt trăng (tối), màn hình (theo hệ thống). Mỗi nút có `aria-label` và `title` tiếng Việt ("Giao diện sáng", "Giao diện tối", "Theo hệ thống"), nút đang chọn có `aria-pressed="true"`. Lựa chọn lưu trong `localStorage` `tt-cms-theme` (`light`, `dark`, `system`); giá trị khác hoặc không đọc được thì là `system`, lần đầu cũng là `system`. `system` theo `prefers-color-scheme` và đổi ngay khi hệ điều hành đổi. Thuộc tính `data-theme` trên `<html>` giữ lựa chọn và được đặt trước khi vẽ để trang tối không nháy sáng; màu của admin là token `light-dark()` trong `editor.css`, dock đổi giữa `themeLight` và `themeDark` của Dockview. Chữ và nhãn trạng thái ở cả hai giao diện đạt tương phản 4.5:1.
+
+```gherkin
+Given hệ điều hành đang ở chế độ tối và nhân viên chưa chọn giao diện
+When mở /admin/
+Then nút "Theo hệ thống" đang chọn, admin tối, dock theo themeDark
+When nhân viên bấm "Giao diện sáng" rồi tải lại trang
+Then admin vẫn sáng, nút "Giao diện sáng" đang chọn
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| File | `src/admin/index.html`, `editor.js`, `editor.css`, `page-editor.css`, `dock-tools.js`, `drafts.js`, `site-context.js`, `overlay.js`, `overlay.css`, `panels/*.js` | Khung, panel, overlay (R1 tới R8) |
+| File | `src/admin/index.html`, `editor.js`, `editor.css`, `page-editor.css`, `theme.mjs`, `dock-tools.js`, `drafts.js`, `site-context.js`, `overlay.js`, `overlay.css`, `panels/*.js` | Khung, panel, overlay (R1 tới R8), giao diện sáng tối (R10) |
 | Module thuần | `src/cms/page-model.mjs`, `draft-session.mjs`, `preview-data.mjs`, `errors-vi.mjs` | Chia media vào khối theo layout, phiên nháp và lưu, dữ liệu và HTML preview, câu lỗi tiếng Việt (R3, R4, R8) |
 | Hàm | `renderBlockPage`, `fillSlots`, `inlineMarks`, `assignMedia`, `shapeErrors`, `fullErrors` | Module thuần dùng chung với build và Worker (R3 tới R6) |
 | DOM hook | `data-slot` trên bốn trang chuẩn; iframe `data-cms-preview` | Khóa slot (R6); khung preview |
 | Lệnh | `list`, `get`, `context`, `media-list`, `create`, `save`, `reorder`, `media-file` | [Dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) |
-| Storage | `localStorage` `tt-cms-draft:<kiểu>:<id>`, `tt-cms-layout`, `tt-cms-open` | Nháp (R8), bố cục, bản ghi mở lần cuối (R1) |
+| Storage | `localStorage` `tt-cms-draft:<kiểu>:<id>`, `tt-cms-layout`, `tt-cms-open`, `tt-cms-theme` | Nháp (R8), bố cục, bản ghi mở lần cuối (R1), giao diện (R10) |
 | Thư viện | `dockview` 8.8.0 | Dock (R1) |
 
 ## UI
 
-Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tính, chữ hệ thống, một màu nhấn `#1a5fd0` cho viền chọn và nút chính; chỗ còn thiếu viền đỏ đứt kèm chữ nhắc; nhãn trạng thái là chữ, không chỉ là màu. Mọi nút có nhãn chữ tiếng Việt. Preview giữ nguyên UI của trang public.
+Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng hoặc tối trung tính theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống), chữ hệ thống, một màu nhấn (`#1a5fd0` ở nền sáng) cho viền chọn và nút chính; chỗ còn thiếu viền đỏ đứt kèm chữ nhắc; nhãn trạng thái là chữ, không chỉ là màu. Mọi nút có nhãn chữ tiếng Việt, trừ nút giao diện của R10 chỉ có icon kèm `aria-label`. Preview giữ nguyên UI của trang public.
 
 ## Kiểm tra
 
@@ -254,6 +267,7 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tín
 | R5 | cần: đơn vị `inlineMarks` (từng dấu, thoát HTML, dán chữ thuần) |
 | R6, R7 | cần: đơn vị `fillSlots`; test mọi `data-slot` duy nhất trong trang; e2e luật 6 mục menu và ảnh hero cuối |
 | R1, R2 | `tests/admin/editor.e2e.mjs` (Worker local, D1 seed): bố cục mặc định, menu Bảng theo vai, lọc Thiếu EN, tìm bỏ dấu, tạo bài, tạo card và 409, tải thêm khi cuộn, kéo thả rồi tải lại, menu chuột phải, 403, phiên hết hạn, cửa sổ 900px; `tests/admin/slug.test.mjs` |
+| R10 | `tests/admin/theme.test.mjs` (chọn, lưu, theo hệ thống, lưu trữ lỗi); `tests/admin/editor.e2e.mjs` (nhãn nút, màu và dock đổi, giữ sau tải lại) |
 | R9 | `tests/tooling/admin-output.test.mjs` (output public không có admin; `admin/lib` chỉ có module thuần; không `sw.js`) |
 
 ## Gate còn mở
