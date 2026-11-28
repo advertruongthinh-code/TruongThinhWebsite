@@ -122,10 +122,10 @@ export function createDetailViewer({
     const margin = parseFloat(styles.getPropertyValue("--viewer-margin")) || 0;
     const beside = styles.getPropertyValue("--viewer-dock").trim() === "beside" && thumbs && !thumbs.hidden;
     const strip = beside ? (parseFloat(getComputedStyle(thumbs).getPropertyValue("--dock-thumb")) || 0) + VIEWER_GAP : 0;
-    const row = viewport.clientWidth > viewport.clientHeight;
-    const insetX = margin + (row ? 0 : strip);
-    const insetTop = (parseFloat(styles.paddingTop) || 0) + margin + (row ? strip : 0);
-    const insetBottom = (parseFloat(styles.paddingBottom) || 0) + margin + (row ? strip : 0);
+    // The strip is always a row at the bottom (owner 2026-11-24): it takes height above and below, never width.
+    const insetX = margin;
+    const insetTop = (parseFloat(styles.paddingTop) || 0) + margin + strip;
+    const insetBottom = (parseFloat(styles.paddingBottom) || 0) + margin + strip;
     const availableWidth = Math.max(1, viewport.clientWidth - 2 * insetX
       - (parseFloat(styles.paddingLeft) || 0) - (parseFloat(styles.paddingRight) || 0));
     const availableHeight = Math.max(1, viewport.clientHeight - insetTop - insetBottom);

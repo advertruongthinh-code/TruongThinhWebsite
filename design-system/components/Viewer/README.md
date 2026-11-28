@@ -18,9 +18,10 @@ Hộp thoại xem ảnh toàn cửa sổ mở từ nút `Xem lớn hơn` của
 - Không có nút đóng và nút zoom (owner 2026-11-14): đóng bằng click nền, Escape, Back; zoom bằng con lăn,
   phím `+`/`-`, chuột giữa về fit. Mở viewer thì focus vào chính hộp thoại.
 - Lề quanh ảnh `48px`, phone (cạnh nào tới `600px`) `24px`. Dãy thumbnail là [dãy nổi](../../../docs/specs/advertising-viewer-touch-zoom.md#r8-dãy-thumbnail-nổi-và-lề-viewer)
-  (`.thumb-dock`, owner 2026-11-23): màn dọc cột sát trái, màn ngang hàng ở đáy, thumbnail cạnh `96px` (phone `56px`), cao/rộng
-  theo đúng tỷ lệ media như dãy Primary (owner 2026-11-14), vùng đen mờ dần sau dãy; nút thu/mở góc trên trái, trạng thái
-  chung với dãy Primary. Tablet và PC: ảnh cách dãy `16px`, phía đối diện chừa bằng nên ảnh vẫn giữa màn hình; phone: dãy đè lên ảnh.
+  (`.thumb-dock`, owner 2026-11-24): mọi máy một hàng ở đáy, thumbnail cao `7%` chiều cao màn hình (`36px` tới `80px`, `--thumb-base`), rộng theo đúng tỷ lệ media
+  như dãy Primary (owner 2026-11-14), vùng đen mờ dần sau dãy. Nút thu là thanh trắng ngang nhỏ giữa màn dưới hàng; thu thì
+  chỉ chừa `16px` thumbnail thò lên và nút ẩn, chạm phần thò ra để mở lại. Tablet và PC: ảnh cách dãy `16px`, phía trên chừa bằng
+  nên ảnh vẫn giữa màn hình; phone: dãy đè lên ảnh.
 - Mọi máy: nền tối `rgba(32, 33, 32, 0.85)` cộng blur `50px`; điện thoại cũng blur
   (owner 2026-10-26, trước đó không blur để giữ 60fps trên phone Android).
 - Màn cảm ứng (`hover: none`, `pointer: coarse`): chụm hoặc
