@@ -732,7 +732,8 @@ async function assertDialogFit(page, label, touch = false) {
   assert(Math.abs(evidence.ratio - evidence.naturalRatio) < 0.02, `${label}: fitted image lost intrinsic ratio (rendered ${evidence.ratio}, intrinsic ${evidence.naturalRatio})`);
   if (evidence.innerWidth <= 750 && evidence.naturalRatio >= 1) {
     const availableWidth = Math.max(1, evidence.viewport.width - evidence.padding.left - evidence.padding.right - 2 * evidence.padding.margin);
-    const availableHeight = Math.max(1, evidence.viewport.height - (touch ? 0 : evidence.padding.top + evidence.padding.bottom + 32)
+    // Same budget as detail-viewer measureFit: dialog padding, the viewer margin and the kept-clear thumbnail row on both sides.
+    const availableHeight = Math.max(1, evidence.viewport.height - evidence.padding.top - evidence.padding.bottom
       - 2 * (evidence.padding.margin + evidence.padding.strip));
     const maximumFittedWidth = Math.min(evidence.naturalWidth, availableWidth, availableHeight * evidence.naturalRatio);
     assert(evidence.viewport.width >= evidence.innerWidth - 32, `${label}: mobile dialog viewport is too narrow (${evidence.viewport.width}px of ${evidence.innerWidth}px)`);
