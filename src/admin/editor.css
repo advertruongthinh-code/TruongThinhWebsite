@@ -11,7 +11,7 @@
   --card: light-dark(#ffffff, #1b2026);
   --accent: light-dark(#1a5fd0, #7aa9f7);
   --accent-solid: light-dark(#1a5fd0, #2f6bdb);
-  --accent-solid-hover: light-dark(#164fae, #4079e0);
+  --accent-solid-hover: light-dark(#164fae, #2760c4);
   --accent-soft: light-dark(#e6eefb, #1f3050);
   --accent-text: light-dark(#174ea6, #a9c6fb);
   --danger: light-dark(#b3261e, #f3857d);
@@ -66,7 +66,7 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .theme-pill { display: inline-flex; flex: none; gap: 2px; margin-left: auto; padding: 2px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); }
 .theme-pill button { display: grid; place-items: center; width: 28px; height: 26px; padding: 0; border: 0; border-radius: 999px; background: none; color: var(--muted); }
 .theme-pill button:hover { color: var(--ink); }
-.theme-pill button[aria-pressed="true"] { background: var(--card); color: var(--accent); box-shadow: 0 1px 2px var(--shadow); }
+.theme-pill button[aria-pressed="true"] { background: var(--card); color: var(--accent); box-shadow: 0 0 0 1px var(--accent), 0 1px 2px var(--shadow); }
 
 .dock { position: absolute; inset: var(--bar) 0 0 0; }
 /* themeLight's hidden tab only reaches 1.9:1; raise to above 4.5:1 (cms-editor UI). */

@@ -77,7 +77,8 @@ tools = setupDockTools(dock, $("#dock"), {
 
 // Colour scheme (R10): the pill in the top bar sets light, dark or system; Dockview takes its matching theme.
 const theme = initTheme({
-  storage: localStorage,
+  // Reading `localStorage` itself throws when site data is blocked, so access stays inside the calls initTheme guards.
+  storage: { getItem: (key) => localStorage.getItem(key), setItem: (key, value) => localStorage.setItem(key, value) },
   root: document.documentElement,
   media: matchMedia("(prefers-color-scheme: dark)"),
   onChange: (resolved, pref) => {
