@@ -96,8 +96,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
 .gate p { max-width: 420px; margin: 0; padding: 20px 24px; border: 1px solid var(--line); border-radius: 8px; background: var(--card); text-align: center; }
 .gate[hidden], .is-stopped .dock { display: none; }
 .narrow { display: none; padding: 24px; }
-/* Phones only: the screen's short side (not the window, so a tablet's on-screen keyboard never trips it) or a window under 600px. */
-@media (max-width: 599px), (max-device-width: 599px), (max-device-height: 599px) {
+/* Phones only: a touch screen whose short side is under 600px (not the window, so a tablet's keyboard never trips it), or any window under 600px. A low-resolution PC screen stays allowed. */
+@media (max-width: 599px), (pointer: coarse) and (max-device-width: 599px), (pointer: coarse) and (max-device-height: 599px) {
   .dock, .topbar, .gate { display: none; }
   .narrow { display: block; }
 }

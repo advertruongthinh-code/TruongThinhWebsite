@@ -41,8 +41,8 @@ const { chromium } = await import("playwright");
 const browser = await chromium.launch({ executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH });
 const errors = [];
 
-async function open({ width = 1440, height = 900, screen = { width, height }, routes = {}, colorScheme = "light" } = {}) {
-  const context = await browser.newContext({ viewport: { width, height }, screen, colorScheme });
+async function open({ width = 1440, height = 900, screen = { width, height }, touch = false, routes = {}, colorScheme = "light" } = {}) {
+  const context = await browser.newContext({ viewport: { width, height }, screen, colorScheme, hasTouch: touch, isMobile: touch });
   const page = await context.newPage();
   page.on("pageerror", (error) => errors.push(String(error)));
   for (const [command, answer] of Object.entries(routes)) await page.route(`**/api/admin/${command}*`, answer);
@@ -223,17 +223,18 @@ try {
   // shrinks the window still keeps the editor.
   const note = "CMS chỉ dùng trên máy tính hoặc máy tính bảng. Hãy mở lại bằng PC hoặc tablet.";
   for (const [label, size, blocked] of [
-    ["phone portrait", { width: 390, height: 844 }, true],
-    ["phone landscape", { width: 844, height: 390 }, true],
+    ["phone portrait", { width: 390, height: 844, touch: true }, true],
+    ["phone landscape", { width: 844, height: 390, touch: true }, true],
+    ["iOS phone landscape, screen keeps portrait order", { width: 844, height: 390, screen: { width: 390, height: 844 }, touch: true }, true],
     ["PC window under 600px", { width: 500, height: 900, screen: { width: 1920, height: 1080 } }, true],
-    ["tablet portrait", { width: 768, height: 1024 }, false],
-    ["tablet landscape, keyboard open", { width: 1024, height: 420, screen: { width: 1024, height: 768 } }, false],
+    ["low-resolution PC screen", { width: 1024, height: 500, screen: { width: 1024, height: 576 } }, false],
+    ["tablet portrait", { width: 768, height: 1024, touch: true }, false],
+    ["tablet landscape, keyboard open", { width: 1024, height: 420, screen: { width: 1024, height: 768 }, touch: true }, false],
   ]) {
     page = await open(size);
     assert.equal(await page.getByText(note).isVisible(), blocked, label);
     assert.equal(await page.locator(".dock").isVisible(), !blocked, label);
-    if (!blocked) await shot(page, `tablet-${size.width}x${size.height}`);
-    else await shot(page, `phone-${size.width}x${size.height}`);
+    await shot(page, `${blocked ? "phone" : "tablet"}-${label.replace(/\W+/g, "-")}`);
     await page.context().close();
   }
 
