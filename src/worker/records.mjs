@@ -50,12 +50,12 @@ export async function loadPool(env) {
   const { results } = await env.DB.prepare(`SELECT id, json_extract(data, '$.productIds') AS products,
       coalesce(json_extract(data, '$.media.width'), json_extract(data, '$.mediaItems[0].width')) AS width,
       coalesce(json_extract(data, '$.media.height'), json_extract(data, '$.mediaItems[0].height')) AS height,
-      (SELECT json_group_array(k.value) FROM (
-        SELECT json_extract(data, '$.media.src') AS value UNION SELECT json_extract(data, '$.media.sourceId')
-        UNION SELECT 'm:' || json_extract(data, '$.media.mediaId')
-        UNION SELECT json_extract(i.value, '$.src') FROM json_each(data, '$.mediaItems') i
-        UNION SELECT json_extract(i.value, '$.sourceId') FROM json_each(data, '$.mediaItems') i
-        UNION SELECT 'm:' || json_extract(i.value, '$.mediaId') FROM json_each(data, '$.mediaItems') i) k WHERE k.value IS NOT NULL) AS keys
+      -- One 2-term compound (media + each mediaItem) x 3 fields: D1 caps compound SELECT terms, see tests/worker/d1-fake.mjs.
+      (SELECT json_group_array(DISTINCT k.value) FROM (
+        SELECT CASE f.value WHEN 'mediaId' THEN 'm:' || json_extract(o.value, '$.mediaId') ELSE json_extract(o.value, '$.' || f.value) END AS value
+        FROM (SELECT json_extract(data, '$.media') AS value WHERE json_type(data, '$.media') = 'object'
+          UNION ALL SELECT i.value FROM json_each(data, '$.mediaItems') i WHERE i.type = 'object') o,
+          json_each('["src","sourceId","mediaId"]') f) k WHERE k.value IS NOT NULL) AS keys
     FROM records WHERE type = 'advertising-card' AND status = 'published'`).all();
   return results.map((row) => ({
     ...poolEntry({ id: row.id, productIds: JSON.parse(row.products ?? "[]"), media: { width: row.width, height: row.height } }),
