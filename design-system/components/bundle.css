@@ -6237,11 +6237,29 @@ body.is-masonry-browse .site-footer {
   margin-left: 2em;
 }
 
-/* A single-row thumbnail strip fits a whole number of thumbnails (at least 60px, gap 8px), overflow scrolls horizontally (owner 2026-10-24); the runtime
+/* Every thumbnail size follows the screen height so strips never take much room (owner 2026-11-24): 7% of the height, 36px to 80px. Registered
+   as a length so the computed value is in px: the runtime reads it for the primary strip and detail-viewer measureFit for the viewer row. */
+@property --thumb-base {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 60px;
+}
+
+@property --dock-thumb {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 0px;
+}
+
+:root {
+  --thumb-base: clamp(36px, 7svh, 80px);
+}
+
+/* A single-row thumbnail strip fits a whole number of thumbnails (at least --thumb-base high, gap 8px), overflow scrolls horizontally (owner 2026-10-24); the runtime
    widens each thumbnail (--detail-thumb-size) so the strip spans the full column like the text below (owner 2026-11-12). */
 .detail-view__media-thumbs {
   --scroll-fade-direction: to right;
-  --scroll-fade-size: var(--detail-thumb-size, 60px);
+  --scroll-fade-size: var(--detail-thumb-size, var(--thumb-base));
   display: flex;
   gap: 8px;
   width: 100%;
@@ -6270,7 +6288,7 @@ body.is-masonry-browse .site-footer {
 .detail-view__media-thumbs button {
   position: relative;
   flex: 0 0 auto;
-  width: var(--detail-thumb-size, calc(60px * var(--detail-thumb-ratio, 1)));
+  width: var(--detail-thumb-size, calc(var(--thumb-base) * var(--detail-thumb-ratio, 1)));
   aspect-ratio: var(--detail-thumb-ratio, 1);
   overflow: hidden;
   padding: 0;
@@ -6677,9 +6695,9 @@ body.is-masonry-browse .site-footer {
   --viewer-dock: beside;
 }
 
-/* The viewer strip keeps 96px thumbnails (owner 2026-11-14), phones 56px like the primary. */
-.detail-dialog__thumbs {
-  --dock-thumb: 96px;
+/* Viewer thumbnails are the shared screen-height share (--thumb-base). */
+.detail-dialog {
+  --dock-thumb: var(--thumb-base);
   --dock-inset: var(--viewer-margin);
   --dock-top: var(--viewer-visible-top, 0px);
   --dock-bottom: var(--viewer-visible-bottom, 0px);
@@ -6691,35 +6709,53 @@ body.is-masonry-browse .site-footer {
     --viewer-margin: 24px;
     --viewer-dock: over;
   }
-
-  .detail-dialog__thumbs {
-    --dock-thumb: 56px;
-  }
 }
 
 .detail-dialog__thumbs button:focus-visible {
   outline-color: #fff;
 }
 
-/* Floating thumbnail strip (owner 2026-11-23): the primary strip on touch screens and the viewer strip on every device. Portrait screens stack a
-   column on the left, landscape screens a row at the bottom; thumbnails keep one cross size either way. A dark edge fading like the hero shade sits
-   behind it, the strip itself takes no touch between thumbnails so the image under it still opens, swipes and zooms. */
+/* Registered so the dark edge behind the strip can fade while the collapsed strip still peeks out. */
+@property --dock-shade-alpha {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+
+/* Viewer thumbnail strip (owner 2026-11-24): on every device and orientation one row at the bottom, the dark edge fading up like the hero shade.
+   The strip itself takes no touch between thumbnails so the image under it still swipes and zooms. */
 .thumb-dock {
   --dock-fade: 48px;
-  --dock-shade: rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.529) 12.5%, rgba(0, 0, 0, 0.469) 25%, rgba(0, 0, 0, 0.38) 37.5%,
-    rgba(0, 0, 0, 0.275) 50%, rgba(0, 0, 0, 0.17) 62.5%, rgba(0, 0, 0, 0.081) 75%, rgba(0, 0, 0, 0.021) 87.5%, transparent;
+  /* Collapsed, this much of the thumbnails stays on screen; the touch band reaches 16px further in (owner 2026-11-23). */
+  --dock-peek: 16px;
+  --dock-hit: 16px;
+  --dock-shade: rgb(0 0 0 / calc(0.55 * var(--dock-shade-alpha))), rgb(0 0 0 / calc(0.529 * var(--dock-shade-alpha))) 12.5%,
+    rgb(0 0 0 / calc(0.469 * var(--dock-shade-alpha))) 25%, rgb(0 0 0 / calc(0.38 * var(--dock-shade-alpha))) 37.5%,
+    rgb(0 0 0 / calc(0.275 * var(--dock-shade-alpha))) 50%, rgb(0 0 0 / calc(0.17 * var(--dock-shade-alpha))) 62.5%,
+    rgb(0 0 0 / calc(0.081 * var(--dock-shade-alpha))) 75%, rgb(0 0 0 / calc(0.021 * var(--dock-shade-alpha))) 87.5%, transparent;
   --scroll-fade-size: var(--dock-thumb);
+  --scroll-fade-direction: to right;
   position: absolute;
-  /* Above the primary video player (3, earlier in the frame), so the strip takes touches over the play surface. */
   z-index: 3;
+  right: 0;
+  bottom: var(--dock-bottom, 0px);
+  left: var(--dock-left, 0px);
   display: flex;
   box-sizing: border-box;
+  height: calc(var(--dock-inset) + var(--dock-thumb) + var(--dock-fade));
+  align-items: flex-end;
   gap: 8px;
   justify-content: safe center;
+  padding: var(--dock-fade) var(--dock-inset) var(--dock-inset);
+  overflow: auto hidden;
   overscroll-behavior: contain;
+  background: linear-gradient(to top, var(--dock-shade));
   pointer-events: none;
   scrollbar-width: none;
-  transition: translate var(--dur-card) var(--ease-card), opacity var(--dur-card) var(--ease-card), visibility 0s;
+  touch-action: pan-x;
+  clip-path: inset(0);
+  transition: translate var(--dur-card) var(--ease-card), opacity var(--dur-card) var(--ease-card), clip-path var(--dur-card) var(--ease-card),
+    --dock-shade-alpha var(--dur-card) var(--ease-card), visibility 0s;
 }
 
 .thumb-dock > * {
@@ -6727,101 +6763,77 @@ body.is-masonry-browse .site-footer {
   pointer-events: auto;
 }
 
-@media (orientation: portrait) {
-  .thumb-dock {
-    --scroll-fade-direction: to bottom;
-    top: var(--dock-top, 0px);
-    bottom: var(--dock-bottom, 0px);
-    left: var(--dock-left, 0px);
-    flex-direction: column;
-    width: calc(var(--dock-inset) + var(--dock-thumb) + var(--dock-fade));
-    /* The column starts under the toggle in the top left corner. */
-    padding: calc(2 * var(--dock-inset) + 36px) var(--dock-fade) var(--dock-inset) var(--dock-inset);
-    overflow: hidden auto;
-    background: linear-gradient(to right, var(--dock-shade));
-    touch-action: pan-y;
-  }
-
-  .thumb-dock button {
-    width: var(--dock-thumb);
-    height: auto;
-  }
+.thumb-dock button {
+  width: auto;
+  height: var(--dock-thumb);
 }
 
-@media (orientation: landscape) {
-  .thumb-dock {
-    --scroll-fade-direction: to right;
-    right: 0;
-    bottom: var(--dock-bottom, 0px);
-    left: var(--dock-left, 0px);
-    align-items: flex-end;
-    height: calc(var(--dock-inset) + var(--dock-thumb) + var(--dock-fade));
-    padding: var(--dock-fade) var(--dock-inset) var(--dock-inset);
-    overflow: auto hidden;
-    background: linear-gradient(to top, var(--dock-shade));
-    touch-action: pan-x;
-  }
-
-  .thumb-dock button {
-    width: auto;
-    height: var(--dock-thumb);
-  }
+/* Collapsed by the toggle (owner 2026-11-23): the row slides down until only --dock-peek of the thumbnails shows at the bottom, the dark edge fades,
+   and the whole band (thumbnails plus --dock-hit above) takes the tap that opens it again. The clip keeps the band from covering more image. */
+:root[data-thumbs-collapsed] .thumb-dock {
+  --dock-shade-alpha: 0;
+  translate: 0 calc(var(--dock-inset) + var(--dock-thumb) - var(--dock-peek));
+  clip-path: inset(calc(var(--dock-fade) - var(--dock-hit)) 0 0 0);
+  cursor: pointer;
+  pointer-events: auto;
 }
 
-/* Collapsed by the toggle, idle mouse in the viewer (owner 2026-10-26) or while the viewer opens and closes: the strip slides out past its edge
-   and the dark edge fades with it. */
-:root[data-thumbs-collapsed] .thumb-dock,
+/* Idle mouse in the viewer (owner 2026-10-26) or while the viewer opens and closes: the strip and its button slide out past the bottom. */
 .thumb-dock[data-viewer-idle],
-.detail-dialog:is([data-viewer-state="opening"], [data-viewer-state="closing"]) > .thumb-dock {
+.detail-dialog:is([data-viewer-state="opening"], [data-viewer-state="closing"]) > .thumb-dock,
+.thumb-dock[data-viewer-idle] ~ .thumbs-toggle,
+.detail-dialog:is([data-viewer-state="opening"], [data-viewer-state="closing"]) > .thumbs-toggle {
   opacity: 0;
   visibility: hidden;
-  translate: -100% 0;
+  translate: 0 100%;
   transition: translate var(--dur-card) var(--ease-card), opacity var(--dur-card) var(--ease-card), visibility 0s var(--dur-card);
-}
-
-@media (orientation: landscape) {
-  :root[data-thumbs-collapsed] .thumb-dock,
-  .thumb-dock[data-viewer-idle],
-  .detail-dialog:is([data-viewer-state="opening"], [data-viewer-state="closing"]) > .thumb-dock {
-    translate: 0 100%;
-  }
 }
 
 .detail-dialog[data-viewer-state="closing"] > .thumb-dock {
   transition-duration: var(--dur-quick);
 }
 
-/* The strip toggle sits where the back button was (owner 2026-11-23), only while a strip shows: the chevron points to where the strip goes. */
+.thumb-dock[data-viewer-idle] ~ .thumbs-toggle,
+.detail-dialog:is([data-viewer-state="opening"], [data-viewer-state="closing"]) > .thumbs-toggle {
+  translate: -50% 100%;
+}
+
+/* The collapse button (owner 2026-11-24): a small white horizontal bar centered under the open row, inside the bottom margin so it takes no room.
+   The bar is drawn small, the button around it is a 44x24 touch target. It shows only while the strip shows and is open. */
 .thumbs-toggle {
-  top: var(--dock-inset);
-  bottom: auto;
-  left: var(--dock-inset);
+  position: absolute;
+  z-index: 3;
+  bottom: calc(var(--dock-bottom, 0px) + (var(--dock-inset) - 24px) / 2);
+  left: calc(var(--dock-left, 0px) + 50%);
   display: none;
+  width: 44px;
+  height: 24px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  translate: -50% 0;
+  transition: translate var(--dur-card) var(--ease-card), opacity var(--dur-card) var(--ease-card), visibility 0s;
 }
 
-.thumbs-toggle svg {
-  rotate: 0deg;
-  transition: rotate var(--dur-card) var(--ease-card);
+.thumbs-toggle::before {
+  width: 28px;
+  height: 4px;
+  background: #fff;
+  content: "";
 }
 
-:root[data-thumbs-collapsed] .thumbs-toggle svg {
-  rotate: 180deg;
+.thumbs-toggle:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 0;
 }
 
-@media (orientation: landscape) {
-  .thumbs-toggle svg {
-    rotate: -90deg;
-  }
-
-  :root[data-thumbs-collapsed] .thumbs-toggle svg {
-    rotate: 90deg;
-  }
-}
-
-.detail-dialog .thumbs-toggle {
-  --dock-inset: var(--viewer-margin);
-  top: calc(var(--viewer-visible-top, 0px) + var(--viewer-margin));
-  left: calc(var(--viewer-visible-left, 0px) + var(--viewer-margin));
+:root[data-thumbs-collapsed] .thumbs-toggle {
+  opacity: 0;
+  visibility: hidden;
+  translate: -50% 100%;
+  transition: translate var(--dur-card) var(--ease-card), opacity var(--dur-card) var(--ease-card), visibility 0s var(--dur-card);
 }
 
 .detail-dialog:has(> .thumb-dock:not([hidden])) > .thumbs-toggle {
@@ -7138,36 +7150,11 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
 
 }
 
-/* The touch screen opens the viewer by tapping; the primary strip floats on the image (owner 2026-11-23). */
+/* The touch screen opens the viewer by tapping. */
 @media (hover: none) and (pointer: coarse) {
   /* Like manipulation but without pan-x: a horizontal swipe drags the media strip with the finger (media-card R6). */
   .detail-view__hero-frame {
     touch-action: pan-y pinch-zoom;
-  }
-
-  /* The primary strip keeps 56px thumbnails in both orientations and the corner inset of the frame buttons (16px, phones 8px). */
-  .detail-view__hero-frame {
-    --dock-inset: 16px;
-    --dock-thumb: 56px;
-  }
-
-  .detail-view__hero-frame:has(> .thumb-dock) > .thumbs-toggle {
-    display: grid;
-  }
-
-  /* A bottom row would cover the video bar and its expand button: they rise above the open strip. */
-  @media (orientation: landscape) {
-    .detail-view__hero-frame .video-player__bar {
-      transition: opacity 200ms ease-out, translate var(--dur-card) var(--ease-card);
-    }
-
-    .detail-view__hero-frame .detail-view__expand[data-detail-expand-video] {
-      transition: background-color var(--dur-fast) ease-out, translate var(--dur-card) var(--ease-card);
-    }
-
-    :root:not([data-thumbs-collapsed]) .detail-view__hero-frame:has(> .thumb-dock:not([hidden])) :is(.video-player__bar, .detail-view__expand[data-detail-expand-video]) {
-      translate: 0 calc(-1 * (var(--dock-inset) + var(--dock-thumb)));
-    }
   }
 
   .detail-view__image-action.detail-view__expand:not(:focus-visible, [data-detail-expand-video]) {
@@ -7184,16 +7171,10 @@ body:is(.is-detail, .is-project-detail) .desktop-nav a[aria-current="page"]:is(:
   }
 }
 
-@media (hover: none) and (pointer: coarse) and (max-width: 750px) {
-  .detail-view__hero-frame {
-    --dock-inset: 8px;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .detail-view__image-action,
   .thumb-dock,
-  .thumbs-toggle svg {
+  .thumbs-toggle {
     transition: none !important;
   }
 
