@@ -8,7 +8,7 @@ tests:
   - tests/admin/editor.e2e.mjs
   - tests/admin/accounts.e2e.mjs
 notion: https://app.notion.com/p/420332849a0e81ffb9e4e85372f1a0f7
-updated: 2026-11-22
+updated: 2026-11-28
 ---
 
 # CMS editor: vận hành và phát hành
@@ -19,14 +19,14 @@ Phần vận hành của [editor](cms-editor.md): xem nội dung đã lên stagi
 trước, thùng rác, nhật ký, tài khoản và cảnh báo cho owner. Quyền, trạng thái và lệnh thuộc [CMS R2 tới R6](cms.md);
 đường dựng thuộc [dữ liệu CMS R6](cms-data.md#r6-đường-dựng-trong-ci). Spec này định giao diện, thứ tự gọi lệnh và
 hợp đồng của chức năng "Phát hành". Mọi thao tác ở đây là lệnh chạy bằng code cố định; không bước nào cần agent hay
-AI ([CMS](cms.md#bối-cảnh-và-phương-án)). Đã có code: panel Tài khoản (R6, `src/admin/ops/accounts.js`, mở từ menu Bảng thành tab cạnh Xem trước). Trang tạm `/admin/status.html` của phần 1 bị thay bằng các
+AI ([CMS](cms.md#bối-cảnh-và-phương-án)). Đã có code: panel Tài khoản (R6, `src/admin/ops/accounts.js`, từ owner 2026-11-28 mở bằng nút Tài khoản ở đáy mép trái thành tab trong workspace, [dock R5](cms-dock.md#r5-tab-bản-ghi-trong-workspace)). Trang tạm `/admin/status.html` của phần 1 bị thay bằng các
 panel này.
 
 ## Hành vi
 
 ### R1. Trạng thái staging và site chính
 
-Thanh trên của editor luôn có một dải hai dòng ngắn, bấm vào thì mở panel Trạng thái:
+Bên phải thanh trạng thái ở đáy editor ([editor R1](cms-editor.md#r1-khung-làm-việc), owner 2026-11-28) luôn có hai mục ngắn, bấm vào thì mở panel Trạng thái ở mép dưới:
 
 | Dòng | Giá trị | Nguồn (`build-status`) |
 | --- | --- | --- |
@@ -42,9 +42,9 @@ staging đang chờ hoặc đang dựng, mỗi 60 giây khi không; tab ẩn th�
 ```gherkin
 Given nhân viên vừa lưu một bài News
 When lần dựng nội dung đang chạy
-Then dải trạng thái ghi "Staging: Đang dựng"
+Then thanh đáy ghi "Staging: Đang dựng"
 When lần dựng xong
-Then dải ghi "Staging: Đã lên lúc <giờ>" và "Site chính: … · staging có thay đổi chưa phát hành", không cần tải lại trang
+Then thanh đáy ghi "Staging: Đã lên lúc <giờ>" và "Site chính: … · staging có thay đổi chưa phát hành", không cần tải lại trang
 ```
 
 ### R2. Phát hành lên site chính

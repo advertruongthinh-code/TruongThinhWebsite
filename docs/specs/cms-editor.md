@@ -25,7 +25,7 @@ Giao diện ở gốc `cms.truongthinhads.vn/` (owner 2026-11-28: không có `/a
 
 Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính; owner 2026-11-28: máy tính và tablet đều mở được, điện thoại không. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
 
-Trạng thái (2026-11-28, E13): khung R1, panel Nội dung R2, Xem trước R3 (bài News và công trình), tab Thông tin, Media của bài, Layout, Còn thiếu của R4 và panel Nháp, lưu, xung đột R8 chạy trên dữ liệu thật. Còn ở các task sau: sửa chữ tại chỗ và khối `facts-grid` tại chỗ (E14, nay sửa ở tab Thông tin khi chọn khối), thư viện và upload media, khung crop, kéo media thả vào khung (E15, E16), tab Card công trình, trang chuẩn, card Advertising (E17, E18). Panel Media còn trống. Editor cũ theo contract `t<n>` đã gỡ. Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17.
+Trạng thái (2026-11-28, E13): khung R1, panel Nội dung R2, Xem trước R3 (bài News và công trình), tab Thông tin, Media của bài, Layout, Còn thiếu của R4 và panel Nháp, lưu, xung đột R8 chạy trên dữ liệu thật. Còn ở các task sau: sửa chữ tại chỗ và khối `facts-grid` tại chỗ (E14, nay sửa ở tab Thông tin khi chọn khối), thư viện và upload media, khung crop, kéo media thả vào khung (E15, E16), tab Card công trình, trang chuẩn, card Advertising (E17, E18). Panel Media còn trống. Editor cũ theo contract `t<n>` đã gỡ. Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17. Khung theo triết lý IDE (owner 2026-11-28: workspace, nhóm mép, tab bản ghi, toolbar, thanh đáy) chưa có code: task I1 tới I4, chạy trước E14.
 
 Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.html` liệt kê bản ghi theo kiểu và trạng thái, sửa `data` dạng JSON rồi gọi `save`, `create`, `trash`, `restore`, `purge`, xem `audit-log`; `/admin/status.html` là trang vận hành của plan P1 (in `build-status`, nút "Lưu thử" đo CPU). Hai trang không dùng Design System, bị editor E12 tới E19 thay.
 
@@ -33,25 +33,27 @@ Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.
 
 ### R1. Khung làm việc
 
-`/admin/` là một trang tiếng Việt, `noindex`, chỉ mở trên máy tính và tablet (owner 2026-11-28): điện thoại, tức màn hình cảm ứng có cạnh ngắn dưới 600px kể cả xoay ngang, hoặc cửa sổ rộng dưới 600px (cả cửa sổ chia đôi màn hình tablet), thấy "CMS chỉ dùng trên máy tính hoặc máy tính bảng. Hãy mở lại bằng PC hoặc tablet." thay cho editor; bàn phím ảo của tablet làm cửa sổ thấp đi cũng không chặn. Màn hình máy tính độ phân giải thấp không bị chặn. Bố cục mặc định thu hai panel bên xuống 30% và 36% bề rộng khi cửa sổ hẹp (tablet đứng 768px). Hai trang tạm `records.html` và `status.html` chưa chặn, hết khi editor thay. Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight` hoặc `themeDark` theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống); owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
+`/admin/` là một trang tiếng Việt, `noindex`, chỉ mở trên máy tính và tablet (owner 2026-11-28): điện thoại, tức màn hình cảm ứng có cạnh ngắn dưới 600px kể cả xoay ngang, hoặc cửa sổ rộng dưới 600px (cả cửa sổ chia đôi màn hình tablet), thấy "CMS chỉ dùng trên máy tính hoặc máy tính bảng. Hãy mở lại bằng PC hoặc tablet." thay cho editor; bàn phím ảo của tablet làm cửa sổ thấp đi cũng không chặn. Màn hình máy tính độ phân giải thấp không bị chặn. Bố cục mặc định thu hai panel bên xuống 30% và 36% bề rộng khi cửa sổ hẹp (tablet đứng 768px). Hai trang tạm `records.html` và `status.html` chưa chặn, hết khi editor thay. Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight` hoặc `themeDark` theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống); owner chọn 2026-10-31): theo triết lý IDE của VS Code (owner 2026-11-28): workspace ở giữa chỉ chứa tab trang đang sửa (và tab Tài khoản), mọi panel khác nằm ở nhóm mép trái, phải, dưới; panel đóng mở lại từ menu "Bảng"; workspace, nhóm mép, tab bản ghi, toolbar xem trước, ghim tab, lịch sử bố cục theo [dock](cms-dock.md).
 
 | Panel | Nội dung | Ai thấy |
 | --- | --- | --- |
 | Nội dung | Danh sách bản ghi theo nhóm (R2) | Mọi người |
-| Xem trước | Trang đang sửa (R3) | Mọi người |
+| Xem trước | Trang đang sửa (R3), một tab mỗi bản ghi trong workspace ([dock R5](cms-dock.md#r5-tab-bản-ghi-trong-workspace)) | Mọi người |
 | Thuộc tính | Trường của bản ghi hoặc chỗ đang chọn (R4 tới R7) | Mọi người |
 | Media | Thư viện ([editor media R1](cms-editor-media.md#r1-thư-viện-media)) | Mọi người |
 | Nháp | Thay đổi chưa lưu trên máy này (R8) | Mọi người |
 | Trạng thái, Thùng rác, Nhật ký | [Editor vận hành](cms-editor-ops.md) | Mọi người |
-| Tài khoản | [Editor vận hành R6](cms-editor-ops.md#r6-tài-khoản) | Chỉ owner |
+| Tài khoản | [Editor vận hành R6](cms-editor-ops.md#r6-tài-khoản), tab trong workspace | Chỉ owner |
 
-Panel Media là trang quản lý media (owner 2026-10-31): chi tiết ở [editor media](cms-editor-media.md). Bố cục mặc định: Nội dung trái 280px, Xem trước giữa, Thuộc tính phải 380px; Media và Nháp là tab cùng nhóm Thuộc tính; bốn panel vận hành đóng, mở từ menu "Bảng". Bố cục lưu trong `localStorage` `tt-cms-layout` như hiện tại. Thanh trên, từ trái sang: tên bản ghi đang mở và nhãn trạng thái của nó (R8), nút Hoàn tác, nút Lưu, menu Bảng, rồi dải trạng thái dựng và nút "Phát hành" ([editor vận hành R1, R2](cms-editor-ops.md#r1-trạng-thái-staging-và-site-chính)). Mở lại editor thì mở bản ghi dùng lần cuối (`tt-cms-open`), lần đầu là Trang chủ. Mở editor gọi `get` cho bản ghi đó và `list` cho nhóm đang mở; lệnh trả 403 thì trang hiện "Tài khoản của bạn chưa được mở trong CMS." và không hiện panel nào. Nút "Xuất JSON" của bản cũ bỏ. Admin dùng `editor.css` riêng, không dùng token Design System ([CMS UI](cms.md#ui)).
+Panel Media là trang quản lý media (owner 2026-10-31): chi tiết ở [editor media](cms-editor-media.md). Bố cục mặc định (owner 2026-11-28): workspace một nhóm với tab xem trước; mép trái Nội dung (mở, 280px) và Media; mép phải Thuộc tính (mở, 380px) và Nháp; mép dưới thu gọn với Còn thiếu, Trạng thái, Nhật ký, Thùng rác. Cửa sổ dưới 1024px thì hai mép bên mở đầu ở dạng thu ([dock R3](cms-dock.md#r3-mở-thu-và-đổi-cỡ-nhóm-mép)). Đáy dải icon mép trái có nút tròn Tài khoản như nút tài khoản của VS Code: mọi người thấy email đang đăng nhập khi rê chuột; owner bấm thì mở tab Tài khoản trong workspace. Bố cục lưu trong `localStorage` `tt-cms-layout` như hiện tại.
+
+Thanh trên, từ trái sang: tên CMS, nút Hoàn tác, nút Lưu (cả hai tác động tab đang chọn), menu Bảng, nút "Phát hành" ([editor vận hành R2](cms-editor-ops.md#r2-phát-hành-lên-site-chính)), pill giao diện (R10). Tên bản ghi nằm trên tab, không lặp trên thanh trên. Thanh trạng thái mới ở đáy cửa sổ, một dòng mỏng (owner 2026-11-28): bên trái nhãn của bản ghi đang chọn (R8), người và giờ sửa cuối; bên phải trạng thái dựng staging và site chính ([editor vận hành R1](cms-editor-ops.md#r1-trạng-thái-staging-và-site-chính)). Mở lại editor thì mở lại các tab của lần trước ([dock R5](cms-dock.md#r5-tab-bản-ghi-trong-workspace)); không còn tab nào thì mở bản ghi dùng lần cuối (`tt-cms-open`), lần đầu là Trang chủ. Mở editor gọi `get` cho bản ghi đó và `list` cho nhóm đang mở; lệnh trả 403 thì trang hiện "Tài khoản của bạn chưa được mở trong CMS." và không hiện panel nào. Nút "Xuất JSON" của bản cũ bỏ. Admin dùng `editor.css` riêng, không dùng token Design System ([CMS UI](cms.md#ui)).
 
 ```gherkin
 Given nhân viên mở /admin/ trên cửa sổ 1440px lần đầu
 When trang tải xong
-Then dock có Nội dung, Xem trước, Thuộc tính theo bố cục mặc định, Xem trước tải Trang chủ
-And menu Bảng không có mục Tài khoản
+Then mép trái mở Nội dung, mép phải mở Thuộc tính, workspace có tab "Trang chủ" đang tải
+And menu Bảng không có mục Tài khoản và bấm nút Tài khoản ở đáy mép trái không mở tab nào
 ```
 
 ### R2. Panel Nội dung
@@ -66,7 +68,7 @@ Panel xếp bản ghi theo nhóm; mỗi nhóm đọc bằng lệnh `list` của 
 | Card Advertising, theo cụm rồi sản phẩm | `advertising-card` | Có | Kéo thả trong một sản phẩm |
 | Menu và liên hệ | `menu`, `contact` | Không | Không |
 
-Mỗi dòng ghi tên, email người sửa cuối (owner 2026-11-28) và giờ sửa, và các nhãn: "Nháp" (`draft`), "Đang xử lý media" (`pending > 0`), "Lỗi media" (có biến thể `error`), "Thiếu EN" ([nội dung CMS R2](cms-content.md#r2-hai-ngôn-ngữ)), "Chưa lưu" (có nháp trên máy này). Ô tìm lọc theo tên, bỏ dấu; bộ lọc: Tất cả, Nháp, Thiếu EN, Có lỗi. Bấm một dòng mở bản ghi đó ở Xem trước và Thuộc tính. Menu chuột phải của dòng: "Mở trên staging", "Đưa vào thùng rác" ([editor vận hành R4](cms-editor-ops.md#r4-thùng-rác)).
+Mỗi dòng ghi tên, email người sửa cuối (owner 2026-11-28) và giờ sửa, và các nhãn: "Nháp" (`draft`), "Đang xử lý media" (`pending > 0`), "Lỗi media" (có biến thể `error`), "Thiếu EN" ([nội dung CMS R2](cms-content.md#r2-hai-ngôn-ngữ)), "Chưa lưu" (có nháp trên máy này). Ô tìm lọc theo tên, bỏ dấu; bộ lọc: Tất cả, Nháp, Thiếu EN, Có lỗi. Bấm một dòng mở bản ghi đó trong workspace theo [dock R5](cms-dock.md#r5-tab-bản-ghi-trong-workspace) (một lần bấm là tab tạm, bấm đúp là tab giữ); Thuộc tính theo tab đang chọn. Menu chuột phải của dòng: "Mở trên staging", "Đưa vào thùng rác" ([editor vận hành R4](cms-editor-ops.md#r4-thùng-rác)).
 
 Tạo mới mở một hộp thoại: tên tiếng Việt (bắt buộc) và các trường phân loại bắt buộc của kiểu (News: nhóm; công trình: mảng và loại; card: sản phẩm chính). `id` và slug VI tự sinh từ tên (chữ thường, bỏ dấu, nối bằng gạch ngang), sửa được trong hộp thoại; `id` không đổi sau khi tạo. Bấm "Tạo" gọi `create`, mở bản ghi mới ở trạng thái Nháp; 409 thì hộp thoại ghi "Tên định danh này đã có, đổi tên khác." và giữ nguyên dữ liệu đã gõ.
 
@@ -90,7 +92,7 @@ Khung xem trước là một `iframe` cùng origin, chạy cùng CSS, JS và mot
 | Trang chuẩn | HTML đã dựng của trang, cộng hàm `fillSlots` mà build dùng (R6) |
 | Lưới và trang card Advertising | Bản xem trước `advertising.html` với catalog vá từ dữ liệu card đang sửa, như bản hiện có |
 
-Thanh cỡ có đúng sáu mốc 384, 768, 1024, 1280, 1440, 1920 (owner 2026-11-15); ô bề rộng tự do và các preset cũ bỏ. Khung lớn hơn panel thì thu nhỏ bằng `transform: scale`, ghi cỡ và phần trăm. Đổi mốc tải lại iframe (runtime của site chỉ dựng đúng lúc tải trang) rồi cuộn lại chỗ đang chọn. Mọi thay đổi dựng lại HTML trong iframe sau 250 ms kể từ thay đổi cuối và giữ vị trí cuộn (sửa chữ tại chỗ không dựng lại: E14). Nút "Tiếng Việt"/"English" đổi ngôn ngữ xem trước; bản ghi chưa đủ EN thì nút English mờ kèm "Bài chưa có bản tiếng Anh". "Chế độ sửa"/"Chế độ xem" bật tắt overlay; chế độ xem tương tác như khách, link rời trang bị chặn kèm thông báo. "Mở trên staging" mở URL của trang trên staging trong tab mới, mờ khi bản ghi chưa `published`.
+Điều khiển nằm trên toolbar của panel ([dock R6](cms-dock.md#r6-toolbar-trong-panel-xem-trước)). Thanh cỡ có đúng sáu mốc 384, 768, 1024, 1280, 1440, 1920 (owner 2026-11-15); ô bề rộng tự do và các preset cũ bỏ. Khung lớn hơn panel thì mặc định thu nhỏ vừa khung bằng `transform: scale`; zoom 25 tới 200% và "Vừa khung" theo dock R6. Mỗi nhóm của workspace giữ mốc cỡ, ngôn ngữ, zoom riêng. Đổi mốc tải lại iframe (runtime của site chỉ dựng đúng lúc tải trang) rồi cuộn lại chỗ đang chọn. Mọi thay đổi dựng lại HTML trong iframe sau 250 ms kể từ thay đổi cuối và giữ vị trí cuộn (sửa chữ tại chỗ không dựng lại: E14). Nút "Tiếng Việt"/"English" đổi ngôn ngữ xem trước; bản ghi chưa đủ EN thì nút English mờ kèm "Bài chưa có bản tiếng Anh". "Chế độ sửa"/"Chế độ xem" bật tắt overlay; chế độ xem tương tác như khách, link rời trang bị chặn kèm thông báo. "Mở trên staging" mở URL của trang trên staging trong tab mới, mờ khi bản ghi chưa `published`.
 
 Media chưa có biến thể hiện bằng bản gốc qua lệnh `media-file`, với vùng crop áp bằng CSS, và góc khung ghi "bản xem trước". Lưới card trong preview xếp như PC và tablet ở mọi mốc; thứ tự dựng sẵn của điện thoại chỉ có ở lần dựng thật.
 
@@ -128,7 +130,7 @@ Then preview dựng lại với chuỗi khối của layout đó, media đặt t
 
 ### R5. Soạn chữ
 
-Bấm một chữ trên preview thì chữ đó thành ô sửa tại chỗ (`contentEditable="plaintext-only"`); Enter kết thúc ở chữ một dòng, Esc luôn kết thúc; dán chỉ nhận chữ thuần. Ô Thuộc tính hiện cùng chữ đó ở hai ô VI và EN. Khi có vùng chữ được bôi, một thanh nhỏ nổi lên với đúng các nút chỗ đó cho phép ([nội dung CMS R8](cms-content.md#r8-soạn-chữ)):
+Bấm một chữ trên preview thì chữ đó thành ô sửa tại chỗ (`contentEditable="plaintext-only"`); Enter kết thúc ở chữ một dòng, Esc luôn kết thúc; dán chỉ nhận chữ thuần. Ô Thuộc tính hiện cùng chữ đó ở hai ô VI và EN. Khi đang sửa chữ, cụm ngữ cảnh của toolbar xem trước ([dock R6](cms-dock.md#r6-toolbar-trong-panel-xem-trước)) hiện đúng các nút chỗ đó cho phép ([nội dung CMS R8](cms-content.md#r8-soạn-chữ)); không có thanh nổi cạnh chữ (owner 2026-11-28):
 
 | Nút | Dữ liệu lưu | Hiện trên site |
 | --- | --- | --- |
@@ -194,7 +196,7 @@ Then lệnh trả 409, biểu mẫu ghi "Trang phải còn ít nhất một ản
 
 ### R8. Nháp, lưu và xung đột
 
-Mọi thay đổi ghi ngay vào nháp trên máy `localStorage` `tt-cms-draft:<kiểu>:<id>`: `{ baseVersion, data }`, với `baseVersion` là `version` của bản đã tải. Nháp không gửi lên server; đổi máy hay xóa dữ liệu trình duyệt thì mất phần chưa lưu ([CMS R7](cms.md#r7-xem-trước-gần-11-với-site)). Nhãn trên thanh trên: "Nháp" hoặc "Đã đăng" theo bản ghi, thêm "Chưa lưu · n thay đổi" khi có nháp. Hoàn tác theo từng thao tác, gõ liên tục một ô gộp một mốc. Panel Nháp liệt kê mọi bản ghi có nháp trên máy, mỗi dòng có "Mở" và "Bỏ nháp".
+Mọi thay đổi ghi ngay vào nháp trên máy `localStorage` `tt-cms-draft:<kiểu>:<id>`: `{ baseVersion, data }`, với `baseVersion` là `version` của bản đã tải. Nháp không gửi lên server; đổi máy hay xóa dữ liệu trình duyệt thì mất phần chưa lưu ([CMS R7](cms.md#r7-xem-trước-gần-11-với-site)). Nhãn trên thanh đáy (R1): "Nháp" hoặc "Đã đăng" theo bản ghi của tab đang chọn, thêm "Chưa lưu · n thay đổi" khi có nháp; tab có nháp hiện chấm chưa lưu ([dock R5](cms-dock.md#r5-tab-bản-ghi-trong-workspace)). Hoàn tác theo từng thao tác, gõ liên tục một ô gộp một mốc. Panel Nháp liệt kê mọi bản ghi có nháp trên máy, mỗi dòng có "Mở" và "Bỏ nháp".
 
 Bấm Lưu gọi `save` với `baseVersion`. Editor chỉ gửi `mediaId` và `crop` cho chỗ đặt media.
 
