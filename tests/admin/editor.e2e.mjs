@@ -5,7 +5,7 @@ import { createServer } from "node:net";
 import path from "node:path";
 import process from "node:process";
 
-// Editor frame and Content panel (cms-editor R1, R2, cms-dock R1 to R4, CMS plan E12) on the local admin Worker with a
+// Editor frame and Content panel (cms-editor R1, R2, cms-dock R1 to R4, CMS plan E12, I1) on the local admin Worker with a
 // D1 seeded from the repo: run after `pnpm prepare:site && node scripts/cms/build-admin.mjs`. The Worker and its D1 live
 // in their own .wrangler/e2e-* folder, so the run never touches `pnpm cms:dev` data.
 // The local Worker signs everyone in as owner (CMS_LOCAL_ADMIN_EMAIL), so the staff case answers whoami as staff in the page.
@@ -50,28 +50,48 @@ async function open({ width = 1440, height = 900, screen = { width, height }, to
   return page;
 }
 const shot = (page, name) => shots && page.screenshot({ path: path.join(shots, `${name}.png`) });
+// The dock as "<area>: <tabs>", area = ws (workspace) or the edge, "[thu]" when collapsed, "*" after a pinned tab.
+const layoutOf = (page) => page.evaluate(() => [...document.querySelectorAll(".dv-groupview")].filter((group) => group.offsetParent)
+  .map((group) => `${group.dataset.edge || "ws"}${group.classList.contains("dv-edge-collapsed") ? "[thu]" : ""}: `
+    + [...group.querySelectorAll(".dv-tab")].map((tab) => tab.querySelector(".dv-default-tab").title + (tab.querySelector(".is-pinned") ? "*" : "")).join(","))
+  .sort());
+const DEFAULT_LAYOUT = ["bottom[thu]: Còn thiếu,Trạng thái,Nhật ký,Thùng rác", "left: Nội dung,Media", "right: Thuộc tính,Nháp", "ws: Xem trước"];
+const edgeSize = (page, edge) => page.locator(`.dv-groupview[data-edge="${edge}"]`).evaluate((node, side) => Math.round(node.getBoundingClientRect()[side === "bottom" ? "height" : "width"]), edge);
+const edgeTab = (page, name) => page.locator(`.dv-tab:has(.dv-default-tab[title="${name}"])`);
+// Drags with the mouse (HTML5 drag and drop) from a locator to a point.
+async function drag(page, from, to) {
+  const box = await from.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + 30, box.y + 30, { steps: 5 });
+  await page.waitForTimeout(100);
+  await page.mouse.move(to.x, to.y, { steps: 10 });
+  await page.waitForTimeout(150);
+  await page.mouse.up();
+  await page.waitForTimeout(600);
+}
 const rowNames = (page, group) => page.locator(`.group[data-group="${group}"] .row__name`).allTextContents();
 const api = async (page, command, body) => (await page.request.fetch(`${baseUrl}/api/admin/${command}`, body
   ? { method: "POST", data: body, headers: { Origin: baseUrl } } : {})).json();
 
 try {
-  // (a) First open: three panels by the default layout, Trang chủ open, owner sees Tài khoản in the Bảng menu.
+  // (a) First open: the default layout (cms-dock R2), Trang chủ open; the owner opens Tài khoản from the round button.
   let page = await open();
   await page.locator('.group[data-group="projects"] .row').first().waitFor();
   // The editor is the cms root; an old /admin/ link lands there too.
   const old = await page.request.fetch(`${baseUrl}/admin/`, { maxRedirects: 0 });
   assert.equal(old.status(), 301);
   assert.equal(new URL(old.headers().location, baseUrl).pathname, "/");
-  assert.deepEqual(await page.$$eval(".dv-tab", (tabs) => tabs.map((tab) => tab.textContent.trim())), ["Nội dung", "Xem trước", "Thuộc tính", "Media", "Nháp"]);
-  const width = (name) => page.locator(".dv-groupview", { has: page.locator(".dv-tab", { hasText: name }) }).evaluate((node) => Math.round(node.getBoundingClientRect().width));
-  assert.equal(await width("Nội dung"), 280);
-  assert.equal(await width("Thuộc tính"), 380);
+  assert.deepEqual(await layoutOf(page), DEFAULT_LAYOUT);
+  assert.equal(await edgeSize(page, "left"), 280);
+  assert.equal(await edgeSize(page, "right"), 380);
   assert.equal(await page.textContent("#record-name"), "Trang chủ");
   assert.equal(await page.textContent("#record-status"), "Đã đăng");
   assert.deepEqual(await rowNames(page, "pages"), ["Trang chủ", "Nhà ở", "Kinh doanh", "Giới thiệu"]);
   await page.click(".topbar__menu > summary");
-  assert.ok(await page.locator("#panel-menu button", { hasText: "Tài khoản" }).isVisible());
+  assert.equal(await page.locator("#panel-menu button", { hasText: "Tài khoản" }).count(), 0);
   await page.keyboard.press("Escape");
+  assert.equal(await page.locator(".dock-account").getAttribute("title"), "admin@localhost");
   await shot(page, "1-mac-dinh");
 
   // (c) R2 Gherkin: one News without description.en; filter "Thiếu EN" shows only it with the label.
@@ -255,8 +275,9 @@ try {
   assert.ok(await page.evaluate((id) => localStorage.getItem(`tt-cms-draft:news:${id}`), post.id), "the draft stays after a 400");
   const placements = JSON.stringify(saved.data).match(/"mediaId":"[^"]+"[^{}]*/g) ?? [];
   assert.ok(placements.length >= 6 && placements.every((text) => !/"src"|"width"|"altVi"/.test(text)), "placements are mediaId and crop only");
-  await tabs("Còn thiếu").click();
-  assert.ok(await page.locator(".problem").count() > 0);
+  // The Còn thiếu panel opens by itself in the bottom edge and names its count.
+  await page.locator(".panel--missing .problem").first().waitFor();
+  assert.match(await page.locator('.dv-groupview[data-edge="bottom"] .dv-tab').first().textContent(), /^Còn thiếu \(\d+\)$/);
   await settle();
   await shot(page, "10-con-thieu");
   // Fill the empty block, then a version conflict: someone else saved first, so the dialog names them and the draft survives.
@@ -265,7 +286,6 @@ try {
     await page.locator(".problem", { hasText: "Chưa có chữ tiếng Việt" }).first().click();
     await page.locator(".block-fields textarea").nth(0).fill("Đoạn mới thêm.");
     await page.locator(".block-fields textarea").nth(1).fill("A new paragraph.");
-    await tabs("Còn thiếu").click();
   }
   const current = await api(page, `get?type=news&id=${post.id}`);
   await api(page, "save", { type: "news", id: post.id, version: current.version, data: { ...current.data, description: { ...current.data.description, vi: `${current.data.description.vi} (người khác sửa)` } } });
@@ -307,49 +327,137 @@ try {
   await settle();
   await shot(page, "12-cong-trinh");
 
-  // cms-dock R1 to R4: pin a tab, drag Media to the left edge, slide it out, Esc, pin the edge group, undo the layout.
+  // cms-dock R1 to R4 (I1): pin a workspace tab, edge panels stay out of the workspace, move between edges as icon or text
+  // tabs, open and collapse by click, collapse under 170px, then undo every layout step.
   await page.click(".topbar__menu summary");
   await page.locator("#panel-menu button", { hasText: "Bố cục mặc định" }).click();
   await page.waitForTimeout(600);
-  const tab = (name) => page.locator(".dv-tab", { hasText: name }).first();
-  const groupTabs = () => page.evaluate(() => [...document.querySelectorAll(".dv-groupview")].map((group) => (group.classList.contains("dv-edge-collapsed") ? "[strip]" : "")
-    + [...group.querySelectorAll(".dv-tab")].map((item) => item.textContent + (item.querySelector(".is-pinned") ? "*" : "")).join(",")));
-  await tab("Nháp").click({ button: "right" });
+  assert.deepEqual(await layoutOf(page), DEFAULT_LAYOUT);
+  await page.locator(".dock-account").click();
+  await page.locator(".panel--accounts").waitFor();
+  await page.locator(".dv-tab", { hasText: "Tài khoản" }).click({ button: "right" });
   await page.locator(".dock-menu button", { hasText: "Ghim tab" }).click();
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("Nháp*,Thuộc tính,Media"), "the pinned tab leads the group");
-  const from = await tab("Media").boundingBox();
-  await page.mouse.move(from.x + 10, from.y + 10);
-  await page.mouse.down();
-  await page.mouse.move(from.x + 40, from.y + 40, { steps: 5 });
-  await page.waitForTimeout(100);
-  await page.mouse.move(8, 450, { steps: 10 });
-  await page.waitForTimeout(100);
-  await page.mouse.up();
-  await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("[strip]Media"), "dragging to the edge creates a collapsed strip");
-  await tab("Media").click();
-  await page.locator(".dock-peek .panel--media").waitFor();
+  assert.ok((await layoutOf(page)).includes("ws: Tài khoản*,Xem trước"), "the pinned tab leads the workspace group");
+  // An edge tab has no pin, only Đóng tab.
+  await edgeTab(page, "Media").click({ button: "right" });
+  assert.deepEqual(await page.locator(".dock-menu button").allTextContents(), ["Đóng tab"]);
   await page.keyboard.press("Escape");
-  assert.equal(await page.locator(".dock-peek").isHidden(), true);
-  await tab("Media").click();
-  await page.locator(".dock-peek__button", { hasText: "Ghim" }).click();
-  await page.waitForTimeout(600);
-  for (let step = 0; step < 3; step += 1) {
+  const workspace = await page.locator('.dv-groupview[data-edge=""]').first().boundingBox();
+  await drag(page, edgeTab(page, "Media"), { x: workspace.x + workspace.width / 2, y: workspace.y + workspace.height / 2 });
+  assert.ok((await layoutOf(page)).includes("left: Nội dung,Media"), "Media cannot drop into the workspace");
+  await drag(page, page.locator(".dv-tab", { hasText: "Xem trước" }), { x: 1418, y: 300 });
+  assert.ok((await layoutOf(page)).includes("right: Thuộc tính,Nháp"), "a workspace tab cannot drop into an edge");
+  // Shift-drag would make a floating group over the workspace; floating groups are off.
+  await page.keyboard.down("Shift");
+  await drag(page, edgeTab(page, "Media"), { x: workspace.x + workspace.width / 2, y: workspace.y + workspace.height / 2 });
+  await page.keyboard.up("Shift");
+  assert.equal(await page.locator(".dv-groupview").evaluateAll((nodes) => nodes.filter((node) => node.closest(".dv-resize-container")).length), 0, "no floating group");
+  assert.ok((await layoutOf(page)).includes("left: Nội dung,Media"), "Shift-drag keeps Media on its edge");
+  const strip = await edgeTab(page, "Trạng thái").boundingBox();
+  await drag(page, edgeTab(page, "Media"), { x: strip.x + 8, y: strip.y + strip.height / 2 });
+  assert.ok((await layoutOf(page)).includes("left: Nội dung"), "Media left the left edge");
+  assert.match((await layoutOf(page)).find((line) => line.startsWith("bottom")), /Media/);
+  const shown = (name, part) => edgeTab(page, name).first().locator(part).evaluate((node) => getComputedStyle(node).display !== "none");
+  assert.deepEqual([await shown("Media", ".dv-default-tab-content"), await shown("Media", ".dock-tab-icon")], [true, false], "a bottom tab is text");
+  assert.deepEqual([await shown("Nội dung", ".dv-default-tab-content"), await shown("Nội dung", ".dock-tab-icon")], [false, true], "a side tab is an icon");
+  // Clicking the open tab collapses the edge, clicking it again opens it and pushes the workspace back.
+  await edgeTab(page, "Nội dung").click();
+  await page.waitForTimeout(300);
+  assert.ok((await layoutOf(page)).includes("left[thu]: Nội dung"));
+  await edgeTab(page, "Nội dung").click();
+  await page.waitForTimeout(300);
+  assert.equal(await edgeSize(page, "left"), 280);
+  // R3 Gherkin: dragged to 150px the left edge collapses; reopened it is 280px again.
+  await page.mouse.move(281, 450);
+  await page.mouse.down();
+  await page.mouse.move(150, 450, { steps: 8 });
+  await page.mouse.up();
+  await page.waitForTimeout(400);
+  assert.ok((await layoutOf(page)).includes("left[thu]: Nội dung"), "under 170px the edge collapses");
+  await edgeTab(page, "Nội dung").click();
+  await page.waitForTimeout(300);
+  assert.equal(await edgeSize(page, "left"), 280);
+  await shot(page, "13-mep");
+  // Each step back is one layout change; the walk stops at the default layout this section started from.
+  for (let step = 0; step < 25 && JSON.stringify(await layoutOf(page)) !== JSON.stringify(DEFAULT_LAYOUT); step += 1) {
     await page.keyboard.press("Control+Alt+z");
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
   }
+  assert.deepEqual(await layoutOf(page), DEFAULT_LAYOUT, "undo returns to the default layout");
+  // Enter on a focused edge tab opens and collapses the edge like a click.
+  await edgeTab(page, "Nhật ký").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  assert.match((await layoutOf(page)).find((line) => line.startsWith("bottom")), /^bottom: /, "Enter opens the bottom edge");
+  // A low window keeps the workspace at least 200px high: the open bottom edge collapses.
+  await page.setViewportSize({ width: 1440, height: 400 });
   await page.waitForTimeout(600);
-  assert.ok((await groupTabs()).includes("Thuộc tính,Media,Nháp"), "undo returns to the default layout");
-  assert.equal(await page.locator(".dv-edge-group").count(), 0);
+  assert.ok(await page.locator('.dv-groupview[data-edge=""]').first().evaluate((node) => node.getBoundingClientRect().height >= 199), "the workspace keeps 200px");
+  assert.match((await layoutOf(page)).find((line) => line.startsWith("bottom")), /^bottom\[thu\]/);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.waitForTimeout(400);
+  await edgeTab(page, "Nhật ký").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  assert.match((await layoutOf(page)).find((line) => line.startsWith("bottom")), /^bottom\[thu\]/, "Enter on the open tab collapses it");
   await page.context().close();
 
-  // (b) Staff: the panel menu has no accounts entry.
+  // R3 Gherkin: a 768px window starts with both side edges collapsed; opening the left then the right one collapses the left.
+  page = await open({ width: 768, height: 1024, touch: true });
+  await page.locator(".dv-groupview[data-edge]").first().waitFor();
+  await page.waitForTimeout(600);
+  assert.deepEqual(await layoutOf(page), ["bottom[thu]: Còn thiếu,Trạng thái,Nhật ký,Thùng rác", "left[thu]: Nội dung,Media", "right[thu]: Thuộc tính,Nháp", "ws: Xem trước"]);
+  await shot(page, "14-768");
+  await edgeTab(page, "Nội dung").click();
+  await page.waitForTimeout(300);
+  await edgeTab(page, "Thuộc tính").click();
+  await page.waitForTimeout(300);
+  const narrow = await layoutOf(page);
+  assert.ok(narrow.includes("left[thu]: Nội dung,Media") && narrow.includes("right: Thuộc tính,Nháp"), "the left edge gave way");
+  assert.ok(await page.locator('.dv-groupview[data-edge=""]').first().evaluate((node) => node.getBoundingClientRect().right <= document.querySelector(".dv-grid-view").getBoundingClientRect().right + 1), "the workspace is not cut");
+  await shot(page, "15-768-mo-phai");
+  // Turning the tablet to a narrower window collapses open edges until the workspace fits.
+  await page.setViewportSize({ width: 1180, height: 820 });
+  await page.waitForTimeout(400);
+  await edgeTab(page, "Nội dung").click();
+  await page.waitForTimeout(300);
+  assert.ok((await layoutOf(page)).includes("left: Nội dung,Media"));
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.waitForTimeout(600);
+  assert.ok(await page.locator('.dv-groupview[data-edge=""]').first().evaluate((node) => node.getBoundingClientRect().right <= document.querySelector(".dv-grid-view").getBoundingClientRect().right + 1), "the workspace fits after the window shrinks");
+  assert.ok((await layoutOf(page)).includes("right[thu]: Thuộc tính,Nháp"), "the right edge gave way first");
+  // A saved layout naming an inherited property as a panel id falls back to the default instead of breaking the dock.
+  await page.evaluate(() => {
+    const saved = JSON.parse(localStorage.getItem("tt-cms-layout"));
+    saved.panels.constructor = { id: "constructor", contentComponent: "constructor", title: "x" };
+    saved.edgeGroups.left.group.views.push("constructor");
+    localStorage.setItem("tt-cms-layout", JSON.stringify(saved));
+  });
+  await page.reload();
+  await page.locator(".dv-groupview[data-edge]").first().waitFor();
+  await page.waitForTimeout(600);
+  assert.deepEqual(await layoutOf(page), ["bottom[thu]: Còn thiếu,Trạng thái,Nhật ký,Thùng rác", "left[thu]: Nội dung,Media", "right[thu]: Thuộc tính,Nháp", "ws: Xem trước"]);
+  // A layout saved by the editor before the edge groups falls back to the default.
+  await page.evaluate(() => localStorage.setItem("tt-cms-layout", JSON.stringify({ grid: { root: { type: "branch", data: [] }, width: 768, height: 900, orientation: "HORIZONTAL" }, panels: { content: { id: "content", contentComponent: "content", title: "Nội dung" } } })));
+  await page.reload();
+  await page.locator(".dv-groupview[data-edge]").first().waitFor();
+  await page.waitForTimeout(600);
+  assert.ok((await layoutOf(page)).includes("left[thu]: Nội dung,Media"));
+  await page.context().close();
+
+  // (b) Staff: the panel menu has no accounts entry and the account button opens nothing.
   page = await open({ routes: { whoami: (route) => route.fulfill({ json: { email: "staff@example.com", role: "staff", stagingOrigin: null } }) } });
   await page.locator(".group .row").first().waitFor();
   await page.click(".topbar__menu > summary");
   assert.deepEqual(await page.locator("#panel-menu button").allTextContents(),
-    ["Nội dung", "Xem trước", "Thuộc tính", "Media", "Nháp", "Bố cục mặc định", "Hoàn tác bố cục", "Làm lại bố cục"]);
+    ["Nội dung", "Xem trước", "Thuộc tính", "Media", "Nháp", "Còn thiếu", "Trạng thái", "Nhật ký", "Thùng rác", "Bố cục mặc định", "Hoàn tác bố cục", "Làm lại bố cục"]);
+  await page.keyboard.press("Escape");
+  await page.locator(".dock-account").click();
+  await page.waitForTimeout(300);
+  assert.deepEqual((await layoutOf(page)).find((line) => line.startsWith("ws")), "ws: Xem trước");
   await page.context().close();
 
   // (E12 carry-over) A group loads its next page when the end of the list scrolls into view.

@@ -1,4 +1,4 @@
-// What the preview and the Còn thiếu tab read once per session (cms-editor R3): published News and projects (`context`), the contact
+// What the preview and the Còn thiếu panel read once per session (cms-editor R3): published News and projects (`context`), the contact
 // record, the frame pages, the files the repo build has and the shared head script. Cached; `refreshContext` after a save.
 import { call } from "./api.js";
 import { IMAGE_SRC, imageFieldErrors } from "./lib/scripts/site/lib-pure.mjs";
@@ -31,7 +31,7 @@ export const loadFrame = (name) => once(`frame:${name}`, async () => (await text
 export const loadHeadInline = () => once("head", async () => `<script>\n${await (await text("/admin/head-inline.js")).text()}</script>`);
 export const loadRepoFiles = () => once("files", async () => new Set(await (await text("/admin/repo-files.json")).json()));
 
-// ctx of shapeErrors and fullErrors for the open record (the Còn thiếu tab and the preview gate read the same one).
+// ctx of shapeErrors and fullErrors for the open record (the Còn thiếu panel and the preview gate read the same one).
 export async function validationContext(record, mediaById) {
   const context = await loadContext();
   const byId = (rows) => new Map(rows.map((entry) => [entry.id, entry]));

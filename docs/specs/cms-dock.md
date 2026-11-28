@@ -166,14 +166,14 @@ Theo [CMS UI](cms.md#ui) và `editor.css`; tab giữ DOM `dv-default-tab` để 
 | R | Test hoặc command |
 | --- | --- |
 | R1, R4 | `tests/admin/editor.e2e.mjs` (ghim, hoàn tác bố cục) |
-| R2, R3 | cần: e2e chặn thả giữa workspace và mép, tab icon và chữ theo mép, tự thu dưới ngưỡng, cửa sổ 768px |
+| R2, R3 | `tests/admin/editor.e2e.mjs` (chặn thả giữa workspace và mép, tab icon và chữ theo mép, bấm mở và thu, tự thu dưới 170px, cửa sổ 768px, bố cục cũ về mặc định); giữ lâu để kéo trên cảm ứng là hành vi sẵn của Dockview (chờ 250 ms) |
 | R5 | cần: e2e tab tạm, tab giữ, chấm chưa lưu, chia cùng bản ghi và đồng bộ, khôi phục sau tải lại |
 | R6 | cần: e2e zoom và Vừa khung, toolbar đổi mép, cụm ngữ cảnh theo chỗ chọn |
 
 ## Gate còn mở
 
 - Mép trên chưa có dải (thanh trên đã ở đó); chưa có popout window.
-- Icon riêng cho từng panel chọn ở task I1 trong ảnh 1440px trình owner.
+- Icon riêng của từng panel (task I1) chờ owner duyệt trong ảnh 1440px.
 
 ## Chú thích thuật ngữ
 

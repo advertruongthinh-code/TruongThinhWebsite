@@ -1,4 +1,5 @@
-// Thuộc tính panel of a News post or project page (cms-editor R4, CMS plan E13): tabs Thông tin, Media của bài, Layout, Còn thiếu.
+// Thuộc tính panel of a News post or project page (cms-editor R4, CMS plan E13): tabs Thông tin, Media của bài, Layout; the
+// Còn thiếu list is its own panel in the bottom edge (cms-dock R2).
 // Every edit goes through the draft session (undo, draft in storage); the tabs only read it back.
 import { call } from "../../api.js";
 import { h } from "../../dom.js";
@@ -13,10 +14,11 @@ import { LAYOUTS, expandLayout } from "../../lib/src/cms/layouts.mjs";
 import { blockTexts, fitCrops, kindOf, layoutChoices, pageMedia, relayout } from "../../lib/src/cms/page-model.mjs";
 import { viewData } from "../../lib/src/cms/preview-data.mjs";
 
-const TABS = [["info", "Thông tin"], ["media", "Media của bài"], ["layout", "Layout"], ["missing", "Còn thiếu"]];
+const TABS = [["info", "Thông tin"], ["media", "Media của bài"], ["layout", "Layout"]];
 const BLOCK_NAMES = { paragraph: "Đoạn chữ", "section-title": "Tiêu đề phần", quote: "Trích dẫn", "facts-grid": "Bảng thông tin", "hero-project": "Đầu bài", "contact-quick": "Liên hệ nhanh", "cta-arrow": "Nút kêu gọi", "media-text": "Ảnh và chữ" };
 
-export function mountPageProps(root) {
+// missingRoot: the Còn thiếu panel; onCount(n) names its tab; reveal(id) opens a panel ("props" or "missing").
+export function mountPageProps(root, { missingRoot, onCount, reveal }) {
   let tab = "info";
   let typing = false;
   let pickerOpen = false; // the library picker stays open while media are added one after another
@@ -200,7 +202,8 @@ export function mountPageProps(root) {
 
   // ---------- Còn thiếu ----------
 
-  function missingTab() {
+  function missingList() {
+    if (!isPage()) return h("p", { className: "note" }, "Loại này chưa có kiểm tra còn thiếu.");
     if (!problems.length) return h("p", { className: "note" }, "Đủ mục. Bài sẵn sàng để đăng.");
     return h("ul", { className: "problems" }, ...problems.map((problem) => h("li", {}, h("button", { type: "button", className: "problem", onclick: () => jump(problem) },
       problem.level === "shape" && h("b", {}, "Lỗi: "), problem.block !== null && `Khối ${problem.block + 1}: `, problem.text))));
@@ -210,6 +213,7 @@ export function mountPageProps(root) {
     else {
       tab = "info";
       render();
+      reveal("props");
       root.querySelector(`[data-field="${CSS.escape(field)}"] :is(input, select, textarea)`)?.focus();
     }
   }
@@ -233,11 +237,10 @@ export function mountPageProps(root) {
     paint();
   }
 
-  // Badge of the tab, the list when it is open, and the marks on the fields, in place (typing keeps its focus).
+  // The Còn thiếu panel and its tab count, and the marks on the fields, in place (typing keeps its focus).
   function paint() {
-    const missing = root.querySelector('[data-tab="missing"]');
-    if (missing) missing.textContent = `Còn thiếu${problems.length ? ` (${problems.length})` : ""}`;
-    if (tab === "missing") root.querySelector(".props__body")?.replaceChildren(missingTab());
+    onCount(problems.length);
+    missingRoot.replaceChildren(missingList());
     for (const node of root.querySelectorAll("[data-field]")) {
       const found = problems.find((problem) => problem.field === node.dataset.field);
       node.classList.toggle("field--error", Boolean(found));
@@ -249,8 +252,8 @@ export function mountPageProps(root) {
 
   function render() {
     root.replaceChildren();
-    if (!isPage()) return root.append(h("div", { className: "empty" }, h("p", { className: "empty__title" }, "Thuộc tính"), h("p", {}, "Các trường của loại này có ở bản sau.")));
-    const body = { info: infoTab, media: mediaTab, layout: layoutTab, missing: missingTab }[tab];
+    if (!isPage()) return paint(), root.append(h("div", { className: "empty" }, h("p", { className: "empty__title" }, "Thuộc tính"), h("p", {}, "Các trường của loại này có ở bản sau.")));
+    const body = { info: infoTab, media: mediaTab, layout: layoutTab }[tab];
     root.append(
       h("div", { className: "props__tabs", role: "tablist" }, ...TABS.map(([id, label]) => {
         const button = h("button", { type: "button", role: "tab", "aria-selected": String(id === tab), onclick: () => { tab = id; render(); } }, label);
@@ -279,5 +282,13 @@ export function mountPageProps(root) {
     tab = "info";
     render();
   });
-  return { showErrors, show: (id) => { tab = id; render(); } };
+  return {
+    showErrors,
+    show: (id) => {
+      if (id === "missing") return reveal("missing");
+      tab = id;
+      render();
+      reveal("props");
+    },
+  };
 }

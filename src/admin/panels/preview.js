@@ -102,7 +102,7 @@ export function mountPreview(root) {
       // A draft with a shape error or markup in a bare field is not rendered: the iframe is same-origin, the old preview stays.
       if (unsafeFields(view).length || (await shapeErrors(record.type, view, await validationContext(record, mediaById))).length) {
         if (mine !== token) return;
-        return say("Xem trước giữ bản cũ vì bài có chỗ chưa hợp lệ. Xem tab Còn thiếu.");
+        return say("Xem trước giữ bản cũ vì bài có chỗ chưa hợp lệ. Xem panel Còn thiếu ở mép dưới.");
       }
       const frameHtml = await loadFrame(KINDS[kindOf(record.type)].frame(view));
       const context = previewContext(news, contact, record.type, view, { editor: true });
@@ -121,7 +121,7 @@ export function mountPreview(root) {
     } catch (error) {
       if (mine !== token) return;
       state.previewError = String(error?.message ?? error);
-      say("Chưa dựng được xem trước. Sửa các mục ở tab Còn thiếu rồi thử lại.");
+      say("Chưa dựng được xem trước. Sửa các mục ở panel Còn thiếu rồi thử lại.");
     }
   }
   function rebuild({ soon = false } = {}) {
