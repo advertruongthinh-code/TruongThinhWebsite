@@ -48,10 +48,11 @@ import {
   clearColorWait, GHOST_FADE_EASING, GHOST_FADE_MS, setColorWait,
 } from "./mount-budget.mjs";
 
-// The detail thumbnail strip spans the info column: the whole number of slots 60px high (width 60px times the media ratio) plus the 8px gap
+// The detail thumbnail strip spans the info column: the whole number of slots `base` high (width `base` times the media ratio) plus the 8px gap
 // that fit, each widened to share the leftover (owner 2026-11-12). Every thumbnail keeps its media's ratio (owner 2026-11-14; media of one
-// card share one ratio), so the value is the thumbnail width.
-const detailThumbSize = (width, ratio = 1) => (width + 8) / Math.max(1, Math.floor((width + 8) / (60 * ratio + 8))) - 8;
+// card share one ratio), so the value is the thumbnail width. `base` is CSS --thumb-base, a share of the screen height (owner 2026-11-24).
+const detailThumbSize = (width, ratio, base) => (width + 8) / Math.max(1, Math.floor((width + 8) / (base * ratio + 8))) - 8;
+const thumbBase = (node) => parseFloat(getComputedStyle(node).getPropertyValue("--thumb-base")) || 60;
 // Width over height of a card's media (its cover), the ratio of its thumbnails.
 const coverItem = (card) => card?.mediaItems?.find((item) => item.id === card.coverMediaId) ?? card?.media;
 const thumbRatio = (card) => {
@@ -4583,7 +4584,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
         photoInfo.style.height = "auto";
         // Measure with the thumbnail size this width will get, the strip height follows it.
         photoInfo.style.setProperty("--detail-thumb-size",
-          `${detailThumbSize(width, thumbRatio(cards.find((card) => card.id === browse.photo)))}px`);
+          `${detailThumbSize(width, thumbRatio(cards.find((card) => card.id === browse.photo)), thumbBase(photoInfo))}px`);
         // A locale change runs a scale(0.9) transition on main: the rect shrinks with the scale so divide again by the set width,
         // otherwise info is 10% shorter and the description is clipped.
         const infoRect = photoInfo.getBoundingClientRect();
@@ -4647,7 +4648,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       "image-zone-width": primary.imageZoneWidth, "image-zone-height": primary.imageZoneHeight,
       "description-width": primary.descriptionWidth, "description-height": primary.descriptionHeight,
       "internal-gap": primary.internalGap,
-      "thumb-size": detailThumbSize(primary.descriptionWidth, thumbRatio(cards.find((card) => card.id === browse.photo))),
+      "thumb-size": detailThumbSize(primary.descriptionWidth, thumbRatio(cards.find((card) => card.id === browse.photo)), thumbBase(photoView)),
     })) photoView.style.setProperty(`--detail-${key}`, `${value}px`);
     if (activePrimaryItem) fitPrimaryMedia(activePrimaryItem);
     relatedMeasuredGeometry = { viewportWidth, viewportHeight, typographyKey };
@@ -5200,22 +5201,26 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       });
     }
   };
-  // Touch screens float the primary strip on the image, other screens keep it in info above the description (owner 2026-11-23).
-  const touchScreen = env.phone;
-  const placePrimaryThumbs = () => {
-    if (!photoMediaThumbs) return;
-    const floating = touchScreen.matches && heroFrame;
-    photoMediaThumbs.classList.toggle("thumb-dock", Boolean(floating));
-    if (floating) heroFrame.append(photoMediaThumbs);
-    else photoDescriptionBox.before(photoMediaThumbs);
-  };
-  touchScreen.addEventListener("change", placePrimaryThumbs, { signal: controller.signal });
-  // One collapse state for the primary and viewer strips, kept while the page stays open (owner 2026-11-23).
-  document.addEventListener("click", (event) => {
-    if (!event.target.closest?.("[data-thumbs-toggle]")) return;
-    const collapsed = document.documentElement.toggleAttribute("data-thumbs-collapsed");
+  // The viewer strip collapse state, kept while the page stays open (owner 2026-11-23). The button only collapses; a tap on
+  // the peeking collapsed strip opens it and does nothing else (no media change, no viewer open), so it is caught before any other listener.
+  const setThumbsCollapsed = (collapsed) => {
+    document.documentElement.toggleAttribute("data-thumbs-collapsed", collapsed);
     document.querySelectorAll("[data-thumbs-toggle]").forEach((button) => button.setAttribute("aria-expanded", String(!collapsed)));
-  }, { signal: controller.signal });
+  };
+  document.addEventListener("click", (event) => {
+    const toggle = event.target.closest?.("[data-thumbs-toggle]");
+    if (toggle) {
+      // The button hides with the strip: keyboard focus moves to the peeking strip, where Enter opens it again.
+      const keyboard = toggle.matches(":focus-visible");
+      setThumbsCollapsed(true);
+      if (keyboard) toggle.parentElement.querySelector(".thumb-dock button")?.focus({ preventScroll: true });
+      return;
+    }
+    if (!document.documentElement.hasAttribute("data-thumbs-collapsed") || !event.target.closest?.(".thumb-dock")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    setThumbsCollapsed(false);
+  }, { capture: true, signal: controller.signal });
   const renderPrimaryThumbs = (record) => {
     const items = record.mediaItems || [];
     const authored = items.length > 1 || items.some((item) => item.id !== record.id
@@ -5241,7 +5246,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
       photoMediaThumbs.setAttribute("role", "group");
       photoMediaThumbs.addEventListener("scroll", syncScrollHints, { passive: true });
       scrollHintObserver.observe(photoMediaThumbs);
-      placePrimaryThumbs();
+      photoDescriptionBox.before(photoMediaThumbs);
     }
     photoMediaThumbs.setAttribute("aria-label", english ? "Product media" : "Media sản phẩm");
     photoMediaThumbs.style.setProperty("--detail-thumb-ratio", String(thumbRatio(record)));
@@ -5444,7 +5449,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
   // A touch swipe drags the strip with the finger (R6 like card R3); arrow keys when focus is in the frame change media, the seek bar and
   // volume keep their keys. A finger on the seek bar and volume only seeks and adjusts sound (primary-video-player R10).
   if (heroFrame) trackStripSwipe(heroFrame, {
-    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range'], .thumb-dock, [data-thumbs-toggle]"),
+    accepts: (event) => event.pointerType === "touch" && !event.target.closest("input[type='range']"),
     width: primaryWidth,
     canStep: (step) => Boolean(primaryItems()[primaryIndex() + step]),
     drag: (offset) => {
