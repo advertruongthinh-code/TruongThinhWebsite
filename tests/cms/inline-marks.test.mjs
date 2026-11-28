@@ -1,7 +1,7 @@
 // Marked text (cms-plan part 2 K2, cms-content R8, cms-editor R5): node --test tests/cms/inline-marks.test.mjs
 import assert from "node:assert/strict";
 import test from "node:test";
-import { localeHtml } from "../../scripts/tooling/serve-static-parity.mjs";
+import { localeHtml } from "../../scripts/site/lib-pure.mjs";
 import { listHtml, markedInner, marksErrors, parseMarks, plainText, skeleton, typoWarnings } from "../../src/cms/inline-marks.mjs";
 
 const ctx = { news: new Map([["n1", { slugVi: "tin-a", slugEn: "post-a" }]]), projects: new Map(), clusters: [], projectTypes: [] };

@@ -86,7 +86,7 @@ test("dropElements skips script text, ignores attribute values and refuses an un
 });
 
 // Break tests (independent review 2026-11-23): each goes red if its K3 piece is removed.
-const { localeHtml } = await import("../../scripts/tooling/serve-static-parity.mjs");
+const { localeHtml } = await import("../../scripts/site/lib-pure.mjs");
 const { renderBlocks } = await import("../../scripts/site/blocks.mjs");
 const page = { id: "host", blocks: [] };
 const newsCardsHtml = (block) => renderBlocks({ ...page, blocks: [{ type: "news-cards", id: "b", ...block }] }, ctx);
