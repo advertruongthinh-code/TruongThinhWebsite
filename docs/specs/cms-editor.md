@@ -6,6 +6,7 @@ source:
   - scripts/cms/**
 tests:
   - tests/admin/slug.test.mjs
+  - tests/admin/theme.test.mjs
   - tests/admin/editor.e2e.mjs
   - tests/tooling/admin-output.test.mjs
 notion: https://app.notion.com/p/420332849a0e81ffb9e4e85372f1a0f7
@@ -28,7 +29,7 @@ Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.
 
 ### R1. Khung làm việc
 
-`/admin/` là một trang tiếng Việt, `noindex`, chỉ bố cục từ 1024px (hẹp hơn hiện "Mở CMS trên máy tính, cửa sổ rộng từ 1024px."). Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight`; owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
+`/admin/` là một trang tiếng Việt, `noindex`, chỉ bố cục từ 1024px (hẹp hơn hiện "Mở CMS trên máy tính, cửa sổ rộng từ 1024px."). Thân trang là một dock của [Dockview](https://dockview.dev) (`dockview` 8.8.0, theme `themeLight` hoặc `themeDark` theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống); owner chọn 2026-10-31): mỗi vùng là một panel có tab, kéo thả, tách nhóm, đóng và mở lại từ menu "Bảng"; ghim tab, mép tự ẩn, lịch sử bố cục theo [dock](cms-dock.md).
 
 | Panel | Nội dung | Ai thấy |
 | --- | --- | --- |
@@ -224,20 +225,32 @@ When GET /admin/ và một file module trong /admin/
 Then 200; GET / của site public không chứa file nào của admin
 ```
 
+### R10. Giao diện sáng, tối hoặc theo hệ thống
+
+Chỉ đổi giao diện của admin, không đổi site public và không đổi trang trong khung Xem trước (preview giữ UI public). Thanh trên có thêm một nút pill ở mép phải, ba nút chỉ có icon, không có chữ: mặt trời (sáng), mặt trăng (tối), màn hình (theo hệ thống). Mỗi nút có `aria-label` và `title` tiếng Việt ("Giao diện sáng", "Giao diện tối", "Theo hệ thống"), nút đang chọn có `aria-pressed="true"`. Lựa chọn lưu trong `localStorage` `tt-cms-theme` (`light`, `dark`, `system`); giá trị khác hoặc không đọc được thì là `system`, lần đầu cũng là `system`. `system` theo `prefers-color-scheme` và đổi ngay khi hệ điều hành đổi. Thuộc tính `data-theme` trên `<html>` giữ lựa chọn và được đặt trước khi vẽ để trang tối không nháy sáng; màu của admin là token `light-dark()` trong `editor.css`, dock đổi giữa `themeLight` và `themeDark` của Dockview. Chữ và nhãn trạng thái ở cả hai giao diện đạt tương phản 4.5:1.
+
+```gherkin
+Given hệ điều hành đang ở chế độ tối và nhân viên chưa chọn giao diện
+When mở /admin/
+Then nút "Theo hệ thống" đang chọn, admin tối, dock theo themeDark
+When nhân viên bấm "Giao diện sáng" rồi tải lại trang
+Then admin vẫn sáng, nút "Giao diện sáng" đang chọn
+```
+
 ## Giao diện và dữ liệu
 
 | Loại | Tên | Vai trò |
 | --- | --- | --- |
-| File | `src/admin/index.html`, `editor.js`, `editor.css`, `dock-tools.js`, `overlay.js`, `overlay.css` | Khung, panel, overlay (R1 tới R8) |
+| File | `src/admin/index.html`, `editor.js`, `editor.css`, `theme.mjs`, `dock-tools.js`, `overlay.js`, `overlay.css` | Khung, panel, overlay (R1 tới R8), giao diện sáng tối (R10) |
 | Hàm | `renderBlockPage`, `fillSlots`, `inlineMarks`, `assignMedia`, `shapeErrors`, `fullErrors` | Module thuần dùng chung với build và Worker (R3 tới R6) |
 | DOM hook | `data-slot` trên bốn trang chuẩn; iframe `data-cms-preview` | Khóa slot (R6); khung preview |
 | Lệnh | `list`, `get`, `create`, `save`, `reorder`, `media-file` | [Dữ liệu CMS R7](cms-data.md#r7-bảng-lệnh-admin) |
-| Storage | `localStorage` `tt-cms-draft:<kiểu>:<id>`, `tt-cms-layout`, `tt-cms-open` | Nháp (R8), bố cục, bản ghi mở lần cuối (R1) |
+| Storage | `localStorage` `tt-cms-draft:<kiểu>:<id>`, `tt-cms-layout`, `tt-cms-open`, `tt-cms-theme` | Nháp (R8), bố cục, bản ghi mở lần cuối (R1), giao diện (R10) |
 | Thư viện | `dockview` 8.8.0 | Dock (R1) |
 
 ## UI
 
-Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tính, chữ hệ thống, một màu nhấn `#1a5fd0` cho viền chọn và nút chính; chỗ còn thiếu viền đỏ đứt kèm chữ nhắc; nhãn trạng thái là chữ, không chỉ là màu. Mọi nút có nhãn chữ tiếng Việt. Preview giữ nguyên UI của trang public.
+Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng hoặc tối trung tính theo [R10](#r10-giao-diện-sáng-tối-hoặc-theo-hệ-thống), chữ hệ thống, một màu nhấn (`#1a5fd0` ở nền sáng) cho viền chọn và nút chính; chỗ còn thiếu viền đỏ đứt kèm chữ nhắc; nhãn trạng thái là chữ, không chỉ là màu. Mọi nút có nhãn chữ tiếng Việt, trừ nút giao diện của R10 chỉ có icon kèm `aria-label`. Preview giữ nguyên UI của trang public.
 
 ## Kiểm tra
 
@@ -249,6 +262,7 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tín
 | R5 | cần: đơn vị `inlineMarks` (từng dấu, thoát HTML, dán chữ thuần) |
 | R6, R7 | cần: đơn vị `fillSlots`; test mọi `data-slot` duy nhất trong trang; e2e luật 6 mục menu và ảnh hero cuối |
 | R1, R2 | `tests/admin/editor.e2e.mjs` (Worker local, D1 seed): bố cục mặc định, menu Bảng theo vai, lọc Thiếu EN, tìm bỏ dấu, tạo bài và 409, kéo thả rồi tải lại, menu chuột phải, 403, phiên hết hạn, cửa sổ 900px; `tests/admin/slug.test.mjs` |
+| R10 | `tests/admin/theme.test.mjs` (chọn, lưu, theo hệ thống, lưu trữ lỗi); `tests/admin/editor.e2e.mjs` (nhãn nút, màu và dock đổi, giữ sau tải lại) |
 | R9 | `tests/tooling/admin-output.test.mjs` (output public không có admin; `admin/lib` chỉ có module thuần; không `sw.js`) |
 
 ## Gate còn mở
