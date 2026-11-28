@@ -122,7 +122,7 @@ pnpm cms:dev
 2. Chờ dòng `Ready on http://127.0.0.1:8788`, mở `http://admin.localhost:8788` bằng Chrome hoặc Edge trên máy tính
    (cửa sổ rộng từ 1024px). Đây là bản local của `cms.truongthinhads.vn`; trình duyệt tự hiểu `*.localhost` là máy mình,
    không cần sửa file hosts. Không có màn đăng nhập: bản local tự vào bằng `admin@localhost`.
-   `http://127.0.0.1:8788/admin/` vẫn mở được.
+   `http://127.0.0.1:8788/` cũng mở được; link `/admin/` cũ tự chuyển về `/`.
 3. Chọn trang ở cây bên trái, bấm vào chữ hoặc ảnh trên bản xem trước để sửa, bấm Lưu. Mở
    `http://localhost:8788/vi/` (bản local của www) để thấy nội dung đã lưu.
 4. Dừng bằng `Ctrl+C`. Nội dung đã lưu còn trong `.wrangler/` cho lần chạy sau; xóa thư mục đó là về bản gốc.
