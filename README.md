@@ -120,7 +120,7 @@ pnpm cms:dev
 1. `pnpm cms:dev` build site, dựng admin, tạo D1 local trong `.wrangler/` (áp migration 0001 đến 0005), rồi chạy
    Worker local. Lần đầu mất vài phút.
 2. Chờ dòng `Ready on http://127.0.0.1:8788`, mở `http://admin.localhost:8788` bằng Chrome hoặc Edge trên máy tính
-   (cửa sổ rộng từ 1024px). Đây là bản local của `admin.truongthinhads.vn`; trình duyệt tự hiểu `*.localhost` là máy mình,
+   (cửa sổ rộng từ 1024px). Đây là bản local của `cms.truongthinhads.vn`; trình duyệt tự hiểu `*.localhost` là máy mình,
    không cần sửa file hosts. Không có màn đăng nhập: bản local tự vào bằng `admin@localhost`.
    `http://127.0.0.1:8788/admin/` vẫn mở được.
 3. Chọn trang ở cây bên trái, bấm vào chữ hoặc ảnh trên bản xem trước để sửa, bấm Lưu. Mở
