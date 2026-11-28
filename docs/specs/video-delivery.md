@@ -10,7 +10,7 @@ tests:
   - tests/site/video-delivery.e2e.mjs
   - tests/site/video-delivery-measure.mjs
 notion: https://app.notion.com/p/404332849a0e81aa9718f91db2d05e51
-updated: 2026-10-31
+updated: 2026-11-23
 ---
 
 # Video thích ứng mạng (adaptive bitrate)
@@ -45,11 +45,18 @@ mọi bậc mang cùng một luồng AAC 48 kbps (mã hóa một lần, chép v�
 | 960 | detail (bậc đầu) | CRF 30 hoặc copy bản gốc |
 | 1920 | detail trên màn hình lớn, chỉ khi bản gốc đủ rộng | CRF 28 |
 
+Mọi bậc mã hóa lại có thêm trần bitrate: luồng hình tối đa 90% của (bitrate cả file gốc trừ 48 kbps tiếng nếu có), buffer
+0,5 s, nên không bậc nào nặng hơn file gốc; bậc copy bản gốc chỉ thêm vài trăm byte vỏ fMP4, file không ghi bitrate (luồng `.h264` trần) giữ CRF. Chỉ CRF thì bậc 1920 của một clip điện thoại 85,8 MB ra 130 MB (9,7 so với 6 Mbps).
+
 ```gherkin
 Given video gốc 960x640 có tiếng
 When script sinh thang chất lượng
 Then thư mục của video có 240.mp4, 480.mp4, 960.mp4 và playlist của từng bậc, không có bậc 1920
 And mỗi bậc là H.264 High 4:2:0, keyframe tối đa mỗi 0,5 s, segment 2 s, mang cùng một luồng AAC 48 kbps
+
+Given video gốc bitrate thấp, khó nén (nhiễu)
+When script sinh thang chất lượng
+Then không file bậc nào lớn hơn file gốc
 ```
 
 ### R2. Một playlist tổng cho card và detail
@@ -218,7 +225,7 @@ Không đổi giao diện; card video và player giữ component hiện có
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2 | `tests/site/video-ladder.test.mjs`: thứ tự bậc, segment 2 s, byte range khớp file, `BANDWIDTH` từ byte thật; thang trong assets là H.264, thang fixture AV1 luôn được đọc |
+| R1, R2 | `tests/site/video-ladder.test.mjs`: thứ tự bậc, segment 2 s, byte range khớp file, `BANDWIDTH` từ byte thật; không bậc nào lớn hơn file gốc bitrate thấp (cần ffmpeg); thang trong assets là H.264, thang fixture AV1 luôn được đọc |
 | R1 | `tests/site/primary-video-keyframes.test.mjs` đọc cả fMP4 (keyframe nằm trong `moof`, không trong `moov`) |
 | R3 | `tests/site/video-delivery.e2e.mjs` (thang AV1 trong `tests/site/fixtures/video-ladder`): card bậc 480, detail bậc đầu tiếp đúng giây, viewer giữ nguồn; không có Media Source thì phát `cardSrc`; không có `hlsSrc` hoặc Media Source thì không tải hls.js |
 | R4 | `tests/site/video-delivery.e2e.mjs`: server giới hạn 60 kbps rồi bỏ giới hạn, một video khác tải segment; frame sau giây 2 lên 480 trong 4 s, frame cách nhau dưới 250 ms, `waiting` dưới 100 ms (cloud đo 2 tới 6 ms; ngưỡng 10 ms đo ở R6). Tắt luật thay thì ca này đỏ |

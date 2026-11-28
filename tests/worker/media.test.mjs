@@ -1,15 +1,14 @@
 // Media commands (CMS plan P2, Q6, Q9): upload-media, update-media, media-list, media-file, media-original.
 import assert from "node:assert/strict";
-import { fileURLToPath } from "node:url";
 import test from "node:test";
 import { seedSql } from "../../scripts/cms/seed.mjs";
 import { variantKey } from "../../src/cms/media-ref.mjs";
 import { dispatchVariants } from "../../src/worker/dispatch.mjs";
 import worker from "../../src/worker/index.js";
-import { createD1 } from "./d1-fake.mjs";
+import { createD1, MIGRATIONS } from "./d1-fake.mjs";
 import { createR2 } from "./r2-fake.mjs";
 
-const SCHEMA = fileURLToPath(new URL("../../src/db/migrations/0001_cms.sql", import.meta.url));
+const SCHEMA = MIGRATIONS;
 const SEED = await seedSql({ now: "2026-11-22T00:00:00.000Z" });
 const ORIGIN = "http://127.0.0.1:8787";
 const WEBP = Buffer.concat([Buffer.from("RIFF"), Buffer.from([40, 0, 0, 0]), Buffer.from("WEBP"), Buffer.alloc(40, 7)]);
@@ -183,7 +182,7 @@ test("a media used by more than 37 records is 409 too-many-uses", async () => {
   const t = await withUsers();
   for (let n = 0; n < 41; n++) t.DB.sqlite.prepare("INSERT INTO record_media VALUES ('news', ?, ?, '')").run(`extra-${n}`, t.id);
   for (let n = 0; n < 41; n++) {
-    t.DB.sqlite.prepare("INSERT INTO records SELECT type, ?, status, prev_status, version, live_version, pending, position, ?, NULL, NULL, data, write_id, created_at, created_by, updated_at, updated_by, trashed_at FROM records WHERE type = 'news' AND id = ?").run(`extra-${n}`, `extra-${n}`, t.news);
+    t.DB.sqlite.prepare("INSERT INTO records SELECT type, ?, status, prev_status, version, live_version, pending, position, ?, NULL, NULL, data, write_id, created_at, created_by, updated_at, updated_by, trashed_at, en_missing FROM records WHERE type = 'news' AND id = ?").run(`extra-${n}`, `extra-${n}`, t.news);
   }
   const { status, body } = await json(await t.post("update-media", { id: t.id, version: 1, altVi: "a", altEn: "b", tags: [] }));
   assert.deepEqual([status, body.error], [409, "too-many-uses"]);
@@ -192,7 +191,7 @@ test("a media used by more than 37 records is 409 too-many-uses", async () => {
 test("media-list pages media sharing one updated_at without gaps or repeats and gives the full-crop variant", async () => {
   const t = setup();
   t.DB.sqlite.exec("DELETE FROM records WHERE type = 'media'");
-  const insert = t.DB.sqlite.prepare("INSERT INTO records VALUES ('media', ?, 'published', NULL, 1, 1, 0, 0, ?, NULL, NULL, ?, 'w', 't', 'u', '2026-11-22T00:00:00.000Z', 'u', NULL)");
+  const insert = t.DB.sqlite.prepare("INSERT INTO records VALUES ('media', ?, 'published', NULL, 1, 1, 0, 0, ?, NULL, NULL, ?, 'w', 't', 'u', '2026-11-22T00:00:00.000Z', 'u', NULL, 0)");
   const ids = Array.from({ length: 103 }, (_, n) => `m-${String(n).padStart(3, "0")}`);
   for (const id of ids) insert.run(id, id, JSON.stringify({ id, source: "r2", width: 4, height: 3 }));
   t.DB.sqlite.prepare("INSERT INTO variants (key, media_id, crop, status, error, created_at) VALUES (?, 'm-000', '0,0,4,3', 'error', 'size', 't')").run("a".repeat(32));
@@ -309,7 +308,7 @@ test("a repo or SVG media is not a poster: 400 poster", async () => {
   const t = await withPoster();
   const repoId = t.DB.sqlite.prepare("SELECT id FROM records WHERE type = 'media' AND json_extract(data, '$.source') = 'repo' LIMIT 1").get().id;
   const svgId = "logo-svg-01";
-  t.DB.sqlite.prepare("INSERT INTO records SELECT type, ?, status, prev_status, version, live_version, pending, position, ?, NULL, NULL, json_set(data, '$.id', ?, '$.mime', 'image/svg+xml'), write_id, created_at, created_by, updated_at, updated_by, trashed_at FROM records WHERE type = 'media' AND id = ?").run(svgId, svgId, svgId, t.posterId);
+  t.DB.sqlite.prepare("INSERT INTO records SELECT type, ?, status, prev_status, version, live_version, pending, position, ?, NULL, NULL, json_set(data, '$.id', ?, '$.mime', 'image/svg+xml'), write_id, created_at, created_by, updated_at, updated_by, trashed_at, en_missing FROM records WHERE type = 'media' AND id = ?").run(svgId, svgId, svgId, t.posterId);
   for (const id of [repoId, svgId]) {
     const { status, body } = await json(await t.video(MP4, videoQuery(id)));
     assert.deepEqual([status, body.error], [400, "poster"], id);

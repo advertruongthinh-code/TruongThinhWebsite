@@ -33,7 +33,7 @@ Thanh trên của editor luôn có một dải hai dòng ngắn, bấm vào thì
 | Staging | "Đã lên lúc <giờ>", "Đang dựng", "Đang chờ", "Lỗi: <lý do>", "Tạm dừng" | Run dựng gần nhất, dấu deployment mới nhất, `paused` |
 | Site chính | "Bản phát hành lúc <giờ>", thêm "· staging có thay đổi chưa phát hành" khi hai bên khác nhau | Dấu phát hành mới nhất so với dấu deployment mới nhất của staging |
 
-Staging "chậm hơn lần lưu cuối" (lần lưu `published` cuối mới hơn bản chụp của deployment đang chạy, quá 10 phút) thì
+Staging "chậm hơn lần lưu cuối" (lần lưu `published` cuối mới hơn bản chụp của deployment đang chạy và đã quá 10 phút chưa được dựng) thì
 dòng Staging ghi thêm điều đó. Panel Trạng thái hiện đủ: 5 run dựng gần nhất kèm link sang GitHub, lý do lỗi của lần
 dựng hỏng (id bản ghi và trường lỗi khi validator chặn), nút "Dựng lại" (lệnh `rebuild`), danh sách bản ghi đang bị giữ
 lại vì media chưa xong (`held`), link "Mở staging". Editor hỏi lại `build-status` mỗi 15 giây khi tab đang mở và

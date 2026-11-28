@@ -31,13 +31,13 @@ bản cũ, hẹn giờ đăng.
 
 ### R1. Bảng D1
 
-Database `truong-thinh-cms` (vùng `apac`, binding `DB`), một migration `src/db/migrations/0001_cms.sql`, mọi bảng
+Database `truong-thinh-cms` (vùng `apac`, binding `DB`), migration `src/db/migrations/0001_cms.sql` và `0002_en_missing.sql` (thêm cột), mọi bảng
 `STRICT`, thời điểm là chuỗi ISO 8601 UTC.
 
 | Bảng | Khóa chính | Cột |
 | --- | --- | --- |
 | `accounts` | `email` (chữ thường) | `role` (`owner`, `staff`), `status` (`active`, `locked`), `created_at`, `created_by`, `updated_at`, `updated_by` |
-| `records` | `type`, `id` | `status` (`draft`, `published`, `trashed`), `prev_status`, `version`, `live_version`, `pending`, `position`, `name`, `slug_vi`, `slug_en`, `data` (JSON), `write_id`, `created_at`, `created_by`, `updated_at`, `updated_by`, `trashed_at` |
+| `records` | `type`, `id` | `status` (`draft`, `published`, `trashed`), `prev_status`, `version`, `live_version`, `pending`, `position`, `name`, `slug_vi`, `slug_en`, `data` (JSON), `write_id`, `created_at`, `created_by`, `updated_at`, `updated_by`, `trashed_at`, `en_missing` (1 khi thiếu trường EN bắt buộc) |
 | `versions` | `type`, `id`, `version` | `status`, `data`, `saved_at`, `saved_by` |
 | `variants` | `key` (32 ký tự hex) | `media_id`, `crop` (`x,y,w,h`), `status` (`pending`, `ready`, `error`), `error` (lý do: `timeout`, `size`), `run_id`, `created_at`, `settled_at` |
 | `record_media` | `type`, `id`, `media_id`, `variant_key` | Media và biến thể mà phiên bản mới nhất của bản ghi dùng |
@@ -196,7 +196,7 @@ Then lần dựng đó dùng code của commit X với nội dung mới
 | `trash`, `restore` | `{ type, id }` | 200; `trash` trả `referencedBy` |
 | `purge` | `{ type, id, confirm }` | 200; `confirm` phải bằng tên bản ghi |
 | `upload-media` | Thân là byte file; query `slugBase`, `width`, `height`, `altVi`, `altEn` | 201, media và biến thể `pending` |
-| `update-media` | `{ id, version, altVi, altEn, tags }` | 200; alt mới ghi vào mọi bản ghi dùng media |
+| `update-media` | `{ id, version, altVi, altEn, tags }` | 200; alt mới ghi vào mọi bản ghi dùng media; 400 `alt-dup` kèm `usedBy` khi alt mới trùng alt của media khác trong cùng card |
 | `account-add`, `account-update` | `{ email, role, status }` | 201, 200 |
 | `rollback` | `{ versionId, target }`; `target` là `staging` (mặc định) hoặc `production`; `versionId` là một trong 10 dấu gần nhất của đích đó | 202; đích `staging` thì tự đăng tạm dừng |
 | `release` | `{ commit, snapshotId }` của dấu deployment staging mới nhất | 202; 409 `staging-changed`, `staging-behind`, `paused`, `already-released`, `cms-not-live` |
@@ -214,8 +214,13 @@ lệnh thành công nằm trong cùng `batch` với câu ghi dữ liệu; lệnh
 vai trò hoặc lỗi 4xx cũng có một dòng. `upload-media` có thêm hạn mức 20 lần mỗi 60 giây. Lệnh xóa giữ luật cả bộ:
 `home-projects` còn từ 3 công trình, mỗi trang còn ít nhất một slide hero `published`. Khóa tài khoản ghi D1 trước rồi
 mới gỡ khỏi chính sách Access. `list` nhận `status=trashed` và trả `enMissing` từ cột `records.en_missing` (Worker tính
-lúc lưu); `audit-log` lọc theo `email`, `command`. `trash` một card Advertising làm cụm thiếu loại khung thì 409
-`pool-min`; `purge` media mà site chính còn dùng thì 409 `live-on-production`.
+lúc lưu), `variantError`, và với bản ghi trong thùng rác thì `trashedBy`, `trashedAt` (`trash` ghi `updated_by`,
+`trashed_at`, nên không cần đọc nhật ký); `audit-log` lọc theo `email`, `command`. `reorder` ghi mọi `position` bằng một câu
+`UPDATE` (nguyên tử, không giới hạn số câu của D1; câu đó kiểm lại tập id nên tập đổi giữa lúc đọc và ghi thì 409, không ghi
+gì), không tăng `version`; khi tập có bản ghi `published` thì đặt `build_wanted` và ghi `settings.last_save_at` để
+`build-status` tính `lastSaveAt` và `stagingBehind` (lần lưu mới hơn bản chụp của dấu staging mới nhất và đã quá 10 phút
+chưa được dựng); card Advertising giữ đúng các `position` mà card của sản phẩm đó đang chiếm. `build-status` giữ phần đọc GitHub 30 giây trong Cache API. `trash` một card Advertising làm cụm thiếu loại khung thì 409
+`pool-min` kèm `missing` (các cụm mất loại khung); `purge` media mà site chính còn dùng thì 409 `live-on-production`.
 
 ## Giao diện và dữ liệu
 

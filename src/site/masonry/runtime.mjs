@@ -7,6 +7,7 @@ import {
   MASONRY_SEARCH_BUDGET,
   masonrySpacing,
   columnsForWidth,
+  detailLayoutMode,
   computeDetailGeometry,
   compileMasonryLayout,
   fnv1a32,
@@ -4542,7 +4543,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // The header on detail is always collapsed: 10px top and bottom padding and a 1px border (advertising-detail R10).
     const headerHeight = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-collapsed-row-height")) + 21;
     const viewStyle = getComputedStyle(photoView);
-    photoView.dataset.detailLayout = columns <= 3 ? "pinterest" : "split";
+    photoView.dataset.detailLayout = detailLayoutMode(columns, viewportWidth, viewportHeight);
     let suggestionHeight = 0;
     // The suggestion is the first related card: the primary phase leaves it to the solver phase.
     const relatedSuggestion = directEntryPhase !== "primary";
@@ -5534,7 +5535,7 @@ export async function mountMasonry(container = document.querySelector('[data-bar
     // and is not forced to restyle a second time (decision phone-frame-budget).
     const layoutWidth = document.documentElement.clientWidth;
     photoView.style.setProperty("--gutter", `${masonrySpacing(layoutWidth).outer}px`);
-    photoView.dataset.detailLayout ??= columnsForWidth(layoutWidth) <= 3 ? "pinterest" : "split";
+    photoView.dataset.detailLayout ??= detailLayoutMode(columnsForWidth(layoutWidth), layoutWidth, getLayoutViewportHeight());
     photoView.hidden = false;
     layoutRelated(browse);
     relatedHost.rendered.forEach((card, id) => syncJustViewedMarker(card, locale, lastClosedPhotoId === id));

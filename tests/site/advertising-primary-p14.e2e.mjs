@@ -377,8 +377,8 @@ function assertCore(actual, { id, locale, tag = null, normalCopyFit = false, spa
   const fullSpan = expectedSpan === actual.relatedColumns;
   const expectedLayout = fullSpan && actual.viewport.width <= actual.viewport.height ? "pinterest" : "split";
   const viewportBottom = actual.viewport.height - actual.safeBottom;
-  // Two columns reach the screen bottom with no peek (detail R2, owner 2026-11-23).
-  const requiredPeek = actual.relatedColumns <= 2 ? 0 : 50;
+  // Stacked primary reaches the screen bottom with no peek (detail R2, owner 2026-11-23).
+  const requiredPeek = expectedLayout === "pinterest" ? 0 : 50;
   const minimumPrimaryHeight = expectedLayout === "pinterest"
     ? actual.minimum.imageHeight + actual.primaryGap + actual.minimum.infoHeight
     : Math.max(actual.minimum.imageHeight, actual.minimum.infoHeight);
@@ -966,10 +966,11 @@ async function runP7PinterestContract(browser, locale) {
     assert.equal(initial.layout, "pinterest", `${label}: full span did not select Pinterest mode`);
     assert(initial.primary.bottom <= initial.viewportHeight + 1.5, `${label}: primary extends below viewport`);
     // The long cluster label wraps at 32px so the info floor may exceed 28%; then info must not be taller than the floor.
-    const infoCap = Math.max(initial.viewportHeight * 0.28, initial.infoMinimum + initial.gap + 1);
+    // Stacked primary gives info the gap and 50px the peek used to keep (detail R2, owner 2026-11-23).
+    const infoCap = Math.max(initial.viewportHeight * 0.28 + initial.gap + 50, initial.infoMinimum + initial.gap + 1);
     assert(initial.info.height + initial.gap <= infoCap + 1.5
-      // Two columns reach the screen bottom; wider grids leave a gap and 50px (detail R2).
-      || Math.abs(initial.primary.bottom - (initial.viewportHeight - (initial.columns <= 2 ? 0 : initial.gap + 50))) <= 1.5,
+      // Stacked primary reaches the screen bottom (detail R2); this fixture is always pinterest.
+      || Math.abs(initial.primary.bottom - initial.viewportHeight) <= 1.5,
       `${label}: description and gap exceed the viewport-based 28% cap`);
     closeTo(initial.hero.height + initial.gap + initial.info.height, initial.primary.height, `${label}: primary vertical allocation`, 2);
     assert(!["auto", "scroll"].includes(initial.infoOverflowY), `${label}: description retains inner scroll`);

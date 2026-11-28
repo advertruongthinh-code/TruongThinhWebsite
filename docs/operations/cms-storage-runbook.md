@@ -134,6 +134,27 @@ Panel "Tài khoản" của editor (menu Bảng, chỉ owner) thêm người, đ�
 5. Run rollback hiện "bị hủy" (một deploy hay rollback khác chen vào): bấm lại.
 6. Run rollback đỏ ở bước `grep`: bản chọn đã ra khỏi 10 deployment gần nhất của Wrangler (mỗi lần rollback hay deploy không có dấu cũng chiếm một chỗ). Tự đăng vẫn tạm dừng; chọn một bản mới hơn rồi bấm lại.
 
+## So khớp và diễn tập dựng từ bản chụp (J1)
+
+- So khớp: chạy tay `CMS parity` trên `main` (bản dựng từ repo và từ bản chụp D1 phải giống hệt, trừ `build-info.json`). Chạy ngay sau mỗi lần seed lại D1; đỏ thì sửa `snapshotToFiles` hoặc seed, không thêm ngoại lệ vào `diff`. Chỉ đúng khi D1 chưa có ảnh R2.
+- Kéo nội dung D1 về repo: chạy tay `CMS pull`, tải artifact `cms-content`, chép file JSON cần vào `src/site/content/`, mở PR thường. So bằng `JSON.parse`, không so byte.
+- Biến repo `CMS_SNAPSHOT_URL`, `CMS_MEDIA_ORIGIN` được đọc lúc run được tạo (suy luận từ diễn tập): run CI tạo trước khi đặt hay xóa biến vẫn dựng theo giá trị cũ và có thể deploy đè bản mới hơn. Đặt hay xóa biến xong thì dispatch một run CI trên `main` và kiểm `build-info.json`.
+
+Diễn tập 2026-11-23 (giờ UTC):
+
+| Bước | Thời điểm | Kết quả |
+| --- | --- | --- |
+| So khớp | 22:19 - 22:20 | Run 45278561576 xanh lần đầu, không cần seed lại |
+| Kéo nội dung | 22:25 - 22:26 | Run 45279525711 xanh; 9 file bằng file repo; `page-copy.json`, `redirects.json` chưa có trong repo |
+| Đặt hai biến | khoảng 22:26 | `CMS_SNAPSHOT_URL` = admin origin + `/api/admin/snapshot`, `CMS_MEDIA_ORIGIN` = URL `r2.dev` của bucket public |
+| Dựng lại | 22:28 - 22:30:40 | Run nội dung 45279935002 xanh, staging có `snapshotId` `f7fd05d6…`. Run code tạo 22:24 (trước khi đặt biến) deploy đè bản từ repo lúc 22:32 |
+| Quay về bản này | 22:35:57 - 22:36:34 | Run rollback 45281204024 xanh (37 giây); `build-info.json` về `snapshotId` `f7fd05d6…`; trang báo đang tạm dừng |
+| Dựng lại khi tạm dừng | 22:37 | 409 |
+| Run code khi tạm dừng | 22:37:33 | Run 45280437101, job deploy dừng đỏ với dòng `publish paused` |
+| CMS hỏng thì site vẫn chạy | 22:37 | Staging `/` và một trang công trình mở được; `curl -sI https://truongthinhads.vn/vi/` trả 200 |
+| Tiếp tục đăng | 22:38:54 - 22:40:21 | Run nội dung 45281666741 xanh, bỏ deploy vì staging đã chạy đúng commit và bản chụp |
+| Xóa hai biến | 22:41:00 | Run code 45282013680 (tạo 22:41:08) bỏ bước `snapshot`, deploy từ repo nên `build-info.json` có `snapshotId: null` (`prepare-static-assets.mjs` ghi `null` khi không có `TT_SNAPSHOT_ID`). Staging lại dựng từ repo |
+
 ## Migration D1
 
 - Migration sau `0001` chỉ thêm (bảng, cột, index), không xóa, không đổi tên, không đổi kiểu, để Worker bản cũ vẫn chạy trên lược đồ mới.

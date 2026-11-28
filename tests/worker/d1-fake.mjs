@@ -1,13 +1,21 @@
 // In-memory D1 stand-in for Worker tests (docs/specs/cms-data.md R1); runs on node:sqlite, no Wrangler needed.
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { DatabaseSync } from "node:sqlite";
+
+// Every migration in order, like `wrangler d1 migrations apply`.
+export const MIGRATIONS = fileURLToPath(new URL("../../src/db/migrations/", import.meta.url));
+const schemaSql = (target) => (statSync(target).isDirectory()
+  ? readdirSync(target).filter((name) => name.endsWith(".sql")).sort().map((name) => readFileSync(path.join(target, name), "utf8")).join("\n")
+  : readFileSync(target, "utf8"));
 
 const isSelect = (sql) => /^\s*(with|select)\b/i.test(sql);
 const isReturning = (sql) => /\breturning\b/i.test(sql);
 
 export function createD1(sqlFile, { afterSelect } = {}) {
   const db = new DatabaseSync(":memory:");
-  if (sqlFile) db.exec(readFileSync(sqlFile, "utf8"));
+  if (sqlFile) db.exec(schemaSql(sqlFile));
   let selects = 0;
 
   const plain = (row) => (row ? { ...row } : null);
