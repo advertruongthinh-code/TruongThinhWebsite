@@ -117,6 +117,7 @@ $("#panel-menu").append(
   h("button", { type: "button", id: "layout-redo", title: "Ctrl+Alt+Y", disabled: true, onclick: closeMenu(tools.redo) }, "Làm lại bố cục"),
 );
 document.addEventListener("pointerdown", (event) => $(".topbar__menu").contains(event.target) || ($(".topbar__menu").open = false));
+document.addEventListener("keydown", (event) => event.key === "Escape" && ($(".topbar__menu").open = false));
 tools.start();
 
 const { type, id } = lastOpen();
