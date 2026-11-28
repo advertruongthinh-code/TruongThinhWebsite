@@ -53,7 +53,8 @@ export async function loadPool(env) {
       -- One 2-term compound (media + each mediaItem) x 3 fields: D1 caps compound SELECT terms, see tests/worker/d1-fake.mjs.
       (SELECT json_group_array(DISTINCT k.value) FROM (
         SELECT CASE f.value WHEN 'mediaId' THEN 'm:' || json_extract(o.value, '$.mediaId') ELSE json_extract(o.value, '$.' || f.value) END AS value
-        FROM (SELECT json_extract(data, '$.media') AS value UNION ALL SELECT i.value FROM json_each(data, '$.mediaItems') i) o,
+        FROM (SELECT json_extract(data, '$.media') AS value WHERE json_type(data, '$.media') = 'object'
+          UNION ALL SELECT i.value FROM json_each(data, '$.mediaItems') i WHERE i.type = 'object') o,
           json_each('["src","sourceId","mediaId"]') f) k WHERE k.value IS NOT NULL) AS keys
     FROM records WHERE type = 'advertising-card' AND status = 'published'`).all();
   return results.map((row) => ({
