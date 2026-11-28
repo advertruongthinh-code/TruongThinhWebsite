@@ -6,6 +6,7 @@ source:
   - scripts/site/lib.mjs
   - scripts/site/non-public-source-assets.mjs
   - scripts/site/sync-brand-lockup.mjs
+  - scripts/site/access-login-logo.mjs
   - scripts/tooling/serve-static-parity.mjs
   - src/site/_headers
   - src/site/robots.txt
@@ -23,6 +24,7 @@ tests:
   - tests/site/client-logo-assets-contract.cjs
   - tests/site/orphan-selectors.test.mjs
   - tests/site/not-found-routes.e2e.mjs
+  - tests/site/access-login-logo.test.mjs
 notion: https://app.notion.com/p/3ef332849a0e81f3ad86f1fd913afab7
 updated: 2026-11-23
 ---
@@ -76,6 +78,8 @@ And .site-output/ của lần build trước vẫn còn nguyên
 chỉ dùng cho build, test hoặc làm nguồn: module catalog, media contract, media
 manifest, photo tags, `content/client-logos.json`, `content/home-projects.json`, `content/hero-slides.json`, `hero-order-inline.js`, SVG lockup gốc, ảnh cover và
 process cũ. Build xóa chúng khỏi output. WebP không còn tham chiếu thì xóa khỏi repo.
+
+Ngoại lệ duy nhất cho logo: build sinh `assets/brand/truong-thinh-lockup-color.svg` từ SVG lockup gốc (`access-login-logo.mjs`: bốn màu CMYK của mark, chữ `#2f2f2f`, bỏ phụ đề EN, không còn biến CSS) để trang đăng nhập Cloudflare Access tải làm ảnh; đây là file lockup public duy nhất, không sửa tay.
 
 ```gherkin
 Given src/site/advertising-products/catalog.mjs nằm trong danh sách non-public
@@ -264,7 +268,7 @@ Không có UI riêng; giao diện trang thuộc spec capability và [Design Syst
 | --- | --- |
 | R1 | `pnpm prepare:site`; loại template và đồng bộ lockup chưa có test riêng |
 | R2 | `tests/site/advertising-products-static.test.mjs` |
-| R3 | chưa có test |
+| R3 | `tests/site/access-login-logo.test.mjs` (file logo Access); phần còn lại chưa có test |
 | R4 | `pnpm qa:static` (không host ngoài, thứ tự vendor); preload, subset font chưa có test |
 | R5 | `tests/site/static-locales.test.mjs` |
 | R6 | chưa có test |
