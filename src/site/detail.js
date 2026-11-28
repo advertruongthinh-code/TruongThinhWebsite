@@ -327,19 +327,22 @@
         frame = window.requestAnimationFrame(tick);
       }
     };
-    // The rail runs from the first year's centre to the last; the fill ends at the current year's node.
+    // The rail starts at the first year's centre and runs on past today to the end of the list, fading out as the future
+    // (owner 2026-11-28); the fill ends at the current year's node.
+    let length = 0;
     const paintRail = () => {
-      const span = centers.at(-1) - centers[0];
-      fill.style.setProperty("--about-journey-progress", (span > 0 ? (centers[Math.max(target, 0)] - centers[0]) / span : 0).toFixed(3));
+      fill.style.setProperty("--about-journey-progress", (length > 0 ? (centers[Math.max(target, 0)] - centers[0]) / length : 0).toFixed(3));
     };
     const measure = () => {
       const y = pageY();
-      const top = list.getBoundingClientRect().top;
+      const box = list.getBoundingClientRect();
       const boxes = years.map((year) => year.getBoundingClientRect());
-      marks = boxes.map((box) => box.top + y);
-      centers = boxes.map((box) => box.top + box.height / 2 - top);
+      marks = boxes.map((b) => b.top + y);
+      centers = boxes.map((b) => b.top + b.height / 2 - box.top);
+      length = box.height - centers[0];
       rail.style.setProperty("--about-journey-rail-top", `${centers[0].toFixed(1)}px`);
-      rail.style.setProperty("--about-journey-rail-height", `${(centers.at(-1) - centers[0]).toFixed(1)}px`);
+      rail.style.setProperty("--about-journey-rail-height", `${length.toFixed(1)}px`);
+      rail.style.setProperty("--about-journey-rail-tail", `${(length - centers.at(-1) + centers[0]).toFixed(1)}px`);
       paintRail();
       update();
     };
