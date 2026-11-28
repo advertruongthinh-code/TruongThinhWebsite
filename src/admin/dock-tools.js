@@ -308,7 +308,9 @@ export function setupDockTools(dock, root, { isWorkspace, edgeFooter = () => nul
     const box = root.querySelector(".dv-grid-view")?.getBoundingClientRect();
     if (!box) return 0;
     const rects = gridGroups().map((group) => group.element.getBoundingClientRect());
-    return Math.max(0, ...rects.map((rect) => (position === "bottom" ? rect.bottom - box.bottom : rect.right - box.right)));
+    // The whole workspace can also shrink below one group's minimum while the groups still fit it.
+    const below = position === "bottom" ? WORKSPACE_MIN.height - box.height : WORKSPACE_MIN.width - box.width;
+    return Math.max(0, below, ...rects.map((rect) => (position === "bottom" ? rect.bottom - box.bottom : rect.right - box.right)));
   }
   function makeRoom(position, { pushOpposite = true } = {}) {
     const opposite = pushOpposite && { left: "right", right: "left", bottom: null }[position];
@@ -359,6 +361,17 @@ export function setupDockTools(dock, root, { isWorkspace, edgeFooter = () => nul
       if (panel.group.api.isCollapsed()) panel.group.api.expand();
       makeRoom(edgeOf(panel.group));
     }
+  });
+  // Enter or Space on a focused edge tab does what a click does (focus, not a shortcut).
+  root.addEventListener("keydown", (event) => {
+    const tab = (event.key === "Enter" || event.key === " ") && event.target.closest?.(".dv-edge-group .dv-tab[data-tab-panel-id]");
+    const panel = tab && dock.getPanel(tab.dataset.tabPanelId);
+    if (!panel) return;
+    event.preventDefault();
+    if (!panel.group.api.isCollapsed() && panel.group.activePanel === panel) return panel.group.api.collapse();
+    panel.api.setActive();
+    if (panel.group.api.isCollapsed()) panel.group.api.expand();
+    makeRoom(edgeOf(panel.group));
   });
 
   // Dragging an edge under its threshold collapses it on release; reopening it brings back the size from before that drag.

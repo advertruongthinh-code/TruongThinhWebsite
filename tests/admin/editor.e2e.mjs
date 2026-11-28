@@ -385,6 +385,24 @@ try {
     await page.waitForTimeout(300);
   }
   assert.deepEqual(await layoutOf(page), DEFAULT_LAYOUT, "undo returns to the default layout");
+  // Enter on a focused edge tab opens and collapses the edge like a click.
+  await edgeTab(page, "Nhật ký").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  assert.match((await layoutOf(page)).find((line) => line.startsWith("bottom")), /^bottom: /, "Enter opens the bottom edge");
+  // A low window keeps the workspace at least 200px high: the open bottom edge collapses.
+  await page.setViewportSize({ width: 1440, height: 400 });
+  await page.waitForTimeout(600);
+  assert.ok(await page.locator('.dv-groupview[data-edge=""]').first().evaluate((node) => node.getBoundingClientRect().height >= 199), "the workspace keeps 200px");
+  assert.match((await layoutOf(page)).find((line) => line.startsWith("bottom")), /^bottom\[thu\]/);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.waitForTimeout(400);
+  await edgeTab(page, "Nhật ký").focus();
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  await page.keyboard.press("Enter");
+  await page.waitForTimeout(300);
+  assert.match((await layoutOf(page)).find((line) => line.startsWith("bottom")), /^bottom\[thu\]/, "Enter on the open tab collapses it");
   await page.context().close();
 
   // R3 Gherkin: a 768px window starts with both side edges collapsed; opening the left then the right one collapses the left.
