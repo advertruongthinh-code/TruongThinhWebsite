@@ -37,6 +37,13 @@ test("the admin Worker serves only its custom domain, not workers.dev", () => {
   assert.match(admin, /^pattern = "cms\.truongthinhads\.vn"\ncustom_domain = true$/m);
 });
 
+// ADMIN_ORIGIN must name the routed host, or every admin write is refused "403 origin" (stale admin. host, 2026-11-28).
+test("ADMIN_ORIGIN matches the admin Worker's custom domain", () => {
+  const admin = read("wrangler.toml");
+  const host = admin.match(/^pattern = "([^"]+)"$/m)?.[1];
+  assert.equal(admin.match(/^ADMIN_ORIGIN = "([^"]+)"$/m)?.[1], `https://${host}`);
+});
+
 // force-trailing-slash serves /admin/status.html at /admin/status/, so a "./x.js" there resolves to /admin/status/x.js (503).
 test("admin sub-pages load scripts and links by absolute /admin/ paths", () => {
   assert.match(read("wrangler.toml"), /^html_handling = "force-trailing-slash"$/m);
