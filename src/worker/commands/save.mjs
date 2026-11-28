@@ -1,11 +1,14 @@
 // POST /api/admin/save (CMS plan P1, Q9, Q10; cms.md R4): optimistic version check, validation, one guarded batch.
-import { OPEN_TYPES, ID, SINGLETON_TYPES, fullErrors, recordName, recordSlugs, shapeErrors } from "../../cms/contract.mjs";
+import { OPEN_TYPES, ID, SINGLETON_TYPES, enMissing, fullErrors, recordName, recordSlugs, shapeErrors } from "../../cms/contract.mjs";
 import { materialize } from "../../cms/media-ref.mjs";
 import { cronStale, dispatchVariants, flushBuild, wantBuildStatement } from "../dispatch.mjs";
 import { auditStatement, HttpError, isPlainObject, json, readJson } from "../http.mjs";
 import { contentRevStatement, FIXED_TYPES, guard, isUniqueSlug, lastSlide, mediaUses, slugStatements, validationContext } from "../records.mjs";
 
 const MAX_DATA_CHARS = 512_000;
+
+// records.en_missing (migration 0002): list reads it instead of parsing every row.
+export const enFlag = (type, data) => (enMissing(type, data).length > 0 ? 1 : 0);
 
 // Statements 2 and 4 to 7 of save (also used by create): versions, record_media, variants, pending, live_version.
 export function writeStatements(env, { type, id, version, status, text, usesJson, now, actor, writeId, G }) {
@@ -26,7 +29,7 @@ export function writeStatements(env, { type, id, version, status, text, usesJson
 
 // Shape check, materialize, variant keys: shared by save and create.
 export async function prepare(env, type, id, data, target) {
-  const ctx = await validationContext(env, type, data);
+  const ctx = await validationContext(env, type, data, id);
   const shape = await shapeErrors(type, data, { ...ctx, id: SINGLETON_TYPES.includes(type) ? undefined : id });
   if (shape.length) throw new HttpError(400, { error: "shape", errors: shape }, target);
   const { data: next, uses } = await materialize(type, data, ctx.mediaById);
@@ -71,8 +74,8 @@ export default {
     let results;
     try {
       results = await env.DB.batch([
-        env.DB.prepare("UPDATE records SET version = ?, status = ?, data = ?, name = ?, slug_vi = ?, slug_en = ?, write_id = ?, updated_at = ?, updated_by = ? WHERE type = ? AND id = ? AND version = ? AND status != 'trashed'")
-          .bind(newVersion, status, text, recordName(type, prepared.next) || id, slugs.vi, slugs.en, writeId, now, actor.email, type, id, version),
+        env.DB.prepare("UPDATE records SET version = ?, status = ?, data = ?, name = ?, slug_vi = ?, slug_en = ?, en_missing = ?, write_id = ?, updated_at = ?, updated_by = ? WHERE type = ? AND id = ? AND version = ? AND status != 'trashed'")
+          .bind(newVersion, status, text, recordName(type, prepared.next) || id, slugs.vi, slugs.en, enFlag(type, prepared.next), writeId, now, actor.email, type, id, version),
         ...writeStatements(env, { type, id, version: newVersion, status, text, usesJson: prepared.usesJson, now, actor, writeId, G }),
         ...slugRows,
         contentRevStatement(env, G),

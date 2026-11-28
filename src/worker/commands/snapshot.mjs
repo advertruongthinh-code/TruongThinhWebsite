@@ -6,10 +6,12 @@ import { HttpError } from "../http.mjs";
 
 export const PAGE_SIZE = 40;
 const LIVE = "r.status = 'published' AND r.type != 'media' AND (r.pending = 0 OR r.live_version IS NOT NULL)";
-const PAGE_SQL = `SELECT CASE WHEN r.pending = 0 THEN r.data ELSE v.data END AS data
+// The data the site builds from: the latest version, or the live one while variants are pending. Also read by context.
+export const LIVE_DATA_SQL = `SELECT r.type AS type, CASE WHEN r.pending = 0 THEN r.data ELSE v.data END AS data
 FROM records r
 LEFT JOIN versions v ON v.type = r.type AND v.id = r.id AND v.version = r.live_version
-WHERE ${LIVE} AND r.type = ?
+WHERE ${LIVE}`;
+const PAGE_SQL = `${LIVE_DATA_SQL} AND r.type = ?
 ORDER BY r.position, r.id LIMIT ${PAGE_SIZE} OFFSET ?`;
 const TYPES_SQL = `SELECT r.type AS type, COUNT(*) AS n FROM records r WHERE ${LIVE} GROUP BY r.type ORDER BY r.type`;
 // Lets a reader tell that pages come from different moments. settings.content_rev is raised in the same batch as every

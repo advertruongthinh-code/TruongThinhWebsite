@@ -288,6 +288,11 @@ export function masonrySpacing(layoutViewportWidth) {
   return { outer, interCardGap };
 }
 
+// Portrait with every column used stacks image over info ("pinterest"); otherwise the image sits beside info ("split").
+export function detailLayoutMode(columns, layoutViewportWidth, viewportHeight) {
+  return columns <= 3 && layoutViewportWidth <= viewportHeight ? "pinterest" : "split";
+}
+
 export function computeDetailGeometry(options = {}) {
   if (!options || typeof options !== "object" || Array.isArray(options)) {
     throw new TypeError("Advertising photo geometry options must be an object");
@@ -320,13 +325,14 @@ export function computeDetailGeometry(options = {}) {
   const gridWidth = layoutViewportWidth - (2 * outer);
   const cardWidth = (gridWidth - interCardGap * (columns - 1)) / columns;
   const top = headerHeight + outer + safeTop;
-  // A two-column grid lets primary reach the screen bottom (owner 2026-11-23); wider grids leave a gap and 50px so related peeks below
-  // primary, even when primary spans every column (owner 2026-11-07).
-  const belowPeek = columns <= 2 ? 0 : 50;
   const span = Math.min(3, columns);
-  // Landscape keeps the image beside info; portrait with every column used stacks them.
-  const mode = span === columns && layoutViewportWidth <= viewportHeight ? "pinterest" : "split";
-  const heightCap = viewportHeight - top - (belowPeek && interCardGap + belowPeek) - safeBottom;
+  const mode = detailLayoutMode(columns, layoutViewportWidth, viewportHeight);
+  // Split leaves a gap and 50px so related peeks below primary (owner 2026-11-07); stacked primary keeps its image inside that cap and
+  // gives the room down to the screen bottom to a clipped description (owner 2026-11-23).
+  const belowPeek = mode === "pinterest" ? 0 : 50;
+  const availableHeight = viewportHeight - top - safeBottom;
+  const peekCap = availableHeight - interCardGap - 50;
+  const heightCap = belowPeek ? peekCap : availableHeight;
   if (gridWidth <= 0 || cardWidth <= 0 || heightCap <= 0) {
     throw new RangeError("Advertising photo geometry is physically impossible for the available viewport");
   }
@@ -353,18 +359,19 @@ export function computeDetailGeometry(options = {}) {
     height = Math.max(imageZoneHeight, minimumDescriptionHeight);
     descriptionHeight = height;
   } else {
-    const availableHeight = viewportHeight - top - safeBottom;
-    // Info takes up to 28% of the viewport; when the media is too short to fill the rest, a longer description takes that space
-    // too, so a scrolling description never leaves primary short of the height cap (owner 2026-11-22).
-    const descriptionCap = Math.min(Math.max(viewportHeight * 0.28 - internalGap, heightCap - internalGap - width / ratio),
-      heightCap - internalGap - 1);
-    descriptionHeight = measuredDescriptionHeight > 0
-      ? Math.min(measuredDescriptionHeight, descriptionCap)
-      : descriptionCap;
-    descriptionHeight = Math.max(descriptionHeight, minimumDescriptionHeight);
+    // Inside the peek cap info takes up to 28% of the viewport, or the room a short image leaves (owner 2026-11-22). A viewport too
+    // so short that the info floor passes 28% sizes the image from the full height instead.
+    const imageCap = minimumDescriptionHeight <= viewportHeight * 0.28 - internalGap
+      && peekCap - internalGap - minimumDescriptionHeight > minimumImageZoneHeight ? peekCap : heightCap;
+    const baseDescriptionCap = Math.min(Math.max(viewportHeight * 0.28 - internalGap, imageCap - internalGap - width / ratio),
+      imageCap - internalGap - 1);
+    const baseDescription = Math.max(minimumDescriptionHeight,
+      measuredDescriptionHeight > 0 ? Math.min(measuredDescriptionHeight, baseDescriptionCap) : baseDescriptionCap);
     imageZoneWidth = width;
-    imageZoneHeight = Math.max(minimumImageZoneHeight,
-      Math.min(width / ratio, heightCap - descriptionHeight - internalGap));
+    imageZoneHeight = Math.max(minimumImageZoneHeight, Math.min(width / ratio, imageCap - baseDescription - internalGap));
+    const descriptionRoom = heightCap - imageZoneHeight - internalGap;
+    descriptionHeight = Math.max(minimumDescriptionHeight,
+      measuredDescriptionHeight > 0 ? Math.min(measuredDescriptionHeight, descriptionRoom) : descriptionRoom);
     descriptionWidth = width;
     height = imageZoneHeight + descriptionHeight + internalGap;
   }

@@ -13,7 +13,7 @@ import snapshot from "../../src/worker/commands/snapshot.mjs";
 import { createD1 } from "../worker/d1-fake.mjs";
 
 const ROOT = fileURLToPath(new URL("../../", import.meta.url));
-const SCHEMA = path.join(ROOT, "src/db/migrations/0001_cms.sql");
+const SCHEMA = path.join(ROOT, "src/db/migrations");
 const NOW = "2026-11-22T00:00:00.000Z";
 const SEED = await seedSql({ now: NOW });
 const FORCED = await seedSql({ now: NOW, force: true });

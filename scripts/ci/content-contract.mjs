@@ -12,6 +12,7 @@ import { duplicatePageFields, validateBlockPage } from "../site/blocks.mjs";
 import { LINE_END_PUNCT } from "../../src/cms/inline-marks.mjs";
 import { PROJECT_TYPES, kindFieldErrors, menuErrors } from "../site/block-pages.mjs";
 import { ADVERTISING_CLUSTERS } from "../../src/site/advertising-products/taxonomy.mjs";
+import { isPlaceholder, mayShare } from "../../src/cms/rules.mjs";
 
 // Skip `$`: paths built in inline scripts (`${name}`) are not files.
 const CONTENT_PATH = /\/assets\/content\/[^"')\s?#$`]+/g;
@@ -32,14 +33,15 @@ const imageStem = (src) => src.replace(/\.(webp|avif|jxl|png|jpe?g)$/, "").repla
 // News and project images stay on their own pages (owner 2026-11-13: project photos only on project pages): an image of one
 // News article or project may appear in that page only (cover, card and blocks), and no other page, data file or style may
 // use it. Shared placeholders are exempt until the real photo lands.
+const OWNER = { news: "news", projects: "project" };
 function ownImageReuse(siteRoot, kind, pages, label) {
   const errors = [];
   const owner = new Map();
   for (const page of pages) {
     for (const src of imagesIn(JSON.stringify(page))) {
       const stem = imageStem(src);
-      if (path.basename(stem).startsWith("placeholder")) continue;
-      if (owner.has(stem) && owner.get(stem) !== page.id) errors.push(`content/${kind}.json:${page.id}: ${src}: ${label} image also used by ${label} ${owner.get(stem)}`);
+      if (isPlaceholder(stem)) continue;
+      if (owner.has(stem) && owner.get(stem) !== page.id && !mayShare(OWNER[kind], OWNER[kind])) errors.push(`content/${kind}.json:${page.id}: ${src}: ${label} image also used by ${label} ${owner.get(stem)}`);
       else owner.set(stem, page.id);
     }
   }
@@ -54,13 +56,13 @@ function ownImageReuse(siteRoot, kind, pages, label) {
     .filter((file) => file !== ownFile && !file.startsWith(assets) && !(external && file.startsWith(repoContent)));
   for (const file of files) {
     for (const src of imagesIn(readFileSync(file, "utf8"))) {
-      if (owner.has(imageStem(src))) errors.push(`${path.relative(siteRoot, file)}: ${src}: ${label} image (${owner.get(imageStem(src))}) reused outside ${label}`);
+      if (owner.has(imageStem(src)) && !mayShare(OWNER[kind], "other")) errors.push(`${path.relative(siteRoot, file)}: ${src}: ${label} image (${owner.get(imageStem(src))}) reused outside ${label}`);
     }
   }
   return errors;
 }
 
-// One photo, one page (owner 2026-11-16): a photo in a hand-written page may not appear in another hand-written page.
+// One photo, one page (owner 2026-11-16; the CMS checks the same rule on save, src/cms/rules.mjs): a photo in a hand-written page may not appear in another hand-written page.
 // Link cards (an <img> inside <a href>) point at the page that owns the photo, so they are exempt; so are logos (SVG or supplier-logos/) and placeholders.
 function pageImageReuse(siteRoot, files) {
   const errors = [];
@@ -70,10 +72,10 @@ function pageImageReuse(siteRoot, files) {
     const text = readFileSync(file, "utf8").replace(/<a\b[^>]*\shref=[^>]*>[\s\S]*?<\/a>/g, "");
     for (const tag of new Set(text.match(/<img\b[^>]*>/g) ?? [])) {
       const src = attribute(tag, "src");
-      if (!src?.startsWith("/assets/content/") || src.endsWith(".svg") || src.includes("/supplier-logos/") || path.basename(src).startsWith("placeholder")) continue;
+      if (!src?.startsWith("/assets/content/") || src.endsWith(".svg") || src.includes("/supplier-logos/") || isPlaceholder(src)) continue;
       const stem = imageStem(src);
       if (!owner.has(stem)) owner.set(stem, page);
-      else if (owner.get(stem) !== page) errors.push(`${page}: ${src}: photo also used on ${owner.get(stem)} (one photo, one page)`);
+      else if (owner.get(stem) !== page && !mayShare("page", "page")) errors.push(`${page}: ${src}: photo also used on ${owner.get(stem)} (one photo, one page)`);
     }
   }
   return errors;
