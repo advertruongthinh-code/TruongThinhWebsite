@@ -331,7 +331,7 @@
     // (owner 2026-11-28); the fill ends at the current year's node.
     let length = 0;
     const paintRail = () => {
-      fill.style.setProperty("--about-journey-progress", (length > 0 ? (centers[Math.max(target, 0)] - centers[0]) / length : 0).toFixed(3));
+      fill.style.setProperty("--about-journey-progress", (length > 0 ? (centers[Math.max(target, 0)] - centers[0]) / length : 0).toFixed(5));
     };
     const measure = () => {
       const y = pageY();
