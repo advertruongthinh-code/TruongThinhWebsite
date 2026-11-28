@@ -64,6 +64,7 @@ export function relayout(kind, page, layoutId, media) {
       const items = media.slice(next, next + Number(count));
       next += Number(count);
       for (const field of ["image", "images", "video"]) delete block[field];
+      if (type !== "media-single" && items.some((item) => item.video)) return { error: "video-slot" }; // only a single frame holds a video
       if (type === "media-single") Object.assign(block, items[0], { position: extra });
       else if (type === "media-pair" || type === "media-carousel") Object.assign(block, { images: items.map((item) => item.image) }, extra ? { layout: extra } : {});
       else block.image = items[0].image;

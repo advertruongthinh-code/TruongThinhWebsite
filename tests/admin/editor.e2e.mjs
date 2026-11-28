@@ -212,6 +212,14 @@ try {
   assert.equal(await page.textContent("#record-unsaved"), "", "undo takes the title edit back");
   await page.locator('[data-field="title"] input').first().fill("Tiêu đề thử E13");
 
+  // Markup in a bare field never reaches the same-origin preview: the old HTML stays and the note says why.
+  const previewBefore = await page.evaluate(() => window.TTPreview.html());
+  await page.locator('[data-field="slugVi"] input').fill('"><img src=x onerror=PWN>');
+  await page.locator(".preview__note", { hasText: "giữ bản cũ" }).waitFor();
+  assert.equal(await page.evaluate(() => window.TTPreview.html()), previewBefore);
+  await page.click("#undo");
+  await page.locator(".preview__note", { hasText: "giữ bản cũ" }).waitFor({ state: "hidden" });
+
   // R4 Gherkin: with 4 media the 6 to 11 layout is dimmed with its note; adding two opens it and the chain follows.
   await tabs("Layout").click();
   const six = page.locator(".layout", { hasText: "6 tới 11 ảnh" });

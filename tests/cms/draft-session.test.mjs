@@ -193,3 +193,88 @@ test("on a legacy page a media change blocks the save until a layout takes it", 
   assert.ok(session.fit(), "the blocks still hold the removed media");
   assert.equal((await session.save()).kind, "fit");
 });
+
+// A fake whose save waits for `release()`; the reloaded record shows version 5 after the save.
+const slowSave = () => {
+  let release;
+  const gate = new Promise((resolve) => { release = resolve; });
+  const calls = [];
+  const call = async (command) => {
+    calls.push(command);
+    if (command === "get") return { status: 200, error: null, data: structuredClone(record(page(), calls.includes("save") ? 5 : 4)) };
+    await gate;
+    return { status: 200, error: null, data: { version: 5, status: "published", missing: [], pending: 0 } };
+  };
+  return { call, calls, release: () => release() };
+};
+
+test("typing that merges into the last undo step while a save is out is kept as a draft", async () => {
+  const slow = slowSave();
+  const storage = memory();
+  const session = createSession({ call: slow.call, storage, now: () => 0 });
+  await session.open("news", "bai");
+  session.mutate((s) => { s.data.title.vi = "Ab"; }, { group: "title.vi" });
+  const saving = session.save();
+  session.mutate((s) => { s.data.title.vi = "Abc"; }, { group: "title.vi" }); // merged: no new undo step
+  slow.release();
+  await saving;
+  assert.equal(session.state.data.title.vi, "Abc");
+  assert.ok(session.state.changes > 0);
+  assert.equal(JSON.parse(storage.getItem(draftKey("news", "bai"))).data.title.vi, "Abc");
+});
+
+test("an undo while a save is out is kept as a draft, not overwritten by the reload", async () => {
+  const slow = slowSave();
+  const session = createSession({ call: slow.call, storage: memory() });
+  await session.open("news", "bai");
+  session.mutate((s) => { s.data.title.vi = "Một"; });
+  const saving = session.save();
+  session.undo();
+  slow.release();
+  await saving;
+  assert.equal(session.state.data.title.vi, "Bài");
+  assert.ok(session.state.changes > 0);
+});
+
+test("a second save while one is out is the same request, so it cannot conflict with itself", async () => {
+  const slow = slowSave();
+  const session = createSession({ call: slow.call, storage: memory() });
+  await session.open("news", "bai");
+  session.mutate((s) => { s.data.title.vi = "Một"; });
+  const first = session.save();
+  const second = session.save();
+  assert.equal(session.saving(), true);
+  slow.release();
+  assert.deepEqual(await second, await first);
+  assert.equal(slow.calls.filter((command) => command === "save").length, 1);
+  assert.equal(session.saving(), false);
+});
+
+test("Lấy bản mới without a connection keeps the draft and the dialog", async () => {
+  const state = { current: record(page(), 6) };
+  let offline = false;
+  const call = async (command) => (offline ? { status: 0, error: "offline", data: {} } : { status: 200, error: null, data: structuredClone(state.current) });
+  const storage = memory();
+  const draft = createSession({ call, storage });
+  await draft.open("news", "bai");
+  draft.mutate((s) => { s.data.title.vi = "Mới"; });
+  storage.setItem(draftKey("news", "bai"), JSON.stringify({ ...JSON.parse(storage.getItem(draftKey("news", "bai"))), baseVersion: 4 }));
+  const session = createSession({ call, storage });
+  await session.open("news", "bai");
+  assert.ok(session.state.conflict);
+  offline = true;
+  assert.ok((await session.resolve("take")).error);
+  assert.ok(session.state.conflict, "the dialog stays");
+  assert.equal(JSON.parse(storage.getItem(draftKey("news", "bai"))).data.title.vi, "Mới");
+});
+
+const item = (n) => ({ image: { mediaId: `m${n}`, crop: [0, 0, 1200, 800] } });
+test("a video the layout cannot place blocks the save and says so", async () => {
+  const api = fake({ current: record(page()) });
+  const { session } = await open(api);
+  session.setMedia([item(0), { video: { src: "/assets/content/v.mp4", poster: "/p.webp" } }, item(2)], "news-2-5");
+  assert.equal(session.fit(), "video-slot");
+  const result = await session.save();
+  assert.equal(result.kind, "fit");
+  assert.match(result.message, /video/i);
+});

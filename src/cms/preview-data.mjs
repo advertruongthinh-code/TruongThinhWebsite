@@ -14,6 +14,15 @@ export async function viewData(type, data, mediaById) {
   return (await materialize(type, data, mediaById)).data;
 }
 
+// Fields the build writes into attributes and URLs as they are (not escaped): a draft that holds markup characters there must not be
+// rendered into the same-origin preview iframe. Returns their paths; empty text is fine (a new draft), the Còn thiếu tab reports it.
+const BARE_FIELDS = new Set(["slugVi", "slugEn", "published", "group", "hrefVi", "hrefEn"]);
+const MARKUP = /["'<>&`\s]/;
+export function unsafeFields(node, path = "") {
+  if (node === null || typeof node !== "object") return [];
+  return Object.entries(node).flatMap(([key, value]) => (BARE_FIELDS.has(key) && typeof value === "string" && MARKUP.test(value) ? [`${path}${key}`] : unsafeFields(value, `${path}${key}.`)));
+}
+
 // An R2 variant is public only once the media origin serves it (E21) and its variant is ready: until then (or while it is still
 // being made) the preview shows the original through media-file; the crop rides in the URL fragment for the overlay to apply.
 // Mutates `data`. `ready`: set of ready variant keys. Without `mediaOrigin` every variant falls back.

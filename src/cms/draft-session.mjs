@@ -2,6 +2,7 @@
 // storage, save with the result table of R8. No DOM and no globals: `call` (the admin API) and `storage` (localStorage) come in, so
 // tests run it with fakes. Listeners hear "open", "change", "storage-full", "other-tab".
 import { isLegacy, mediaRefs } from "./media-ref.mjs";
+import { fitMessage } from "./errors-vi.mjs";
 import { fitCrops, kindOf, pageMedia, relayout, sameMedia } from "./page-model.mjs";
 
 export const DRAFT_PREFIX = "tt-cms-draft:";
@@ -41,6 +42,8 @@ export function createSession({ call, storage, now = Date.now }) {
   const undoStack = [];
   let lastGroup = null;
   let lastAt = 0;
+  let rev = 0; // bumped by every edit and undo, merged typing included: a save compares it to see what was typed while it was out
+  let inflight = null;
   // record: { type, id, status, version, pending, updatedBy, updatedAt, variants }; conflict: { current } of R8's 409 dialog.
   const s = { record: null, data: null, media: null, mediaById: new Map(), baseVersion: 0, changes: 0, conflict: null, storageFull: false };
   const key = () => draftKey(s.record.type, s.record.id);
@@ -114,6 +117,7 @@ export function createSession({ call, storage, now = Date.now }) {
       }
       lastGroup = group ?? null;
       lastAt = at;
+      rev += 1;
       persist();
       emit("change");
     },
@@ -122,6 +126,7 @@ export function createSession({ call, storage, now = Date.now }) {
       if (!previous) return false;
       Object.assign(s, previous);
       lastGroup = null;
+      rev += 1;
       persist();
       emit("change");
       return true;
@@ -146,7 +151,12 @@ export function createSession({ call, storage, now = Date.now }) {
     // A change from another tab of the same record (storage event): take its draft.
     otherTab() {
       const draft = loadDraft();
-      if (draft) restore(draft);
+      if (draft) {
+        restore(draft);
+        undoStack.length = 0; // the other tab's edits are not this tab's history
+        lastGroup = null;
+        rev += 1;
+      }
       emit("other-tab");
       emit("change");
     },
@@ -158,27 +168,37 @@ export function createSession({ call, storage, now = Date.now }) {
     async resolve(choice) {
       const { current } = s.conflict;
       if (choice === "take") {
-        s.changes = 0;
-        persist();
-        return this.open(s.record.type, s.record.id);
+        // The stored draft goes first (open would read it back); it comes back when the new version cannot be fetched.
+        const kept = storage.getItem(key());
+        storage.removeItem(key());
+        const result = await this.open(s.record.type, s.record.id);
+        if (result.error && kept !== null) storage.setItem(key(), kept);
+        return result;
       }
       s.baseVersion = current.version;
       s.conflict = null;
       persist();
       return this.save();
     },
-    // R8 table. Returns { kind, message, errors?, missing?, field? }; the draft stays unless the save went through.
-    async save() {
+    saving: () => inflight !== null,
+    // R8 table. Returns { kind, message, errors?, missing?, field? }; the draft stays unless the save went through. One save at a time:
+    // a second call gets the one that is out (it would send the same baseVersion and conflict with the first).
+    save() {
+      inflight ??= this.send().finally(() => { inflight = null; });
+      return inflight;
+    },
+    async send() {
       if (s.conflict) return { kind: "conflict", message: "" };
       const blocked = fit();
-      if (blocked) return { kind: "fit", message: "Số media chưa khớp layout. Chọn layout ở tab Layout." };
+      if (blocked) return { kind: "fit", message: fitMessage(blocked) };
       const { type, id } = s.record;
-      const sent = s.changes;
+      const sent = rev;
+      const sentChanges = s.changes;
       const result = await call("save", { body: { type, id, version: s.baseVersion, data: wireData(type, s.data) } });
       if (!result.error) {
         const { status, missing, pending } = result.data;
         // Edits typed while the request was out stay in a new draft on top of the saved version.
-        const later = s.changes > sent ? { data: s.data, media: s.media, changes: s.changes - sent, records: placedRecords() } : null;
+        const later = rev !== sent ? { data: s.data, media: s.media, changes: Math.max(1, s.changes - sentChanges), records: placedRecords() } : null;
         s.changes = 0;
         persist();
         await this.open(type, id);

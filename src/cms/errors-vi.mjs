@@ -46,3 +46,8 @@ export function explain(error) {
   const text = BY_CODE[error?.code]?.(error) ?? BY_TEXT.find(([pattern]) => pattern.test(message))?.[1] ?? `Chưa hợp lệ: ${message}`;
   return { text, block: block ? Number(block[1]) : null, field };
 }
+
+// Why the layout cannot hold the media list (relayout error code or "stale"), for the Save block and the Media tab.
+export const fitMessage = (code) => (code === "video-slot"
+  ? "Video chỉ đặt được ở khung một media. Đổi thứ tự hoặc layout để video vào khung đó."
+  : "Số media chưa khớp layout. Chọn layout ở tab Layout.");

@@ -54,7 +54,7 @@ function renderTop() {
   $("#record-status").dataset.status = record.status;
   $("#record-unsaved").textContent = changes > 0 ? `Chưa lưu · ${changes} thay đổi` : "";
   $("#undo").disabled = !session.canUndo();
-  $("#save").disabled = changes === 0;
+  $("#save").disabled = changes === 0 || session.saving();
   if (hasDraft(record.type, record.id) !== renderTop.had) {
     renderTop.had = hasDraft(record.type, record.id);
     state.dispatchEvent(new Event("draft"));
@@ -69,9 +69,10 @@ window.addEventListener("storage", (event) => {
 });
 $("#undo").addEventListener("click", () => session.undo());
 $("#save").addEventListener("click", async () => {
-  $("#save").disabled = true;
-  const result = await session.save();
-  if (result.kind === "conflict") return askConflict();
+  const saving = session.save();
+  renderTop(); // the button waits until this save is back
+  const result = await saving;
+  if (result.kind === "conflict") return renderTop(); // renderTop asks
   afterSave(result);
 });
 document.addEventListener("keydown", (event) => {
@@ -100,8 +101,9 @@ function askConflict() {
   const finish = async (choice) => {
     dialog.close();
     const result = await session.resolve(choice);
-    if (choice === "take") selectBlock(null);
-    else afterSave(result);
+    if (choice !== "take") afterSave(result);
+    else if (result.error) toast("Chưa lấy được bản mới. Nháp vẫn ở máy này, thử lại sau.");
+    else selectBlock(null);
     renderTop();
   };
   const dialog = h("dialog", { className: "conflict", onclose: () => dialog.remove() },

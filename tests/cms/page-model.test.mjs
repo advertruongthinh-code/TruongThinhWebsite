@@ -65,3 +65,10 @@ test("blockTexts lists every vi/en text of a block and skips images", () => {
 test("relayout answers an error, not a throw, for the legacy layout", () => {
   assert.equal(relayout("news", { blocks: [] }, "legacy", []).error, "layout-unknown");
 });
+
+test("a video outside a single-media frame is an error, never dropped", () => {
+  const video = { video: { src: "/assets/content/v.mp4", poster: "/p.webp" } };
+  assert.equal(relayout("news", { blocks: [] }, "news-2-5", [video, item(1), item(2)]).error, undefined, "a video in the first single frame is fine");
+  const inPair = relayout("news", { blocks: [] }, "news-2-5", [item(0), video, item(2), item(3), item(4)]);
+  assert.equal(inPair.error, "video-slot");
+});

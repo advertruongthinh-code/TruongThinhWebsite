@@ -2,11 +2,11 @@
 // six widths. The HTML comes from the build's own pure modules (src/cms/preview-data.mjs); the iframe shell /admin/preview.html writes it.
 import { h } from "../dom.js";
 import { session } from "../drafts.js";
-import { loadContact, loadContext, loadFrame, loadHeadInline, loadRepoFiles } from "../site-context.js";
+import { loadContact, loadContext, loadFrame, loadHeadInline, loadRepoFiles, validationContext } from "../site-context.js";
 import { selectBlock, state } from "../state.js";
-import { enMissing } from "../lib/src/cms/contract.mjs";
+import { enMissing, shapeErrors } from "../lib/src/cms/contract.mjs";
 import { kindOf } from "../lib/src/cms/page-model.mjs";
-import { previewContext, previewPath, renderPreview, viewData } from "../lib/src/cms/preview-data.mjs";
+import { previewContext, previewPath, renderPreview, unsafeFields, viewData } from "../lib/src/cms/preview-data.mjs";
 import { KINDS } from "../lib/scripts/site/block-pages.mjs";
 
 const WIDTHS = [384, 768, 1024, 1280, 1440, 1920];
@@ -99,6 +99,11 @@ export function mountPreview(root) {
     try {
       const [news, contact, files, headInline] = await Promise.all([loadContext(), loadContact(), loadRepoFiles(), loadHeadInline()]);
       const view = await viewData(record.type, data, mediaById);
+      // A draft with a shape error or markup in a bare field is not rendered: the iframe is same-origin, the old preview stays.
+      if (unsafeFields(view).length || (await shapeErrors(record.type, view, await validationContext(record, mediaById))).length) {
+        if (mine !== token) return;
+        return say("Xem trước giữ bản cũ vì bài có chỗ chưa hợp lệ. Xem tab Còn thiếu.");
+      }
       const frameHtml = await loadFrame(KINDS[kindOf(record.type)].frame(view));
       const context = previewContext(news, contact, record.type, view, { editor: true });
       const result = renderPreview(record.type, frameHtml, view, context, { locale: prefs.locale, finish: { hasFile: (url) => files.has(url), mediaOrigin: "", headInline } });

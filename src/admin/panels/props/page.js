@@ -3,18 +3,16 @@
 import { call } from "../../api.js";
 import { h } from "../../dom.js";
 import { session } from "../../drafts.js";
-import { loadContext } from "../../site-context.js";
+import { validationContext } from "../../site-context.js";
 import { selectBlock, state } from "../../state.js";
-import { IMAGE_SRC, imageFieldErrors } from "../../lib/scripts/site/lib-pure.mjs";
 import { NEWS_GROUPS } from "../../lib/scripts/site/blocks.mjs";
 import { PROJECT_TYPES, SECTOR_LABEL } from "../../lib/scripts/site/block-pages.mjs";
 import { fullErrors, shapeErrors } from "../../lib/src/cms/contract.mjs";
-import { explain } from "../../lib/src/cms/errors-vi.mjs";
+import { explain, fitMessage } from "../../lib/src/cms/errors-vi.mjs";
 import { LAYOUTS, expandLayout } from "../../lib/src/cms/layouts.mjs";
 import { blockTexts, fitCrops, kindOf, layoutChoices, pageMedia, relayout } from "../../lib/src/cms/page-model.mjs";
 import { viewData } from "../../lib/src/cms/preview-data.mjs";
 
-const VARIANT_SRC = /^\/v\/[0-9a-f]{32}\/[a-z0-9-]+\.webp$/;
 const TABS = [["info", "Thông tin"], ["media", "Media của bài"], ["layout", "Layout"], ["missing", "Còn thiếu"]];
 const BLOCK_NAMES = { paragraph: "Đoạn chữ", "section-title": "Tiêu đề phần", quote: "Trích dẫn", "facts-grid": "Bảng thông tin", "hero-project": "Đầu bài", "contact-quick": "Liên hệ nhanh", "cta-arrow": "Nút kêu gọi", "media-text": "Ảnh và chữ" };
 
@@ -131,7 +129,7 @@ export function mountPageProps(root) {
       className: "media-row", draggable: true,
       ondragstart: (event) => event.dataTransfer.setData("text/plain", String(index)),
       ondragover: (event) => event.preventDefault(),
-      ondrop: (event) => { event.preventDefault(); moveFrom(Number(event.dataTransfer.getData("text/plain")), index); },
+      ondrop: (event) => { event.preventDefault(); const from = Number(event.dataTransfer.getData("text/plain")); if (Number.isInteger(from) && from >= 0 && from < list.length) moveFrom(from, index); },
     }, h("span", { className: "media-row__n" }, String(index + 1)),
     item.video ? h("span", { className: "media-row__thumb" }, "Video") : h("img", { className: "media-row__thumb", src: thumb(image), alt: "", loading: "lazy" }),
     h("span", { className: "media-row__name" }, item.video ? "Video" : labelOf(image)),
@@ -166,7 +164,7 @@ export function mountPageProps(root) {
     const host = h("div", {}, pickerOpen && picker(pick));
     return [
       h("p", { className: "meta" }, `${list.length} media`),
-      fit && h("p", { className: "warn" }, "Số media chưa khớp layout. Chọn layout ở tab Layout."),
+      fit && h("p", { className: "warn" }, fitMessage(fit)),
       h("ol", { className: "media-list" }, ...list.map((item, index) => mediaRow(item, index, list))),
       h("button", { type: "button", className: "group__create", onclick: () => { pickerOpen = !pickerOpen; host.replaceChildren(...(pickerOpen ? [picker(pick)] : [])); } }, pickerOpen ? "Xong" : "Thêm media"),
       host,
@@ -212,16 +210,9 @@ export function mountPageProps(root) {
     else {
       tab = "info";
       render();
-      root.querySelector(`[data-field="${field}"] :is(input, select, textarea)`)?.focus();
+      root.querySelector(`[data-field="${CSS.escape(field)}"] :is(input, select, textarea)`)?.focus();
     }
   }
-
-  const common = async () => {
-    const context = await loadContext();
-    const byId = (rows) => new Map(rows.map((entry) => [entry.id, entry]));
-    return { id: s.record.id, mediaById: s.mediaById, projects: byId(context.projects), news: byId(context.news), usage: new Map(),
-      checkImage: async (image, where) => imageFieldErrors(image, where, (src) => IMAGE_SRC.test(src) || VARIANT_SRC.test(src)) };
-  };
 
   // shapeErrors and fullErrors in the browser after each change (R4); server answers (400) go through showErrors.
   async function validate() {
@@ -229,7 +220,7 @@ export function mountPageProps(root) {
     try {
       const { record, data } = s;
       const view = await viewData(record.type, data, s.mediaById);
-      const ctx = await common();
+      const ctx = await validationContext(s.record, s.mediaById);
       const errors = [...await shapeErrors(record.type, view, ctx), ...await fullErrors(record.type, view, ctx)];
       if (mine === validating) showErrors(errors);
     } catch {
