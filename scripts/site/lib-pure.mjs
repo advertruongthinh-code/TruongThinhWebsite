@@ -40,4 +40,6 @@ export const pageName = ({ titleVi, titleEn }) => ({ vi: titleVi.replace(/ — T
 export const pageNameHeading = ({ vi, en }) => `<h1 class="sr-only" data-en="${escapeHtml(en)}">${escapeHtml(vi)}</h1>`;
 // Public URL prefix per locale (owner 2026-11-22): Vietnamese pages live at the root, English under /en; old /vi/ URLs 301 to the root.
 export const localePrefix = (locale) => (locale === "en" ? "/en" : "");
+// Route of one Advertising card page (build and the editor's staging links).
+export const cardHref = (locale, card) => `${localePrefix(locale)}/advertising-products/p/${card.id}/`;
 export const routeLocale = (pathname) => (/^\/en(?:\/|$)/.test(pathname) ? "en" : "vi");

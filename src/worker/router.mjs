@@ -25,6 +25,7 @@ import snapshot from "./commands/snapshot.mjs";
 import trash from "./commands/trash.mjs";
 import updateMedia from "./commands/update-media.mjs";
 import uploadMedia from "./commands/upload-media.mjs";
+import whoami from "./commands/whoami.mjs";
 
 // { method, owner?, service?, upload?, run(request, env, ctx, actor, url) }; later tasks add commands here.
 export const COMMANDS = {
@@ -52,6 +53,7 @@ export const COMMANDS = {
   trash,
   "update-media": updateMedia,
   "upload-media": uploadMedia,
+  whoami,
 };
 
 export async function route(request, env, ctx) {
@@ -70,7 +72,7 @@ export async function route(request, env, ctx) {
       return json({ error: result }, status);
     };
     if (handler.method !== "GET") {
-      if (!hasAllowedOrigin(request, url)) return refuse(403, "403 origin");
+      if (!hasAllowedOrigin(request, url, env)) return refuse(403, "403 origin");
       if (!handler.upload && !(request.headers.get("Content-Type") ?? "").startsWith("application/json")) return refuse(415, "415");
       if (!(await env.ADMIN_WRITE_LIMIT.limit({ key: actor.email })).success) return refuse(429, "429");
       if (handler.upload && !(await env.ADMIN_UPLOAD_LIMIT.limit({ key: actor.email })).success) return refuse(429, "429");

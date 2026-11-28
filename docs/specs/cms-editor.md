@@ -5,10 +5,11 @@ source:
   - src/admin/**
   - scripts/cms/**
 tests:
-  - tests/admin/cms-core.test.mjs
+  - tests/admin/slug.test.mjs
   - tests/admin/editor.e2e.mjs
+  - tests/tooling/admin-output.test.mjs
 notion: https://app.notion.com/p/420332849a0e81ffb9e4e85372f1a0f7
-updated: 2026-11-23
+updated: 2026-11-28
 ---
 
 # CMS editor
@@ -19,7 +20,7 @@ Giao diện `/admin/` để owner và nhân viên tạo, sửa, xóa mọi nội
 
 Ý định owner (2026-10-31): nhân viên dùng nhiều nhất, chỉ trên máy tính. Thêm về sau: giao diện phải trực quan, sửa ngay trên bản xem trước, bấm chữ để sửa, bấm khung ảnh để kéo và phóng (owner 2026-11-15); lưu là lên staging ngay, thấy ổn thì bấm "Phát hành" để lên site chính (owner 2026-11-22).
 
-Trạng thái (2026-11-22): code `src/admin/` hiện có là bản chạy local theo contract cũ (khóa `t<n>` theo thứ tự nguồn, bảng `page_edits`, `PUT /api/admin/content`). Dock, overlay chọn chỗ, sửa chữ tại chỗ, kéo thả media giữ lại; đường lưu, khóa và nguồn dữ liệu viết lại theo spec này ở phần 2 của plan CMS. Cho tới khi task đó merge, test trong frontmatter kiểm code cũ. Đường lưu `PUT /api/admin/content/<page>` và bảng `page_edits` đã gỡ (S2); đường lưu mới theo [CMS R5](cms.md), nên editor cũ hiện "Chưa nối lưu trữ".
+Trạng thái (2026-11-28, E12): khung R1 và panel Nội dung R2 chạy trên dữ liệu thật (`whoami`, `list`, `get`, `create`, `reorder`). Panel Xem trước, Thuộc tính, Media, Nháp đã có chỗ trong bố cục mặc định nhưng còn trống tới E13 tới E16; editor cũ theo contract `t<n>` đã gỡ (giữ `dock-tools.js`, `overlay.js` cho E13). Trong panel Nội dung, nhóm Trang chuẩn hiện bốn bản ghi `page-copy`; slide hero, dự án trang chủ và logo của trang mở qua trang đó ở E17.
 
 Trang tạm (2026-11-23, owner cần CRUD trước editor E12): `/admin/records.html` liệt kê bản ghi theo kiểu và trạng thái, sửa `data` dạng JSON rồi gọi `save`, `create`, `trash`, `restore`, `purge`, xem `audit-log`; `/admin/status.html` là trang vận hành của plan P1 (in `build-status`, nút "Lưu thử" đo CPU). Hai trang không dùng Design System, bị editor E12 tới E19 thay.
 
@@ -215,7 +216,7 @@ Then bài lên version 6 với nội dung của nhân viên, nhật ký có đ�
 
 ### R9. Dựng admin, chạy local và CI
 
-`scripts/cms/build-admin.mjs` ghi thư mục admin cho Worker admin phục vụ dưới `/admin/`: file của `src/admin/`, Dockview, các module thuần dùng chung (`src/cms/`, `renderBlockPage`, `fillSlots`, `inlineMarks`, dựng card) dưới dạng module trình duyệt, HTML đã dựng của bốn trang chuẩn và `advertising.html`, cùng CSS, JS của site. Route public không đổi và không có file admin. `pnpm cms:dev` dựng site, dựng admin rồi chạy Worker admin local với D1 local đã seed, mở `http://127.0.0.1:8788/admin/`. Bộ `fast` chạy test đơn vị của các module thuần và e2e của editor trên Worker local.
+`scripts/cms/build-admin.mjs` ghi thư mục `.admin-output/` cho Worker admin (`wrangler.toml` `[assets]`): bản chép đủ `.site-output` trừ `sw.js` (để preview tải CSS, JS, ảnh của site ở đúng URL gốc), cộng `admin/` gồm file của `src/admin/`, Dockview (`admin/vendor/dockview/`), các module thuần dùng chung dưới `admin/lib/` giữ đường dẫn tương đối (danh sách tính bằng cách đi theo `import` tĩnh từ `src/cms/*.mjs` và các module dựng trang; gặp import không tương đối thì build dừng), trang vỏ rỗng `admin/preview.html` cho iframe và `admin/repo-files.json` (file nội dung có trong repo). Route public không đổi và không có file admin. `pnpm cms:dev` dựng site, dựng admin rồi chạy Worker admin local với D1 local đã seed, mở `http://127.0.0.1:8788/admin/`. Bộ `fast` chạy test đơn vị của các module thuần và e2e của editor trên Worker local.
 
 ```gherkin
 Given pnpm cms:dev đang chạy
@@ -242,12 +243,13 @@ Admin không thuộc Design System ([CMS UI](cms.md#ui)): nền sáng trung tín
 
 | R | Test hoặc command |
 | --- | --- |
-| R1, R2, R8 | cần: e2e mở editor, tạo bài, lọc, lưu, xung đột 409 trên Worker local |
+| R8 | cần: e2e lưu, xung đột 409 trên Worker local |
 | R3 | cần: HTML preview bằng HTML build trên fixture mọi khối, bốn trang chuẩn và card |
 | R4 | cần: e2e khóa layout theo số media; đơn vị `assignMedia` đã có ở phần 1 |
 | R5 | cần: đơn vị `inlineMarks` (từng dấu, thoát HTML, dán chữ thuần) |
 | R6, R7 | cần: đơn vị `fillSlots`; test mọi `data-slot` duy nhất trong trang; e2e luật 6 mục menu và ảnh hero cuối |
-| R9 | cần: output public không có file admin |
+| R1, R2 | `tests/admin/editor.e2e.mjs` (Worker local, D1 seed): bố cục mặc định, menu Bảng theo vai, lọc Thiếu EN, tìm bỏ dấu, tạo bài và 409, kéo thả rồi tải lại, menu chuột phải, 403, phiên hết hạn, cửa sổ 900px; `tests/admin/slug.test.mjs` |
+| R9 | `tests/tooling/admin-output.test.mjs` (output public không có admin; `admin/lib` chỉ có module thuần; không `sw.js`) |
 
 ## Gate còn mở
 

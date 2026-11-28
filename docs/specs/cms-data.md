@@ -204,7 +204,7 @@ Then lần dựng đó dùng code của commit X với nội dung mới
 | `retry-variant` | `{ key }` của một biến thể `error` | 202, biến thể về `pending` |
 | `resume-publish`, `rebuild` | `{}` | 200, 202 |
 | `list`, `get`, `media-list`, `account-list`, `audit-log`, `build-status` | query | 200; `get` kèm `variants` (`key`, `status`, `error` của từng biến thể bản ghi đang dùng); `build-status` kèm `held`, `releases` (10 dấu phát hành), `releaseRuns` |
-| `whoami`, `context`, `release-changes` | không | 200: `{ email, role }` của người gọi; `data` của mọi News và công trình `published` cho preview; thay đổi kể từ lần phát hành trước |
+| `whoami`, `context`, `release-changes` | không | 200: `{ email, role, stagingOrigin }` của người gọi (`stagingOrigin` từ biến `STAGING_ORIGIN_PUBLIC`, cho link "Mở trên staging"); `data` của mọi News và công trình `published` cho preview; thay đổi kể từ lần phát hành trước |
 | `media-file` | `?id=` | Byte bản gốc cho người đã đăng nhập, dùng cho xem trước; kèm `nosniff` và CSP `sandbox` |
 | `snapshot`, `media-original` | chỉ service token | R2; byte bản gốc kèm `X-Hash` |
 
@@ -214,7 +214,7 @@ lệnh thành công nằm trong cùng `batch` với câu ghi dữ liệu; lệnh
 vai trò hoặc lỗi 4xx cũng có một dòng. `upload-media` có thêm hạn mức 20 lần mỗi 60 giây. Lệnh xóa giữ luật cả bộ:
 `home-projects` còn từ 3 công trình, mỗi trang còn ít nhất một slide hero `published`. Khóa tài khoản ghi D1 trước rồi
 mới gỡ khỏi chính sách Access. `list` nhận `status=trashed` và trả `enMissing` từ cột `records.en_missing` (Worker tính
-lúc lưu), `variantError`, và với bản ghi trong thùng rác thì `trashedBy`, `trashedAt` (`trash` ghi `updated_by`,
+lúc lưu), `variantError`, `slugVi` khi có, `published` (ngày đăng của News) và `product` (sản phẩm chính của card Advertising) cho panel Nội dung của editor, và với bản ghi trong thùng rác thì `trashedBy`, `trashedAt` (`trash` ghi `updated_by`,
 `trashed_at`, nên không cần đọc nhật ký); `audit-log` lọc theo `email`, `command`. `reorder` ghi mọi `position` bằng một câu
 `UPDATE` (nguyên tử, không giới hạn số câu của D1; câu đó kiểm lại tập id nên tập đổi giữa lúc đọc và ghi thì 409, không ghi
 gì), không tăng `version`; khi tập có bản ghi `published` thì đặt `build_wanted` và ghi `settings.last_save_at` để

@@ -22,7 +22,7 @@ import { buildProjectArtifact, projectListPages, projectListSource, renderProjec
 import { renderBlocks } from "./blocks.mjs";
 import { tieOrphans } from "./tie-orphans.mjs";
 import { htmlElements } from "./html-elements.mjs";
-import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, collectionLd, escapeHtml, pageName, pageNameHeading, localePrefix, phonePacksScript, projectRoot, readJson, routeLocale, siteRoot as sourceRoot } from "./lib.mjs";
+import { PUBLIC_ORIGIN, alternateLinks, breadcrumbLd, cardHref, collectionLd, escapeHtml, pageName, pageNameHeading, localePrefix, phonePacksScript, projectRoot, readJson, routeLocale, siteRoot as sourceRoot } from "./lib.mjs";
 import { ROUTES, localeHtml } from "../tooling/serve-static-parity.mjs";
 
 // TT_SITE_OUT lets a test build into a temp dir instead of the shared .site-output.
@@ -267,7 +267,6 @@ for (const page of ADVERTISING_PAGES) {
 // Card page (media-seo R1, R2, R4, R6): the root page template carrying the name, description, all card media in HTML (AI bots do not
 // run JS), JSON-LD and absolute URLs on the real domain so Google Images and AI bots lead back to the right card. The script right after the
 // static block hides it when JS is on because the runtime builds detail with the same content by path.
-const cardHref = (locale, card) => `${localePrefix(locale)}/advertising-products/p/${card.id}/`;
 const cardUrl = (locale, card) => `${PUBLIC_ORIGIN}${cardHref(locale, card)}`;
 const coverOf = (card) => card.mediaItems.find(({ id }) => id === card.coverMediaId) ?? card.mediaItems[0];
 const mediaImage = (item) => (item.kind === "video" ? item.posterSrc : item.src);

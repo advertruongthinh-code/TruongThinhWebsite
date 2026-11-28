@@ -5,7 +5,7 @@ main = "../../src/worker/index.js"
 compatibility_date = "2026-07-31"
 
 [assets]
-directory = "../../.site-output"
+directory = "../../.admin-output"
 binding = "ASSETS"
 html_handling = "force-trailing-slash"
 not_found_handling = "404-page"
@@ -38,3 +38,4 @@ simple = { limit = 20, period = 60 }
 [vars]
 # Dev admin login: the Worker accepts it only when the host is loopback (R5).
 CMS_LOCAL_ADMIN_EMAIL = "admin@localhost"
+STAGING_ORIGIN_PUBLIC = "https://staging.truongthinhads.vn"
