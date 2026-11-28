@@ -12,6 +12,10 @@ const schemaSql = (target) => (statSync(target).isDirectory()
 
 const isSelect = (sql) => /^\s*(with|select)\b/i.test(sql);
 const isReturning = (sql) => /\breturning\b/i.test(sql);
+// Real D1 rejects a compound SELECT with more than 5 terms ("too many terms in compound SELECT"); node:sqlite allows 500.
+// Counted over the whole statement (stricter than per compound) so a query that only passes here never reaches workerd.
+export const D1_MAX_COMPOUND_TERMS = 5;
+const compoundTerms = (sql) => (sql.match(/\b(union|intersect|except)\b/gi) ?? []).length + 1;
 
 export function createD1(sqlFile, { afterSelect } = {}) {
   const db = new DatabaseSync(":memory:");
@@ -21,6 +25,7 @@ export function createD1(sqlFile, { afterSelect } = {}) {
   const plain = (row) => (row ? { ...row } : null);
 
   const execute = (sql, args) => {
+    if (compoundTerms(sql) > D1_MAX_COMPOUND_TERMS) throw new Error(`D1_ERROR: too many terms in compound SELECT: ${sql}`);
     const statement = db.prepare(sql);
     if (isSelect(sql)) return { success: true, results: statement.all(...args).map(plain), meta: { changes: 0 } };
     // A write with RETURNING gives its rows like D1 does.
